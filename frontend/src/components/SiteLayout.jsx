@@ -7,6 +7,7 @@ import ProductShowcase from './sections/ProductShowcase.jsx';
 import MetricsBar from './sections/MetricsBar.jsx';
 import FAQAccordion from './sections/FAQAccordion.jsx';
 import TestimonialHighlight from './sections/TestimonialHighlight.jsx';
+import ServicesShowcase from './sections/ServicesShowcase.jsx';
 import FooterSection from './sections/FooterSection.jsx';
 import LoadingOverlay from './shared/LoadingOverlay.jsx';
 import NavigationBar from './shared/NavigationBar.jsx';
@@ -19,6 +20,8 @@ const SiteLayout = () => {
       <HeroSection />
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
         <Stack spacing={{ xs: 8, md: 12 }}>
+          <ServicesShowcase />
+          <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
           <AdvantageGrid />
           <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
           <DifferentiatorPanels />
