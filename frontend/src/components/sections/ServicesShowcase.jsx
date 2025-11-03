@@ -21,25 +21,14 @@ const ServicesShowcase = () => {
   const capabilityCount = activeService.capabilities.length;
 
   return (
+    
     <Stack spacing={4} id="services">
       <Stack spacing={1.5} alignItems="flex-start">
-        <Chip
-          label={eyebrow}
-          sx={{
-            bgcolor: alpha('#67e8f9', 0.12),
-            color: 'secondary.light',
-            fontWeight: 600,
-            letterSpacing: 1,
-            textTransform: 'uppercase',
-            borderRadius: 2
-          }}
-        />
+       
         <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 44 }, lineHeight: 1.1 }}>
           {heading}
         </Typography>
-        <Typography variant="body1" sx={{ color: alpha('#ffffff', 0.7), maxWidth: 640 }}>
-          {description}
-        </Typography>
+       
       </Stack>
 
       <Grid container spacing={4} alignItems="stretch">
@@ -48,14 +37,14 @@ const ServicesShowcase = () => {
             {services.map((service, index) => {
               const active = index === activeIndex;
               return (
-                <Grid item xs={12} sm={6} key={service.title}>
+                <Grid item xs={12} sm={4} key={service.title}>
                   <ButtonBase
                     onClick={() => setActiveIndex(index)}
                     sx={{
                       position: 'relative',
                       width: '100%',
-                      height: { xs: 180, sm: 200 },
-                      borderRadius: 3,
+                      height:240,
+                      borderRadius: 0.8,
                       overflow: 'hidden',
                       textAlign: 'left',
                       border: active
@@ -86,22 +75,11 @@ const ServicesShowcase = () => {
                         background: 'linear-gradient(180deg, rgba(5,9,18,0.1) 10%, rgba(5,9,18,0.75) 85%)'
                       }}
                     />
-                    <Stack spacing={1} sx={{ position: 'relative', p: 3, height: '100%', justifyContent: 'flex-end' }}>
+                    <Stack spacing={1} sx={{ position: 'relative', p: 2, height: '100%', justifyContent: 'flex-end' }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                         {service.title}
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: alpha('#ffffff', 0.75),
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {service.blurb}
-                      </Typography>
+                     
                     </Stack>
                   </ButtonBase>
                 </Grid>
@@ -116,35 +94,15 @@ const ServicesShowcase = () => {
               position: 'relative',
               overflow: 'hidden',
               height: '100%',
-              borderRadius: { xs: 3, md: 4 },
+            
               p: { xs: 3, md: 5 },
-              backgroundColor: alpha('#050912', 0.9),
-              border: '1px solid rgba(103, 232, 249, 0.25)'
+            
             }}
           >
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                backgroundImage: `url(${activeService.image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                opacity: 0.28,
-                filter: 'blur(4px)'
-              }}
-            />
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(145deg, rgba(103,232,249,0.18), rgba(5,9,18,0.92) 65%)'
-              }}
-            />
+   
             <Stack spacing={3} sx={{ position: 'relative' }}>
               <Stack spacing={1}>
-                <Typography variant="overline" sx={{ letterSpacing: 3, color: alpha('#ffffff', 0.6) }}>
-                  {capabilityCount.toString().padStart(2, '0')} Capabilities
-                </Typography>
+              
                 <Typography variant="h4" sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 700 }}>
                   {activeService.title}
                 </Typography>

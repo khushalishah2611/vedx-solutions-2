@@ -211,19 +211,16 @@ const NavigationBar = () => {
       }}
     >
       <Container maxWidth="lg">
-        <Toolbar disableGutters sx={{ minHeight: { xs: 72, md: 88 }, justifyContent: 'space-between' }}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
+        <Toolbar disableGutters sx={{ minHeight: { xs: 50, md: 80 }, justifyContent: 'space-between' }}>
+       
             <Box
               component="img"
-              src="https://dummyimage.com/120x36/101629/67e8f9&text=VedX"
+              src="https://media.designrush.com/agencies/839770/conversions/Vedx-Solutions-logo-profile.jpg"
               alt="VedX Solutions logo"
-              sx={{ height: 36, width: 'auto', borderRadius: 1.5 }}
+              sx={{ height: 60, width: 'auto',  }}
             />
-            <Typography variant="caption" sx={{ letterSpacing: 1.5, color: 'text.secondary' }}>
-              Hub of Tech
-            </Typography>
-          </Stack>
-
+  
+       
           {!isMobile && (
             <Stack direction="row" spacing={3} alignItems="center">
               {navigationLinks.map((item) => {
@@ -300,7 +297,7 @@ const NavigationBar = () => {
           }
         }}
       >
-        <Box sx={{ width: 320, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Box sx={{ width: "auto", display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 3 }}>
             <Typography variant="subtitle1">VedX Solutions</Typography>
             <IconButton onClick={toggleDrawer(false)} color="inherit">
@@ -348,7 +345,7 @@ const NavigationBar = () => {
               );
             })}
           </List>
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: 2 }}>
             <Button fullWidth variant="contained" color="secondary" href="#contact">
               Hire Now
             </Button>

@@ -189,59 +189,34 @@ const HeroSection = () => {
               ))}
             </Stack>
 
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <IconButton
-                color="inherit"
-                onClick={handlePrev}
-                aria-label="View previous slide"
-                sx={{ border: '1px solid rgba(255,255,255,0.3)' }}
-              >
-                <NavigateBeforeRoundedIcon />
-              </IconButton>
-              <Stack direction="row" spacing={1}>
-                {slides.map((slide, index) => {
-                  const active = index === activeSlide;
-                  return (
-                    <ButtonBase
-                      key={slide.title}
-                      onClick={() => handleSelectSlide(index)}
-                      sx={{
-                        px: 1.5,
-                        py: 1,
-                        borderRadius: 2,
-                        transition: 'all 0.3s ease',
-                        color: active ? 'secondary.light' : alpha('#ffffff', 0.65),
-                        backgroundColor: active ? alpha('#67e8f9', 0.18) : 'transparent',
-                        border: active ? '1px solid rgba(103, 232, 249, 0.6)' : '1px solid transparent'
-                      }}
-                    >
-                      <Stack spacing={0.5} alignItems="flex-start">
-                        <Typography variant="caption" sx={{ letterSpacing: 1.5, fontWeight: 600 }}>
-                          {`${index + 1}`.padStart(2, '0')}
-                        </Typography>
-                        <Box
-                          sx={{
-                            height: 3,
-                            width: 40,
-                            borderRadius: 999,
-                            backgroundColor: active ? 'secondary.main' : alpha('#ffffff', 0.24)
-                          }}
-                        />
-                      </Stack>
-                    </ButtonBase>
-                  );
-                })}
-              </Stack>
-              <IconButton
-                color="inherit"
-                onClick={handleNext}
-                aria-label="View next slide"
-                sx={{ border: '1px solid rgba(255,255,255,0.3)' }}
-              >
-                <NavigateNextRoundedIcon />
-              </IconButton>
-            </Stack>
+           
           </Stack>
+
+          <Stack
+  direction="row"
+  justifyContent="center"
+  alignItems="center"
+  spacing={1.2}
+  sx={{ pt: 4 }}
+>
+  {slides.map((slide, index) => {
+    const active = index === activeSlide;
+    return (
+      <ButtonBase
+        key={slide.title}
+        onClick={() => handleSelectSlide(index)}
+        sx={{
+          width: active ? 14 : 10,
+          height: active ? 14 : 10,
+          borderRadius: '50%',
+          backgroundColor: active ? 'secondary.main' : alpha('#ffffff', 0.4),
+          transition: 'all 0.3s ease',
+        }}
+      />
+    );
+  })}
+         </Stack>
+
         </Stack>
       </Container>
     </Box>

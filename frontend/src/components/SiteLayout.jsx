@@ -18,8 +18,8 @@ const SiteLayout = () => {
       <NavigationBar />
       <LoadingOverlay />
       <HeroSection />
-      <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
-        <Stack spacing={{ xs: 8, md: 12 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
+        <Stack spacing={{ xs: 4, md: 6 }}>
           <ServicesShowcase />
           <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
           <AdvantageGrid />
