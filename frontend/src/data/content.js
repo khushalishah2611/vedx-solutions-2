@@ -1,16 +1,51 @@
 export const heroContent = {
-  eyebrow: 'VEDX Solutions',
-  title: 'Unlock new growth with precision performance marketing',
-  description:
-    'A full-stack growth partner that unites strategy, creative, automation, and analytics to deliver category-leading ROI.',
-  ctaPrimary: 'Start a project',
-  ctaSecondary: 'View success stories',
+  eyebrow: 'VedX Solutions Pvt. Ltd.',
+  slides: [
+    {
+      title: 'Hire Highly Skilled Remote Professionals For Full-Time',
+      subtitle: 'Build your dream team with vetted experts across 50+ tech stacks.',
+      description:
+        'Access curated engineers, designers, and product specialists ready to join your team within days. We handle vetting, onboarding, and retention so you can focus on outcomes.',
+      ctaPrimary: 'Hire a Professional',
+      ctaSecondary: 'Explore Services',
+      image:
+        'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80'
+    },
+    {
+      title: 'Scale Global Teams With Ease And Confidence',
+      subtitle: 'Tap into a worldwide network of senior remote talent without compromising on culture.',
+      description:
+        'Our dedicated talent strategists match you with professionals who plug into your workflows from day one, delivering aligned collaboration across time zones.',
+      ctaPrimary: 'Build Your Team',
+      ctaSecondary: 'Meet Our Experts',
+      image:
+        'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80'
+    },
+    {
+      title: 'Launch Projects Faster With Dedicated Remote Squads',
+      subtitle: 'From product launches to digital transformation, we assemble sprint-ready squads.',
+      description:
+        'Design, engineering, QA, and marketing specialists join forces under a single VedX engagement manager to keep releases on track and measurable.',
+      ctaPrimary: 'Start a Project',
+      ctaSecondary: 'See Case Studies',
+      image:
+        'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1600&q=80'
+    }
+  ],
   stats: [
     { value: '340%', label: 'Average ROI' },
     { value: '500+', label: 'Clients partnered' },
     { value: '1200+', label: 'Campaigns launched' }
   ]
 };
+
+export const navigationLinks = [
+  { label: 'Home', href: '#home' },
+  { label: 'About', href: '#about' },
+  { label: 'Service', href: '#services' },
+  { label: 'Hire Developer', href: '#hire-developer' },
+  { label: 'Blog', href: '#blog' }
+];
 
 export const advantages = [
   {

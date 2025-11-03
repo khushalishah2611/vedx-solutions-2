@@ -9,10 +9,12 @@ import FAQAccordion from './sections/FAQAccordion.jsx';
 import TestimonialHighlight from './sections/TestimonialHighlight.jsx';
 import FooterSection from './sections/FooterSection.jsx';
 import LoadingOverlay from './shared/LoadingOverlay.jsx';
+import NavigationBar from './shared/NavigationBar.jsx';
 
 const SiteLayout = () => {
   return (
-    <Box>
+    <Box sx={{ bgcolor: 'background.default' }}>
+      <NavigationBar />
       <LoadingOverlay />
       <HeroSection />
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
