@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import {
   AppBar,
   Box,
@@ -14,6 +14,7 @@ import {
   ListItemText,
   Popover,
   Stack,
+  Tooltip,
   Toolbar,
   Typography,
   alpha,
@@ -27,11 +28,16 @@ import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownR
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import { megaMenuContent, navigationLinks } from '../../data/content.js';
+import { ColorModeContext } from '../../contexts/ColorModeContext.jsx';
+import { createAnchorHref } from '../../utils/formatters.js';
 
 const NavigationBar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { mode, toggleColorMode } = useContext(ColorModeContext);
   const [open, setOpen] = useState(false);
   const createDefaultExpanded = () => ({ services: false, hireDevelopers: false });
   const [expandedMenus, setExpandedMenus] = useState(createDefaultExpanded);
@@ -68,6 +74,22 @@ const NavigationBar = () => {
   const renderMegaMenu = (anchorEl, handleClose, config, activeIndex, setActiveIndex) => {
     const openPopover = Boolean(anchorEl);
     const activeCategory = config.categories[activeIndex] ?? config.categories[0];
+    const surfaceColor = alpha(theme.palette.background.paper, mode === 'dark' ? 0.95 : 0.98);
+    const dividerColor = alpha(theme.palette.divider, mode === 'dark' ? 0.5 : 0.8);
+    const overlayGradient =
+      mode === 'dark'
+        ? `linear-gradient(160deg, ${alpha('#0f172a', 0.82)} 0%, ${alpha('#0f172a', 0.6)} 45%, ${alpha(
+            '#0f172a',
+            0.94
+          )} 100%)`
+        : `linear-gradient(160deg, ${alpha(theme.palette.background.default, 0.92)} 0%, ${alpha(
+            theme.palette.background.default,
+            0.85
+          )} 45%, ${alpha(theme.palette.background.paper, 0.96)} 100%)`;
+    const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
+    const descriptorColor = mode === 'dark'
+      ? 'rgba(255,255,255,0.75)'
+      : alpha(theme.palette.text.secondary, 0.9);
 
     return (
       <Popover
@@ -85,8 +107,10 @@ const NavigationBar = () => {
               px: 0,
               py: 0,
               borderRadius: 0,
-              backgroundColor: alpha('#000'),
-              minWidth: { xs: 0, md: 500 }
+              backgroundColor: surfaceColor,
+              border: `1px solid ${dividerColor}`,
+              minWidth: { xs: 0, md: 500 },
+              overflow: 'hidden'
             }
           }
         }}
@@ -129,7 +153,10 @@ const NavigationBar = () => {
           <Divider
             orientation="vertical"
             flexItem
-            sx={{ borderColor: 'rgba(255, 255, 255, 1)', display: { xs: 'none', md: 'block' } }}
+            sx={{
+              borderColor: dividerColor,
+              display: { xs: 'none', md: 'block' }
+            }}
           />
           <Box
             sx={{
@@ -146,66 +173,75 @@ const NavigationBar = () => {
               sx={{
                 position: 'absolute',
                 inset: 0,
-              
+                backgroundImage: `url(${activeCategory.image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'brightness(0.45)',
+                borderRadius: 0,
+                transition: 'background-image 0.3s ease'
               }}
             />
             <Box
               sx={{
                 position: 'absolute',
                 inset: 0,
-              
+                background: overlayGradient
               }}
             />
-           <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
-  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-    {activeCategory.label}
-  </Typography>
+            <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                {activeCategory.label}
+              </Typography>
 
-  <Typography
-    variant="body2"
-    sx={{ color: 'rgba(255,255,255,0.75)', maxWidth: 360 }}
-  >
-    {activeCategory.description}
-  </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: descriptorColor,
+                  maxWidth: 360
+                }}
+              >
+                {activeCategory.description}
+              </Typography>
 
-  <Stack spacing={1.2}>
-    {activeCategory.subItems.map((item) => (
-      <Stack
-        key={item}
-        direction="row"
-        spacing={1.5}
-        alignItems="center"
-        component="a"
-        href="#"
-        sx={{
-          textDecoration: 'none',
-          transition: 'all 0.25s ease',
-          '&:hover': {
-            transform: 'translateX(4px)',
-          },
-        }}
-      >
-        <Box
-          sx={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            bgcolor: '#67e8f9',
-          }}
-        />
-        <Typography
-          variant="body2"
-          sx={{
-            color: 'rgba(255,255,255,0.88)',
-            '&:hover': { color: '#67e8f9' },
-          }}
-        >
-          {item}
-        </Typography>
-      </Stack>
-    ))}
-  </Stack>
-</Stack>
+              <Stack spacing={1.2}>
+                {activeCategory.subItems.map((item) => (
+                  <Stack
+                    key={item}
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    component="a"
+                    href={createAnchorHref(item)}
+                    sx={{
+                      textDecoration: 'none',
+                      transition: 'all 0.25s ease',
+                      '&:hover': {
+                        transform: 'translateX(4px)'
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        bgcolor: highlightColor
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color:
+                          mode === 'dark' ? 'rgba(255,255,255,0.88)' : theme.palette.text.primary,
+                        '&:hover': { color: highlightColor }
+                      }}
+                    >
+                      {item}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </Stack>
 
           </Box>
         </Box>
@@ -219,19 +255,23 @@ const NavigationBar = () => {
       elevation={0}
       color="transparent"
       sx={{
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        backgroundColor: alpha('#050912', 0.72),
+        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+        backgroundColor: alpha(theme.palette.background.paper, mode === 'dark' ? 0.85 : 0.9),
         backdropFilter: 'blur(20px)'
       }}
     >
       <Container>
-        <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between', gap: 2 }}>
 
           <Box
             component="img"
-            src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
+            src={
+              mode === 'dark'
+                ? 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
+                : 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-blue.png'
+            }
             alt="VedX Solutions logo"
-            sx={{ height: 50, width: 'auto', }}
+            sx={{ height: 50, width: 'auto' }}
           />
 
 
@@ -275,18 +315,37 @@ const NavigationBar = () => {
                   </Button>
                 );
               })}
-              <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.12)' }} />
+              <Divider orientation="vertical" flexItem sx={{ borderColor: theme.palette.divider }} />
 
-              <Button variant="contained" color="secondary" href="#contact">
+              <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
+                <IconButton color="inherit" onClick={toggleColorMode}>
+                  {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+                </IconButton>
+              </Tooltip>
+
+              <Button
+                variant="contained"
+                color="secondary"
+                href="#contact"
+                startIcon={<PhoneInTalkRoundedIcon />}
+                sx={{ boxShadow: 'none' }}
+              >
                 Hire Now
               </Button>
             </Stack>
           )}
 
           {isMobile && (
-            <IconButton onClick={toggleDrawer(true)} color="inherit">
-              <MenuRoundedIcon />
-            </IconButton>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
+                <IconButton color="inherit" onClick={toggleColorMode}>
+                  {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+                </IconButton>
+              </Tooltip>
+              <IconButton onClick={toggleDrawer(true)} color="inherit" aria-label="Open navigation menu">
+                <MenuRoundedIcon />
+              </IconButton>
+            </Stack>
           )}
         </Toolbar>
       </Container>
@@ -297,35 +356,44 @@ const NavigationBar = () => {
         onClose={toggleDrawer(false)}
         PaperProps={{
           sx: {
-            backgroundColor: '#050912',
-            color: 'common.white'
+            backgroundColor: theme.palette.background.default,
+            color: theme.palette.text.primary
           }
         }}
       >
-        <Box sx={{ width: "auto", display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Box sx={{ width: { xs: 320, sm: 360 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            sx={{ width: '100%', }}
+            sx={{ width: '100%' }}
           >
-          
-            <Box sx={{ textAlign: 'left', px: 1, py: 1 ,m:2}}>
+
+            <Box sx={{ textAlign: 'left', px: 2, py: 1 }}>
               <Box
                 component="img"
-                src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
+                src={
+                  mode === 'dark'
+                    ? 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
+                    : 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-blue.png'
+                }
                 alt="VedX Solutions logo"
                 sx={{ height: 50, width: 'auto' }}
               />
             </Box>
-           
-             <Box sx={{ textAlign: 'left', px: 1, py: 1 ,m:2}}>
-            <IconButton onClick={toggleDrawer(false)} color="inherit">
-              <CloseRoundedIcon />
-            </IconButton>
-            </Box>
+
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ pr: 1 }}>
+              <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
+                <IconButton color="inherit" onClick={toggleColorMode}>
+                  {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+                </IconButton>
+              </Tooltip>
+              <IconButton onClick={toggleDrawer(false)} color="inherit" aria-label="Close navigation menu">
+                <CloseRoundedIcon />
+              </IconButton>
+            </Stack>
           </Stack>
-          <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+          <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
           <List sx={{ flexGrow: 1 }}>
             {navigationLinks.map((item) => {
               if (item.menu) {
@@ -341,26 +409,61 @@ const NavigationBar = () => {
                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                       <List disablePadding>
                         {config.categories.map((category) => (
-                          <ListItemButton key={category.label} sx={{ pl: 4 }}>
-                            <ListItemText
-                              primary={category.label}
-                              secondary={category.subItems.slice(0, 3).join(' • ')}
-                              primaryTypographyProps={{ sx: { fontWeight: 600 } }}
-                              secondaryTypographyProps={{
-                                sx: { color: 'rgba(255,255,255,0.55)', mt: 0.5, fontSize: 12 }
-                              }}
-                            />
-                          </ListItemButton>
+                          <Box key={category.label} sx={{ pb: 1 }}>
+                            <Stack direction="row" spacing={2} sx={{ px: 3, pt: 2, alignItems: 'center' }}>
+                              <Box
+                                component="img"
+                                src={category.image}
+                                alt={`${category.label} preview`}
+                                sx={{
+                                  width: 56,
+                                  height: 56,
+                                  borderRadius: 2,
+                                  objectFit: 'cover',
+                                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`
+                                }}
+                              />
+                              <Box>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                  {category.label}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: alpha(theme.palette.text.secondary, 0.9) }}
+                                >
+                                  {category.description}
+                                </Typography>
+                              </Box>
+                            </Stack>
+                            <List disablePadding>
+                              {category.subItems.map((subItem) => (
+                                <ListItemButton
+                                  key={subItem}
+                                  component="a"
+                                  href={createAnchorHref(subItem)}
+                                  sx={{ pl: 6 }}
+                                  onClick={toggleDrawer(false)}
+                                >
+                                  <ListItemText primary={subItem} />
+                                </ListItemButton>
+                              ))}
+                            </List>
+                          </Box>
                         ))}
                       </List>
                     </Collapse>
-                    <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />
+                    <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4) }} />
                   </Box>
                 );
               }
 
               return (
-                <ListItemButton key={item.label} component="a" href={item.href} onClick={toggleDrawer(false)}>
+                <ListItemButton
+                  key={item.label}
+                  component="a"
+                  href={item.href}
+                  onClick={toggleDrawer(false)}
+                >
                   <ListItemText primary={item.label} />
                 </ListItemButton>
               );

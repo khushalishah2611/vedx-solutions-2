@@ -1,8 +1,19 @@
-import { Box, Container, Divider, IconButton, Link, Stack, Typography, alpha } from '@mui/material';
+import {
+  Box,
+  Container,
+  Divider,
+  IconButton,
+  Link,
+  Stack,
+  Typography,
+  alpha,
+  useTheme
+} from '@mui/material';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import { footerContent } from '../../data/content.js';
+import { createAnchorHref } from '../../utils/formatters.js';
 
 const socialIcons = {
   linkedin: LinkedInIcon,
@@ -14,8 +25,27 @@ const FOOTER_BACKGROUND_IMAGE =
   'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80';
 
 const FooterSection = () => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const overlayGradient = isDark
+    ? 'linear-gradient(180deg, rgba(5,9,18,0.94) 0%, rgba(5,9,18,0.96) 65%, rgba(1,1,3,0.98) 100%)'
+    : `linear-gradient(180deg, ${alpha(theme.palette.background.default, 0.9)} 0%, ${alpha(
+        theme.palette.background.default,
+        0.95
+      )} 65%, ${alpha(theme.palette.background.paper, 0.98)} 100%)`;
+  const mutedTextColor = isDark
+    ? alpha('#ffffff', 0.7)
+    : alpha(theme.palette.text.primary, 0.75);
+  const subtleTextColor = isDark
+    ? alpha('#ffffff', 0.65)
+    : alpha(theme.palette.text.secondary, 0.85);
+  const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+
   return (
-    <Box component="footer" sx={{ position: 'relative', bgcolor: '#020205', mt: { xs: 8, md: 10 } }}>
+    <Box
+      component="footer"
+      sx={{ position: 'relative', bgcolor: theme.palette.background.default, mt: { xs: 8, md: 10 } }}
+    >
       <Box
         sx={{
           position: 'absolute',
@@ -23,14 +53,14 @@ const FooterSection = () => {
           backgroundImage: `url(${FOOTER_BACKGROUND_IMAGE})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          filter: 'brightness(0.25)'
+          filter: isDark ? 'brightness(0.25)' : 'brightness(0.65)'
         }}
       />
       <Box
         sx={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(180deg, rgba(5,9,18,0.94) 0%, rgba(5,9,18,0.96) 65%, rgba(1,1,3,0.98) 100%)'
+          background: overlayGradient
         }}
       />
 
@@ -42,22 +72,37 @@ const FooterSection = () => {
           py: { xs: 6, md: 10 },
           display: 'flex',
           flexDirection: 'column',
-          gap: { xs: 5, md: 7 }
+          gap: { xs: 6, md: 8 }
         }}
       >
-
-
-        <Stack spacing={2} textAlign={{ xs: 'center', md: 'left' }}>
+        <Stack
+          spacing={2.5}
+          alignItems="flex-start"
+          sx={{
+            textAlign: 'left',
+            maxWidth: { xs: '100%', md: '60%' },
+            animation: 'fadeInUp 0.8s ease forwards'
+          }}
+        >
           <Box
             component="img"
-            src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
+            src={
+              isDark
+                ? 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
+                : 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-blue.png'
+            }
             alt="VedX Solutions logo"
-            sx={{ height: 50, width: 150 }}
+            sx={{ height: 50, width: 150, objectFit: 'contain' }}
           />
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {footerContent.heading}
           </Typography>
-
+          <Typography
+            variant="body1"
+            sx={{ color: mutedTextColor, lineHeight: 1.8, maxWidth: 560 }}
+          >
+            {footerContent.description}
+          </Typography>
         </Stack>
 
         <Box
@@ -68,23 +113,47 @@ const FooterSection = () => {
               xs: 'repeat(1, minmax(0, 1fr))',
               sm: 'repeat(2, minmax(0, 1fr))',
               md: 'repeat(5, minmax(0, 1fr))'
+            },
+            '@keyframes fadeInUp': {
+              from: { opacity: 0, transform: 'translateY(24px)' },
+              to: { opacity: 1, transform: 'translateY(0)' }
             }
           }}
         >
-          {footerContent.columns.map((column) => (
-            <Stack key={column.title} spacing={1.5}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+          {footerContent.columns.map((column, index) => (
+            <Stack
+              key={column.title}
+              spacing={1.5}
+              sx={{
+                animation: 'fadeInUp 0.8s ease forwards',
+                animationDelay: `${0.1 * (index + 1)}s`
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: 0.5 }}>
                 {column.title}
               </Typography>
               <Stack spacing={1}>
                 {column.links.map((link) => (
                   <Link
                     key={link}
-                    href="#"
+                    href={createAnchorHref(link)}
                     underline="none"
                     color="text.secondary"
-                    sx={{ '&:hover': { color: 'common.white' } }}
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      transition: 'color 0.2s ease, transform 0.2s ease',
+                      '&:hover': {
+                        color: accentColor,
+                        transform: 'translateX(4px)'
+                      }
+                    }}
                   >
+                    <Box
+                      component="span"
+                      sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: accentColor, opacity: 0.7 }}
+                    />
                     {link}
                   </Link>
                 ))}
@@ -92,11 +161,17 @@ const FooterSection = () => {
             </Stack>
           ))}
 
-          <Stack spacing={1.5}>
+          <Stack
+            spacing={1.5}
+            sx={{
+              animation: 'fadeInUp 0.8s ease forwards',
+              animationDelay: `${0.1 * (footerContent.columns.length + 1)}s`
+            }}
+          >
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
               Stay With Us
             </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.65)' }}>
+            <Typography variant="body2" sx={{ color: subtleTextColor }}>
               Let&apos;s connect on the platforms you love.
             </Typography>
             <Stack direction="row" spacing={1.5} alignItems="center">
@@ -112,11 +187,13 @@ const FooterSection = () => {
                     color="inherit"
                     sx={{
                       borderRadius: 2,
-                      border: '1px solid rgba(255,255,255,0.18)',
-                      bgcolor: 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                      bgcolor: alpha(isDark ? '#ffffff' : theme.palette.primary.light, isDark ? 0.08 : 0.12),
+                      transition: 'all 0.2s ease',
                       '&:hover': {
-                        bgcolor: alpha('#67e8f9', 0.18),
-                        borderColor: alpha('#67e8f9', 0.45)
+                        bgcolor: alpha(accentColor, 0.25),
+                        borderColor: alpha(accentColor, 0.6),
+                        transform: 'translateY(-2px)'
                       }
                     }}
                   >
@@ -128,7 +205,7 @@ const FooterSection = () => {
           </Stack>
         </Box>
 
-        <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+        <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
 
         <Stack
           direction={{ xs: 'column', md: 'row' }}
@@ -143,13 +220,16 @@ const FooterSection = () => {
                 href={link.href}
                 underline="none"
                 color="text.secondary"
-                sx={{ '&:hover': { color: 'common.white' } }}
+                sx={{ '&:hover': { color: accentColor } }}
               >
                 {link.label}
               </Link>
             ))}
           </Stack>
-          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.55)' }}>
+          <Typography
+            variant="body2"
+            sx={{ color: isDark ? alpha('#ffffff', 0.55) : alpha(theme.palette.text.secondary, 0.75) }}
+          >
             {footerContent.copyright}
           </Typography>
         </Stack>

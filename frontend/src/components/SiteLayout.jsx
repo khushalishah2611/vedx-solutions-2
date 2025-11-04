@@ -1,4 +1,4 @@
-import { Box, Container, Divider, Stack } from '@mui/material';
+import { Box, Container, Divider, Stack, alpha, useTheme } from '@mui/material';
 import HeroSection from './hero/HeroSection.jsx';
 import AdvantageGrid from './hero/AdvantageGrid.jsx';
 import CreativeAgencySection from './sections/CreativeAgencySection.jsx';
@@ -13,18 +13,21 @@ import FooterSection from './sections/FooterSection.jsx';
 import NavigationBar from './shared/NavigationBar.jsx';
 
 const SiteLayout = () => {
+  const theme = useTheme();
+  const dividerColor = alpha(theme.palette.divider, 0.6);
+
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
       <NavigationBar />
-    
+
       <HeroSection />
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
         <Stack spacing={{ xs: 4, md: 6 }}>
           <CreativeAgencySection />
           <ServicesShowcase />
-          <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+          <Divider flexItem sx={{ borderColor: dividerColor }} />
           <AdvantageGrid />
-          <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+          <Divider flexItem sx={{ borderColor: dividerColor }} />
           <DifferentiatorPanels />
           <MetricsBar />
           <ReasonsGrid />
