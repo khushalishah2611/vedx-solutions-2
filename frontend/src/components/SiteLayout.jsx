@@ -1,6 +1,7 @@
 import { Box, Container, Divider, Stack } from '@mui/material';
 import HeroSection from './hero/HeroSection.jsx';
 import AdvantageGrid from './hero/AdvantageGrid.jsx';
+import CreativeAgencySection from './sections/CreativeAgencySection.jsx';
 import DifferentiatorPanels from './sections/DifferentiatorPanels.jsx';
 import ReasonsGrid from './sections/ReasonsGrid.jsx';
 import ProductShowcase from './sections/ProductShowcase.jsx';
@@ -20,7 +21,7 @@ const SiteLayout = () => {
       <HeroSection />
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
         <Stack spacing={{ xs: 4, md: 6 }}>
-          <CreativeAgencySection ></CreativeAgencySection>
+          <CreativeAgencySection />
           <ServicesShowcase />
           <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
           <AdvantageGrid />
