@@ -88,7 +88,16 @@ export default function CreativeAgencySection() {
                   width: 'fit-content',
                 }}
               >
-                We Are
+               <Box
+                  component="span"
+                  sx={{
+                    background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  We are
+                </Box>
               </Box>
 
               {/* Heading */}
