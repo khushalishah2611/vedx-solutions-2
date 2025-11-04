@@ -45,20 +45,19 @@ const FooterSection = () => {
           gap: { xs: 5, md: 7 }
         }}
       >
+
+
         <Stack spacing={2} textAlign={{ xs: 'center', md: 'left' }}>
+          <Box
+            component="img"
+            src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
+            alt="VedX Solutions logo"
+            sx={{ height: 50, width: 150 }}
+          />
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {footerContent.heading}
           </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              color: 'rgba(255,255,255,0.68)',
-              maxWidth: 560,
-              alignSelf: { xs: 'center', md: 'flex-start' }
-            }}
-          >
-            {footerContent.description}
-          </Typography>
+
         </Stack>
 
         <Box
