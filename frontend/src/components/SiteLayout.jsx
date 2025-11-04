@@ -10,14 +10,13 @@ import FAQAccordion from './sections/FAQAccordion.jsx';
 import TestimonialHighlight from './sections/TestimonialHighlight.jsx';
 import ServicesShowcase from './sections/ServicesShowcase.jsx';
 import FooterSection from './sections/FooterSection.jsx';
-import LoadingOverlay from './shared/LoadingOverlay.jsx';
 import NavigationBar from './shared/NavigationBar.jsx';
 
 const SiteLayout = () => {
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
       <NavigationBar />
-      <LoadingOverlay />
+    
       <HeroSection />
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
         <Stack spacing={{ xs: 4, md: 6 }}>

@@ -17,7 +17,7 @@ const ServicesShowcase = () => {
   const activeService = services[activeIndex];
 
   return (
-    <Stack spacing={6} id="services" sx={{ py: { xs: 6, md: 10 } }}>
+    <Stack spacing={6} id="services" >
       {/* Heading */}
       <Stack spacing={1} alignItems="center" textAlign="center">
         <Typography
