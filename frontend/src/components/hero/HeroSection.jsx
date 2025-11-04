@@ -105,20 +105,8 @@ const HeroSection = () => {
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
         <Stack spacing={{ xs: 6, md: 8 }}>
           <Fade in key={currentSlide.title} timeout={900}>
-            <Stack spacing={3} maxWidth={{ xs: '100%', md: 720 }}>
-              <Chip
-                label={heroContent.eyebrow}
-                sx={{
-                  alignSelf: 'flex-start',
-                  bgcolor: alpha('#67e8f9', 0.15),
-                  color: 'secondary.light',
-                  fontWeight: 600,
-                  letterSpacing: 1.2,
-                  textTransform: 'uppercase',
-                  borderRadius: 2
-                }}
-              />
-              <Typography variant="h2" sx={{ fontSize: { xs: 44, md: 64 }, lineHeight: 1.05 }}>
+            <Stack spacing={5} maxWidth={{ xs: '100%', md: 720 }}>
+                   <Typography variant="h2" sx={{ fontSize: { xs: 44, md: 64 }, lineHeight: 1.05 }}>
                 {currentSlide.title}{' '}
                 <Box
                   component="span"
@@ -132,90 +120,41 @@ const HeroSection = () => {
                   {currentSlide.highlight}
                 </Box>
               </Typography>
-              <Typography variant="h6" sx={{ color: alpha('#ffffff', 0.78), fontWeight: 500 }}>
-                {currentSlide.subtitle}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ color: alpha('#ffffff', 0.72), fontSize: { xs: 16, md: 18 }, maxWidth: 640 }}
-              >
-                {currentSlide.description}
-              </Typography>
-              {currentSlide.insights && (
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} flexWrap="wrap">
-                  {currentSlide.insights.map((insight) => (
-                    <Stack direction="row" spacing={1.2} alignItems="center" key={insight}>
-                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: 'secondary.main' }} />
-                      <Typography variant="body2" sx={{ color: alpha('#ffffff', 0.75) }}>
-                        {insight}
-                      </Typography>
-                    </Stack>
-                  ))}
-                </Stack>
-              )}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} pt={1.5}>
                 <Button variant="contained" color="secondary" size="large" href="#contact">
                   {currentSlide.ctaPrimary}
                 </Button>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  size="large"
-                  endIcon={<ArrowOutwardRoundedIcon />}
-                  href="#services"
-                >
-                  {currentSlide.ctaSecondary}
-                </Button>
+
               </Stack>
             </Stack>
           </Fade>
 
+
+
           <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            spacing={{ xs: 3, md: 6 }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', md: 'center' }}
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            spacing={1.2}
+            sx={{ pt: 10 }}
           >
-            <Stack direction="row" spacing={{ xs: 3, md: 5 }} flexWrap="wrap">
-              {heroContent.stats.map((stat) => (
-                <Box key={stat.label}>
-                  <Typography variant="h4" sx={{ color: 'secondary.light', fontWeight: 700 }}>
-                    {stat.value}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: alpha('#ffffff', 0.7) }}>
-                    {stat.label}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
-
-           
+            {slides.map((slide, index) => {
+              const active = index === activeSlide;
+              return (
+                <ButtonBase
+                  key={slide.title}
+                  onClick={() => handleSelectSlide(index)}
+                  sx={{
+                    width: active ? 14 : 10,
+                    height: active ? 14 : 10,
+                    borderRadius: '50%',
+                    backgroundColor: active ? 'secondary.main' : alpha('#ffffff', 0.4),
+                    transition: 'all 0.3s ease',
+                  }}
+                />
+              );
+            })}
           </Stack>
-
-          <Stack
-  direction="row"
-  justifyContent="center"
-  alignItems="center"
-  spacing={1.2}
-  sx={{ pt: 4 }}
->
-  {slides.map((slide, index) => {
-    const active = index === activeSlide;
-    return (
-      <ButtonBase
-        key={slide.title}
-        onClick={() => handleSelectSlide(index)}
-        sx={{
-          width: active ? 14 : 10,
-          height: active ? 14 : 10,
-          borderRadius: '50%',
-          backgroundColor: active ? 'secondary.main' : alpha('#ffffff', 0.4),
-          transition: 'all 0.3s ease',
-        }}
-      />
-    );
-  })}
-         </Stack>
 
         </Stack>
       </Container>

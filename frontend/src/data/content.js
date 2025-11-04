@@ -155,6 +155,7 @@ export const megaMenuContent = {
 };
 
 export const servicesShowcase = {
+  eyebrow: '',
   heading: 'Our Services',
   description:
     '',
@@ -162,36 +163,43 @@ export const servicesShowcase = {
     {
       title: 'Mobile App Development',
       image: 'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=900&q=80',
+      blurb:
+        'Strategise, design, and build native or cross-platform experiences with agile pods that align to your roadmap.',
       capabilities: ['Android App', 'iPhone App', 'Flutter', 'React Native', 'Kotlin', 'Hybrid App']
     },
     {
       title: 'Web App Development',
       image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=900&q=80',
-   
+      blurb:
+        'Composable architectures, modern frontends, and secure backends engineered for scale across web properties.',
       capabilities: ['Enterprise Portals', 'Progressive Web Apps', 'Headless CMS', 'Next.js', 'Laravel', 'Maintenance']
     },
     {
       title: 'Digital Marketing',
       image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=900&q=80',
-   
+      blurb:
+        'Full-funnel growth teams orchestrating performance marketing, lifecycle automation, and content excellence.',
       capabilities: ['SEO & ASO', 'Paid Media', 'Marketing Automation', 'Content Strategy', 'Analytics', 'Campaign Ops']
     },
     {
       title: 'Blockchain Development',
       image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80',
-    
+      blurb:
+        'Secure ledgers, smart contracts, and DeFi solutions architected by specialists with proven domain experience.',
       capabilities: ['DApps', 'Smart Contracts', 'NFT Platforms', 'Wallet Development', 'DeFi Solutions', 'Security Audits']
     },
     {
       title: 'Ecommerce Development',
-      image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80',
-    
+      image: 'https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=900&q=80',
+      blurb:
+        'Conversion-first storefronts and marketplace integrations that deliver smooth customer journeys end to end.',
       capabilities: ['Shopify Plus', 'Magento', 'BigCommerce', 'Headless Commerce', 'Marketplace Apps', 'CRO Audits']
     },
     {
       title: 'Salesforce Solutions',
       image: 'https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=900&q=80',
-     
+      blurb:
+        'Certified consultants unlocking Sales, Service, and Marketing Cloud value with tailored implementations.',
       capabilities: ['Sales Cloud', 'Service Cloud', 'Marketing Cloud', 'Revenue Intelligence', 'CPQ', 'Admin Support']
     }
   ]

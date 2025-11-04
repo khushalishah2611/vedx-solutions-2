@@ -1,39 +1,48 @@
 import { useState } from 'react';
 import {
   Box,
-  Button,
   ButtonBase,
-  Chip,
+  Divider,
   Grid,
-  Paper,
   Stack,
   Typography,
   alpha
 } from '@mui/material';
-import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { servicesShowcase } from '../../data/content.js';
 
 const ServicesShowcase = () => {
-  const { eyebrow, heading, description, services } = servicesShowcase;
+  const { heading, services } = servicesShowcase;
   const [activeIndex, setActiveIndex] = useState(0);
   const activeService = services[activeIndex];
-  const capabilityCount = activeService.capabilities.length;
 
   return (
-    
-    <Stack spacing={4} id="services">
-      <Stack spacing={1.5} alignItems="flex-start">
-       
-        <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 44 }, lineHeight: 1.1 }}>
+    <Stack spacing={6} id="services" sx={{ py: { xs: 6, md: 10 } }}>
+      {/* Heading */}
+      <Stack spacing={1} alignItems="center" textAlign="center">
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: 32, md: 44 },
+            fontWeight: 700,
+            color: 'common.white',
+            lineHeight: 1.1
+          }}
+        >
           {heading}
         </Typography>
-       
       </Stack>
 
-      <Grid container spacing={4} alignItems="stretch">
-        <Grid item xs={12} md={6}>
-          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+      {/* Services Layout */}
+      <Grid
+        container
+        spacing={{ xs: 4, md: 0 }}
+        alignItems="stretch"
+        justifyContent="center"
+      >
+        {/* Left Side: Thumbnails */}
+        <Grid item xs={12} md={5.5}>
+          <Grid container spacing={3}>
             {services.map((service, index) => {
               const active = index === activeIndex;
               return (
@@ -43,10 +52,9 @@ const ServicesShowcase = () => {
                     sx={{
                       position: 'relative',
                       width: '100%',
-                      height:240,
-                      borderRadius: 0.8,
+                      height: { xs: 180, sm: 200, md: 220 },
+                      borderRadius: 1,
                       overflow: 'hidden',
-                      textAlign: 'left',
                       border: active
                         ? '2px solid rgba(103, 232, 249, 0.9)'
                         : '1px solid rgba(255,255,255,0.18)',
@@ -54,9 +62,15 @@ const ServicesShowcase = () => {
                         ? '0 24px 48px rgba(5, 9, 18, 0.55)'
                         : '0 16px 36px rgba(5, 9, 18, 0.4)',
                       transform: active ? 'translateY(-6px)' : 'translateY(0)',
-                      transition: 'all 0.3s ease'
+                      transition: 'all 0.35s ease',
+                      color: 'common.white',
+                      '&:hover': {
+                        transform: 'translateY(-6px)',
+                        boxShadow: '0 28px 52px rgba(5, 9, 18, 0.6)'
+                      }
                     }}
                   >
+                    {/* Background Image */}
                     <Box
                       sx={{
                         position: 'absolute',
@@ -68,18 +82,33 @@ const ServicesShowcase = () => {
                         transition: 'transform 0.4s ease'
                       }}
                     />
+
+                    {/* Overlay */}
                     <Box
                       sx={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(180deg, rgba(5,9,18,0.1) 10%, rgba(5,9,18,0.75) 85%)'
+                        background:
+                          'linear-gradient(180deg, rgba(5,9,18,0.15) 10%, rgba(5,9,18,0.8) 85%)'
                       }}
                     />
-                    <Stack spacing={1} sx={{ position: 'relative', p: 2, height: '100%', justifyContent: 'flex-end' }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+
+                    {/* Title */}
+                    <Stack
+                      spacing={1}
+                      sx={{
+                        position: 'relative',
+                        p: 3,
+                        height: '100%',
+                        justifyContent: 'flex-end'
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: 700, color: 'common.white' }}
+                      >
                         {service.title}
                       </Typography>
-                     
                     </Stack>
                   </ButtonBase>
                 </Grid>
@@ -88,58 +117,71 @@ const ServicesShowcase = () => {
           </Grid>
         </Grid>
 
+        {/* Divider (hidden on mobile) */}
+        <Grid
+          item
+          md="auto"
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            alignItems: 'stretch',
+            mx: 2
+          }}
+        >
+          <Divider
+            orientation="vertical"
+            flexItem
+            sx={{ borderColor: 'rgba(255, 255, 255, 1)' }}
+          />
+        </Grid>
+
+        {/* Right Side: Active Service Details */}
         <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              position: 'relative',
-              overflow: 'hidden',
-              height: '100%',
-            
-              p: { xs: 3, md: 5 },
-            
-            }}
-          >
-   
-            <Stack spacing={3} sx={{ position: 'relative' }}>
-              <Stack spacing={1}>
-              
-                <Typography variant="h4" sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 700 }}>
-                  {activeService.title}
-                </Typography>
-                <Typography variant="body1" sx={{ color: alpha('#ffffff', 0.78) }}>
-                  {activeService.blurb}
-                </Typography>
-              </Stack>
-
-              <Grid container spacing={1.5}>
-                {activeService.capabilities.map((capability) => (
-                  <Grid item xs={12} sm={6} key={capability}>
-                    <Stack direction="row" spacing={1.2} alignItems="center">
-                      <CheckCircleRoundedIcon sx={{ color: 'secondary.light', fontSize: 22 }} />
-                      <Typography variant="body2" sx={{ color: alpha('#ffffff', 0.78) }}>
-                        {capability}
-                      </Typography>
-                    </Stack>
-                  </Grid>
-                ))}
-              </Grid>
-
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} pt={1}>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  size="large"
-                  endIcon={<ArrowOutwardRoundedIcon />}
-                  href="#contact"
-                >
-                  Discuss Your Project
-                </Button>
-                <Button variant="outlined" color="inherit" size="large" href="#about">
-                  Explore More
-                </Button>
-              </Stack>
+          <Stack spacing={3} sx={{ height: '100%' }}>
+            {/* Service Title & Description */}
+            <Stack spacing={1}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontSize: { xs: 26, md: 34 },
+                  fontWeight: 700,
+                  color: 'common.white'
+                }}
+              >
+                {activeService.title}
+              </Typography>
+               <Divider sx={{ my: { xs: 2, md: 3 }, borderColor: 'rgba(255, 255, 255, 1)' }} />
+              <Typography
+                variant="body1"
+                sx={{ color: alpha('#ffffff', 0.78) }}
+              >
+                {activeService.blurb}
+              </Typography>
             </Stack>
-          </Paper>
+
+           
+
+            {/* Capabilities List */}
+            <Stack spacing={1.5}>
+              {activeService.capabilities.map((capability) => (
+                <Stack
+                  key={capability}
+                  direction="row"
+                  spacing={1.2}
+                  alignItems="center"
+                >
+                  <CheckCircleRoundedIcon
+                    sx={{ color: 'secondary.light', fontSize: 22 }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ color: alpha('#ffffff', 0.78) }}
+                  >
+                    {capability}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Stack>
         </Grid>
       </Grid>
     </Stack>

@@ -84,24 +84,17 @@ const NavigationBar = () => {
               mt: 1.5,
               px: 0,
               py: 0,
-              borderRadius: 3,
-              backgroundColor: alpha('#050912', 0.96),
-              border: '1px solid rgba(103, 232, 249, 0.28)',
-              boxShadow: '0 24px 56px rgba(5, 9, 18, 0.55)',
-              minWidth: { xs: 0, md: 700 }
+              borderRadius: 0,
+              backgroundColor: alpha('#000'),
+              minWidth: { xs: 0, md: 500 }
             }
           }
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
           <Box sx={{ p: { xs: 3, md: 4 }, width: { xs: '100%', md: 340 } }}>
-            <Typography
-              variant="caption"
-              sx={{ letterSpacing: 1.2, textTransform: 'uppercase', color: 'secondary.light', fontWeight: 600 }}
-            >
-              {config.heading}
-            </Typography>
-            <Stack spacing={1.2} mt={3}>
+         
+            <Stack spacing={2}>
               {config.categories.map((category, index) => {
                 const active = index === activeIndex;
                 return (
@@ -112,16 +105,12 @@ const NavigationBar = () => {
                     sx={{
                       width: '100%',
                       textAlign: 'left',
-                      borderRadius: 2,
-                      p: 2,
+                     
                       alignItems: 'flex-start',
                       display: 'flex',
                       gap: 1.5,
                       justifyContent: 'space-between',
-                      border: '1px solid',
-                      borderColor: active ? alpha('#67e8f9', 0.65) : 'rgba(255,255,255,0.08)',
-                      backgroundColor: active ? alpha('#67e8f9', 0.12) : 'transparent',
-                      transition: 'all 0.2s ease',
+                     
                       color: 'inherit'
                     }}
                   >
@@ -129,9 +118,7 @@ const NavigationBar = () => {
                       <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                         {category.label}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.65)' }}>
-                        {category.description}
-                      </Typography>
+                   
                     </Box>
                     <KeyboardArrowRightRoundedIcon sx={{ opacity: active ? 1 : 0.4 }} />
                   </ButtonBase>
@@ -142,7 +129,7 @@ const NavigationBar = () => {
           <Divider
             orientation="vertical"
             flexItem
-            sx={{ borderColor: 'rgba(255,255,255,0.08)', display: { xs: 'none', md: 'block' } }}
+            sx={{ borderColor: 'rgba(255, 255, 255, 1)', display: { xs: 'none', md: 'block' } }}
           />
           <Box
             sx={{
@@ -159,40 +146,67 @@ const NavigationBar = () => {
               sx={{
                 position: 'absolute',
                 inset: 0,
-                backgroundImage: `url(${activeCategory.image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                opacity: 0.18,
-                filter: 'grayscale(0.1)',
-                borderRadius: { xs: 0, md: 3 }
+              
               }}
             />
             <Box
               sx={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(135deg, rgba(103,232,249,0.2) 0%, rgba(5,9,18,0.92) 100%)',
-                borderRadius: { xs: 0, md: 3 }
+              
               }}
             />
-            <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {activeCategory.label}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.75)', maxWidth: 360 }}>
-                {activeCategory.description}
-              </Typography>
-              <Stack spacing={1.2}>
-                {activeCategory.subItems.map((item) => (
-                  <Stack key={item} direction="row" spacing={1.5} alignItems="center">
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#67e8f9' }} />
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.88)' }}>
-                      {item}
-                    </Typography>
-                  </Stack>
-                ))}
-              </Stack>
-            </Stack>
+           <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
+  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+    {activeCategory.label}
+  </Typography>
+
+  <Typography
+    variant="body2"
+    sx={{ color: 'rgba(255,255,255,0.75)', maxWidth: 360 }}
+  >
+    {activeCategory.description}
+  </Typography>
+
+  <Stack spacing={1.2}>
+    {activeCategory.subItems.map((item) => (
+      <Stack
+        key={item}
+        direction="row"
+        spacing={1.5}
+        alignItems="center"
+        component="a"
+        href="#"
+        sx={{
+          textDecoration: 'none',
+          transition: 'all 0.25s ease',
+          '&:hover': {
+            transform: 'translateX(4px)',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            bgcolor: '#67e8f9',
+          }}
+        />
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'rgba(255,255,255,0.88)',
+            '&:hover': { color: '#67e8f9' },
+          }}
+        >
+          {item}
+        </Typography>
+      </Stack>
+    ))}
+  </Stack>
+</Stack>
+
           </Box>
         </Box>
       </Popover>
@@ -210,19 +224,19 @@ const NavigationBar = () => {
         backdropFilter: 'blur(20px)'
       }}
     >
-      <Container maxWidth="lg">
-        <Toolbar disableGutters sx={{ minHeight: { xs: 50, md: 80 }, justifyContent: 'space-between' }}>
-       
-            <Box
-              component="img"
-              src="https://media.designrush.com/agencies/839770/conversions/Vedx-Solutions-logo-profile.jpg"
-              alt="VedX Solutions logo"
-              sx={{ height: 60, width: 'auto',  }}
-            />
-  
-       
+      <Container>
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
+
+          <Box
+            component="img"
+            src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
+            alt="VedX Solutions logo"
+            sx={{ height: 50, width: 'auto', }}
+          />
+
+
           {!isMobile && (
-            <Stack direction="row" spacing={3} alignItems="center">
+            <Stack direction="row" spacing={1} alignItems="center">
               {navigationLinks.map((item) => {
                 if (item.menu) {
                   const isServiceMenu = item.menu === 'services';
@@ -262,16 +276,7 @@ const NavigationBar = () => {
                 );
               })}
               <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.12)' }} />
-              <IconButton
-                size="large"
-                color="secondary"
-                sx={{
-                  bgcolor: alpha(theme.palette.secondary.main, 0.18),
-                  '&:hover': { bgcolor: alpha(theme.palette.secondary.main, 0.28) }
-                }}
-              >
-                <PhoneInTalkRoundedIcon />
-              </IconButton>
+
               <Button variant="contained" color="secondary" href="#contact">
                 Hire Now
               </Button>
@@ -298,11 +303,27 @@ const NavigationBar = () => {
         }}
       >
         <Box sx={{ width: "auto", display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 3 }}>
-            <Typography variant="subtitle1">VedX Solutions</Typography>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ width: '100%', }}
+          >
+          
+            <Box sx={{ textAlign: 'left', px: 1, py: 1 ,m:2}}>
+              <Box
+                component="img"
+                src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
+                alt="VedX Solutions logo"
+                sx={{ height: 50, width: 'auto' }}
+              />
+            </Box>
+           
+             <Box sx={{ textAlign: 'left', px: 1, py: 1 ,m:2}}>
             <IconButton onClick={toggleDrawer(false)} color="inherit">
               <CloseRoundedIcon />
             </IconButton>
+            </Box>
           </Stack>
           <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
           <List sx={{ flexGrow: 1 }}>
