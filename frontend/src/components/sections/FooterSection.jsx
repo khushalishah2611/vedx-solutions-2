@@ -30,9 +30,9 @@ const FooterSection = () => {
   const overlayGradient = isDark
     ? 'linear-gradient(180deg, rgba(5,9,18,0.94) 0%, rgba(5,9,18,0.96) 65%, rgba(1,1,3,0.98) 100%)'
     : `linear-gradient(180deg, ${alpha(theme.palette.background.default, 0.9)} 0%, ${alpha(
-        theme.palette.background.default,
-        0.95
-      )} 65%, ${alpha(theme.palette.background.paper, 0.98)} 100%)`;
+      theme.palette.background.default,
+      0.95
+    )} 65%, ${alpha(theme.palette.background.paper, 0.98)} 100%)`;
   const mutedTextColor = isDark
     ? alpha('#ffffff', 0.7)
     : alpha(theme.palette.text.primary, 0.75);
@@ -87,7 +87,7 @@ const FooterSection = () => {
           <Box
             component="img"
             src={
-             'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
+              'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
             }
             alt="VedX Solutions logo"
             sx={{ height: 50, width: 150, objectFit: 'contain' }}
@@ -102,7 +102,7 @@ const FooterSection = () => {
             {footerContent.description}
           </Typography>
         </Stack>
-
+        <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
         <Box
           sx={{
             display: 'grid',
@@ -148,7 +148,7 @@ const FooterSection = () => {
                       }
                     }}
                   >
-                    
+
                     {link}
                   </Link>
                 ))}
