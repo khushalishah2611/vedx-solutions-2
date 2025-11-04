@@ -9,13 +9,16 @@ import {
   IconButton,
   Stack,
   Typography,
-  alpha
+  alpha,
+  useTheme
 } from '@mui/material';
 import { heroContent } from '../../data/content.js';
 
 const SLIDE_INTERVAL = 7000;
 
 const HeroSection = () => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const slides = heroContent.slides;
   const [activeSlide, setActiveSlide] = useState(0);
   const timerRef = useRef(null);
@@ -85,7 +88,7 @@ const HeroSection = () => {
               transform: 'scale(1.05)',
               transition: 'opacity 1.2s ease-in-out',
               opacity: index === activeSlide ? 1 : 0,
-              filter: 'brightness(0.55)'
+              filter: isDark ? 'brightness(0.55)' : 'brightness(0.8)'
             }}
           />
         ))}
@@ -93,8 +96,9 @@ const HeroSection = () => {
           sx={{
             position: 'absolute',
             inset: 0,
-            background:
-              'radial-gradient(circle at 20% 20%, rgba(99,102,241,0.35), transparent 45%), rgba(5,9,18,0.78)'
+            background: isDark
+              ? 'radial-gradient(circle at 20% 20%, rgba(99,102,241,0.35), transparent 45%), rgba(5,9,18,0.78)'
+              : 'radial-gradient(circle at 20% 20%, rgba(79,70,229,0.18), transparent 45%), rgba(241,245,249,0.88)'
           }}
         />
       </Box>
@@ -102,28 +106,27 @@ const HeroSection = () => {
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
         <Stack spacing={{ xs: 6, md: 8 }}>
           <Fade in key={currentSlide.title} timeout={900}>
-            <Stack spacing={5} maxWidth={{ xs: '100%', md: 720 }}>
-                   <Typography variant="h2" sx={{ fontSize: { xs: 44, md: 64 }, lineHeight: 1.05 }}>
-                {currentSlide.title}{' '}
-                <Box
-                  component="span"
-                  sx={{
-                    background: 'linear-gradient(90deg, #67e8f9 0%, #a855f7 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    display: 'inline-block'
-                  }}
-                >
-                  {currentSlide.highlight}
-                </Box>
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} pt={1.5}>
-                <Button variant="contained" color="secondary" size="large" href="#contact">
-                  {currentSlide.ctaPrimary}
-                </Button>
-
+              <Stack spacing={5} maxWidth={{ xs: '100%', md: 720 }}>
+                <Typography variant="h2" sx={{ fontSize: { xs: 44, md: 64 }, lineHeight: 1.05 }}>
+                  {currentSlide.title}{' '}
+                  <Box
+                    component="span"
+                    sx={{
+                      background: 'linear-gradient(90deg, #67e8f9 0%, #a855f7 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      display: 'inline-block'
+                    }}
+                  >
+                    {currentSlide.highlight}
+                  </Box>
+                </Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} pt={1.5}>
+                  <Button variant="contained" color="secondary" size="large" href="#contact">
+                    {currentSlide.ctaPrimary}
+                  </Button>
+                </Stack>
               </Stack>
-            </Stack>
           </Fade>
 
 

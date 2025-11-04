@@ -32,7 +32,7 @@ const ServicesShowcase = () => {
     : '0 28px 52px rgba(15, 23, 42, 0.2)';
   const overlayGradient = isDark
     ? 'linear-gradient(180deg, rgba(5,9,18,0.15) 10%, rgba(5,9,18,0.8) 85%)'
-    : 'linear-gradient(180deg, rgba(255,255,255,0.08) 10%, rgba(15,23,42,0.55) 85%)';
+    : 'linear-gradient(180deg, rgba(15,23,42,0.35) 15%, rgba(15,23,42,0.75) 90%)';
   const supportingTextColor = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.9);
 
   return (
@@ -75,7 +75,7 @@ const ServicesShowcase = () => {
                       boxShadow: active ? activeShadow : baseShadow,
                       transform: active ? 'translateY(-6px)' : 'translateY(0)',
                       transition: 'all 0.35s ease',
-                      color: isDark ? 'common.white' : theme.palette.text.primary,
+                      color: 'common.white',
                       '&:hover': {
                         transform: 'translateY(-6px)',
                         boxShadow: hoverShadow
