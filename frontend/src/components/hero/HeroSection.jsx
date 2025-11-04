@@ -11,9 +11,6 @@ import {
   Typography,
   alpha
 } from '@mui/material';
-import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
-import NavigateBeforeRoundedIcon from '@mui/icons-material/NavigateBeforeRounded';
-import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
 import { heroContent } from '../../data/content.js';
 
 const SLIDE_INTERVAL = 7000;

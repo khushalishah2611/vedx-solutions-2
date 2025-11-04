@@ -169,18 +169,7 @@ const NavigationBar = () => {
               gap: 2
             }}
           >
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                backgroundImage: `url(${activeCategory.image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: 'brightness(0.45)',
-                borderRadius: 0,
-                transition: 'background-image 0.3s ease'
-              }}
-            />
+           
             <Box
               sx={{
                 position: 'absolute',
@@ -266,9 +255,7 @@ const NavigationBar = () => {
           <Box
             component="img"
             src={
-              mode === 'dark'
-                ? 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
-                : 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-blue.png'
+              'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
             }
             alt="VedX Solutions logo"
             sx={{ height: 50, width: 'auto' }}
@@ -373,9 +360,7 @@ const NavigationBar = () => {
               <Box
                 component="img"
                 src={
-                  mode === 'dark'
-                    ? 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
-                    : 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-blue.png'
+                 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
                 }
                 alt="VedX Solutions logo"
                 sx={{ height: 50, width: 'auto' }}
@@ -406,52 +391,69 @@ const NavigationBar = () => {
                       <ListItemText primary={item.label} />
                       {isExpanded ? <ExpandLessRoundedIcon /> : <ExpandMoreRoundedIcon />}
                     </ListItemButton>
+
                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                      <List disablePadding>
-                        {config.categories.map((category) => (
-                          <Box key={category.label} sx={{ pb: 1 }}>
-                            <Stack direction="row" spacing={2} sx={{ px: 3, pt: 2, alignItems: 'center' }}>
-                              <Box
-                                component="img"
-                                src={category.image}
-                                alt={`${category.label} preview`}
-                                sx={{
-                                  width: 56,
-                                  height: 56,
-                                  borderRadius: 2,
-                                  objectFit: 'cover',
-                                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`
-                                }}
-                              />
-                              <Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                  {category.label}
-                                </Typography>
-                                <Typography
+  <List disablePadding>
+    {config.categories.map((category, categoryIndex) => {
+      const [expandedCategory, setExpandedCategory] = useState(false);
+      return (
+        <Box key={category.label}>
+          {/* Category header with label + toggle icon */}
+          <ListItemButton
+            onClick={() => setExpandedCategory(!expandedCategory)}
+            sx={{ pl: 4 }}
+          >
+            <ListItemText
+              primary={
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  {category.label}
+                </Typography>
+              }
+              secondary={
+                category.description && (
+                   <Typography
                                   variant="caption"
                                   sx={{ color: alpha(theme.palette.text.secondary, 0.9) }}
                                 >
                                   {category.description}
                                 </Typography>
-                              </Box>
-                            </Stack>
-                            <List disablePadding>
-                              {category.subItems.map((subItem) => (
-                                <ListItemButton
-                                  key={subItem}
-                                  component="a"
-                                  href={createAnchorHref(subItem)}
-                                  sx={{ pl: 6 }}
-                                  onClick={toggleDrawer(false)}
-                                >
-                                  <ListItemText primary={subItem} />
-                                </ListItemButton>
-                              ))}
-                            </List>
-                          </Box>
-                        ))}
-                      </List>
-                    </Collapse>
+                )
+              }
+            />
+            {expandedCategory ? (
+              <ExpandLessRoundedIcon fontSize="small" />
+            ) : (
+              <ExpandMoreRoundedIcon fontSize="small" />
+            )}
+          </ListItemButton>
+
+          {/* Sub-items list */}
+          <Collapse in={expandedCategory} timeout="auto" unmountOnExit>
+            <List disablePadding>
+              {category.subItems.map((subItem) => (
+                <ListItemButton
+                  key={subItem}
+                  component="a"
+                  href={createAnchorHref(subItem)}
+                  sx={{ pl: 6 }}
+                  onClick={toggleDrawer(false)}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography variant="body2">{subItem}</Typography>
+                    }
+                  />
+                </ListItemButton>
+              ))}
+            </List>
+          </Collapse>
+        </Box>
+      );
+    })}
+  </List>
+</Collapse>
+
+                
                     <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4) }} />
                   </Box>
                 );

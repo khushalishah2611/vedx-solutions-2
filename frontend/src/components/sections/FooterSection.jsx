@@ -87,9 +87,7 @@ const FooterSection = () => {
           <Box
             component="img"
             src={
-              isDark
-                ? 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
-                : 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-blue.png'
+             'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
             }
             alt="VedX Solutions logo"
             sx={{ height: 50, width: 150, objectFit: 'contain' }}
@@ -150,10 +148,7 @@ const FooterSection = () => {
                       }
                     }}
                   >
-                    <Box
-                      component="span"
-                      sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: accentColor, opacity: 0.7 }}
-                    />
+                    
                     {link}
                   </Link>
                 ))}
