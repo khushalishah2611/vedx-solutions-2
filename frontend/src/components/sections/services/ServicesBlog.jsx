@@ -9,7 +9,7 @@ const ServicesBlog = () => {
 
   return (
     <Box component="section">
-      <Stack spacing={3} sx={{ mb: 10 }}>
+      <Stack spacing={3} sx={{ mb: 8 }}>
         <Typography
           variant="h3"
           sx={{
@@ -30,9 +30,12 @@ const ServicesBlog = () => {
               sx={{
                 height: '100%',
                 borderRadius: 0.5,
-                overflow: 'hidden',
+
                 display: 'flex',
                 flexDirection: 'column',
+                justifyContent: 'space-between',
+
+                textAlign: 'left',
                 backgroundColor: alpha(
                   theme.palette.background.paper,
                   isDark ? 0.75 : 0.97
@@ -41,18 +44,24 @@ const ServicesBlog = () => {
                   theme.palette.divider,
                   isDark ? 0.4 : 0.6
                 )}`,
-                transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+                transition:
+                  'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
+                boxShadow: isDark
+                  ? '0 4px 30px rgba(2,6,23,0.35)'
+                  : '0 4px 30px rgba(15,23,42,0.15)',
                 '&:hover': {
-                  transform: 'translateY(-8px)',
+                  transform: 'translateY(-8px) scale(1.02)',
                   boxShadow: isDark
-                    ? '0 8px 24px rgba(255,255,255,0.12)'
-                    : '0 8px 24px rgba(0,0,0,0.15)',
-                },
+                    ? '0 12px 40px rgba(255,255,255,0.12)'
+                    : '0 12px 40px rgba(0,0,0,0.12)',
+                  borderColor: alpha(accentColor, 0.5)
+                }
               }}
             >
               <Box
                 sx={{
                   height: 250,
+                  borderRadius: 0.5,
                   backgroundImage: `url(${post.image})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',

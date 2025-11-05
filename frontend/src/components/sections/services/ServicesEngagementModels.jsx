@@ -4,7 +4,7 @@ import { engagementModels } from '../../../data/servicesPage.js';
 const ServicesEngagementModels = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const accentColor = '#9c27b0'; // purple accent
+ const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 
   return (
     <Box component="section" >
@@ -80,21 +80,32 @@ const ServicesEngagementModels = () => {
               sx={{
                 height: '100%',
                 borderRadius: 0.5,
-                overflow: 'hidden',
+
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: isDark ? alpha('#0f172a', 0.9) : alpha('#f9f9f9', 0.95),
+                justifyContent: 'space-between',
+
+                textAlign: 'left',
+                backgroundColor: alpha(
+                  theme.palette.background.paper,
+                  isDark ? 0.75 : 0.97
+                ),
+                border: `1px solid ${alpha(
+                  theme.palette.divider,
+                  isDark ? 0.4 : 0.6
+                )}`,
+                transition:
+                  'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
                 boxShadow: isDark
-                  ? '0 30px 70px rgba(2,6,23,0.6)'
-                  : '0 30px 70px rgba(15,23,42,0.22)',
-                transition: 'all 0.4s ease',
-                transform: 'translateY(0)',
+                  ? '0 4px 30px rgba(2,6,23,0.35)'
+                  : '0 4px 30px rgba(15,23,42,0.15)',
                 '&:hover': {
-                  transform: 'translateY(-10px)',
+                  transform: 'translateY(-8px) scale(1.02)',
                   boxShadow: isDark
-                    ? '0 40px 90px rgba(2,6,23,0.9)'
-                    : '0 40px 90px rgba(15,23,42,0.3)',
-                },
+                    ? '0 12px 40px rgba(255,255,255,0.12)'
+                    : '0 12px 40px rgba(0,0,0,0.12)',
+                  borderColor: alpha(accentColor, 0.5)
+                }
               }}
             >
               {/* Image Section */}
@@ -104,6 +115,7 @@ const ServicesEngagementModels = () => {
                   backgroundImage: `url(${model.image})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
+                    borderRadius: 0.5,
                   transition: 'transform 0.6s ease',
                   '&:hover': {
                     transform: 'scale(1.05)',

@@ -25,7 +25,7 @@ const HomePage = () => {
 
           <ServicesPage /> 
 
-          <FAQAccordion />
+          {/* <FAQAccordion /> */}
         </Stack>
       </Container>
     </Box>

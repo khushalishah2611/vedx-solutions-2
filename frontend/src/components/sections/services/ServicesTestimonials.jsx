@@ -1,5 +1,19 @@
+import { useEffect, useState } from 'react';
 import FormatQuoteRoundedIcon from '@mui/icons-material/FormatQuoteRounded';
-import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded';
+import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRounded';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
+import {
+  Box,
+  Grid,
+  IconButton,
+  Paper,
+  Stack,
+  Typography,
+  alpha,
+  useTheme,
+  useMediaQuery
+} from '@mui/material';
 import { testimonialList } from '../../../data/servicesPage.js';
 
 const ServicesTestimonials = () => {
@@ -7,50 +21,222 @@ const ServicesTestimonials = () => {
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Total slides to handle pagination
+  const slidesCount = isMobile
+    ? testimonialList.length
+    : Math.ceil(testimonialList.length / 2);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? slidesCount - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === slidesCount - 1 ? 0 : prev + 1));
+  };
+
+  // Auto-slide every 4 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleNext();
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isMobile]);
+
+  // Visible testimonials
+  const startIndex = isMobile ? currentIndex : currentIndex * 2;
+  const visibleTestimonials = isMobile
+    ? [testimonialList[startIndex]]
+    : [
+      testimonialList[startIndex],
+      testimonialList[(startIndex + 1) % testimonialList.length]
+    ];
 
   return (
-    <Box component="section">
-      <Stack spacing={3} sx={{ mb: 4 }}>
-        <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
-          What people are saying
+    <Box
+      component="section"
+      sx={{
+        position: 'relative',
+        overflow: 'hidden',
+        textAlign: 'center',
+
+      }}
+    >
+      {/* Header */}
+      <Stack spacing={3} sx={{ mb: 6, alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            px: 2,
+            py: 1,
+            borderRadius: 0.5,
+            border: `1px solid ${alpha('#ffffff', 0.1)}`,
+            background: !isDark
+              ? alpha('#ddddddff', 0.9)
+              : alpha('#0000007c', 0.9),
+            color: alpha(accentColor, 0.9),
+            fontWeight: 600,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+            fontSize: 11,
+            lineHeight: 1.3,
+            width: 'fit-content'
+          }}
+        >
+          <Box
+            component="span"
+            sx={{
+              background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            Client Feedbacks
+          </Box>
+        </Box>
+
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: 30, md: 42 },
+            fontWeight: 700
+          }}
+        >
+          What People Are Saying.
         </Typography>
-        <Typography variant="body1" sx={{ color: subtleText, maxWidth: 720 }}>
-          Teams trust Vedx Solutions for transparent communication and consistent delivery.
+
+        <Typography
+          variant="body1"
+          sx={{
+            color: subtleText,
+            maxWidth: 720
+          }}
+        >
+          There are many variations of passages of Lorem Ipsum available, but the
+          majority have suffered alteration.
         </Typography>
       </Stack>
-      <Grid container spacing={4}>
-        {testimonialList.map((testimonial) => (
-          <Grid item xs={12} md={6} key={testimonial.name}>
+
+
+
+      {/* Testimonials */}
+      <Grid
+        container
+        spacing={4}
+        justifyContent="center"
+        alignItems="stretch"
+        sx={{
+          px: { xs: 2, md: 8 },
+          transition: 'transform 0.5s ease'
+        }}
+      >
+        {visibleTestimonials.map((testimonial, i) => (
+          <Grid item xs={12} md={6} key={`${testimonial.name}-${i}`}>
             <Paper
               elevation={0}
               sx={{
                 height: '100%',
-                borderRadius: 3,
-                p: 4,
+                borderRadius: 0.5,
+                p: 3,
                 display: 'flex',
                 flexDirection: 'column',
+                justifyContent: 'space-between',
                 gap: 3,
-                backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.75 : 0.96),
-                border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`,
-                boxShadow: isDark ? '0 30px 60px rgba(2,6,23,0.45)' : '0 30px 60px rgba(15,23,42,0.18)'
+                textAlign: 'left',
+                backgroundColor: alpha(
+                  theme.palette.background.paper,
+                  isDark ? 0.75 : 0.97
+                ),
+                border: `1px solid ${alpha(
+                  theme.palette.divider,
+                  isDark ? 0.4 : 0.6
+                )}`,
+                transition:
+                  'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
+                boxShadow: isDark
+                  ? '0 4px 30px rgba(2,6,23,0.35)'
+                  : '0 4px 30px rgba(15,23,42,0.15)',
+                '&:hover': {
+                  transform: 'translateY(-8px) scale(1.02)',
+                  boxShadow: isDark
+                    ? '0 12px 40px rgba(255,255,255,0.12)'
+                    : '0 12px 40px rgba(0,0,0,0.12)',
+                  borderColor: alpha(accentColor, 0.5)
+                }
               }}
             >
-              <FormatQuoteRoundedIcon sx={{ fontSize: 48, color: alpha(accentColor, 0.8) }} />
-              <Typography variant="body1" sx={{ color: subtleText, fontStyle: 'italic' }}>
-                {testimonial.quote}
+              <Typography
+                variant="body1"
+                sx={{
+                  color: subtleText,
+                  fontStyle: 'italic',
+                  lineHeight: 1.8
+                }}
+              >
+                “{testimonial.quote}”
               </Typography>
+
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                   {testimonial.name}
                 </Typography>
-                <Typography variant="body2" sx={{ color: subtleText }}>
-                  {testimonial.role}
-                </Typography>
+
+                {/* ⭐ Rating */}
+                <Stack direction="row" spacing={0.5} sx={{ mt: 1 }}>
+                  {[...Array(5)].map((_, index) => (
+                    <StarRoundedIcon
+                      key={index}
+                      sx={{
+                        fontSize: 18,
+                        color:
+                          index < testimonial.rating
+                            ? alpha(accentColor, 0.9)
+                            : alpha(subtleText, 0.4)
+                      }}
+                    />
+                  ))}
+                </Stack>
               </Box>
             </Paper>
           </Grid>
         ))}
       </Grid>
+
+
+
+      {/* Dots Navigation */}
+      <Stack
+        direction="row"
+        justifyContent="center"
+        spacing={1}
+        sx={{ mt: 5 }}
+      >
+        {[...Array(slidesCount)].map((_, index) => (
+          <Box
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              backgroundColor:
+                index === currentIndex
+                  ? alpha(accentColor, 0.9)
+                  : alpha(subtleText, 0.4),
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: alpha(accentColor, 0.6),
+                transform: 'scale(1.2)'
+              }
+            }}
+          />
+        ))}
+      </Stack>
     </Box>
   );
 };

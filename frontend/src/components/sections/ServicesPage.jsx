@@ -17,7 +17,7 @@ const ServicesPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
-      <ServicesHero />
+      {/* <ServicesHero /> */}
       <Container maxWidth="lg" sx={{ pb: { xs: 8, md: 12 } }}>
         <Stack spacing={{ xs: 6, md: 10 }}>
           <ServicesOverview />

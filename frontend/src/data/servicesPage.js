@@ -164,6 +164,30 @@ export const testimonialList = [
       "Next I am primarily looking for the extra projects as it\'s both fresh and visual and it was such a personal level fit with the client.",
     name: 'Afsana Nila',
     role: 'Product Manager, NeoApps'
+  },
+  {
+    quote:
+      'Everything about this demo is great to use for us. I haven\'t gotten too deep into editing and adding additional pages.',
+    name: 'Sr Jonen Sara',
+    role: 'Founder, Growth Collective'
+  },
+  {
+    quote:
+      "Next I am primarily looking for the extra projects as it\'s both fresh and visual and it was such a personal level fit with the client.",
+    name: 'Afsana Nila',
+    role: 'Product Manager, NeoApps'
+  },
+  {
+    quote:
+      'Everything about this demo is great to use for us. I haven\'t gotten too deep into editing and adding additional pages.',
+    name: 'Sr Jonen Sara',
+    role: 'Founder, Growth Collective'
+  },
+  {
+    quote:
+      "Next I am primarily looking for the extra projects as it\'s both fresh and visual and it was such a personal level fit with the client.",
+    name: 'Afsana Nila',
+    role: 'Product Manager, NeoApps'
   }
 ];
 
