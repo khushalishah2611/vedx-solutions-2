@@ -49,12 +49,12 @@ export const heroContent = {
 };
 
 export const navigationLinks = [
-  { label: 'Home', href: '#home' },
-  { label: 'About', href: '#about' },
-  { label: 'Service', menu: 'services' },
+  { label: 'Home', path: '/' },
+  { label: 'Services', path: '/services', menu: 'services' },
   { label: 'Hire Developer +', menu: 'hireDevelopers' },
-  { label: 'Blog', href: '#blog' },
-  { label: 'Contact', href: '#contact' }
+  { label: 'About', path: '/about' },
+  { label: 'Blog', path: '/blog' },
+  { label: 'Contact', path: '/contact' }
 ];
 
 export const megaMenuContent = {
@@ -360,11 +360,19 @@ export const footerContent = {
     },
     {
       title: 'About Us',
-      links: ['About', 'Contact']
+      links: [
+        { label: 'About', href: '/about' },
+        { label: 'Contact', href: '/contact' }
+      ]
     },
     {
       title: 'Quick Links',
-      links: ['Blog', 'Case Study', 'Careers', 'Support']
+      links: [
+        { label: 'Blog', href: '/blog' },
+        'Case Study',
+        'Careers',
+        'Support'
+      ]
     }
   ],
   stayWithUs: [
@@ -375,7 +383,7 @@ export const footerContent = {
   bottomLinks: [
     { label: 'Privacy Policy', href: '#' },
     { label: 'Terms and Condition', href: '#' },
-    { label: 'Contact Us', href: '#contact' }
+    { label: 'Contact Us', href: '/contact' }
   ],
   copyright: 'Copyright © 2025 VedX Solutions.'
 };

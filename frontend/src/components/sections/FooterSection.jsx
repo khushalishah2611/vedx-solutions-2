@@ -14,6 +14,7 @@ import TwitterIcon from '@mui/icons-material/Twitter';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import { footerContent } from '../../data/content.js';
 import { createAnchorHref } from '../../utils/formatters.js';
+import { Link as RouterLink } from 'react-router-dom';
 
 const socialIcons = {
   linkedin: LinkedInIcon,
@@ -126,27 +127,35 @@ const FooterSection = () => {
                 {column.title}
               </Typography>
               <Stack spacing={1}>
-                {column.links.map((link) => (
-                  <Link
-                    key={link}
-                    href={createAnchorHref(link)}
-                    underline="none"
-                    color="text.secondary"
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      transition: 'color 0.2s ease, transform 0.2s ease',
-                      '&:hover': {
-                        color: accentColor,
-                        transform: 'translateX(4px)'
-                      }
-                    }}
-                  >
+                {column.links.map((link) => {
+                  const linkData = typeof link === 'string' ? { label: link } : link;
+                  const resolvedHref = linkData.href ?? createAnchorHref(linkData.label);
+                  const isRouteLink = resolvedHref.startsWith('/');
+                  const linkProps = isRouteLink
+                    ? { component: RouterLink, to: resolvedHref }
+                    : { href: resolvedHref };
 
-                    {link}
-                  </Link>
-                ))}
+                  return (
+                    <Link
+                      key={linkData.label}
+                      underline="none"
+                      color="text.secondary"
+                      {...linkProps}
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        transition: 'color 0.2s ease, transform 0.2s ease',
+                        '&:hover': {
+                          color: accentColor,
+                          transform: 'translateX(4px)'
+                        }
+                      }}
+                    >
+                      {linkData.label}
+                    </Link>
+                  );
+                })}
               </Stack>
             </Stack>
           ))}
@@ -204,17 +213,21 @@ const FooterSection = () => {
           alignItems={{ xs: 'flex-start', md: 'center' }}
         >
           <Stack direction="row" spacing={2.5} flexWrap="wrap" alignItems="center">
-            {footerContent.bottomLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                underline="none"
-                color="text.secondary"
-                sx={{ '&:hover': { color: accentColor } }}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {footerContent.bottomLinks.map((link) => {
+              const isRouteLink = link.href.startsWith('/');
+              const linkProps = isRouteLink ? { component: RouterLink, to: link.href } : { href: link.href };
+              return (
+                <Link
+                  key={link.label}
+                  underline="none"
+                  color="text.secondary"
+                  {...linkProps}
+                  sx={{ '&:hover': { color: accentColor } }}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </Stack>
           <Typography
             variant="body2"

@@ -32,6 +32,7 @@ import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import { megaMenuContent, navigationLinks } from '../../data/content.js';
 import { ColorModeContext } from '../../contexts/ColorModeContext.jsx';
+import { Link as RouterLink } from 'react-router-dom';
 import { createAnchorHref } from '../../utils/formatters.js';
 
 const NavigationBar = () => {
@@ -199,11 +200,13 @@ const NavigationBar = () => {
                     direction="row"
                     spacing={1.5}
                     alignItems="center"
-                    component="a"
-                    href={createAnchorHref(item)}
+                    component={RouterLink}
+                    to={`/services${createAnchorHref(item)}`}
+                    onClick={handleClose}
                     sx={{
                       textDecoration: 'none',
                       transition: 'all 0.25s ease',
+                      color: 'inherit',
                       '&:hover': {
                         transform: 'translateX(4px)'
                       }
@@ -268,6 +271,9 @@ const NavigationBar = () => {
                 if (item.menu) {
                   const isServiceMenu = item.menu === 'services';
                   const isOpen = isServiceMenu ? Boolean(serviceAnchor) : Boolean(hireAnchor);
+                  const buttonProps = item.path
+                    ? { component: RouterLink, to: item.path }
+                    : {};
 
                   return (
                     <Box key={item.label}>
@@ -283,7 +289,15 @@ const NavigationBar = () => {
                           />
                         }
                         onMouseEnter={isServiceMenu ? handleServiceEnter : handleHireEnter}
-                        onClick={isServiceMenu ? handleServiceEnter : handleHireEnter}
+                        onFocus={isServiceMenu ? handleServiceEnter : handleHireEnter}
+                        onClick={
+                          !item.path
+                            ? isServiceMenu
+                              ? handleServiceEnter
+                              : handleHireEnter
+                            : undefined
+                        }
+                        {...buttonProps}
                       >
                         {item.label}
                       </Button>
@@ -294,7 +308,8 @@ const NavigationBar = () => {
                 return (
                   <Button
                     key={item.label}
-                    href={item.href}
+                    component={RouterLink}
+                    to={item.path}
                     color="inherit"
                     sx={{ fontWeight: 500, letterSpacing: 0.5, opacity: 0.88 }}
                   >
@@ -313,7 +328,8 @@ const NavigationBar = () => {
               <Button
                 variant="contained"
                 size="large"
-                href="#contact"
+                component={RouterLink}
+                to="/contact"
                 startIcon={<PhoneInTalkRoundedIcon />}
                 sx={{
                   background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
@@ -443,8 +459,8 @@ const NavigationBar = () => {
                                   {category.subItems.map((subItem) => (
                                     <ListItemButton
                                       key={subItem}
-                                      component="a"
-                                      href={createAnchorHref(subItem)}
+                                      component={RouterLink}
+                                      to={`/services${createAnchorHref(subItem)}`}
                                       sx={{ pl: 6 }}
                                       onClick={toggleDrawer(false)}
                                     >
@@ -472,8 +488,8 @@ const NavigationBar = () => {
               return (
                 <ListItemButton
                   key={item.label}
-                  component="a"
-                  href={item.href}
+                  component={RouterLink}
+                  to={item.path}
                   onClick={toggleDrawer(false)}
                 >
                   <ListItemText primary={item.label} />
@@ -492,7 +508,8 @@ const NavigationBar = () => {
             <Button
               variant="contained"
               size="large"
-              href="#contact"
+              component={RouterLink}
+              to="/contact"
               startIcon={<PhoneInTalkRoundedIcon />}
               sx={{
                 background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
