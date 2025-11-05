@@ -87,7 +87,7 @@ const ServicesShowcase = () => {
                         position: 'relative',
                         width: '100%',
                         height: { xs: 180, sm: 200, md: 220 },
-                        borderRadius: 1,
+                        borderRadius: 0.5,
                         overflow: 'hidden',
                         border: active ? activeBorder : inactiveBorder,
                         boxShadow: active ? activeShadow : baseShadow,

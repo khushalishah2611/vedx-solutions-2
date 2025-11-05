@@ -1,4 +1,3 @@
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { Box, Chip, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { blogPreviews } from '../../../data/servicesPage.js';
 
@@ -10,14 +9,19 @@ const ServicesBlog = () => {
 
   return (
     <Box component="section">
-      <Stack spacing={3} sx={{ mb: 4 }}>
-        <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
+      <Stack spacing={3} sx={{ mb: 10 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: 32, md: 42 },
+            fontWeight: 700,
+            textAlign: 'center',
+          }}
+        >
           Latest blogs
         </Typography>
-        <Typography variant="body1" sx={{ color: subtleText, maxWidth: 720 }}>
-          Insights from our engineering, product, and growth teams to help you stay ahead.
-        </Typography>
       </Stack>
+
       <Grid container spacing={4}>
         {blogPreviews.map((post) => (
           <Grid item xs={12} md={4} key={post.title}>
@@ -25,36 +29,60 @@ const ServicesBlog = () => {
               elevation={0}
               sx={{
                 height: '100%',
-                borderRadius: 3,
+                borderRadius: 0.5,
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.75 : 0.97),
-                border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`
+                backgroundColor: alpha(
+                  theme.palette.background.paper,
+                  isDark ? 0.75 : 0.97
+                ),
+                border: `1px solid ${alpha(
+                  theme.palette.divider,
+                  isDark ? 0.4 : 0.6
+                )}`,
+                transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+                '&:hover': {
+                  transform: 'translateY(-8px)',
+                  boxShadow: isDark
+                    ? '0 8px 24px rgba(255,255,255,0.12)'
+                    : '0 8px 24px rgba(0,0,0,0.15)',
+                },
               }}
             >
               <Box
                 sx={{
-                  height: 200,
+                  height: 250,
                   backgroundImage: `url(${post.image})`,
                   backgroundSize: 'cover',
-                  backgroundPosition: 'center'
+                  backgroundPosition: 'center',
+                  transition: 'transform 0.6s ease',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                  },
                 }}
               />
+
               <Stack spacing={1.5} sx={{ p: 3, flexGrow: 1 }}>
                 <Chip
                   label={post.category}
-                  sx={{ alignSelf: 'flex-start', bgcolor: alpha(accentColor, 0.15), color: accentColor, fontWeight: 600 }}
+                  sx={{
+                    alignSelf: 'flex-start',
+                    bgcolor: alpha(accentColor, 0.15),
+                    color: accentColor,
+                    fontWeight: 600,
+                  }}
                 />
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    lineHeight: 1.3,
+                    color: theme.palette.text.primary,
+                  }}
+                >
                   {post.title}
                 </Typography>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 'auto' }}>
-                  <CheckCircleRoundedIcon sx={{ fontSize: 18, color: accentColor }} />
-                  <Typography variant="body2" sx={{ color: subtleText }}>
-                    5 min read
-                  </Typography>
-                </Stack>
               </Stack>
             </Paper>
           </Grid>
