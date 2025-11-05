@@ -3,10 +3,8 @@ import {
   Box,
   Button,
   ButtonBase,
-  Chip,
   Container,
   Fade,
-  IconButton,
   Stack,
   Typography,
   alpha,
@@ -75,6 +73,7 @@ const HeroSection = () => {
         pt: { xs: 14, md: 18 }
       }}
     >
+      {/* Background Images */}
       <Box sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         {slides.map((slide, index) => (
           <Box
@@ -103,61 +102,90 @@ const HeroSection = () => {
         />
       </Box>
 
+      {/* Slide Content */}
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
         <Stack spacing={{ xs: 6, md: 8 }}>
           <Fade in key={currentSlide.title} timeout={900}>
-              <Stack spacing={5} maxWidth={{ xs: '100%', md: 720 }}>
-                <Typography variant="h2" sx={{ fontSize: { xs: 44, md: 64 }, lineHeight: 1.05 }}>
-                  {currentSlide.title}{' '}
-                  <Box
-                    component="span"
-                    sx={{
-                      background: 'linear-gradient(90deg, #67e8f9 0%, #a855f7 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      display: 'inline-block'
-                    }}
-                  >
-                    {currentSlide.highlight}
-                  </Box>
-                </Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} pt={1.5}>
-                  <Button variant="contained" color="secondary" size="large" href="#contact">
-                    {currentSlide.ctaPrimary}
-                  </Button>
-                </Stack>
-              </Stack>
-          </Fade>
-
-
-
-          <Stack
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-            spacing={1.2}
-            sx={{ pt: 10 }}
-          >
-            {slides.map((slide, index) => {
-              const active = index === activeSlide;
-              return (
-                <ButtonBase
-                  key={slide.title}
-                  onClick={() => handleSelectSlide(index)}
+            <Stack spacing={5} maxWidth={{ xs: '100%', md: 720 }}>
+              <Typography
+                variant="h2"
+                sx={{ fontSize: { xs: 44, md: 64 }, lineHeight: 1.05 }}
+              >
+                {currentSlide.title}{' '}
+                <Box
+                  component="span"
                   sx={{
-                    width: active ? 14 : 10,
-                    height: active ? 14 : 10,
-                    borderRadius: '50%',
-                    backgroundColor: active ? 'secondary.main' : alpha('#ffffff', 0.4),
-                    transition: 'all 0.3s ease',
+                    background: 'linear-gradient(90deg, #67e8f9 0%, #a855f7 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    display: 'inline-block'
                   }}
-                />
-              );
-            })}
-          </Stack>
+                >
+                  {currentSlide.highlight}
+                </Box>
+              </Typography>
 
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                pt={1.5}
+              >
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  href="#contact"
+                  sx={{
+                    background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                    color: '#fff',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                    },
+                  }}
+                >
+                  {currentSlide.ctaPrimary}
+                </Button>
+
+              </Stack>
+            </Stack>
+          </Fade>
         </Stack>
       </Container>
+
+      {/* Dots (bottom centered) */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: { xs: 40, md: 60 },
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 2
+        }}
+      >
+        <Stack direction="row" spacing={1.2} alignItems="center">
+          {slides.map((slide, index) => {
+            const active = index === activeSlide;
+            return (
+              <ButtonBase
+                key={slide.title}
+                onClick={() => handleSelectSlide(index)}
+                sx={{
+                  width: active ? 14 : 10,
+                  height: active ? 14 : 10,
+                  borderRadius: '50%',
+                  backgroundColor: active
+                    ? 'secondary.main'
+                    : alpha('#ffffff', 0.4),
+                  transition: 'all 0.3s ease'
+                }}
+              />
+            );
+          })}
+        </Stack>
+      </Box>
     </Box>
   );
 };

@@ -4,6 +4,7 @@ import {
   ButtonBase,
   Divider,
   Grid,
+  Slide,
   Stack,
   Typography,
   alpha,
@@ -17,10 +18,13 @@ const ServicesShowcase = () => {
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const { heading, services } = servicesShowcase;
+
   const [activeIndex, setActiveIndex] = useState(0);
   const activeService = services[activeIndex];
+
   const activeBorder = `2px solid ${alpha(accentColor, 0.9)}`;
   const inactiveBorder = `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`;
+
   const activeShadow = isDark
     ? '0 24px 48px rgba(5, 9, 18, 0.55)'
     : '0 24px 48px rgba(15, 23, 42, 0.18)';
@@ -30,13 +34,16 @@ const ServicesShowcase = () => {
   const hoverShadow = isDark
     ? '0 28px 52px rgba(5, 9, 18, 0.6)'
     : '0 28px 52px rgba(15, 23, 42, 0.2)';
+
   const overlayGradient = isDark
     ? 'linear-gradient(180deg, rgba(5,9,18,0.15) 10%, rgba(5,9,18,0.8) 85%)'
     : 'linear-gradient(180deg, rgba(15,23,42,0.35) 15%, rgba(15,23,42,0.75) 90%)';
+
   const supportingTextColor = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.9);
 
   return (
     <Stack spacing={6} id="services">
+      {/* Heading */}
       <Stack spacing={1} alignItems="center" textAlign="center">
         <Typography
           variant="h3"
@@ -51,12 +58,14 @@ const ServicesShowcase = () => {
         </Typography>
       </Stack>
 
+      {/* Layout */}
       <Grid
         container
         spacing={{ xs: 4, md: 0 }}
         alignItems="stretch"
         justifyContent="center"
       >
+        {/* Left side cards */}
         <Grid item xs={12} md={5.5}>
           <Grid container spacing={3}>
             {services.map((service, index) => {
@@ -93,31 +102,25 @@ const ServicesShowcase = () => {
                         transition: 'transform 0.4s ease'
                       }}
                     />
-
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: overlayGradient
-                      }}
-                    />
-
+                    <Box sx={{ position: 'absolute', inset: 0, background: overlayGradient }} />
                     <Stack
                       spacing={1}
                       sx={{
                         position: 'relative',
-                        p: 3,
+                        p: 1,
                         height: '100%',
-                        justifyContent: 'flex-end'
+                        justifyContent: 'flex-end',
+                        alignItems: 'flex-start',
+                        textAlign: 'left'
                       }}
                     >
                       <Typography
-                        variant="subtitle1"
                         sx={{ fontWeight: 700, color: 'inherit' }}
                       >
                         {service.title}
                       </Typography>
                     </Stack>
+
                   </ButtonBase>
                 </Grid>
               );
@@ -125,64 +128,77 @@ const ServicesShowcase = () => {
           </Grid>
         </Grid>
 
+        {/* Divider */}
         <Grid
           item
           md="auto"
           sx={{
             display: { xs: 'none', md: 'flex' },
             alignItems: 'stretch',
-            mx: 2
+
           }}
         >
           <Divider
             orientation="vertical"
             flexItem
-            sx={{ borderColor: alpha(theme.palette.divider, 0.7) }}
+            sx={{
+              borderColor: alpha(theme.palette.divider, 0.7),
+              mr: 3.5,
+              ml: 2
+            }}
           />
         </Grid>
 
+        {/* Right side content with animation */}
         <Grid item xs={12} md={6}>
-          <Stack spacing={3} sx={{ height: '100%' }}>
-            <Stack spacing={1}>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontSize: { xs: 26, md: 34 },
-                  fontWeight: 700,
-                  color: 'text.primary'
-                }}
-              >
-                {activeService.title}
-              </Typography>
-              <Divider sx={{ my: { xs: 2, md: 3 }, borderColor: alpha(theme.palette.divider, 0.7) }} />
-              <Typography
-                variant="body1"
-                sx={{ color: supportingTextColor }}
-              >
-                {activeService.blurb}
-              </Typography>
-            </Stack>
-            <Stack spacing={1.5}>
-              {activeService.capabilities.map((capability) => (
-                <Stack
-                  key={capability}
-                  direction="row"
-                  spacing={1.2}
-                  alignItems="center"
+          <Slide
+            in={true}
+            direction="left" // 👈 appears from right side
+            timeout={500}
+            key={activeIndex} // ensures re-animation when active service changes
+          >
+            <Stack spacing={3} sx={{ height: '100%' }}>
+              <Stack spacing={1}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontSize: { xs: 26, md: 34 },
+                    fontWeight: 700,
+                    color: 'text.primary'
+                  }}
                 >
-                  <CheckCircleRoundedIcon
-                    sx={{ color: theme.palette.secondary.main, fontSize: 22 }}
-                  />
-                  <Typography
-                    variant="body2"
-                    sx={{ color: supportingTextColor }}
+                  {activeService.title}
+                </Typography>
+                <Divider
+                  sx={{
+                    my: { xs: 2, md: 3 },
+                    borderColor: alpha(theme.palette.divider, 0.7)
+                  }}
+                />
+                <Typography variant="body1" sx={{ color: supportingTextColor }}>
+                  {activeService.blurb}
+                </Typography>
+              </Stack>
+
+              <Stack spacing={1.5}>
+                {activeService.capabilities.map((capability) => (
+                  <Stack
+                    key={capability}
+                    direction="row"
+                    spacing={1.2}
+                    alignItems="center"
                   >
-                    {capability}
-                  </Typography>
-                </Stack>
-              ))}
+                    <CheckCircleRoundedIcon
+                      sx={{ color: theme.palette.secondary.main, fontSize: 22 }}
+                    />
+                    <Typography variant="body2" sx={{ color: supportingTextColor }}>
+                      {capability}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
             </Stack>
-          </Stack>
+          </Slide>
         </Grid>
       </Grid>
     </Stack>

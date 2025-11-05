@@ -79,13 +79,13 @@ const NavigationBar = () => {
     const overlayGradient =
       mode === 'dark'
         ? `linear-gradient(160deg, ${alpha('#0f172a', 0.82)} 0%, ${alpha('#0f172a', 0.6)} 45%, ${alpha(
-            '#0f172a',
-            0.94
-          )} 100%)`
+          '#0f172a',
+          0.94
+        )} 100%)`
         : `linear-gradient(160deg, ${alpha(theme.palette.background.default, 0.92)} 0%, ${alpha(
-            theme.palette.background.default,
-            0.85
-          )} 45%, ${alpha(theme.palette.background.paper, 0.96)} 100%)`;
+          theme.palette.background.default,
+          0.85
+        )} 45%, ${alpha(theme.palette.background.paper, 0.96)} 100%)`;
     const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
     const descriptorColor = mode === 'dark'
       ? 'rgba(255,255,255,0.75)'
@@ -117,7 +117,7 @@ const NavigationBar = () => {
       >
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
           <Box sx={{ p: { xs: 3, md: 4 }, width: { xs: '100%', md: 340 } }}>
-         
+
             <Stack spacing={2}>
               {config.categories.map((category, index) => {
                 const active = index === activeIndex;
@@ -129,12 +129,12 @@ const NavigationBar = () => {
                     sx={{
                       width: '100%',
                       textAlign: 'left',
-                     
+
                       alignItems: 'flex-start',
                       display: 'flex',
                       gap: 1.5,
                       justifyContent: 'space-between',
-                     
+
                       color: 'inherit'
                     }}
                   >
@@ -142,7 +142,7 @@ const NavigationBar = () => {
                       <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                         {category.label}
                       </Typography>
-                   
+
                     </Box>
                     <KeyboardArrowRightRoundedIcon sx={{ opacity: active ? 1 : 0.4 }} />
                   </ButtonBase>
@@ -169,7 +169,7 @@ const NavigationBar = () => {
               gap: 2
             }}
           >
-           
+
             <Box
               sx={{
                 position: 'absolute',
@@ -209,14 +209,14 @@ const NavigationBar = () => {
                       }
                     }}
                   >
-                    <Box
+                    {/* <Box
                       sx={{
                         width: 8,
                         height: 8,
                         borderRadius: '50%',
                         bgcolor: highlightColor
                       }}
-                    />
+                    /> */}
                     <Typography
                       variant="body2"
                       sx={{
@@ -312,13 +312,23 @@ const NavigationBar = () => {
 
               <Button
                 variant="contained"
-                color="secondary"
+                size="large"
                 href="#contact"
                 startIcon={<PhoneInTalkRoundedIcon />}
-                sx={{ boxShadow: 'none' }}
+                sx={{
+                  background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                  color: '#fff',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                  },
+                }}
               >
                 Hire Now
               </Button>
+
             </Stack>
           )}
 
@@ -360,7 +370,7 @@ const NavigationBar = () => {
               <Box
                 component="img"
                 src={
-                 'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
+                  'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
                 }
                 alt="VedX Solutions logo"
                 sx={{ height: 50, width: 'auto' }}
@@ -393,67 +403,67 @@ const NavigationBar = () => {
                     </ListItemButton>
 
                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-  <List disablePadding>
-    {config.categories.map((category, categoryIndex) => {
-      const [expandedCategory, setExpandedCategory] = useState(false);
-      return (
-        <Box key={category.label}>
-          {/* Category header with label + toggle icon */}
-          <ListItemButton
-            onClick={() => setExpandedCategory(!expandedCategory)}
-            sx={{ pl: 4 }}
-          >
-            <ListItemText
-              primary={
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  {category.label}
-                </Typography>
-              }
-              secondary={
-                category.description && (
-                   <Typography
-                                  variant="caption"
-                                  sx={{ color: alpha(theme.palette.text.secondary, 0.9) }}
-                                >
-                                  {category.description}
-                                </Typography>
-                )
-              }
-            />
-            {expandedCategory ? (
-              <ExpandLessRoundedIcon fontSize="small" />
-            ) : (
-              <ExpandMoreRoundedIcon fontSize="small" />
-            )}
-          </ListItemButton>
+                      <List disablePadding>
+                        {config.categories.map((category, categoryIndex) => {
+                          const [expandedCategory, setExpandedCategory] = useState(false);
+                          return (
+                            <Box key={category.label}>
+                              {/* Category header with label + toggle icon */}
+                              <ListItemButton
+                                onClick={() => setExpandedCategory(!expandedCategory)}
+                                sx={{ pl: 4 }}
+                              >
+                                <ListItemText
+                                  primary={
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                      {category.label}
+                                    </Typography>
+                                  }
+                                  secondary={
+                                    category.description && (
+                                      <Typography
+                                        variant="caption"
+                                        sx={{ color: alpha(theme.palette.text.secondary, 0.9) }}
+                                      >
+                                        {category.description}
+                                      </Typography>
+                                    )
+                                  }
+                                />
+                                {expandedCategory ? (
+                                  <ExpandLessRoundedIcon fontSize="small" />
+                                ) : (
+                                  <ExpandMoreRoundedIcon fontSize="small" />
+                                )}
+                              </ListItemButton>
 
-          {/* Sub-items list */}
-          <Collapse in={expandedCategory} timeout="auto" unmountOnExit>
-            <List disablePadding>
-              {category.subItems.map((subItem) => (
-                <ListItemButton
-                  key={subItem}
-                  component="a"
-                  href={createAnchorHref(subItem)}
-                  sx={{ pl: 6 }}
-                  onClick={toggleDrawer(false)}
-                >
-                  <ListItemText
-                    primary={
-                      <Typography variant="body2">{subItem}</Typography>
-                    }
-                  />
-                </ListItemButton>
-              ))}
-            </List>
-          </Collapse>
-        </Box>
-      );
-    })}
-  </List>
-</Collapse>
+                              {/* Sub-items list */}
+                              <Collapse in={expandedCategory} timeout="auto" unmountOnExit>
+                                <List disablePadding>
+                                  {category.subItems.map((subItem) => (
+                                    <ListItemButton
+                                      key={subItem}
+                                      component="a"
+                                      href={createAnchorHref(subItem)}
+                                      sx={{ pl: 6 }}
+                                      onClick={toggleDrawer(false)}
+                                    >
+                                      <ListItemText
+                                        primary={
+                                          <Typography variant="body2">{subItem}</Typography>
+                                        }
+                                      />
+                                    </ListItemButton>
+                                  ))}
+                                </List>
+                              </Collapse>
+                            </Box>
+                          );
+                        })}
+                      </List>
+                    </Collapse>
 
-                
+
                     <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4) }} />
                   </Box>
                 );
@@ -471,11 +481,35 @@ const NavigationBar = () => {
               );
             })}
           </List>
-          <Box sx={{ p: 2 }}>
-            <Button fullWidth variant="contained" color="secondary" href="#contact">
+          <Box
+            sx={{
+              p: 2,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Button
+              variant="contained"
+              size="large"
+              href="#contact"
+              startIcon={<PhoneInTalkRoundedIcon />}
+              sx={{
+                background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                color: '#fff',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 4, // optional: adds nice horizontal padding
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                },
+              }}
+            >
               Hire Now
             </Button>
           </Box>
+
         </Box>
       </Drawer>
 

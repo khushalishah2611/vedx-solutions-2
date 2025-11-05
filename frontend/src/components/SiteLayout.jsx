@@ -24,10 +24,11 @@ const SiteLayout = () => {
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
         <Stack spacing={{ xs: 4, md: 6 }}>
           <CreativeAgencySection />
+          <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
           <ServicesShowcase />
-          <Divider flexItem sx={{ borderColor: dividerColor }} />
+          <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
           <AdvantageGrid />
-          <Divider flexItem sx={{ borderColor: dividerColor }} />
+          <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
           <DifferentiatorPanels />
           <MetricsBar />
           <ReasonsGrid />

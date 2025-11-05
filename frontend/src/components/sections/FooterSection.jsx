@@ -95,12 +95,7 @@ const FooterSection = () => {
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {footerContent.heading}
           </Typography>
-          <Typography
-            variant="body1"
-            sx={{ color: mutedTextColor, lineHeight: 1.8, maxWidth: 560 }}
-          >
-            {footerContent.description}
-          </Typography>
+          
         </Stack>
         <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
         <Box
