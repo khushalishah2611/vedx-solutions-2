@@ -11,7 +11,7 @@ import AdminForgotPasswordPage from './components/admin/AdminForgotPasswordPage.
 import AdminVerifyOtpPage from './components/admin/AdminVerifyOtpPage.jsx';
 import AdminResetPasswordPage from './components/admin/AdminResetPasswordPage.jsx';
 import HomePage from './components/pages/HomePage.jsx';
-import ServicesPage from '../sections/ServicesPage.jsx'; 
+import ServicesPage from './components/sections/ServicesPage.jsx';
 import ComingSoonPage from './components/pages/ComingSoonPage.jsx';
 import NotFoundPage from './components/pages/NotFoundPage.jsx';
 
