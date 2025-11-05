@@ -51,7 +51,13 @@ const AdminLoginPage = () => {
                 Forgot password
               </Link>
             </Stack>
-            <Button variant="contained" size="large" fullWidth>
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              component={RouterLink}
+              to="/admin/dashboard"
+            >
               Log in
             </Button>
             <Button component={RouterLink} to="/" color="secondary">
