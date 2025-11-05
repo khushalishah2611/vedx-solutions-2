@@ -44,7 +44,7 @@ const NotFoundPage = () => {
           sx={{
             px: { xs: 4, md: 8 },
             py: { xs: 6, md: 8 },
-            borderRadius: 4,
+            borderRadius: 0.5,
             background: surface,
             boxShadow: isDark
               ? '0 30px 70px rgba(2,6,23,0.55)'

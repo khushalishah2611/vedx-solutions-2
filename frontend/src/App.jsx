@@ -11,7 +11,7 @@ import AdminForgotPasswordPage from './components/admin/AdminForgotPasswordPage.
 import AdminVerifyOtpPage from './components/admin/AdminVerifyOtpPage.jsx';
 import AdminResetPasswordPage from './components/admin/AdminResetPasswordPage.jsx';
 import HomePage from './components/pages/HomePage.jsx';
-import ServicesPage from './components/pages/ServicesPage.jsx';
+import ServicesPage from '../sections/ServicesPage.jsx'; 
 import ComingSoonPage from './components/pages/ComingSoonPage.jsx';
 import NotFoundPage from './components/pages/NotFoundPage.jsx';
 
@@ -40,6 +40,24 @@ const App = () => {
               element={
                 <ComingSoonPage
                   title="About Vedx Solutions"
+                  description="We are curating a detailed story about our mission, our people, and the values that drive every solution we build. Check back soon to explore the journey."
+                />
+              }
+            />
+             <Route
+              path="casestudy"
+              element={
+                <ComingSoonPage
+                  title="Case Study Vedx Solutions"
+                  description="We are curating a detailed story about our mission, our people, and the values that drive every solution we build. Check back soon to explore the journey."
+                />
+              }
+            />
+            <Route
+              path="ourprojects"
+              element={
+                <ComingSoonPage
+                  title="Our Projects Vedx Solutions"
                   description="We are curating a detailed story about our mission, our people, and the values that drive every solution we build. Check back soon to explore the journey."
                 />
               }

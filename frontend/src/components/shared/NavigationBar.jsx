@@ -517,7 +517,7 @@ const NavigationBar = () => {
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 4, // optional: adds nice horizontal padding
+                px: 2, // optional: adds nice horizontal padding
                 '&:hover': {
                   background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
                 },

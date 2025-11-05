@@ -53,6 +53,8 @@ export const navigationLinks = [
   { label: 'Services', path: '/services', menu: 'services' },
   { label: 'Hire Developer +', menu: 'hireDevelopers' },
   { label: 'About', path: '/about' },
+  // { label: 'Our Projects', path: '/ourprojects' },
+  // { label: 'Case Study', path: '/casestudy' },
   { label: 'Blog', path: '/blog' },
   { label: 'Contact', path: '/contact' }
 ];

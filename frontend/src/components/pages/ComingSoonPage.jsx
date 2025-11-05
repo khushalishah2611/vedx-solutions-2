@@ -53,7 +53,7 @@ const ComingSoonPage = ({
         <Stack
           spacing={{ xs: 4, md: 5 }}
           sx={{
-            borderRadius: 4,
+            borderRadius: 0.5,
             px: { xs: 4, md: 8 },
             py: { xs: 5, md: 8 },
             background: surfaceColor,
