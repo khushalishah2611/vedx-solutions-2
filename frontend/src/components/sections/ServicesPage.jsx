@@ -1,6 +1,5 @@
 import { Box, Container, Divider, Stack, alpha, useTheme } from '@mui/material';
 import ServicesHero from './services/ServicesHero.jsx';
-import ServicesOverview from './services/ServicesOverview.jsx';
 import ServicesHighlights from './services/ServicesHighlights.jsx';
 import ServicesProcess from './services/ServicesProcess.jsx';
 import ServicesIndustries from './services/ServicesIndustries.jsx';
@@ -20,8 +19,7 @@ const ServicesPage = () => {
       {/* <ServicesHero /> */}
       <Container maxWidth="lg" sx={{ pb: { xs: 8, md: 12 } }}>
         <Stack spacing={{ xs: 6, md: 10 }}>
-          <ServicesOverview />
-          <Divider sx={{ borderColor: dividerColor }} />
+       
           <ServicesHighlights />
           <Divider sx={{ borderColor: dividerColor }} />
           <ServicesProcess />

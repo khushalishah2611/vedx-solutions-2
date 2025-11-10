@@ -126,7 +126,7 @@ const ServicesTestimonials = () => {
       {/* Testimonials */}
       <Grid
         container
-        spacing={4}
+        spacing={2}
         justifyContent="center"
         alignItems="stretch"
         sx={{
