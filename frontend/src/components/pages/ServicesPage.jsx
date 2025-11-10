@@ -1,4 +1,6 @@
-import { Box, Container, Stack } from '@mui/material';
+import {
+  Box, Container, Stack, Divider, alpha, useTheme
+} from '@mui/material';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ServicesHero from '../sections/homepage/ServicesHero.jsx';
@@ -12,7 +14,8 @@ import FAQAccordion from '../shared/FAQAccordion.jsx';
 
 const ServicesPage = ({ showHero = true }) => {
   const navigate = useNavigate();
-
+  const theme = useTheme();
+  const dividerColor = alpha(theme.palette.divider, 0.6);
   const handleOpenContact = useCallback(() => {
     navigate('/contact');
   }, [navigate]);
@@ -22,12 +25,19 @@ const ServicesPage = ({ showHero = true }) => {
       {showHero && <ServicesHero onContactClick={handleOpenContact} />}
       <Container maxWidth="lg" sx={{ pb: { xs: 10, md: 14 } }}>
         <Stack spacing={{ xs: 6, md: 10 }}>
+
           <ServicesHighlights onContactClick={handleOpenContact} />
+          <Divider sx={{ borderColor: dividerColor }} />
           <ServicesBenefits />
+          <Divider sx={{ borderColor: dividerColor }} />
           <FullStackDeveloper onContactClick={handleOpenContact} />
           <ServicesTechnologies />
+          <Divider sx={{ borderColor: dividerColor }} />
           <ServicesCTA onContactClick={handleOpenContact} />
+          <Divider sx={{ borderColor: dividerColor }} />
           <ServicesBlog />
+          <Divider sx={{ borderColor: dividerColor }} />
+
           <FAQAccordion />
         </Stack>
       </Container>
