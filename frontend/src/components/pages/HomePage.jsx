@@ -23,7 +23,7 @@ const HomePage = () => {
 
           <Divider sx={{ borderColor: dividerColor }} />
 
-          <ServicesPage /> 
+          <ServicesPage showHero={false} />
 
           {/* <FAQAccordion /> */}
         </Stack>

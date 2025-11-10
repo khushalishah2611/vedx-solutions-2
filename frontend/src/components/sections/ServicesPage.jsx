@@ -9,14 +9,14 @@ import ServicesEngagementModels from './services/ServicesEngagementModels.jsx';
 import ServicesContact from './services/ServicesContact.jsx';
 import ServicesBlog from './services/ServicesBlog.jsx';
 
-const ServicesPage = () => {
+const ServicesPage = ({ showHero = true }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.6);
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
-      {/* <ServicesHero /> */}
+      {showHero && <ServicesHero />}
       <Container maxWidth="lg" sx={{ pb: { xs: 8, md: 12 } }}>
         <Stack spacing={{ xs: 6, md: 10 }}>
        

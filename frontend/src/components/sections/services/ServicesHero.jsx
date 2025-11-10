@@ -1,7 +1,13 @@
-import { Box, Chip, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Button, Chip, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
 
 const SERVICES_HERO_IMAGE =
-  'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1600&q=80';
+  'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1600&q=80';
+
+const HERO_STATS = [
+  { label: 'Recurring Client', value: '80%' },
+  { label: 'Team Experience', value: '10+' },
+  { label: 'Satisfaction Ratio', value: '98%' }
+];
 
 const ServicesHero = () => {
   const theme = useTheme();
@@ -34,7 +40,7 @@ const ServicesHero = () => {
         }}
       />
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
-        <Stack spacing={3} alignItems="flex-start">
+        <Stack spacing={4} alignItems="flex-start">
           <Chip
             label="Our Services"
             sx={{
@@ -48,12 +54,49 @@ const ServicesHero = () => {
             }}
           />
           <Typography variant="h2" sx={{ fontSize: { xs: 40, md: 56 }, fontWeight: 800, maxWidth: 720 }}>
-            Digital product teams that deliver clarity, velocity, and measurable business growth.
+            Android App Development Service
           </Typography>
           <Typography variant="body1" sx={{ color: subtleText, maxWidth: 640 }}>
-            Partner with Vedx Solutions to strategise, design, and build experiences that delight users and accelerate
-            operations. From discovery workshops to launch and beyond, we bring a human approach to every engagement.
+            Build next-gen mobile solutions with a reliable Android app development company from concept to code. Our
+            strategists, designers, and engineers partner with you to create delightful, scalable experiences.
           </Typography>
+          <Stack spacing={{ xs: 4, md: 6 }} direction={{ xs: 'column', md: 'row' }} alignItems={{ md: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              sx={{
+                px: 4,
+                py: 1.5,
+                borderRadius: 999,
+                fontWeight: 600,
+                boxShadow: '0 20px 45px rgba(59,130,246,0.35)'
+              }}
+              href="/contact"
+            >
+              Contact Us
+            </Button>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={{ xs: 3, sm: 5 }}
+              flexWrap="wrap"
+              useFlexGap
+            >
+              {HERO_STATS.map((stat) => (
+                <Stack key={stat.label} spacing={0.5}>
+                  <Typography
+                    component="span"
+                    sx={{ fontSize: { xs: 28, md: 32 }, fontWeight: 700, color: accentColor }}
+                  >
+                    {stat.value}
+                  </Typography>
+                  <Typography component="span" variant="body2" sx={{ color: subtleText, fontWeight: 500 }}>
+                    {stat.label}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Stack>
         </Stack>
       </Container>
     </Box>
