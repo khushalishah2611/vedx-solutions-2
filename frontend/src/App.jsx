@@ -12,6 +12,7 @@ import AdminVerifyOtpPage from './components/admin/AdminVerifyOtpPage.jsx';
 import AdminResetPasswordPage from './components/admin/AdminResetPasswordPage.jsx';
 import HomePage from './components/pages/HomePage.jsx';
 import ServicesPage from './components/pages/ServicesPage.jsx';
+import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
 import ComingSoonPage from './components/shared/ComingSoonPage.jsx';
 import NotFoundPage from './components/shared/NotFoundPage.jsx';
 
@@ -34,7 +35,10 @@ const App = () => {
           </Route>
           <Route path="/" element={<SiteLayout />}>
             <Route index element={<HomePage />} />
-            <Route path="services" element={<ServicesPage />} />
+            <Route path="services">
+              <Route index element={<ServicesPage />} />
+              <Route path=":categorySlug/:serviceSlug" element={<ServiceDetailPage />} />
+            </Route>
             <Route
               path="about"
               element={
