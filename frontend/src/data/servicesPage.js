@@ -83,6 +83,24 @@ export const processSteps = [
     description:
       'You receive a transparent plan covering architecture choices, team composition, phases, and investment.',
     image: 'https://images.unsplash.com/photo-1523952578875-0d2d0bf6d1ae?auto=format&fit=crop&w=1200&q=80'
+  },
+  {
+    title: 'Design and Experience Sprints',
+    description:
+      'Our UX and product teams translate insights into wireframes, prototypes, and delightful interface systems.',
+    image: 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80'
+  },
+  {
+    title: 'Agile Development & QA',
+    description:
+      'Cross-functional squads build, test, and iterate in short cycles to ship secure, scalable, and maintainable code.',
+    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80'
+  },
+  {
+    title: 'Launch, Handover & Optimisation',
+    description:
+      'We deploy, train your teams, and monitor analytics to keep improving performance after go-live.',
+    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'
   }
 ];
 
