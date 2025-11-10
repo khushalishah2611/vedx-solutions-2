@@ -100,7 +100,7 @@ const ServicesHighlights = () => {
 
         </Grid>
       </Grid>
-
+      <Divider sx={{ borderColor: dividerColor }} />     
       <Box
         component="section"
         sx={{
