@@ -59,8 +59,7 @@ const ServicesProcess = () => {
       component="section"
       sx={{
         position: "relative",
-        px: { xs: 1, md: 0 },
-        py: { xs: 4, md: 6 },
+   
       }}
     >
       {/* Section Header */}

@@ -20,9 +20,6 @@ const ServicesPage = ({ showHero = true }) => {
       {showHero && <ServicesHero />}
       <Container maxWidth="lg" sx={{ pb: { xs: 8, md: 12 } }}>
         <Stack spacing={{ xs: 6, md: 10 }}>
-       
-          <ServicesHighlights />
-          <Divider sx={{ borderColor: dividerColor }} />
           <ServicesProcess />
           <Divider sx={{ borderColor: dividerColor }} />
           <ServicesIndustries />
