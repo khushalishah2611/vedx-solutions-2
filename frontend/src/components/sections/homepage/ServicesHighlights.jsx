@@ -1,17 +1,14 @@
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { fullStackBenefits } from '../../../data/servicesPage.js';
 
-const ServicesBenefits = () => {
+const ServicesHighlights = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 
   return (
-    <Box component="section" sx={{
-        position: "relative",
-  
-      }}>
+    <Box component="section" sx={{ position: 'relative' }}>
       <Stack spacing={3} alignItems="center" textAlign="center" sx={{ mb: 6 }}>
         <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
           Full Stack Development Service
@@ -22,8 +19,8 @@ const ServicesBenefits = () => {
       </Stack>
 
       <Grid container spacing={3}>
-        {fullStackBenefits.map((benefit) => (
-          <Grid item xs={12} md={6} key={benefit.title}>
+        {fullStackBenefits.map(({ title, description, Icon }) => (
+          <Grid item xs={12} md={6} key={title}>
             <Paper
               elevation={0}
               sx={{
@@ -48,27 +45,29 @@ const ServicesBenefits = () => {
                 }
               }}
             >
-                 <Box
-                                sx={{
-                                  width: 52,
-                                  height: 52,
-                                  borderRadius: 2,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  background: alpha(accentColor, 0.16),
-                                  color: accentColor,
-                                  mb: 2,
-                                }}
-                              >
-                                {Icon && <Icon />}
-                              </Box>
-              
+              {Icon && (
+                <Box
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: alpha(accentColor, 0.16),
+                    color: accentColor,
+                    mb: 2
+                  }}
+                >
+                  <Icon />
+                </Box>
+              )}
+
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {benefit.title}
+                {title}
               </Typography>
               <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.7 }}>
-                {benefit.description}
+                {description}
               </Typography>
             </Paper>
           </Grid>
@@ -78,4 +77,4 @@ const ServicesBenefits = () => {
   );
 };
 
-export default  ServicesHighlights;
+export default ServicesHighlights;
