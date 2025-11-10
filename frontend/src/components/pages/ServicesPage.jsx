@@ -8,6 +8,7 @@ import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 import ServicesEngagementModels from '../sections/homepage/ServicesEngagementModels.jsx';
 import ServicesContact from '../shared/ServicesContact.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
+import FAQAccordion from '../shared/FAQAccordion.jsx';
 
 const ServicesPage = () => {
   const theme = useTheme();
@@ -16,7 +17,7 @@ const ServicesPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
-      {/* <ServicesHero /> */}
+      <ServicesHero />
       <Container maxWidth="lg" sx={{ pb: { xs: 8, md: 12 } }}>
         <Stack spacing={{ xs: 6, md: 10 }}>
        
@@ -33,6 +34,7 @@ const ServicesPage = () => {
           <ServicesEngagementModels />
           <Divider sx={{ borderColor: dividerColor }} />
           <ServicesContact />
+          <FAQAccordion/>
           <Divider sx={{ borderColor: dividerColor }} />
           <ServicesBlog />
         </Stack>
