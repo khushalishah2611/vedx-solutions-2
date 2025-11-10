@@ -9,7 +9,7 @@ const BlogPreviewCard = ({
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const accentColor = isDark ? theme.palette.primary.light : theme.palette.primary.main;
+  const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.9 : 0.78);
 
   return (
@@ -17,20 +17,16 @@ const BlogPreviewCard = ({
       elevation={0}
       sx={{
         height: '100%',
-        borderRadius: 2,
+        borderRadius: 0.5,
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.6 : 0.97),
         border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
-        boxShadow: isDark
-          ? '0 18px 40px rgba(15,23,42,0.55)'
-          : '0 18px 34px rgba(15,23,42,0.12)',
+
         transition: 'transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease',
         '&:hover': {
           transform: 'translateY(-6px)',
-          boxShadow: isDark
-            ? '0 26px 60px rgba(148, 163, 184, 0.28)'
-            : '0 26px 60px rgba(15,23,42,0.18)',
+
           borderColor: alpha(accentColor, 0.5)
         }
       }}
@@ -105,22 +101,27 @@ const BlogPreviewCard = ({
         )}
 
         <Box sx={{ flexGrow: 1 }} />
-
         <Button
-          component={RouterLink}
-          to={`/blog/${post.slug}`}
           variant="contained"
           size="large"
+          component={RouterLink}
+          to={`/blog/${post.slug}`}
+
           sx={{
-            alignSelf: 'flex-start',
+            background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+            color: '#fff',
+            borderRadius: '12px',
             textTransform: 'none',
             fontWeight: 600,
-            borderRadius: 2,
-            px: 3.5
+            px: 2, // optional: adds nice horizontal padding
+            '&:hover': {
+              background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+            },
           }}
         >
           Read More
         </Button>
+
       </Stack>
     </Paper>
   );

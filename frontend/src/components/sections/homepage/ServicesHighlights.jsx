@@ -39,9 +39,7 @@ const ServicesHighlights = () => {
                 '&:hover': {
                   transform: 'translateY(-6px)',
                   borderColor: alpha(accentColor, 0.6),
-                  boxShadow: isDark
-                    ? '0 28px 60px rgba(103,232,249,0.18)'
-                    : '0 28px 60px rgba(59,130,246,0.16)'
+
                 }
               }}
             >
@@ -55,7 +53,9 @@ const ServicesHighlights = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     background: alpha(accentColor, 0.16),
-                    color: accentColor,
+                    color: accentColor, "&:hover": {
+                      color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                    },
                     mb: 2
                   }}
                 >
@@ -63,7 +63,11 @@ const ServicesHighlights = () => {
                 </Box>
               )}
 
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              <Typography variant="h6" sx={{
+                fontWeight: 700, "&:hover": {
+                  color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                },
+              }}>
                 {title}
               </Typography>
               <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.7 }}>

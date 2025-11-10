@@ -64,13 +64,14 @@ const ServicesIndustries = () => {
                 transform: 'translateY(0)',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'flex-end', // Align content at bottom
+                justifyContent: 'flex-end',
+                boxShadow: isDark
+                  ? '0 10px 25px rgba(255,255,255,0.08)'
+                  : '0 10px 25px rgba(0,0,0,0.1)',
                 '&:hover': {
                   transform: 'translateY(-8px)',
                   borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                  boxShadow: isDark
-                    ? '0 10px 25px rgba(255,255,255,0.08)'
-                    : '0 10px 25px rgba(0,0,0,0.1)',
+
                 },
               }}
             >
@@ -108,7 +109,11 @@ const ServicesIndustries = () => {
                   p: 2,
                 }}
               >
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography variant="h6" sx={{
+                  fontWeight: 700, "&:hover": {
+                    color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                  },
+                }}>
                   {industry.title}
                 </Typography>
                 <Divider sx={{ borderColor: alpha('#ffffff', 0.8) }} />

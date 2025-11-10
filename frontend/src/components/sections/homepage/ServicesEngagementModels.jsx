@@ -101,9 +101,7 @@ const ServicesEngagementModels = () => {
                   : '0 4px 30px rgba(15,23,42,0.15)',
                 '&:hover': {
                   transform: 'translateY(-8px) scale(1.02)',
-                  boxShadow: isDark
-                    ? '0 12px 40px rgba(255,255,255,0.12)'
-                    : '0 12px 40px rgba(0,0,0,0.12)',
+
                   borderColor: alpha(accentColor, 0.5)
                 }
               }}
@@ -127,6 +125,8 @@ const ServicesEngagementModels = () => {
                   sx={{
                     fontWeight: 700,
                     color: isDark ? 'common.white' : 'text.primary',
+
+                    '&:hover': { color: isDark ? '#67e8f9' : theme.palette.primary.main }
                   }}
                 >
                   {model.title}

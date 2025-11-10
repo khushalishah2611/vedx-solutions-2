@@ -9,7 +9,7 @@ const ServicesCTA = ({ onContactClick }) => {
       <Paper
         elevation={0}
         sx={{
-          borderRadius: 4,
+          borderRadius: 0.5,
           px: { xs: 3, md: 6 },
           py: { xs: 4, md: 6 },
           textAlign: { xs: 'left', md: 'center' },

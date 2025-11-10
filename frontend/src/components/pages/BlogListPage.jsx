@@ -48,16 +48,7 @@ const BlogListPage = () => {
       >
         <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
           <Stack spacing={3} alignItems={{ xs: 'flex-start', md: 'center' }}>
-            <Chip
-              label="Insights & Stories"
-              sx={{
-                alignSelf: { xs: 'flex-start', md: 'center' },
-                bgcolor: alpha(theme.palette.primary.main, isDark ? 0.25 : 0.15),
-                color: theme.palette.primary.contrastText,
-                fontWeight: 600,
-                letterSpacing: 0.75
-              }}
-            />
+           
             <Typography
               variant="h2"
               sx={{
@@ -89,7 +80,7 @@ const BlogListPage = () => {
                 flexWrap: 'wrap',
                 gap: 1,
                 '& .MuiToggleButton-root': {
-                  borderRadius: 999,
+                  borderRadius: 0.5,
                   px: 2.5,
                   textTransform: 'none',
                   fontWeight: 600,

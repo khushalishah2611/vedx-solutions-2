@@ -74,16 +74,15 @@ const ServicesWhyChoose = () => {
                     theme.palette.divider,
                     isDark ? 0.4 : 0.6
                   )}`,
-                  transition:
-                    'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
                   boxShadow: isDark
                     ? '0 4px 30px rgba(2,6,23,0.35)'
                     : '0 4px 30px rgba(15,23,42,0.15)',
+                  transition:
+                    'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
+
                   '&:hover': {
                     transform: 'translateY(-8px) scale(1.02)',
-                    boxShadow: isDark
-                      ? '0 12px 40px rgba(255,255,255,0.12)'
-                      : '0 12px 40px rgba(0,0,0,0.12)',
+
                     borderColor: alpha(accentColor, 0.5),
                   },
                 }}
@@ -107,7 +106,11 @@ const ServicesWhyChoose = () => {
 
                 {/* Text */}
                 <Stack spacing={1}>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  <Typography variant="h6" sx={{
+                    fontWeight: 700, "&:hover": {
+                      color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                    },
+                  }}>
                     {highlight.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: subtleText }}>

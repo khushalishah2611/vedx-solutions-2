@@ -196,7 +196,21 @@ const ServicesShowcase = () => {
                       <CheckCircleRoundedIcon
                         sx={{ color: theme.palette.secondary.main, fontSize: 22 }}
                       />
-                      <Typography variant="body2" sx={{ color: supportingTextColor }}>
+                      <Typography
+                        component="a"
+                        href="#"
+                        variant="body2"
+                        sx={{
+                          color: supportingTextColor,
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          transition: 'color 0.3s ease',
+                          '&:hover': {
+                            color: isDark ? '#67e8f9' : theme.palette.primary.main,
+                            textDecoration: 'none',
+                          },
+                        }}
+                      >
                         {capability}
                       </Typography>
                     </Stack>

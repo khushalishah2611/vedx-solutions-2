@@ -6,7 +6,6 @@ import ServicesHighlights from '../sections/homepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/homepage/ServicesBenefits.jsx';
 import FullStackDeveloper from '../sections/homepage/FullStackDeveloper.jsx';
 import ServicesTechnologies from '../sections/homepage/ServicesTechnologies.jsx';
-import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
 import ServicesCTA from '../sections/homepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import FAQAccordion from '../shared/FAQAccordion.jsx';
@@ -27,7 +26,6 @@ const ServicesPage = ({ showHero = true }) => {
           <ServicesBenefits />
           <FullStackDeveloper onContactClick={handleOpenContact} />
           <ServicesTechnologies />
-          <ServicesWhyChoose />
           <ServicesCTA onContactClick={handleOpenContact} />
           <ServicesBlog />
           <FAQAccordion />

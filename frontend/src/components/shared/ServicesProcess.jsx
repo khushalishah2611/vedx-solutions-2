@@ -59,7 +59,7 @@ const ServicesProcess = () => {
       component="section"
       sx={{
         position: "relative",
-   
+
       }}
     >
       {/* Section Header */}
@@ -156,9 +156,7 @@ const ServicesProcess = () => {
                   : "0 4px 30px rgba(15,23,42,0.15)",
                 "&:hover": {
                   transform: "translateY(-8px) scale(1.02)",
-                  boxShadow: isDark
-                    ? "0 12px 40px rgba(255,255,255,0.12)"
-                    : "0 12px 40px rgba(0,0,0,0.12)",
+
                   borderColor: alpha(accentColor, 0.5),
                 },
               }}
@@ -190,7 +188,11 @@ const ServicesProcess = () => {
 
               {/* Step Text */}
               <Stack spacing={1.5} sx={{ p: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography variant="h6" sx={{
+                  fontWeight: 700, "&:hover": {
+                    color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                  },
+                }}>
                   {step.title}
                 </Typography>
 

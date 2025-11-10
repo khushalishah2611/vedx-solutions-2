@@ -137,7 +137,7 @@ const BlogDetailPage = () => {
 
               <Box
                 sx={{
-                  borderRadius: 3,
+                  borderRadius: 0.5,
                   border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.2)}`,
                   backgroundColor: alpha(theme.palette.primary.main, isDark ? 0.12 : 0.08),
                   p: { xs: 4, md: 5 }
@@ -151,16 +151,28 @@ const BlogDetailPage = () => {
                     {post.cta.description}
                   </Typography>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+
+
                     <Button
                       variant="contained"
                       size="large"
                       component={RouterLink}
                       to={post.cta.primaryCtaHref}
                       endIcon={<ArrowForwardIcon />}
-                      sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2, px: 4 }}
+                      sx={{
+                        background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                        color: '#fff',
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': {
+                          background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                        },
+                      }}
                     >
                       {post.cta.primaryCtaLabel}
                     </Button>
+
                   </Stack>
                 </Stack>
               </Box>
@@ -171,7 +183,7 @@ const BlogDetailPage = () => {
             <Stack spacing={4}>
               <Box
                 sx={{
-                  borderRadius: 3,
+                  borderRadius: 0.5,
                   border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
                   backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.6 : 0.96),
                   p: 3.5
@@ -191,7 +203,7 @@ const BlogDetailPage = () => {
 
               <Box
                 sx={{
-                  borderRadius: 3,
+                  borderRadius: 0.5,
                   border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
                   backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.6 : 0.96),
                   p: 3.5
@@ -211,7 +223,7 @@ const BlogDetailPage = () => {
                             textDecoration: 'none',
                             color: theme.palette.text.primary,
                             fontWeight: 600,
-                            '&:hover': { color: theme.palette.primary.main }
+                            '&:hover': { color:  isDark ? '#67e8f9' : theme.palette.primary.main }
                           }}
                         >
                           {item.title}

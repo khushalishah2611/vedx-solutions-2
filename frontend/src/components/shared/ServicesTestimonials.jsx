@@ -162,9 +162,7 @@ const ServicesTestimonials = () => {
                   : '0 4px 30px rgba(15,23,42,0.15)',
                 '&:hover': {
                   transform: 'translateY(-8px) scale(1.02)',
-                  boxShadow: isDark
-                    ? '0 12px 40px rgba(255,255,255,0.12)'
-                    : '0 12px 40px rgba(0,0,0,0.12)',
+
                   borderColor: alpha(accentColor, 0.5)
                 }
               }}

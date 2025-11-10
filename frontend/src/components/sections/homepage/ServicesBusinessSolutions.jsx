@@ -74,19 +74,29 @@ const ServicesBusinessSolutions = () => {
                   theme.palette.divider,
                   isDark ? 0.4 : 0.6
                 )}`,
+                boxShadow: isDark
+                  ? '0 4px 30px rgba(2,6,23,0.35)'
+                  : '0 4px 30px rgba(15,23,42,0.15)',
                 transition: 'all 0.35s ease',
                 transform: 'translateY(0)',
                 '&:hover': {
                   transform: 'translateY(-8px)',
                   borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                  boxShadow: isDark
-                    ? '0 10px 25px rgba(255,255,255,0.08)'
-                    : '0 10px 25px rgba(0,0,0,0.1)',
+
                 },
               }}
             >
               <Stack spacing={2}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    transition: "color 0.3s ease",
+                    "&:hover": {
+                      color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                    },
+                  }}
+                >
                   {solution.title}
                 </Typography>
 

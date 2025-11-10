@@ -6,9 +6,20 @@ import {
   Stack,
   Typography,
   alpha,
-  useTheme
+  useTheme,
 } from "@mui/material";
+import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
+import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
+import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+
 import { fullStackServiceFeatures } from "../../../data/servicesPage.js";
+
+const highlightIcons = [
+  WorkspacePremiumRoundedIcon,
+  VerifiedRoundedIcon,
+  AutoAwesomeRoundedIcon,
+];
 
 const ServicesBenefits = ({ onContactClick }) => {
   const theme = useTheme();
@@ -17,114 +28,142 @@ const ServicesBenefits = ({ onContactClick }) => {
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
 
   return (
-    <Box component="section">
-      <Box
+    <Box
+      component="section"
+      sx={{
+        position: "relative",
+        py: { xs: 6, md: 10 },
+      }}
+    >
+      {/* Section Header */}
+      <Stack spacing={3} alignItems="center" textAlign="center" sx={{ mb: 6 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: 32, md: 42 },
+            fontWeight: 700,
+            lineHeight: 1.2,
+          }}
+        >
+          Benefits of a Full Stack Development Company
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            color: subtleText,
+            maxWidth: 760,
+            lineHeight: 1.7,
+          }}
+        >
+          From strategy to support, VedX Solutions unifies design, engineering,
+          DevOps, and analytics to deliver outcome-driven digital products.
+        </Typography>
+      </Stack>
+
+      {/* Feature Grid */}
+      <Grid
+        container
+        spacing={3}
         sx={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0
+          textAlign: "center",
+          alignItems: "stretch",
         }}
-      />
+      >
+        {fullStackServiceFeatures.map((feature, index) => {
+          const Icon =
+            feature.icon || highlightIcons[index % highlightIcons.length];
 
-      <Stack spacing={6} sx={{ position: "relative", zIndex: 1 }}>
-        <Stack spacing={3} alignItems="center" textAlign="center">
-          <Typography
-            variant="h3"
-            sx={{
-              fontSize: { xs: 32, md: 42 },
-              fontWeight: 700,
-              lineHeight: 1.2
-            }}
-          >
-            Benefits of a Full Stack Development Company
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              color: subtleText,
-              maxWidth: 760,
-              lineHeight: 1.7
-            }}
-          >
-            From strategy to support, VedX Solutions unifies design, engineering, DevOps, and analytics to deliver outcome-driven
-            digital products.
-          </Typography>
-        </Stack>
-
-        <Grid container spacing={2} justifyContent="center">
-          {fullStackServiceFeatures.map((feature, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
+          return (
+            <Grid item xs={12} sm={6} md={4} key={feature.title}>
               <Paper
                 elevation={0}
                 sx={{
                   height: "100%",
                   borderRadius: 0.5,
-                  p: { xs: 1.5, md: 2 },
+                  p: 2,
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
                   backgroundColor: alpha(
                     theme.palette.background.paper,
-                    isDark ? 0.75 : 0.98
+                    isDark ? 0.75 : 0.97
                   ),
                   border: `1px solid ${alpha(
                     theme.palette.divider,
-                    isDark ? 0.4 : 0.5
+                    isDark ? 0.4 : 0.6
                   )}`,
                   transition:
-                    "transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease",
+                    "transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease",
                   boxShadow: isDark
-                    ? "0 24px 45px rgba(15,23,42,0.45)"
-                    : "0 24px 45px rgba(15,23,42,0.12)",
+                    ? "0 4px 30px rgba(2,6,23,0.35)"
+                    : "0 4px 30px rgba(15,23,42,0.15)",
                   "&:hover": {
-                    transform: "translateY(-8px)",
-                    borderColor: alpha(accentColor, 0.6),
-                    boxShadow: isDark
-                      ? "0 28px 60px rgba(103,232,249,0.18)"
-                      : "0 28px 60px rgba(59,130,246,0.18)"
-                  }
+                    transform: "translateY(-8px) scale(1.02)",
+
+                    borderColor: alpha(accentColor, 0.5),
+                  },
                 }}
               >
-                <Stack spacing={1.5}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: { xs: 18, md: 20 },
-                      color: isDark
-                        ? "#e2e8f0"
-                        : theme.palette.text.primary
-                    }}
-                  >
+                {/* Icon */}
+                <Box
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: alpha(accentColor, 0.16),
+                    color: accentColor,
+                    mb: 2,
+                  }}
+                >
+                  {Icon && <Icon fontSize="medium" />}
+                </Box>
+
+                {/* Text */}
+                <Stack spacing={1}>
+                  <Typography variant="h6" sx={{
+                    fontWeight: 700, "&:hover": {
+                      color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                    },
+                  }}>
                     {feature.title}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.7 }}>
+                  <Typography variant="body2" sx={{ color: subtleText }}>
                     {feature.description}
                   </Typography>
                 </Stack>
               </Paper>
             </Grid>
-          ))}
-        </Grid>
+          );
+        })}
+      </Grid>
 
-        <Stack alignItems="center">
-          <Button
-            variant="contained"
-            size="large"
-            onClick={onContactClick}
-            sx={{
-              background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
-              color: "#fff",
-              borderRadius: "12px",
-              textTransform: "none",
-              fontWeight: 600,
-              px: { xs: 4, md: 8 },
-              py: { xs: 1.5, md: 2 }
-            }}
-          >
-            Request a Quote
-          </Button>
-        </Stack>
+      {/* CTA Button */}
+      <Stack alignItems="center" sx={{ width: "100%", mt: 6 }}>
+        <Button
+          variant="contained"
+          size="large"
+          endIcon={<ArrowOutwardRoundedIcon />}
+          onClick={onContactClick}
+          sx={{
+            background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+            color: "#fff",
+            borderRadius: "12px",
+            textTransform: "none",
+            fontWeight: 600,
+            fontSize: "1.1rem",
+            px: { xs: 4, md: 8 },
+            py: { xs: 1.5, md: 2 },
+            "&:hover": {
+              background: "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
+            },
+          }}
+        >
+          Request a Quote
+        </Button>
       </Stack>
     </Box>
   );
