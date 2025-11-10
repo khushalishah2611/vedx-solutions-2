@@ -52,7 +52,7 @@ export const navigationLinks = [
   { label: 'Home', path: '/' },
   { label: 'Services', path: '/services', menu: 'services' },
   { label: 'Hire Developer +', menu: 'hireDevelopers' },
-  { label: 'About', path: '/about' },
+  { label: 'About', path: '/about', menu: 'about' },
   // { label: 'Our Projects', path: '/ourprojects' },
   // { label: 'Case Study', path: '/casestudy' },
   { label: 'Blog', path: '/blog' },
@@ -235,6 +235,31 @@ export const megaMenuContent = {
         ],
         image:
           'https://images.unsplash.com/photo-1487014679447-9f8336841d58?auto=format&fit=crop&w=900&q=80'
+      }
+    ]
+  },
+  about: {
+    heading: 'Get to know the people and principles behind VedX',
+    categories: [
+      {
+        label: 'About VedX Solutions',
+        description: 'Discover our mission, culture, and the impact our teams deliver for partners around the globe.',
+        subItems: [
+          { label: 'Who we are', href: '/about' },
+          { label: 'Culture & values', href: '/about#culture' },
+          { label: 'Milestones', href: '/about#milestones' }
+        ],
+        image: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=900&q=80'
+      },
+      {
+        label: 'Careers at VedX',
+        description: 'Join remote-first squads crafting digital products, growth programs, and customer experiences.',
+        subItems: [
+          { label: 'Open roles', href: '/careers#open-roles' },
+          { label: 'Benefits & perks', href: '/careers#benefits' },
+          { label: 'Hiring journey', href: '/careers#journey' }
+        ],
+        image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80'
       }
     ]
   }
@@ -448,6 +473,7 @@ export const footerContent = {
       title: 'About Us',
       links: [
         { label: 'About', href: '/about' },
+        { label: 'Careers', href: '/careers' },
         { label: 'Contact', href: '/contact' }
       ]
     },
@@ -456,7 +482,7 @@ export const footerContent = {
       links: [
         { label: 'Blog', href: '/blog' },
         'Case Study',
-        'Careers',
+        { label: 'Careers', href: '/careers' },
         'Support'
       ]
     }

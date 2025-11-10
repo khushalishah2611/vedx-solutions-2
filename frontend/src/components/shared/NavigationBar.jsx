@@ -40,34 +40,49 @@ const NavigationBar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleColorMode } = useContext(ColorModeContext);
   const [open, setOpen] = useState(false);
-  const createDefaultExpanded = () => ({ services: false, hireDevelopers: false });
+  const createDefaultExpanded = () => ({ services: false, hireDevelopers: false, about: false });
   const [expandedMenus, setExpandedMenus] = useState(createDefaultExpanded);
   const [serviceAnchor, setServiceAnchor] = useState(null);
   const [hireAnchor, setHireAnchor] = useState(null);
+  const [aboutAnchor, setAboutAnchor] = useState(null);
   const [activeServiceIndex, setActiveServiceIndex] = useState(0);
   const [activeHireIndex, setActiveHireIndex] = useState(0);
+  const [activeAboutIndex, setActiveAboutIndex] = useState(0);
 
   const toggleDrawer = (state) => () => {
     setOpen(state);
     if (!state) {
       setExpandedMenus(createDefaultExpanded());
+      setServiceAnchor(null);
+      setHireAnchor(null);
+      setAboutAnchor(null);
     }
   };
 
   const handleServiceEnter = (event) => {
     if (isMobile) return;
     setHireAnchor(null);
+    setAboutAnchor(null);
     setServiceAnchor(event.currentTarget);
   };
 
   const handleHireEnter = (event) => {
     if (isMobile) return;
     setServiceAnchor(null);
+    setAboutAnchor(null);
     setHireAnchor(event.currentTarget);
+  };
+
+  const handleAboutEnter = (event) => {
+    if (isMobile) return;
+    setServiceAnchor(null);
+    setHireAnchor(null);
+    setAboutAnchor(event.currentTarget);
   };
 
   const handleServiceClose = () => setServiceAnchor(null);
   const handleHireClose = () => setHireAnchor(null);
+  const handleAboutClose = () => setAboutAnchor(null);
 
   const toggleDrawerMenu = (key) => () =>
     setExpandedMenus((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -272,11 +287,19 @@ const NavigationBar = () => {
             <Stack direction="row" spacing={1} alignItems="center">
               {navigationLinks.map((item) => {
                 if (item.menu) {
-                  const isServiceMenu = item.menu === 'services';
-                  const isOpen = isServiceMenu ? Boolean(serviceAnchor) : Boolean(hireAnchor);
-                  const buttonProps = item.path
-                    ? { component: RouterLink, to: item.path }
-                    : {};
+                  const buttonProps = item.path ? { component: RouterLink, to: item.path } : {};
+                  const menuKey = item.menu;
+                  const menuConfig = {
+                    services: { anchor: serviceAnchor, handleEnter: handleServiceEnter },
+                    hireDevelopers: { anchor: hireAnchor, handleEnter: handleHireEnter },
+                    about: { anchor: aboutAnchor, handleEnter: handleAboutEnter }
+                  }[menuKey];
+
+                  if (!menuConfig) {
+                    return null;
+                  }
+
+                  const isOpen = Boolean(menuConfig.anchor);
 
                   return (
                     <Box key={item.label}>
@@ -291,15 +314,9 @@ const NavigationBar = () => {
                             }}
                           />
                         }
-                        onMouseEnter={isServiceMenu ? handleServiceEnter : handleHireEnter}
-                        onFocus={isServiceMenu ? handleServiceEnter : handleHireEnter}
-                        onClick={
-                          !item.path
-                            ? isServiceMenu
-                              ? handleServiceEnter
-                              : handleHireEnter
-                            : undefined
-                        }
+                        onMouseEnter={menuConfig.handleEnter}
+                        onFocus={menuConfig.handleEnter}
+                        onClick={!item.path ? menuConfig.handleEnter : undefined}
                         {...buttonProps}
                       >
                         {item.label}
@@ -544,9 +561,12 @@ const NavigationBar = () => {
         </Box>
       </Drawer>
 
-      {!isMobile && renderMegaMenu(serviceAnchor, handleServiceClose, megaMenuContent.services, activeServiceIndex, setActiveServiceIndex)}
+      {!isMobile &&
+        renderMegaMenu(serviceAnchor, handleServiceClose, megaMenuContent.services, activeServiceIndex, setActiveServiceIndex)}
       {!isMobile &&
         renderMegaMenu(hireAnchor, handleHireClose, megaMenuContent.hireDevelopers, activeHireIndex, setActiveHireIndex)}
+      {!isMobile &&
+        renderMegaMenu(aboutAnchor, handleAboutClose, megaMenuContent.about, activeAboutIndex, setActiveAboutIndex)}
     </AppBar>
   );
 };

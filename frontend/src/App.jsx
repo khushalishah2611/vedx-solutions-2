@@ -17,6 +17,8 @@ import ComingSoonPage from './components/shared/ComingSoonPage.jsx';
 import NotFoundPage from './components/shared/NotFoundPage.jsx';
 import BlogListPage from './components/pages/BlogListPage.jsx';
 import BlogDetailPage from './components/pages/BlogDetailPage.jsx';
+import AboutPage from './components/pages/AboutPage.jsx';
+import CareersPage from './components/pages/CareersPage.jsx';
 
 const App = () => {
   return (
@@ -41,16 +43,9 @@ const App = () => {
               <Route index element={<ServicesPage />} />
               <Route path=":categorySlug/:serviceSlug" element={<ServiceDetailPage />} />
             </Route>
+            <Route path="about" element={<AboutPage />} />
+            <Route path="careers" element={<CareersPage />} />
             <Route
-              path="about"
-              element={
-                <ComingSoonPage
-                  title="About Vedx Solutions"
-                  description="We are curating a detailed story about our mission, our people, and the values that drive every solution we build. Check back soon to explore the journey."
-                />
-              }
-            />
-             <Route
               path="casestudy"
               element={
                 <ComingSoonPage

@@ -23,14 +23,22 @@ const FullStackDeveloper = ({ onContactClick }) => {
         <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
           <Grid item xs={12} md={6}>
             <Stack spacing={2.5}>
-              <Typography variant="overline" sx={{ letterSpacing: 1, fontWeight: 600, color: alpha('#fff', 0.9) }}>
-                Full Stack Developer
+              <Typography
+                variant="overline"
+                sx={{
+                  letterSpacing: 1.5,
+                  fontWeight: 700,
+                  color: alpha('#fff', 0.92)
+                }}
+              >
+                FULL STACK DEVELOPMENT SERVICE
               </Typography>
               <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 40 }, fontWeight: 700, color: '#fff' }}>
-                Our result-oriented developer develops robust, secure and scalable enterprise-grade web applications.
+                Your go-to squad for building innovative, scalable digital experiences end to end.
               </Typography>
-              <Typography variant="body1" sx={{ color: alpha('#fff', 0.85) }}>
-                Get it through user-centric design and clean code. We design, build, and optimise digital experiences that deliver measurable value.
+              <Typography variant="body1" sx={{ color: alpha('#fff', 0.85), maxWidth: 520 }}>
+                From product discovery to secure deployments, our cross-functional engineers, designers, and architects unite every
+                layer of the stack so your product ships faster and performs flawlessly.
               </Typography>
               <Stack spacing={1.5}>
                 {fullStackDeveloperHighlights.map((highlight) => (
@@ -75,18 +83,48 @@ const FullStackDeveloper = ({ onContactClick }) => {
           <Grid item xs={12} md={6}>
             <Box
               sx={{
+                position: 'relative',
                 borderRadius: 3,
                 overflow: 'hidden',
                 height: { xs: 280, md: 360 },
                 backgroundImage:
-                  'url(https://images.unsplash.com/photo-1517433456452-f9633a875f6f?auto=format&fit=crop&w=1600&q=80)',
+                  'url(https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 boxShadow: isDark
                   ? '0 30px 60px rgba(15,23,42,0.55)'
                   : '0 30px 60px rgba(15,23,42,0.16)'
               }}
-            />
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(160deg, rgba(15,23,42,0.15) 0%, rgba(15,23,42,0.6) 60%, rgba(15,23,42,0.85) 100%)'
+                }}
+              />
+              <Stack
+                spacing={0.75}
+                sx={{
+                  position: 'absolute',
+                  bottom: 24,
+                  left: 24,
+                  right: 24,
+                  bgcolor: alpha('#0f172a', 0.68),
+                  borderRadius: 3,
+                  px: 2.5,
+                  py: 2,
+                  color: '#fff'
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  UI/UX aligned architecture
+                </Typography>
+                <Typography variant="caption" sx={{ color: alpha('#fff', 0.78) }}>
+                  Design systems, scalable APIs, and cloud infrastructure working together from sprint one.
+                </Typography>
+              </Stack>
+            </Box>
           </Grid>
         </Grid>
       </Paper>
