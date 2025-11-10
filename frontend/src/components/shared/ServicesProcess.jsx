@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import KeyboardArrowLeftRoundedIcon from "@mui/icons-material/KeyboardArrowLeftRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
-import { processSteps } from "../../../data/servicesPage.js";
+import { processSteps } from "../../data/servicesPage.js";
 import { useEffect, useMemo, useState } from "react";
 
 const ServicesProcess = () => {

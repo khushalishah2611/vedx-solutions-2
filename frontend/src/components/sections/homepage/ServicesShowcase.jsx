@@ -11,7 +11,7 @@ import {
   useTheme
 } from '@mui/material';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import { servicesShowcase } from '../../data/content.js';
+import { servicesShowcase } from '../../../data/content.js';
 
 const ServicesShowcase = () => {
   const theme = useTheme();

@@ -10,7 +10,7 @@ import {
   alpha,
   useTheme
 } from '@mui/material';
-import { contactProjectTypes, servicesContactImage } from '../../../data/servicesPage.js';
+import { contactProjectTypes, servicesContactImage } from '../../data/servicesPage.js';
 
 const ServicesContact = () => {
   const theme = useTheme();

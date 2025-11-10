@@ -1,13 +1,13 @@
 import { Box, Container, Divider, Stack, alpha, useTheme } from '@mui/material';
-import ServicesHero from './services/ServicesHero.jsx';
-import ServicesHighlights from './services/ServicesHighlights.jsx';
-import ServicesProcess from './services/ServicesProcess.jsx';
-import ServicesIndustries from './services/ServicesIndustries.jsx';
-import ServicesBusinessSolutions from './services/ServicesBusinessSolutions.jsx';
-import ServicesTestimonials from './services/ServicesTestimonials.jsx';
-import ServicesEngagementModels from './services/ServicesEngagementModels.jsx';
-import ServicesContact from './services/ServicesContact.jsx';
-import ServicesBlog from './services/ServicesBlog.jsx';
+import ServicesHero from '../sections/homepage/ServicesHero.jsx';
+import ServicesHighlights from '../sections/homepage/ServicesHighlights.jsx';
+import ServicesProcess from '../shared/ServicesProcess.jsx';
+import ServicesIndustries from '../shared/ServicesIndustries.jsx';
+import ServicesBusinessSolutions from '../sections/homepage/ServicesBusinessSolutions.jsx';
+import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
+import ServicesEngagementModels from '../sections/homepage/ServicesEngagementModels.jsx';
+import ServicesContact from '../shared/ServicesContact.jsx';
+import ServicesBlog from '../shared/ServicesBlog.jsx';
 
 const ServicesPage = () => {
   const theme = useTheme();

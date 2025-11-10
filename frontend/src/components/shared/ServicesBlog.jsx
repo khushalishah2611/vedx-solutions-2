@@ -1,5 +1,5 @@
 import { Box, Chip, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
-import { blogPreviews } from '../../../data/servicesPage.js';
+import { blogPreviews } from '../../data/servicesPage.js';
 
 const ServicesBlog = () => {
   const theme = useTheme();

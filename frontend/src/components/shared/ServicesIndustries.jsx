@@ -1,5 +1,5 @@
 import { Box, Grid, Paper, Stack, Typography, Divider, alpha, useTheme } from '@mui/material';
-import { industriesServed } from '../../../data/servicesPage.js';
+import { industriesServed } from '../../data/servicesPage.js';
 
 const ServicesIndustries = () => {
   const theme = useTheme();

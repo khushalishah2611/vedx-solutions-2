@@ -10,7 +10,7 @@ import {
   alpha,
   useTheme
 } from '@mui/material';
-import { heroContent } from '../../data/content.js';
+import { heroContent } from '../../../data/content.js';
 
 const SLIDE_INTERVAL = 7000;
 

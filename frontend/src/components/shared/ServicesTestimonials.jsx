@@ -14,7 +14,7 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
-import { testimonialList } from '../../../data/servicesPage.js';
+import { testimonialList } from '../../data/servicesPage.js';
 
 const ServicesTestimonials = () => {
   const theme = useTheme();
