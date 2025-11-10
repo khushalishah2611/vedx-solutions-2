@@ -1,5 +1,5 @@
 import {
-  Box, Container, Stack, Divider, alpha, useTheme
+  Box, Divider, alpha, useTheme
 } from '@mui/material';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ import ServicesTechnologies from '../sections/homepage/ServicesTechnologies.jsx'
 import ServicesCTA from '../sections/homepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import FAQAccordion from '../shared/FAQAccordion.jsx';
+import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
 
 const ServicesPage = ({ showHero = true }) => {
   const navigate = useNavigate();
@@ -23,24 +24,20 @@ const ServicesPage = ({ showHero = true }) => {
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
       {showHero && <ServicesHero onContactClick={handleOpenContact} />}
-      <Container maxWidth="lg" sx={{ pb: { xs: 10, md: 14 } }}>
-        <Stack spacing={{ xs: 6, md: 10 }}>
-
-          <ServicesHighlights onContactClick={handleOpenContact} />
-          <Divider sx={{ borderColor: dividerColor }} />
-          <ServicesBenefits />
-          <Divider sx={{ borderColor: dividerColor }} />
-          <FullStackDeveloper onContactClick={handleOpenContact} />
-          <ServicesTechnologies />
-          <Divider sx={{ borderColor: dividerColor }} />
-          <ServicesCTA onContactClick={handleOpenContact} />
-          <Divider sx={{ borderColor: dividerColor }} />
-          <ServicesBlog />
-          <Divider sx={{ borderColor: dividerColor }} />
-
-          <FAQAccordion />
-        </Stack>
-      </Container>
+      <PageSectionsContainer>
+        <ServicesHighlights onContactClick={handleOpenContact} />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesBenefits />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <FullStackDeveloper onContactClick={handleOpenContact} />
+        <ServicesTechnologies />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesCTA onContactClick={handleOpenContact} />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesBlog />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <FAQAccordion />
+      </PageSectionsContainer>
     </Box>
   );
 };
