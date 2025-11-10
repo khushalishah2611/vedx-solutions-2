@@ -1,6 +1,5 @@
 import {
   Box,
-  Divider,
   Grid,
   Paper,
   Stack,
@@ -8,6 +7,7 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
+import Divider from '@mui/material/Divider';
 import { fullStackBenefits } from '../../../data/servicesPage.js';
 
 const ServicesHighlights = () => {
