@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import { Container, Stack } from '@mui/material';
 
 const PageSectionsContainer = ({
-  children,
-  spacing,
-  maxWidth,
-  containerSx,
-  stackProps,
+  children = null,
+  spacing = { xs: 6, md: 8 },
+  maxWidth = 'lg',
+  containerSx = {},
+  stackProps = {},
 }) => {
   return (
     <Container maxWidth={maxWidth} sx={{ py: { xs: 6, md: 8 }, ...containerSx }}>
@@ -30,14 +30,6 @@ PageSectionsContainer.propTypes = {
   ]),
   containerSx: PropTypes.object,
   stackProps: PropTypes.object,
-};
-
-PageSectionsContainer.defaultProps = {
-  children: null,
-  spacing: { xs: 6, md: 8 },
-  maxWidth: 'lg',
-  containerSx: {},
-  stackProps: {},
 };
 
 export default PageSectionsContainer;

@@ -1,4 +1,13 @@
-import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import {
+  Box,
+  Divider,
+  Grid,
+  Paper,
+  Stack,
+  Typography,
+  alpha,
+  useTheme,
+} from '@mui/material';
 import { fullStackBenefits } from '../../../data/servicesPage.js';
 
 const ServicesHighlights = () => {
@@ -6,6 +15,7 @@ const ServicesHighlights = () => {
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const dividerColor = alpha(theme.palette.divider, isDark ? 0.35 : 0.6);
 
   // 🌐 Replace with your actual image URL
   const imageUrl =
