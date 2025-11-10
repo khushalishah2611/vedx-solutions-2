@@ -1,6 +1,6 @@
 import { Box } from '@mui/material';
 import { Outlet } from 'react-router-dom';
-import FooterSection from './sections/FooterSection.jsx';
+import FooterSection from './shared/FooterSection.jsx';
 import NavigationBar from './shared/NavigationBar.jsx';
 
 const SiteLayout = () => {

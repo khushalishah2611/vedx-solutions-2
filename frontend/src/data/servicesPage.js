@@ -1,67 +1,158 @@
-import Groups3RoundedIcon from '@mui/icons-material/Groups3Rounded';
-import HubRoundedIcon from '@mui/icons-material/HubRounded';
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
-import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
-import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
-import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
-import HandshakeRoundedIcon from '@mui/icons-material/HandshakeRounded';
-import PsychologyRoundedIcon from '@mui/icons-material/PsychologyRounded';
-import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
+export const fullStackServiceFeatures = [
+  {
+    title: 'Unified Architectural Cohesion',
+    description:
+      'We orchestrate frontend, backend, infrastructure, and integrations so every layer of your product speaks the same language.'
+  },
+  {
+    title: 'Understanding of User Experience & System Performance',
+    description:
+      'Our teams bridge the user journey with platform stability to craft reliable and intuitive digital experiences.'
+  },
+  {
+    title: 'Autonomous Feature Progression & Adaptability',
+    description:
+      'Cross-functional pods own discovery through deployment, adapting to new priorities without disrupting delivery.'
+  },
+  {
+    title: 'Better Security Posture Awareness',
+    description:
+      'Security reviews, automated checks, and compliance readiness are embedded in every sprint and release.'
+  },
+  {
+    title: 'Foundational for Microservices & Serverless Architectures',
+    description:
+      'Modern architectural practices ensure your product is ready for scale, modular deployments, and future expansion.'
+  },
+  {
+    title: 'Contextual Understanding of Performance Bottlenecks',
+    description:
+      'Full stack observability uncovers slowdowns whether they surface in the UI, APIs, or database layer.'
+  }
+];
 
-export const serviceHighlights = [
+export const fullStackBenefits = [
   {
-    title: 'Client Centric, Result Driven',
+    title: 'Simplified Vendor Management & Reduced Client Burden',
     description:
-      'Every engagement begins with a deep-dive discussion so we can translate your vision into measurable outcomes.',
-    icon: Groups3RoundedIcon
+      'Partner with a single accountable team that blends engineering, design, and strategy without juggling multiple vendors.'
   },
   {
-    title: 'Full Stack One Stop Solutions',
+    title: 'Minimized Integration Issues & Reduced Technical Debt',
     description:
-      'Cross-functional product squads ensure your technical, creative, and growth needs are aligned under one roof.',
-    icon: HubRoundedIcon
+      'Aligned delivery squads architect systems that are maintainable, integration-ready, and resilient to change.'
   },
   {
-    title: 'Security, Speed & Scalability at Core',
+    title: 'Streamlined Communication & Greater Transparency',
     description:
-      'Enterprise-grade controls combined with iterative delivery give you reliable releases with long-term resilience.',
-    icon: SecurityRoundedIcon
+      'Daily checkpoints, dedicated channels, and measurable milestones keep every stakeholder informed and confident.'
   },
   {
-    title: 'Growth Mindset on Every Sprint',
+    title: 'Faster Time-to-Market with Better Release Cycles',
     description:
-      'From MVPs to enterprise platforms we optimise journeys for conversions, retention, and continuous improvement.',
-    icon: TrendingUpRoundedIcon
+      'Iterative delivery backed by automated pipelines enables reliable releases and quicker business validation.'
   },
   {
-    title: 'Transparency Without Corners',
+    title: 'Cost Optimisation Across Infrastructure & Talent',
     description:
-      'Expect honest progress updates, collaborative tooling, and zero surprises across planning and delivery.',
-    icon: VerifiedRoundedIcon
+      'Right-sized teams and cloud-native practices keep operational costs predictable while maximising value.'
   },
   {
-    title: 'Understanding Your Business DNA',
+    title: 'Consistent Product Quality & User Satisfaction',
     description:
-      'We align with your market, users, and culture to craft experiences that feel native to your organisation.',
-    icon: ForumRoundedIcon
+      'Shared ownership of the customer journey ensures usability, accessibility, and performance stay top of mind.'
+  }
+];
+
+export const fullStackDeveloperHighlights = [
+  'End-to-End Solutions: From Concept to Launch',
+  'Unified Expertise: Seamless Front-End to Back-End',
+  'Optimized Performance Across the Stack',
+  'Cost-Effective & Resource-Efficient Development',
+  'Future-Proof Architecture & Scalability'
+];
+
+export const technologyTabs = [
+  {
+    category: 'Frontend',
+    technologies: [
+      { name: 'HTML5', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg' },
+      { name: 'CSS3', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg' },
+      { name: 'JavaScript', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg' },
+      { name: 'TypeScript', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg' },
+      { name: 'React.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg' },
+      { name: 'Angular', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg' },
+      { name: 'Vue.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg' },
+      { name: 'Next.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg' },
+      { name: 'Svelte', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg' },
+      { name: 'Bootstrap', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bootstrap/bootstrap-original.svg' },
+      { name: 'jQuery', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jquery/jquery-original.svg' },
+      { name: 'Redux', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redux/redux-original.svg' }
+    ]
   },
   {
-    title: 'In-House Collaboration, Remote Agility',
-    description:
-      'Our teams embed into your workflows, rituals, and toolchains as if they were sitting beside you.',
-    icon: HandshakeRoundedIcon
+    category: 'Backend',
+    technologies: [
+      { name: 'Node.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg' },
+      { name: 'Express.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg' },
+      { name: 'Python', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg' },
+      { name: 'Django', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg' },
+      { name: 'Flask', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flask/flask-original.svg' },
+      { name: 'PHP', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg' },
+      { name: 'Laravel', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/laravel/laravel-plain.svg' },
+      { name: 'Java', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg' },
+      { name: '.NET', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dot-net/dot-net-original.svg' },
+      { name: 'Golang', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original.svg' },
+      { name: 'Kotlin', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg' },
+      { name: 'NestJS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain.svg' }
+    ]
   },
   {
-    title: 'Tech Consulting Beyond Code',
-    description:
-      'Architects and strategists guide you on product-market fit, compliance, scale, and operational readiness.',
-    icon: PsychologyRoundedIcon
+    category: 'Databases',
+    technologies: [
+      { name: 'PostgreSQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg' },
+      { name: 'MySQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg' },
+      { name: 'MongoDB', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg' },
+      { name: 'Redis', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg' },
+      { name: 'SQLite', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sqlite/sqlite-original.svg' },
+      { name: 'Firebase', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg' },
+      { name: 'Supabase', icon: 'https://seeklogo.com/images/S/supabase-logo-DCC676FFE2-seeklogo.com.png' },
+      { name: 'DynamoDB', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg' },
+      { name: 'Elasticsearch', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/elasticsearch/elasticsearch-original.svg' }
+    ]
   },
   {
-    title: '100% Ownership & IP Transfer',
+    category: 'DevOps & Tools',
+    technologies: [
+      { name: 'Docker', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg' },
+      { name: 'Kubernetes', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg' },
+      { name: 'AWS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg' },
+      { name: 'Azure', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azure/azure-original.svg' },
+      { name: 'GCP', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg' },
+      { name: 'GitHub Actions', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg' },
+      { name: 'Jenkins', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jenkins/jenkins-original.svg' },
+      { name: 'Grafana', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/grafana/grafana-original.svg' },
+      { name: 'Strapi', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/strapi/strapi-original.svg' },
+      { name: 'KeystoneJS', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/keystonejs/keystonejs-original.svg' }
+    ]
+  }
+];
+
+export const whyChooseVedx = [
+  {
+    title: 'Unified Project Ownership & Seamless Cohesion',
     description:
-      'Upon completion every artefact, repository, and credential moves to you—no lock-ins, full autonomy.',
-    icon: WorkspacePremiumRoundedIcon
+      'From the initial roadmap to ongoing optimisation, a dedicated engagement lead keeps every workstream aligned.'
+  },
+  {
+    title: 'Superior Quality Assurance & Proactive Technical Debt Management',
+    description:
+      'Automated testing, code reviews, and observability guardrails keep your product stable as it scales.'
+  },
+  {
+    title: 'Optimal Technology Stack Selection & Innovation Adoption',
+    description:
+      'We evaluate emerging tools against your goals so you adopt the right technologies without unnecessary risk.'
   }
 ];
 
@@ -175,37 +266,43 @@ export const testimonialList = [
     quote:
       'Everything about this demo is great to use for us. I haven\'t gotten too deep into editing and adding additional pages.',
     name: 'Sr Jonen Sara',
-    role: 'Founder, Growth Collective'
+    role: 'Founder, Growth Collective',
+    rating: 5
   },
   {
     quote:
-      "Next I am primarily looking for the extra projects as it\'s both fresh and visual and it was such a personal level fit with the client.",
+      "Next I am primarily looking for the extra projects as it's both fresh and visual and it was such a personal level fit with the client.",
     name: 'Afsana Nila',
-    role: 'Product Manager, NeoApps'
+    role: 'Product Manager, NeoApps',
+    rating: 5
   },
   {
     quote:
       'Everything about this demo is great to use for us. I haven\'t gotten too deep into editing and adding additional pages.',
     name: 'Sr Jonen Sara',
-    role: 'Founder, Growth Collective'
+    role: 'Founder, Growth Collective',
+    rating: 5
   },
   {
     quote:
-      "Next I am primarily looking for the extra projects as it\'s both fresh and visual and it was such a personal level fit with the client.",
+      "Next I am primarily looking for the extra projects as it's both fresh and visual and it was such a personal level fit with the client.",
     name: 'Afsana Nila',
-    role: 'Product Manager, NeoApps'
+    role: 'Product Manager, NeoApps',
+    rating: 5
   },
   {
     quote:
       'Everything about this demo is great to use for us. I haven\'t gotten too deep into editing and adding additional pages.',
     name: 'Sr Jonen Sara',
-    role: 'Founder, Growth Collective'
+    role: 'Founder, Growth Collective',
+    rating: 5
   },
   {
     quote:
-      "Next I am primarily looking for the extra projects as it\'s both fresh and visual and it was such a personal level fit with the client.",
+      "Next I am primarily looking for the extra projects as it's both fresh and visual and it was such a personal level fit with the client.",
     name: 'Afsana Nila',
-    role: 'Product Manager, NeoApps'
+    role: 'Product Manager, NeoApps',
+    rating: 5
   }
 ];
 
@@ -230,18 +327,18 @@ export const engagementModels = [
 export const blogPreviews = [
   {
     title: 'How to Build High-Performance Web Applications Using Golang',
-    category: 'Web & CMS',
+    category: 'Engineering',
     image: 'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1200&q=80'
   },
   {
     title: 'How to Build Scalable Web Applications with Ruby on Rails',
-    category: 'Web & CMS',
+    category: 'Product Delivery',
     image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80'
   },
   {
-    title: 'Why Businesses Choose Dot NET Core for Cloud-Native Applications',
-    category: 'Web & CMS',
-    image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80'
+    title: 'Why Businesses Choose .NET for Cloud-Native Applications',
+    category: 'Cloud',
+    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80'
   }
 ];
 

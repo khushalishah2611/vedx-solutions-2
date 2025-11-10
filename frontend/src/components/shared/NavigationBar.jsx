@@ -194,44 +194,47 @@ const NavigationBar = () => {
               </Typography>
 
               <Stack spacing={1.2}>
-                {activeCategory.subItems.map((item) => (
-                  <Stack
-                    key={item}
-                    direction="row"
-                    spacing={1.5}
-                    alignItems="center"
-                    component={RouterLink}
-                    to={`/services${createAnchorHref(item)}`}
-                    onClick={handleClose}
-                    sx={{
-                      textDecoration: 'none',
-                      transition: 'all 0.25s ease',
-                      color: 'inherit',
-                      '&:hover': {
-                        transform: 'translateX(4px)'
-                      }
-                    }}
-                  >
-                    {/* <Box
+                {activeCategory.subItems.map((item) => {
+                  const isObject = typeof item === 'object' && item !== null;
+                  const label = isObject ? item.label : item;
+                  const href = isObject && item.href
+                    ? item.href
+                    : `/services${createAnchorHref(label)}`;
+                  const isRouteLink = href.startsWith('/');
+                  const linkProps = isRouteLink
+                    ? { component: RouterLink, to: href }
+                    : { component: 'a', href, target: '_blank', rel: 'noopener noreferrer' };
+
+                  return (
+                    <Stack
+                      key={label}
+                      direction="row"
+                      spacing={1.5}
+                      alignItems="center"
+                      onClick={handleClose}
                       sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        bgcolor: highlightColor
+                        textDecoration: 'none',
+                        transition: 'all 0.25s ease',
+                        color: 'inherit',
+                        '&:hover': {
+                          transform: 'translateX(4px)'
+                        }
                       }}
-                    /> */}
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color:
-                          mode === 'dark' ? 'rgba(255,255,255,0.88)' : theme.palette.text.primary,
-                        '&:hover': { color: highlightColor }
-                      }}
+                      {...linkProps}
                     >
-                      {item}
-                    </Typography>
-                  </Stack>
-                ))}
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color:
+                            mode === 'dark' ? 'rgba(255,255,255,0.88)' : theme.palette.text.primary,
+                          '&:hover': { color: highlightColor }
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                    </Stack>
+                  );
+                })}
               </Stack>
             </Stack>
 
@@ -456,21 +459,32 @@ const NavigationBar = () => {
                               {/* Sub-items list */}
                               <Collapse in={expandedCategory} timeout="auto" unmountOnExit>
                                 <List disablePadding>
-                                  {category.subItems.map((subItem) => (
-                                    <ListItemButton
-                                      key={subItem}
-                                      component={RouterLink}
-                                      to={`/services${createAnchorHref(subItem)}`}
-                                      sx={{ pl: 6 }}
-                                      onClick={toggleDrawer(false)}
-                                    >
-                                      <ListItemText
-                                        primary={
-                                          <Typography variant="body2">{subItem}</Typography>
-                                        }
-                                      />
-                                    </ListItemButton>
-                                  ))}
+                                  {category.subItems.map((subItem) => {
+                                    const isObject = typeof subItem === 'object' && subItem !== null;
+                                    const label = isObject ? subItem.label : subItem;
+                                    const href = isObject && subItem.href
+                                      ? subItem.href
+                                      : `/services${createAnchorHref(label)}`;
+                                    const isRouteLink = href.startsWith('/');
+                                    const linkProps = isRouteLink
+                                      ? { component: RouterLink, to: href }
+                                      : { component: 'a', href, target: '_blank', rel: 'noopener noreferrer' };
+
+                                    return (
+                                      <ListItemButton
+                                        key={label}
+                                        sx={{ pl: 6 }}
+                                        onClick={toggleDrawer(false)}
+                                        {...linkProps}
+                                      >
+                                        <ListItemText
+                                          primary={
+                                            <Typography variant="body2">{label}</Typography>
+                                          }
+                                        />
+                                      </ListItemButton>
+                                    );
+                                  })}
                                 </List>
                               </Collapse>
                             </Box>

@@ -50,7 +50,7 @@ export const heroContent = {
 
 export const navigationLinks = [
   { label: 'Home', path: '/' },
-  { label: 'Services', path: '/services', menu: 'services' },
+  { label: 'Services', menu: 'services' },
   { label: 'Hire Developer +', menu: 'hireDevelopers' },
   { label: 'About', path: '/about' },
   // { label: 'Our Projects', path: '/ourprojects' },
@@ -66,49 +66,98 @@ export const megaMenuContent = {
       {
         label: 'Mobile App Development',
         description: 'Native and cross-platform squads building high-performance apps.',
-        subItems: ['Android App', 'iOS App', 'React Native', 'Hybrid App', 'Flutter App', 'Kotlin'],
+        subItems: [
+          { label: 'Android App', href: '/services/mobile-app-development/android-app' },
+          { label: 'iOS App', href: '/services/mobile-app-development/ios-app' },
+          { label: 'React Native', href: '/services/mobile-app-development/react-native' },
+          { label: 'Hybrid App', href: '/services/mobile-app-development/hybrid-app' },
+          { label: 'Flutter App', href: '/services/mobile-app-development/flutter-app' },
+          { label: 'Kotlin', href: '/services/mobile-app-development/kotlin' }
+        ],
         image:
           'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Web & CMS Development',
         description: 'Composable websites, portals, and CMS ecosystems that scale.',
-        subItems: ['Enterprise Websites', 'Headless CMS', 'WordPress & Drupal', 'Sitecore', 'JAMStack Builds', 'Support & Maintenance'],
+        subItems: [
+          { label: 'Enterprise Websites', href: '/services/web-cms-development/enterprise-websites' },
+          { label: 'Headless CMS', href: '/services/web-cms-development/headless-cms' },
+          { label: 'WordPress & Drupal', href: '/services/web-cms-development/wordpress-drupal' },
+          { label: 'Sitecore', href: '/services/web-cms-development/sitecore' },
+          { label: 'JAMStack Builds', href: '/services/web-cms-development/jamstack-builds' },
+          { label: 'Support & Maintenance', href: '/services/web-cms-development/support-maintenance' }
+        ],
         image:
           'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Digital Marketing',
         description: 'Performance-driven lifecycle, SEO, and paid media acceleration.',
-        subItems: ['SEO & ASO', 'Paid Media', 'Marketing Automation', 'Content Strategy', 'Growth Analytics', 'Campaign Operations'],
+        subItems: [
+          { label: 'SEO & ASO', href: '/services/digital-marketing/seo-aso' },
+          { label: 'Paid Media', href: '/services/digital-marketing/paid-media' },
+          { label: 'Marketing Automation', href: '/services/digital-marketing/marketing-automation' },
+          { label: 'Content Strategy', href: '/services/digital-marketing/content-strategy' },
+          { label: 'Growth Analytics', href: '/services/digital-marketing/growth-analytics' },
+          { label: 'Campaign Operations', href: '/services/digital-marketing/campaign-operations' }
+        ],
         image:
           'https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Blockchain Development',
         description: 'Secure ledgers, DeFi platforms, and tokenized ecosystems.',
-        subItems: ['DApp Development', 'Smart Contracts', 'NFT Platforms', 'DeFi Solutions', 'Wallet Development', 'Audit & Security'],
+        subItems: [
+          { label: 'DApp Development', href: '/services/blockchain-development/dapp-development' },
+          { label: 'Smart Contracts', href: '/services/blockchain-development/smart-contracts' },
+          { label: 'NFT Platforms', href: '/services/blockchain-development/nft-platforms' },
+          { label: 'DeFi Solutions', href: '/services/blockchain-development/defi-solutions' },
+          { label: 'Wallet Development', href: '/services/blockchain-development/wallet-development' },
+          { label: 'Audit & Security', href: '/services/blockchain-development/audit-security' }
+        ],
         image:
           'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Ecommerce Development',
         description: 'Conversion-first storefronts for B2B, B2C, and D2C brands.',
-        subItems: ['Shopify Plus', 'Magento', 'BigCommerce', 'Headless Commerce', 'Marketplace Integrations', 'Growth Optimization'],
+        subItems: [
+          { label: 'Shopify Plus', href: '/services/ecommerce-development/shopify-plus' },
+          { label: 'Magento', href: '/services/ecommerce-development/magento' },
+          { label: 'BigCommerce', href: '/services/ecommerce-development/bigcommerce' },
+          { label: 'Headless Commerce', href: '/services/ecommerce-development/headless-commerce' },
+          { label: 'Marketplace Integrations', href: '/services/ecommerce-development/marketplace-integrations' },
+          { label: 'Growth Optimization', href: '/services/ecommerce-development/growth-optimization' }
+        ],
         image:
           'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Salesforce Solutions',
         description: 'Certified squads optimising Sales, Service, and Marketing Cloud.',
-        subItems: ['Sales Cloud', 'Service Cloud', 'Marketing Cloud', 'Revenue Intelligence', 'CPQ Implementation', 'Ongoing Administration'],
+        subItems: [
+          { label: 'Sales Cloud', href: '/services/salesforce-solutions/sales-cloud' },
+          { label: 'Service Cloud', href: '/services/salesforce-solutions/service-cloud' },
+          { label: 'Marketing Cloud', href: '/services/salesforce-solutions/marketing-cloud' },
+          { label: 'Revenue Intelligence', href: '/services/salesforce-solutions/revenue-intelligence' },
+          { label: 'CPQ Implementation', href: '/services/salesforce-solutions/cpq-implementation' },
+          { label: 'Ongoing Administration', href: '/services/salesforce-solutions/ongoing-administration' }
+        ],
         image:
           'https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'AI & ML',
         description: 'Intelligent automation, forecasting, and decision-making engines.',
-        subItems: ['ML Model Development', 'Generative AI', 'Computer Vision', 'Predictive Analytics', 'MLOps', 'Data Engineering'],
+        subItems: [
+          { label: 'ML Model Development', href: '/services/ai-ml/ml-model-development' },
+          { label: 'Generative AI', href: '/services/ai-ml/generative-ai' },
+          { label: 'Computer Vision', href: '/services/ai-ml/computer-vision' },
+          { label: 'Predictive Analytics', href: '/services/ai-ml/predictive-analytics' },
+          { label: 'MLOps', href: '/services/ai-ml/mlops' },
+          { label: 'Data Engineering', href: '/services/ai-ml/data-engineering' }
+        ],
         image:
           'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=900&q=80'
       }
@@ -120,35 +169,70 @@ export const megaMenuContent = {
       {
         label: 'Hire App Developer',
         description: 'Dedicated mobile engineers aligned to your release cadences.',
-        subItems: ['Android Developer', 'iOS Developer', 'React Native Developer', 'Flutter Developer', 'Kotlin Developer', 'Xamarin Developer'],
+        subItems: [
+          { label: 'Android Developer', href: '/hire-developers/mobile/android' },
+          { label: 'iOS Developer', href: '/hire-developers/mobile/ios' },
+          { label: 'React Native Developer', href: '/hire-developers/mobile/react-native' },
+          { label: 'Flutter Developer', href: '/hire-developers/mobile/flutter' },
+          { label: 'Kotlin Developer', href: '/hire-developers/mobile/kotlin' },
+          { label: 'Xamarin Developer', href: '/hire-developers/mobile/xamarin' }
+        ],
         image:
           'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Hire Frontend Developer',
         description: 'Pixel-perfect UI specialists across modern frameworks.',
-        subItems: ['React.js Developer', 'Vue.js Developer', 'Angular Developer', 'Next.js Developer', 'Svelte Developer', 'UI Engineering Team'],
+        subItems: [
+          { label: 'React.js Developer', href: '/hire-developers/frontend/react' },
+          { label: 'Vue.js Developer', href: '/hire-developers/frontend/vue' },
+          { label: 'Angular Developer', href: '/hire-developers/frontend/angular' },
+          { label: 'Next.js Developer', href: '/hire-developers/frontend/nextjs' },
+          { label: 'Svelte Developer', href: '/hire-developers/frontend/svelte' },
+          { label: 'UI Engineering Team', href: '/hire-developers/frontend/ui-engineering-team' }
+        ],
         image:
           'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Hire Backend Developer',
         description: 'API-first architectures, integrations, and cloud-native delivery.',
-        subItems: ['Node.js Developer', 'Python Developer', 'Java Developer', 'Golang Developer', 'PHP/Laravel Developer', 'Microservices Team'],
+        subItems: [
+          { label: 'Node.js Developer', href: '/hire-developers/backend/nodejs' },
+          { label: 'Python Developer', href: '/hire-developers/backend/python' },
+          { label: 'Java Developer', href: '/hire-developers/backend/java' },
+          { label: 'Golang Developer', href: '/hire-developers/backend/golang' },
+          { label: 'PHP/Laravel Developer', href: '/hire-developers/backend/php-laravel' },
+          { label: 'Microservices Team', href: '/hire-developers/backend/microservices-team' }
+        ],
         image:
           'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Hire Ecommerce Developer',
         description: 'Conversion specialists optimising storefront experiences.',
-        subItems: ['Shopify Developer', 'Magento Developer', 'WooCommerce Developer', 'BigCommerce Developer', 'Headless Commerce Team', 'CRO Specialist'],
+        subItems: [
+          { label: 'Shopify Developer', href: '/hire-developers/ecommerce/shopify' },
+          { label: 'Magento Developer', href: '/hire-developers/ecommerce/magento' },
+          { label: 'WooCommerce Developer', href: '/hire-developers/ecommerce/woocommerce' },
+          { label: 'BigCommerce Developer', href: '/hire-developers/ecommerce/bigcommerce' },
+          { label: 'Headless Commerce Team', href: '/hire-developers/ecommerce/headless-commerce-team' },
+          { label: 'CRO Specialist', href: '/hire-developers/ecommerce/cro-specialist' }
+        ],
         image:
           'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80'
       },
       {
         label: 'Hire Dedicated Developers Team',
         description: 'Assemble pods that plug directly into your product squads.',
-        subItems: ['Scrum Team', 'Full-Stack Engineers', 'QA & Automation', 'Product Designers', 'DevOps Engineers', 'Solution Architects'],
+        subItems: [
+          { label: 'Scrum Team', href: '/hire-developers/dedicated-teams/scrum-team' },
+          { label: 'Full-Stack Engineers', href: '/hire-developers/dedicated-teams/full-stack-engineers' },
+          { label: 'QA & Automation', href: '/hire-developers/dedicated-teams/qa-automation' },
+          { label: 'Product Designers', href: '/hire-developers/dedicated-teams/product-designers' },
+          { label: 'DevOps Engineers', href: '/hire-developers/dedicated-teams/devops-engineers' },
+          { label: 'Solution Architects', href: '/hire-developers/dedicated-teams/solution-architects' }
+        ],
         image:
           'https://images.unsplash.com/photo-1487014679447-9f8336841d58?auto=format&fit=crop&w=900&q=80'
       }

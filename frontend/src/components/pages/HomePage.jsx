@@ -1,9 +1,9 @@
 import { Box, Container, Divider, Stack, alpha, useTheme } from '@mui/material';
-import HeroSection from '../hero/HeroSection.jsx';
-import CreativeAgencySection from '../sections/CreativeAgencySection.jsx';
-import FAQAccordion from '../sections/FAQAccordion.jsx';
-import ServicesShowcase from '../sections/ServicesShowcase.jsx';
-import ServicesPage from '../sections/ServicesPage.jsx'; 
+import HeroSection from '../sections/homepage/HeroSection.jsx';
+import CreativeAgencySection from '../sections/homepage/CreativeAgencySection.jsx';
+import FAQAccordion from '../shared/FAQAccordion.jsx';
+import ServicesShowcase from '../sections/homepage/ServicesShowcase.jsx';
+import ServicesPage from './ServicesPage.jsx';
 
 const HomePage = () => {
   const theme = useTheme();

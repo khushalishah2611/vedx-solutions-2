@@ -1,103 +1,158 @@
-import { Box, Button, Chip, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
+import {
+  Box,
+  Button,
+  Chip,
+  Container,
+  Grid,
+  Stack,
+  Typography,
+  alpha,
+  useTheme
+} from '@mui/material';
 
-const SERVICES_HERO_IMAGE =
-  'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1600&q=80';
+const HERO_IMAGE =
+  'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80';
 
 const HERO_STATS = [
-  { label: 'Recurring Client', value: '80%' },
-  { label: 'Team Experience', value: '10+' },
-  { label: 'Satisfaction Ratio', value: '98%' }
+  { label: 'Projects Delivered', value: '120+' },
+  { label: 'Client Satisfaction', value: '98%' },
+  { label: 'Avg. Time to Kick-off', value: '10 Days' }
 ];
 
-const ServicesHero = () => {
+const ServicesHero = ({ onContactClick }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
 
   return (
-    <Box component="section" sx={{ position: 'relative', pt: { xs: 16, md: 20 }, pb: { xs: 10, md: 14 } }}>
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `url(${SERVICES_HERO_IMAGE})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'brightness(0.45)',
-          zIndex: 0
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            isDark
-              ? 'linear-gradient(160deg, rgba(15,23,42,0.9) 0%, rgba(2,6,23,0.95) 65%, rgba(2,6,23,0.98) 100%)'
-              : 'linear-gradient(160deg, rgba(248,250,252,0.94) 0%, rgba(226,232,240,0.92) 65%, rgba(226,232,240,0.96) 100%)',
-          zIndex: 1
-        }}
-      />
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
-        <Stack spacing={4} alignItems="flex-start">
-          <Chip
-            label="Our Services"
-            sx={{
-              bgcolor: alpha(accentColor, 0.15),
-              color: accentColor,
-              fontWeight: 600,
-              letterSpacing: 0.75,
-              px: 1.5,
-              py: 1.5,
-              borderRadius: 999
-            }}
-          />
-          <Typography variant="h2" sx={{ fontSize: { xs: 40, md: 56 }, fontWeight: 800, maxWidth: 720 }}>
-            Android App Development Service
-          </Typography>
-          <Typography variant="body1" sx={{ color: subtleText, maxWidth: 640 }}>
-            Build next-gen mobile solutions with a reliable Android app development company from concept to code. Our
-            strategists, designers, and engineers partner with you to create delightful, scalable experiences.
-          </Typography>
-          <Stack spacing={{ xs: 4, md: 6 }} direction={{ xs: 'column', md: 'row' }} alignItems={{ md: 'center' }}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{
-                px: 4,
-                py: 1.5,
-                borderRadius: 999,
-                fontWeight: 600,
-                boxShadow: '0 20px 45px rgba(59,130,246,0.35)'
-              }}
-              href="/contact"
-            >
-              Contact Us
-            </Button>
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={{ xs: 3, sm: 5 }}
-              flexWrap="wrap"
-              useFlexGap
-            >
-              {HERO_STATS.map((stat) => (
-                <Stack key={stat.label} spacing={0.5}>
-                  <Typography
-                    component="span"
-                    sx={{ fontSize: { xs: 28, md: 32 }, fontWeight: 700, color: accentColor }}
-                  >
-                    {stat.value}
-                  </Typography>
-                  <Typography component="span" variant="body2" sx={{ color: subtleText, fontWeight: 500 }}>
-                    {stat.label}
-                  </Typography>
+    <Box
+      component="section"
+      sx={{
+        position: 'relative',
+        overflow: 'hidden',
+        bgcolor: isDark ? alpha('#0f172a', 0.9) : '#f8fafc'
+      }}
+    >
+      <Container maxWidth="lg" sx={{ py: { xs: 12, md: 16 } }}>
+        <Grid container spacing={{ xs: 6, md: 10 }} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <Stack spacing={3}>
+              <Chip
+                label="Full Stack Development Company"
+                sx={{
+                  bgcolor: alpha(accentColor, 0.15),
+                  color: accentColor,
+                  fontWeight: 600,
+                  letterSpacing: 0.75,
+                  px: 1.5,
+                  py: 1.5,
+                  borderRadius: 999,
+                  width: 'fit-content'
+                }}
+              />
+              <Typography
+                variant="h1"
+                sx={{ fontSize: { xs: 40, md: 56 }, fontWeight: 800, lineHeight: 1.1 }}
+              >
+                Build Without Limits with Our Full Stack Development Company
+              </Typography>
+              <Typography variant="body1" sx={{ color: subtleText, maxWidth: 540 }}>
+                VedX Solutions offers full stack development services to help reach your business objectives across platforms.
+                Our agile squads deliver resilient, scalable solutions with zero disruption to your operations.
+              </Typography>
+              <Stack spacing={{ xs: 3, sm: 5 }} direction={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'center' }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={onContactClick}
+                  sx={{
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 999,
+                    fontWeight: 600,
+                    background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                    boxShadow: '0 20px 45px rgba(168,77,255,0.25)',
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)'
+                    }
+                  }}
+                >
+                  Contact Us
+                </Button>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2.5, sm: 4 }}>
+                  {HERO_STATS.map((stat) => (
+                    <Stack key={stat.label} spacing={0.5}>
+                      <Typography
+                        component="span"
+                        sx={{ fontSize: { xs: 28, md: 32 }, fontWeight: 700, color: accentColor }}
+                      >
+                        {stat.value}
+                      </Typography>
+                      <Typography component="span" variant="body2" sx={{ color: subtleText, fontWeight: 500 }}>
+                        {stat.label}
+                      </Typography>
+                    </Stack>
+                  ))}
                 </Stack>
-              ))}
+              </Stack>
             </Stack>
-          </Stack>
-        </Stack>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: 4,
+                overflow: 'hidden',
+                height: { xs: 320, md: 460 },
+                boxShadow: isDark
+                  ? '0 40px 80px rgba(15,23,42,0.6)'
+                  : '0 40px 80px rgba(15,23,42,0.18)'
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundImage: 'linear-gradient(135deg, rgba(79,70,229,0.65), rgba(236,72,153,0.65))',
+                  zIndex: 1
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundImage: `url(${HERO_IMAGE})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  mixBlendMode: 'overlay'
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 24,
+                  borderRadius: 3,
+                  border: `1px solid ${alpha('#ffffff', 0.35)}`,
+                  backdropFilter: 'blur(12px)',
+                  backgroundColor: alpha('#ffffff', isDark ? 0.08 : 0.25),
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-end',
+                  p: 3,
+                  zIndex: 2
+                }}
+              >
+                <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700 }}>
+                  Seamless Delivery Pods
+                </Typography>
+                <Typography variant="body2" sx={{ color: alpha('#fff', 0.85) }}>
+                  Dedicated teams that plug into your roadmap, keeping execution transparent and dependable.
+                </Typography>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
       </Container>
     </Box>
   );
