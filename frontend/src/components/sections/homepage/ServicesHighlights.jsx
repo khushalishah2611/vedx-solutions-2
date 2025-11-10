@@ -115,7 +115,7 @@ const ServicesHighlights = () => {
         component="section"
         sx={{
           position: "relative",
-          py: { xs: 10 },
+         mt: 10 
         }}
       >
         <Grid item xs={12} md={6}>
