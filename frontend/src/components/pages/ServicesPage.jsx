@@ -13,6 +13,16 @@ import ServicesBlog from '../shared/ServicesBlog.jsx';
 import FAQAccordion from '../shared/FAQAccordion.jsx';
 import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
 
+
+import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
+
+import ServicesIndustries from '../shared/ServicesIndustries.jsx';
+import ServicesProcess from '../shared/ServicesProcess.jsx';
+import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
+
+
+
+
 const ServicesPage = ({ showHero = true }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -32,11 +42,22 @@ const ServicesPage = ({ showHero = true }) => {
         <FullStackDeveloper onContactClick={handleOpenContact} />
         <ServicesTechnologies />
         <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesWhyChoose />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesProcess />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesIndustries />
+        <Divider sx={{ borderColor: dividerColor }} />
+
+        <ServicesTestimonials />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <FAQAccordion />
+        <Divider sx={{ borderColor: dividerColor }} />
         <ServicesCTA onContactClick={handleOpenContact} />
         <Divider sx={{ borderColor: dividerColor }} />
         <ServicesBlog />
-        <Divider sx={{ borderColor: dividerColor }} />
-        <FAQAccordion />
+
+
       </PageSectionsContainer>
     </Box>
   );

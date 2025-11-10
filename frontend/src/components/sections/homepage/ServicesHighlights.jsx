@@ -7,7 +7,6 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
-import Divider from '@mui/material/Divider';
 import { fullStackBenefits } from '../../../data/servicesPage.js';
 
 const ServicesHighlights = () => {
@@ -22,7 +21,7 @@ const ServicesHighlights = () => {
     'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80';
 
   return (
-    <Box component="section" sx={{ py: { xs: 6, md: 10 } }}>
+    <Box component="section">
       <Grid container spacing={6} alignItems="center">
         {/* Left Side - Image + Short Text */}
         <Grid item xs={12} md={6} sx={{ mt: { xs: 4, md: 6 } }}>
@@ -59,7 +58,7 @@ const ServicesHighlights = () => {
 
         {/* Right Side - Title + Benefits */}
         <Grid item xs={12} md={6}>
-          <Stack spacing={3} alignItems="flex-start" sx={{ mb: 4 }}>
+          <Stack spacing={3} alignItems="flex-start" sx={{ mb: -15 }}>
             <Typography
               variant="body1"
               sx={{
@@ -93,24 +92,12 @@ const ServicesHighlights = () => {
               architecture for every solution.  From concept to deployment, we ensure high performance, scalability, and clean
               architecture for every solution.
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: subtleText,
-                maxWidth: 700,
-                textAlign: { xs: 'center', md: 'left' },
-              }}
-            >
-              From concept to deployment, we ensure high performance, scalability, and clean
-              architecture for every solution.  From concept to deployment, we ensure high performance, scalability, and clean
-              architecture for every solution.  From concept to deployment, we ensure high performance, scalability, and clean
-              architecture for every solution.
-            </Typography>
+         
           </Stack>
 
         </Grid>
       </Grid>
-      <Divider sx={{ borderColor: dividerColor }} />     
+
       <Box
         component="section"
         sx={{
