@@ -19,6 +19,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
+import { blogPosts } from '../../data/blogs.js';
+import BlogPreviewCard from '../shared/BlogPreviewCard.jsx';
 
 const ServiceDetailPage = () => {
   const theme = useTheme();
@@ -45,6 +47,7 @@ const ServiceDetailPage = () => {
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? theme.palette.primary.light : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.75);
+  const relatedBlogs = blogPosts.slice(0, 3);
 
   return (
     <Box sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
@@ -276,6 +279,36 @@ const ServiceDetailPage = () => {
           </Grid>
         </Grid>
       </Container>
+
+      {relatedBlogs.length > 0 && (
+        <Box
+          sx={{
+            bgcolor: isDark ? alpha('#0f172a', 0.92) : alpha('#eff6ff', 0.6),
+            borderTop: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.25)}`,
+            mt: { xs: 6, md: 8 }
+          }}
+        >
+          <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
+            <Stack spacing={3} sx={{ mb: 6 }}>
+              <Typography variant="h4" sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 700 }}>
+                Related Insights
+              </Typography>
+              <Typography variant="body1" sx={{ color: subtleText, maxWidth: 640 }}>
+                Dig deeper into the strategies, architectures, and best practices our specialists use to deliver measurable
+                outcomes across full stack engagements.
+              </Typography>
+            </Stack>
+
+            <Grid container spacing={4}>
+              {relatedBlogs.map((post) => (
+                <Grid item xs={12} md={4} key={post.slug}>
+                  <BlogPreviewCard post={post} imageHeight={220} showExcerpt={false} />
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
+        </Box>
+      )}
     </Box>
   );
 };

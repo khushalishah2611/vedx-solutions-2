@@ -15,6 +15,8 @@ import ServicesPage from './components/pages/ServicesPage.jsx';
 import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
 import ComingSoonPage from './components/shared/ComingSoonPage.jsx';
 import NotFoundPage from './components/shared/NotFoundPage.jsx';
+import BlogListPage from './components/pages/BlogListPage.jsx';
+import BlogDetailPage from './components/pages/BlogDetailPage.jsx';
 
 const App = () => {
   return (
@@ -66,16 +68,10 @@ const App = () => {
                 />
               }
             />
-            <Route
-              path="blog"
-              element={
-                <ComingSoonPage
-                  title="Insights & Stories"
-                  description="Our team is preparing actionable articles, engineering deep dives, and business playbooks to help you stay ahead."
-                  ctaLabel="Notify Me"
-                />
-              }
-            />
+            <Route path="blog">
+              <Route index element={<BlogListPage />} />
+              <Route path=":slug" element={<BlogDetailPage />} />
+            </Route>
             <Route
               path="contact"
               element={

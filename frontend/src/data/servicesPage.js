@@ -354,24 +354,6 @@ export const engagementModels = [
   }
 ];
 
-export const blogPreviews = [
-  {
-    title: 'How to Build High-Performance Web Applications Using Golang',
-    category: 'Engineering',
-    image: 'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=1200&q=80'
-  },
-  {
-    title: 'How to Build Scalable Web Applications with Ruby on Rails',
-    category: 'Product Delivery',
-    image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80'
-  },
-  {
-    title: 'Why Businesses Choose .NET for Cloud-Native Applications',
-    category: 'Cloud',
-    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80'
-  }
-];
-
 export const servicesContactImage =
   'https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1200&q=80';
 
