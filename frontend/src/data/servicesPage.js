@@ -153,6 +153,36 @@ export const whyChooseVedx = [
     title: 'Optimal Technology Stack Selection & Innovation Adoption',
     description:
       'We evaluate emerging tools against your goals so you adopt the right technologies without unnecessary risk.'
+  },
+  {
+    title: 'Transparent Communication & Real-Time Visibility',
+    description:
+      'Weekly demos, dedicated Slack channels, and shared dashboards ensure you always know the status of every deliverable.'
+  },
+  {
+    title: 'Embedded Security & Compliance Mindset',
+    description:
+      'Threat modelling, secure coding practices, and compliance reviews are integrated into every sprint from day one.'
+  },
+  {
+    title: 'Design-Led Problem Solving',
+    description:
+      'UX strategists collaborate with engineers so product decisions balance usability, accessibility, and technical feasibility.'
+  },
+  {
+    title: 'Scalable Delivery Pods',
+    description:
+      'Cross-functional teams ramp quickly, adapt to new priorities, and scale up or down without disrupting momentum.'
+  },
+  {
+    title: 'Lifecycle Partnership Beyond Launch',
+    description:
+      'Our teams stay engaged after go-live with optimisation roadmaps, performance tuning, and iterative feature delivery.'
+  },
+  {
+    title: 'Outcome-Oriented Success Metrics',
+    description:
+      'Every engagement is anchored in measurable KPIs so progress is judged by tangible business impact, not activity.'
   }
 ];
 

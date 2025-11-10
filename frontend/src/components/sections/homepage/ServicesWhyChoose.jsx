@@ -1,7 +1,17 @@
-import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
-import { serviceHighlights } from '../../../data/servicesPage.js';
+import { Box, Button, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
+import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
+import { whyChooseVedx } from '../../../data/servicesPage.js';
 
-const ServicesHighlights = () => {
+const highlightIcons = [
+  WorkspacePremiumRoundedIcon,
+  VerifiedRoundedIcon,
+  AutoAwesomeRoundedIcon
+];
+
+const ServicesWhyChoose = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
@@ -42,8 +52,8 @@ const ServicesHighlights = () => {
           alignItems: 'stretch',
         }}
       >
-        {serviceHighlights.map((highlight) => {
-          const Icon = highlight.icon;
+        {whyChooseVedx.map((highlight, index) => {
+          const Icon = highlight.icon ?? highlightIcons[index % highlightIcons.length];
           return (
             <Grid item xs={12} sm={6} md={4} key={highlight.title}>
               <Paper
@@ -92,7 +102,7 @@ const ServicesHighlights = () => {
                     mb: 2,
                   }}
                 >
-                  <Icon />
+                  {Icon && <Icon />}
                 </Box>
 
                 {/* Text */}
@@ -109,8 +119,30 @@ const ServicesHighlights = () => {
           );
         })}
       </Grid>
+      <Stack alignItems="center" sx={{ width: '100%', mt: 6 }}>
+        <Button
+          variant="contained"
+          size="large"
+          endIcon={<ArrowOutwardRoundedIcon />}
+          sx={{
+            background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+            color: '#fff',
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 600,
+            fontSize: '1.1rem',
+            px: { xs: 4, md: 8 },
+            py: { xs: 1.5, md: 2 },
+            '&:hover': {
+              background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+            },
+          }}
+        >
+          Get Started
+        </Button>
+      </Stack>
     </Box>
   );
 };
 
-export default ServicesHighlights;
+export default ServicesWhyChoose;
