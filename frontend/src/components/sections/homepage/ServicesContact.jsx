@@ -19,6 +19,19 @@ const ServicesContact = () => {
 
   return (
     <Box component="section">
+          <Stack spacing={3} sx={{ mb: 8 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: { xs: 32, md: 42 },
+            fontWeight: 700,
+            textAlign: 'center',
+          }}
+        >
+         Conatct us
+        </Typography>
+      </Stack>
+
       <Grid container>
         <Grid
           item

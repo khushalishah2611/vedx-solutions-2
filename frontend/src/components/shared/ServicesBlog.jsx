@@ -15,21 +15,10 @@ const ServicesBlog = () => {
           sx={{
             fontSize: { xs: 32, md: 42 },
             fontWeight: 700,
-            textAlign: 'center'
-          }}
-        >
-          Related Blogs
-        </Typography>
-        <Typography
-          variant="body1"
-          sx={{
-            color: subtleText,
             textAlign: 'center',
-            maxWidth: 640,
-            mx: 'auto'
           }}
         >
-          Insights and stories that help you plan, build, and scale digital platforms with confidence.
+          Latest blogs
         </Typography>
       </Stack>
 

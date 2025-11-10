@@ -1,12 +1,11 @@
 import { Box, Container, Divider, Stack, alpha, useTheme } from '@mui/material';
 import CreativeAgencySection from '../sections/homepage/CreativeAgencySection.jsx';
 import HeroSection from '../sections/homepage/HeroSection.jsx';
+import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
 import ServicesBusinessSolutions from '../sections/homepage/ServicesBusinessSolutions.jsx';
 import ServicesContact from '../sections/homepage/ServicesContact.jsx';
 import ServicesEngagementModels from '../sections/homepage/ServicesEngagementModels.jsx';
-import ServicesHighlights from '../sections/homepage/ServicesHighlights.jsx';
 import ServicesShowcase from '../sections/homepage/ServicesShowcase.jsx';
-import FAQAccordion from '../shared/FAQAccordion.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
@@ -23,13 +22,10 @@ const HomePage = () => {
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
         <Stack spacing={{ xs: 4, md: 6 }}>
           <CreativeAgencySection />
-
           <Divider sx={{ borderColor: dividerColor }} />
-
           <ServicesShowcase />
-
           <Divider sx={{ borderColor: dividerColor }} />
-          <ServicesHighlights />
+          <ServicesWhyChoose />
           <Divider sx={{ borderColor: dividerColor }} />
           <ServicesProcess />
           <Divider sx={{ borderColor: dividerColor }} />
@@ -42,7 +38,6 @@ const HomePage = () => {
           <ServicesEngagementModels />
           <Divider sx={{ borderColor: dividerColor }} />
           <ServicesContact />
-          <FAQAccordion />
           <Divider sx={{ borderColor: dividerColor }} />
           <ServicesBlog />
         </Stack>
