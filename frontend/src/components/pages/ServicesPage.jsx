@@ -1,5 +1,6 @@
 import { Box, Container, Stack } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ServicesHero from '../sections/homepage/ServicesHero.jsx';
 import ServicesHighlights from '../sections/homepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/homepage/ServicesBenefits.jsx';
@@ -9,13 +10,13 @@ import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
 import ServicesCTA from '../sections/homepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import FAQAccordion from '../shared/FAQAccordion.jsx';
-import ContactDialog from '../shared/ContactDialog.jsx';
 
 const ServicesPage = ({ showHero = true }) => {
-  const [isContactOpen, setIsContactOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const handleOpenContact = useCallback(() => setIsContactOpen(true), []);
-  const handleCloseContact = useCallback(() => setIsContactOpen(false), []);
+  const handleOpenContact = useCallback(() => {
+    navigate('/contact');
+  }, [navigate]);
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
@@ -32,7 +33,6 @@ const ServicesPage = ({ showHero = true }) => {
           <FAQAccordion />
         </Stack>
       </Container>
-      <ContactDialog open={isContactOpen} onClose={handleCloseContact} />
     </Box>
   );
 };
