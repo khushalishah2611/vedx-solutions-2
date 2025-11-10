@@ -4,7 +4,7 @@ import { engagementModels } from '../../../data/servicesPage.js';
 const ServicesEngagementModels = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
- const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 
   return (
     <Box component="section" >
@@ -115,11 +115,8 @@ const ServicesEngagementModels = () => {
                   backgroundImage: `url(${model.image})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                    borderRadius: 0.5,
-                  transition: 'transform 0.6s ease',
-                  '&:hover': {
-                    transform: 'scale(1.05)',
-                  },
+                  borderRadius: 0.5,
+
                 }}
               />
 
