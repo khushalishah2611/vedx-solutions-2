@@ -30,10 +30,7 @@ const ServicesBenefits = ({ onContactClick }) => {
   return (
     <Box
       component="section"
-      sx={{
-        position: "relative",
-        py: { xs: 6, md: 10 },
-      }}
+     
     >
       {/* Section Header */}
       <Stack spacing={3} alignItems="center" textAlign="center" sx={{ mb: 6 }}>

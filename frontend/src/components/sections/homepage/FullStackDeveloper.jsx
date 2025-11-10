@@ -10,7 +10,7 @@ const FullStackDeveloper = ({ onContactClick }) => {
       <Paper
         elevation={0}
         sx={{
-          borderRadius: 4,
+          borderRadius: 0.5,
           overflow: 'hidden',
           background: isDark
             ? 'linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,64,175,0.75))'
@@ -23,18 +23,9 @@ const FullStackDeveloper = ({ onContactClick }) => {
         <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
           <Grid item xs={12} md={6}>
             <Stack spacing={2.5}>
-              <Typography
-                variant="overline"
-                sx={{
-                  letterSpacing: 1.5,
-                  fontWeight: 700,
-                  color: alpha('#fff', 0.92)
-                }}
-              >
-                FULL STACK DEVELOPMENT SERVICE
-              </Typography>
+
               <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 40 }, fontWeight: 700, color: '#fff' }}>
-                Your go-to squad for building innovative, scalable digital experiences end to end.
+                FULL STACK DEVELOPMENT SERVICE
               </Typography>
               <Typography variant="body1" sx={{ color: alpha('#fff', 0.85), maxWidth: 520 }}>
                 From product discovery to secure deployments, our cross-functional engineers, designers, and architects unite every
@@ -84,7 +75,7 @@ const FullStackDeveloper = ({ onContactClick }) => {
             <Box
               sx={{
                 position: 'relative',
-                borderRadius: 3,
+                borderRadius: 1.5,
                 overflow: 'hidden',
                 height: { xs: 280, md: 360 },
                 backgroundImage:
@@ -96,34 +87,8 @@ const FullStackDeveloper = ({ onContactClick }) => {
                   : '0 30px 60px rgba(15,23,42,0.16)'
               }}
             >
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(160deg, rgba(15,23,42,0.15) 0%, rgba(15,23,42,0.6) 60%, rgba(15,23,42,0.85) 100%)'
-                }}
-              />
-              <Stack
-                spacing={0.75}
-                sx={{
-                  position: 'absolute',
-                  bottom: 24,
-                  left: 24,
-                  right: 24,
-                  bgcolor: alpha('#0f172a', 0.68),
-                  borderRadius: 3,
-                  px: 2.5,
-                  py: 2,
-                  color: '#fff'
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  UI/UX aligned architecture
-                </Typography>
-                <Typography variant="caption" sx={{ color: alpha('#fff', 0.78) }}>
-                  Design systems, scalable APIs, and cloud infrastructure working together from sprint one.
-                </Typography>
-              </Stack>
+              
+              
             </Box>
           </Grid>
         </Grid>

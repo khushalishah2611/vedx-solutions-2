@@ -45,6 +45,7 @@ const BlogPreviewCard = ({
         <Box
           sx={{
             height: imageHeight,
+            borderRadius: 0.5,
             backgroundImage: `url(${post.image})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -86,19 +87,8 @@ const BlogPreviewCard = ({
             {post.title}
           </Typography>
 
-          {showExcerpt && (
-            <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.7 }}>
-              {post.excerpt}
-            </Typography>
-          )}
         </Stack>
 
-        {showMeta && (
-          <Stack direction="row" spacing={2} sx={{ color: subtleText, fontSize: 14 }}>
-            <Typography variant="body2">{post.publishedOn}</Typography>
-            <Typography variant="body2">• {post.readTime}</Typography>
-          </Stack>
-        )}
 
         <Box sx={{ flexGrow: 1 }} />
         <Button
@@ -113,7 +103,7 @@ const BlogPreviewCard = ({
             borderRadius: '12px',
             textTransform: 'none',
             fontWeight: 600,
-            px: 2, // optional: adds nice horizontal padding
+            px: 2,
             '&:hover': {
               background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
             },
