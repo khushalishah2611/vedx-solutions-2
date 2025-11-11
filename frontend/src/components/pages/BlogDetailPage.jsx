@@ -243,10 +243,7 @@ const BlogDetailPage = () => {
 
       {relatedPosts.length > 0 && (
         <Box
-          sx={{
-            bgcolor: isDark ? alpha('#0f172a', 0.92) : alpha('#0f172a', 0.08),
-            py: { xs: 8, md: 10 }
-          }}
+         
         >
           <Container maxWidth="lg">
             <Stack
