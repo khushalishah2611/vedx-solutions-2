@@ -36,6 +36,7 @@ import { megaMenuContent, navigationLinks } from '../../data/content.js';
 import { ColorModeContext } from '../../contexts/ColorModeContext.jsx';
 import { Link as RouterLink } from 'react-router-dom';
 import { createAnchorHref } from '../../utils/formatters.js';
+import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 
 const aboutMenuItems = [
   { label: 'About Us', to: '/about' },
@@ -46,6 +47,7 @@ const NavigationBar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleColorMode } = useContext(ColorModeContext);
+  const { openDialog: openContactDialog } = useContactDialog();
   const [open, setOpen] = useState(false);
   const createDefaultExpanded = () => ({ services: false, hireDevelopers: false, about: false });
   const [expandedMenus, setExpandedMenus] = useState(createDefaultExpanded);
@@ -430,8 +432,7 @@ const NavigationBar = () => {
               <Button
                 variant="contained"
                 size="large"
-                component={RouterLink}
-                to="/contact"
+                onClick={openContactDialog}
                 startIcon={<PhoneInTalkRoundedIcon />}
                 sx={{
                   background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
@@ -636,26 +637,28 @@ const NavigationBar = () => {
               alignItems: 'center',
             }}
           >
-            <Button
-              variant="contained"
-              size="large"
-              component={RouterLink}
-              to="/contact"
-              startIcon={<PhoneInTalkRoundedIcon />}
-              sx={{
-                background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                color: '#fff',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 2, // optional: adds nice horizontal padding
-                '&:hover': {
-                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                },
-              }}
-            >
-              Hire Now
-            </Button>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => {
+                  openContactDialog();
+                  setOpen(false);
+                }}
+                startIcon={<PhoneInTalkRoundedIcon />}
+                sx={{
+                  background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                  color: '#fff',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 2, // optional: adds nice horizontal padding
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                  },
+                }}
+              >
+                Hire Now
+              </Button>
           </Box>
 
         </Box>

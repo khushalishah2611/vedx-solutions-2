@@ -31,11 +31,13 @@ import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
+import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 
 const ServiceDetailPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { categorySlug, serviceSlug } = useParams();
+  const { openDialog } = useContactDialog();
 
   const category = serviceDetailContent[categorySlug ?? ''];
   const service = category?.services?.[serviceSlug ?? ''];
@@ -51,8 +53,8 @@ const ServiceDetailPage = () => {
   }, [category, navigate, service]);
 
   const handleOpenContact = useCallback(() => {
-    navigate('/contact');
-  }, [navigate]);
+    openDialog();
+  }, [openDialog]);
 
   if (!category || !service) {
     return null;
@@ -64,7 +66,7 @@ const ServiceDetailPage = () => {
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 
   return (
-    <Box sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
+    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', overflowX: 'hidden' }}>
       <Box
         sx={{
           backgroundImage: `
@@ -195,7 +197,7 @@ const ServiceDetailPage = () => {
       <PageSectionsContainer >
         <ServicesHighlights onContactClick={handleOpenContact} />
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesBenefits />
+        <ServicesBenefits onContactClick={handleOpenContact} />
         <Divider sx={{ borderColor: dividerColor }} />
         <FullStackDeveloper onContactClick={handleOpenContact} />
         <ServicesTechnologies />

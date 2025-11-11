@@ -1,8 +1,6 @@
-import {
-  Box, Divider, alpha, useTheme
-} from '@mui/material';
+import { Box, Divider, alpha, useTheme } from '@mui/material';
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import ServicesHero from '../sections/homepage/ServicesHero.jsx';
 import ServicesHighlights from '../sections/homepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/homepage/ServicesBenefits.jsx';
@@ -21,20 +19,20 @@ import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 
 
 const ServicesPage = ({ showHero = true }) => {
-  const navigate = useNavigate();
+  const { openDialog } = useContactDialog();
   const theme = useTheme();
   const dividerColor = alpha(theme.palette.divider, 0.6);
   const handleOpenContact = useCallback(() => {
-    navigate('/contact');
-  }, [navigate]);
+    openDialog();
+  }, [openDialog]);
 
   return (
-    <Box sx={{ bgcolor: 'background.default' }}>
+    <Box sx={{ bgcolor: 'background.default', overflowX: 'hidden' }}>
       {showHero && <ServicesHero onContactClick={handleOpenContact} />}
       <PageSectionsContainer>
         <ServicesHighlights onContactClick={handleOpenContact} />
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesBenefits />
+        <ServicesBenefits onContactClick={handleOpenContact} />
         <Divider sx={{ borderColor: dividerColor }} />
         <FullStackDeveloper onContactClick={handleOpenContact} />
         <ServicesTechnologies />

@@ -53,11 +53,27 @@ const BlogDetailPage = () => {
           backgroundImage: `${heroOverlay}, url(${post.heroImage ?? post.image})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`
+          backgroundRepeat: 'no-repeat',
+          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`,
+          filter: isDark ? 'brightness(0.6)' : 'brightness(0.85)',
+          overflow: 'hidden',
+          minHeight: { xs: '70vh', md: '80vh' },
+          display: 'flex',
+          alignItems: 'center',
+          pb: { xs: 12, md: 14 },
+          pt: { xs: 14, md: 18 }
         }}
       >
-        <Container maxWidth="lg" sx={{ py: { xs: 10, md: 14 } }}>
-          <Stack spacing={4}>
+        <Container maxWidth="lg">
+          <Stack
+            spacing={5}
+            sx={{
+              textAlign: { xs: 'center', md: 'left' },
+              alignItems: { xs: 'center', md: 'flex-start' },
+              position: 'relative',
+              zIndex: 1
+            }}
+          >
             <Breadcrumbs
               separator={<NavigateNextIcon fontSize="small" sx={{ color: alpha('#e2e8f0', 0.9) }} />}
               aria-label="breadcrumb"
@@ -72,11 +88,11 @@ const BlogDetailPage = () => {
               <Typography color="inherit">{post.title}</Typography>
             </Breadcrumbs>
 
-            <Stack spacing={3}>
+            <Stack spacing={3} sx={{ maxWidth: 720 }}>
               <Chip
                 label={post.category}
                 sx={{
-                  alignSelf: 'flex-start',
+                  alignSelf: { xs: 'center', md: 'flex-start' },
                   bgcolor: alpha('#38bdf8', 0.35),
                   color: '#fff',
                   fontWeight: 600,
@@ -86,10 +102,53 @@ const BlogDetailPage = () => {
               <Typography variant="h2" sx={{ fontSize: { xs: 38, md: 56 }, fontWeight: 800, lineHeight: 1.15 }}>
                 {post.title}
               </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} sx={{ color: alpha('#f8fafc', 0.9) }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2.5}
+                sx={{
+                  color: alpha('#f8fafc', 0.9),
+                  justifyContent: { xs: 'center', md: 'flex-start' }
+                }}
+              >
                 <Typography variant="body2">{post.publishedOn}</Typography>
                 <Typography variant="body2">• {post.readTime}</Typography>
                 <Typography variant="body2">• {post.author}</Typography>
+              </Stack>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: alpha('#f8fafc', 0.82),
+                  lineHeight: 1.8,
+                  maxWidth: { xs: '100%', md: 620 }
+                }}
+              >
+                {post.excerpt}
+              </Typography>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2.5}
+                sx={{ pt: 1, alignItems: { xs: 'center', md: 'flex-start' } }}
+              >
+                <Button
+                  variant="contained"
+                  size="large"
+                  component={RouterLink}
+                  to={post.cta.primaryCtaHref}
+                  endIcon={<ArrowForwardIcon />}
+                  sx={{
+                    background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                    color: '#fff',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: { sm: 5 },
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                    }
+                  }}
+                >
+                  {post.cta.primaryCtaLabel}
+                </Button>
               </Stack>
             </Stack>
           </Stack>

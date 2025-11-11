@@ -19,6 +19,7 @@ import BlogListPage from './components/pages/BlogListPage.jsx';
 import BlogDetailPage from './components/pages/BlogDetailPage.jsx';
 import AboutPage from './components/pages/AboutPage.jsx';
 import CareersPage from './components/pages/CareersPage.jsx';
+import ContactPage from './components/pages/ContactPage.jsx';
 
 const App = () => {
   return (
@@ -67,17 +68,7 @@ const App = () => {
               <Route index element={<BlogListPage />} />
               <Route path=":slug" element={<BlogDetailPage />} />
             </Route>
-            <Route
-              path="contact"
-              element={
-                <ComingSoonPage
-                  title="Let's Connect"
-                  description="A refreshed contact experience is on its way. In the meantime, drop us a line at hello@vedxsolution.com and we will get back within one business day."
-                  primaryActionHref="mailto:hello@vedxsolution.com"
-                  ctaLabel="Email Us"
-                />
-              }
-            />
+            <Route path="contact" element={<ContactPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
