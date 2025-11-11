@@ -1,4 +1,4 @@
-import { Box, Button, Chip, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Button, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
 const BlogPreviewCard = ({
@@ -58,59 +58,81 @@ const BlogPreviewCard = ({
       </Box>
 
       <Stack spacing={2} sx={{ p: { xs: 3, md: 3.25 }, flexGrow: 1 }}>
-        <Chip
-          label={post.category}
+
+        <Box
           sx={{
-            alignSelf: 'flex-start',
-            bgcolor: alpha(accentColor, 0.14),
-            color: accentColor,
-            fontWeight: 600,
-            letterSpacing: 0.75
-          }}
-        />
-
-        <Stack spacing={1.5}>
-          <Typography
-            component={RouterLink}
-            to={`/blog/${post.slug}`}
-            variant="h6"
-            sx={{
-              textDecoration: 'none',
-              color: theme.palette.text.primary,
-              fontWeight: 700,
-              lineHeight: 1.3,
-              '&:hover': {
-                color: accentColor
-              }
-            }}
-          >
-            {post.title}
-          </Typography>
-
-        </Stack>
-
-
-        <Box sx={{ flexGrow: 1 }} />
-        <Button
-          variant="contained"
-          size="large"
-          component={RouterLink}
-          to={`/blog/${post.slug}`}
-
-          sx={{
-            background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-            color: '#fff',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center',
             px: 2,
-            '&:hover': {
-              background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-            },
+            py: 1,
+            borderRadius: 0.5,
+            border: `1px solid ${alpha('#ffffff', 0.1)}`,
+            background: !isDark
+              ? alpha('#ddddddff', 0.9)
+              : alpha('#0000007c', 0.9),
+            color: alpha(accentColor, 0.9),
+            fontWeight: 600,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+            fontSize: 11,
+            lineHeight: 1.3,
+            width: 'fit-content'
           }}
         >
-          Read More
-        </Button>
+          <Box
+            component="span"
+            sx={{
+              background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            {post.category}
+          </Box>
+     </Box>
+
+          <Stack spacing={1.5}>
+            <Typography
+              component={RouterLink}
+              to={`/blog/${post.slug}`}
+              variant="h6"
+              sx={{
+                textDecoration: 'none',
+                color: theme.palette.text.primary,
+                fontWeight: 700,
+                lineHeight: 1.3,
+                '&:hover': {
+                  color: accentColor
+                }
+              }}
+            >
+              {post.title}
+            </Typography>
+
+          </Stack>
+
+
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="contained"
+            size="large"
+            component={RouterLink}
+            to={`/blog/${post.slug}`}
+
+            sx={{
+              background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+              color: '#fff',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 2,
+              '&:hover': {
+                background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+              },
+            }}
+          >
+            Read More
+          </Button>
 
       </Stack>
     </Paper>

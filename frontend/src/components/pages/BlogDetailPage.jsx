@@ -3,7 +3,6 @@ import {
   Box,
   Breadcrumbs,
   Button,
-  Chip,
   Container,
   Divider,
   Grid,
@@ -11,7 +10,7 @@ import {
   Stack,
   Typography,
   alpha,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -36,16 +35,19 @@ const BlogDetailPage = () => {
     }
   }, [navigate, post]);
 
-  if (!post) {
-    return null;
-  }
+  if (!post) return null;
 
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.9 : 0.75);
-  const heroOverlay = isDark ? 'linear-gradient(180deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.92) 100%)' : 'linear-gradient(180deg, rgba(15,23,42,0.38) 0%, rgba(15,23,42,0.82) 100%)';
+  const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const heroOverlay = isDark
+    ? 'linear-gradient(180deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.92) 100%)'
+    : 'linear-gradient(180deg, rgba(15,23,42,0.38) 0%, rgba(15,23,42,0.82) 100%)';
+
   const relatedPosts = getRelatedPosts(post.slug, post.category, post.tags);
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
+      {/* ---------- HERO SECTION ---------- */}
       <Box
         sx={{
           position: 'relative',
@@ -55,13 +57,12 @@ const BlogDetailPage = () => {
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`,
-          filter: isDark ? 'brightness(0.6)' : 'brightness(0.85)',
           overflow: 'hidden',
           minHeight: { xs: '70vh', md: '80vh' },
           display: 'flex',
           alignItems: 'center',
           pb: { xs: 12, md: 14 },
-          pt: { xs: 14, md: 18 }
+          pt: { xs: 14, md: 18 },
         }}
       >
         <Container maxWidth="lg">
@@ -71,9 +72,10 @@ const BlogDetailPage = () => {
               textAlign: { xs: 'center', md: 'left' },
               alignItems: { xs: 'center', md: 'flex-start' },
               position: 'relative',
-              zIndex: 1
+              zIndex: 1,
             }}
           >
+            {/* Breadcrumbs */}
             <Breadcrumbs
               separator={<NavigateNextIcon fontSize="small" sx={{ color: alpha('#e2e8f0', 0.9) }} />}
               aria-label="breadcrumb"
@@ -88,42 +90,77 @@ const BlogDetailPage = () => {
               <Typography color="inherit">{post.title}</Typography>
             </Breadcrumbs>
 
+            {/* Title + Meta Info */}
             <Stack spacing={3} sx={{ maxWidth: 720 }}>
-              <Chip
-                label={post.category}
+              {/* Category Label */}
+              <Box
                 sx={{
-                  alignSelf: { xs: 'center', md: 'flex-start' },
-                  bgcolor: alpha('#38bdf8', 0.35),
-                  color: '#fff',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  px: 2,
+                  py: 1,
+                  borderRadius: 0.5,
+                  border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                  background: !isDark
+                    ? alpha('#ddddddff', 0.9)
+                    : alpha('#0000007c', 0.9),
+                  color: alpha(accentColor, 0.9),
                   fontWeight: 600,
-                  letterSpacing: 0.75
+                  letterSpacing: 1,
+                  textTransform: 'uppercase',
+                  fontSize: 11,
+                  lineHeight: 1.3,
+                  width: 'fit-content',
                 }}
-              />
-              <Typography variant="h2" sx={{ fontSize: { xs: 38, md: 56 }, fontWeight: 800, lineHeight: 1.15 }}>
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  {post.category}
+                </Box>
+              </Box>
+
+              <Typography
+                variant="h2"
+                sx={{
+                  fontSize: { xs: 38, md: 56 },
+                  fontWeight: 800,
+                  lineHeight: 1.15,
+                }}
+              >
                 {post.title}
               </Typography>
+
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={2.5}
                 sx={{
                   color: alpha('#f8fafc', 0.9),
-                  justifyContent: { xs: 'center', md: 'flex-start' }
+                  justifyContent: { xs: 'center', md: 'flex-start' },
                 }}
               >
                 <Typography variant="body2">{post.publishedOn}</Typography>
                 <Typography variant="body2">• {post.readTime}</Typography>
                 <Typography variant="body2">• {post.author}</Typography>
               </Stack>
+
               <Typography
                 variant="body1"
                 sx={{
                   color: alpha('#f8fafc', 0.82),
                   lineHeight: 1.8,
-                  maxWidth: { xs: '100%', md: 620 }
+                  maxWidth: { xs: '100%', md: 620 },
                 }}
               >
                 {post.excerpt}
               </Typography>
+
+              {/* CTA Button */}
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={2.5}
@@ -143,8 +180,8 @@ const BlogDetailPage = () => {
                     fontWeight: 600,
                     px: { sm: 5 },
                     '&:hover': {
-                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
-                    }
+                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                    },
                   }}
                 >
                   {post.cta.primaryCtaLabel}
@@ -155,8 +192,10 @@ const BlogDetailPage = () => {
         </Container>
       </Box>
 
+      {/* ---------- MAIN CONTENT ---------- */}
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
         <Grid container spacing={{ xs: 8, md: 10 }}>
+          {/* Left: Article Content */}
           <Grid item xs={12} md={8}>
             <Stack spacing={5}>
               {post.sections.map((section) => (
@@ -164,15 +203,22 @@ const BlogDetailPage = () => {
                   <Typography variant="h4" sx={{ fontSize: { xs: 26, md: 32 }, fontWeight: 700 }}>
                     {section.heading}
                   </Typography>
-                  {section.paragraphs?.map((paragraph, index) => (
-                    <Typography key={index} variant="body1" sx={{ color: subtleText, lineHeight: 1.8 }}>
-                      {paragraph}
+
+                  {section.paragraphs?.map((p, i) => (
+                    <Typography key={i} variant="body1" sx={{ color: subtleText, lineHeight: 1.8 }}>
+                      {p}
                     </Typography>
                   ))}
+
                   {section.bullets && (
                     <Box component="ul" sx={{ pl: 3, color: subtleText }}>
                       {section.bullets.map((item) => (
-                        <Typography key={item} component="li" variant="body1" sx={{ mb: 1.5, lineHeight: 1.7 }}>
+                        <Typography
+                          key={item}
+                          component="li"
+                          variant="body1"
+                          sx={{ mb: 1.5, lineHeight: 1.7 }}
+                        >
                           {item}
                         </Typography>
                       ))}
@@ -183,23 +229,25 @@ const BlogDetailPage = () => {
 
               <Divider sx={{ borderColor: alpha(theme.palette.divider, isDark ? 0.5 : 0.3) }} />
 
+              {/* Conclusion */}
               <Stack spacing={2.5}>
                 <Typography variant="h4" sx={{ fontSize: { xs: 26, md: 32 }, fontWeight: 700 }}>
                   {post.conclusion.heading}
                 </Typography>
-                {post.conclusion.paragraphs.map((paragraph, index) => (
-                  <Typography key={index} variant="body1" sx={{ color: subtleText, lineHeight: 1.8 }}>
-                    {paragraph}
+                {post.conclusion.paragraphs.map((p, i) => (
+                  <Typography key={i} variant="body1" sx={{ color: subtleText, lineHeight: 1.8 }}>
+                    {p}
                   </Typography>
                 ))}
               </Stack>
 
+              {/* CTA Box */}
               <Box
                 sx={{
                   borderRadius: 0.5,
                   border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.2)}`,
                   backgroundColor: alpha(theme.palette.primary.main, isDark ? 0.12 : 0.08),
-                  p: { xs: 4, md: 5 }
+                  p: { xs: 4, md: 5 },
                 }}
               >
                 <Stack spacing={3}>
@@ -210,8 +258,6 @@ const BlogDetailPage = () => {
                     {post.cta.description}
                   </Typography>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-
-
                     <Button
                       variant="contained"
                       size="large"
@@ -231,21 +277,22 @@ const BlogDetailPage = () => {
                     >
                       {post.cta.primaryCtaLabel}
                     </Button>
-
                   </Stack>
                 </Stack>
               </Box>
             </Stack>
           </Grid>
 
+          {/* Right: Sidebar */}
           <Grid item xs={12} md={4}>
             <Stack spacing={4}>
+              {/* Tags */}
               <Box
                 sx={{
                   borderRadius: 0.5,
                   border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
                   backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.6 : 0.96),
-                  p: 3.5
+                  p: 3.5,
                 }}
               >
                 <Stack spacing={2.5}>
@@ -254,18 +301,51 @@ const BlogDetailPage = () => {
                   </Typography>
                   <Stack direction="row" flexWrap="wrap" gap={1.2}>
                     {post.tags.map((tag) => (
-                      <Chip key={tag} label={tag} sx={{ fontWeight: 600 }} />
+                      <Box
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          px: 2,
+                          py: 1,
+                          borderRadius: 0.5,
+                          border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                          background: !isDark
+                            ? alpha('#ddddddff', 0.9)
+                            : alpha('#0000007c', 0.9),
+                          color: alpha(accentColor, 0.9),
+                          fontWeight: 600,
+                          letterSpacing: 1,
+                          textTransform: 'uppercase',
+                          fontSize: 11,
+                          lineHeight: 1.3,
+                          width: 'fit-content'
+                        }}
+                      >
+                        <Box
+                          component="span"
+                          sx={{
+                            background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                          }}
+                        >
+                          {tag}
+                        </Box>
+                      </Box>
+
+
                     ))}
                   </Stack>
                 </Stack>
               </Box>
 
+              {/* Recent Articles */}
               <Box
                 sx={{
                   borderRadius: 0.5,
                   border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
                   backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.6 : 0.96),
-                  p: 3.5
+                  p: 3.5,
                 }}
               >
                 <Stack spacing={2.5}>
@@ -282,7 +362,9 @@ const BlogDetailPage = () => {
                             textDecoration: 'none',
                             color: theme.palette.text.primary,
                             fontWeight: 600,
-                            '&:hover': { color: isDark ? '#67e8f9' : theme.palette.primary.main }
+                            '&:hover': {
+                              color: isDark ? '#67e8f9' : theme.palette.primary.main,
+                            },
                           }}
                         >
                           {item.title}
@@ -300,17 +382,16 @@ const BlogDetailPage = () => {
         </Grid>
       </Container>
 
+      {/* ---------- RELATED POSTS ---------- */}
       {relatedPosts.length > 0 && (
-        <Box
-         
-        >
+        <Box>
           <Container maxWidth="lg">
             <Stack
               spacing={3}
               sx={{
                 mb: 6,
-                alignItems: "center",
-                textAlign: "center",
+                alignItems: 'center',
+                textAlign: 'center',
               }}
             >
               <Typography
