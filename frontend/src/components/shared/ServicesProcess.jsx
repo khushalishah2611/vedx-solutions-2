@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Grid,
@@ -13,7 +14,6 @@ import {
 import KeyboardArrowLeftRoundedIcon from "@mui/icons-material/KeyboardArrowLeftRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 import { processSteps } from "../../data/servicesPage.js";
-import { useEffect, useMemo, useState } from "react";
 
 const ServicesProcess = () => {
   const theme = useTheme();
@@ -45,23 +45,29 @@ const ServicesProcess = () => {
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => Math.min(prev + stepsPerView, maxIndex));
+    setCurrentIndex((prev) =>
+      prev + stepsPerView > maxIndex ? 0 : prev + stepsPerView
+    );
   };
+
+  // 🌀 Auto-scroll effect (every 5 seconds)
+  useEffect(() => {
+    const autoScroll = setInterval(() => {
+      handleNext();
+    }, 5000); // <-- change duration (ms) as needed (e.g., 7000 for 7s)
+
+    return () => clearInterval(autoScroll);
+  }, [stepsPerView, maxIndex]); // re-init if layout changes
 
   const visibleSteps = (processSteps ?? []).slice(
     currentIndex,
     currentIndex + stepsPerView
   );
+
   const showNavigation = total > stepsPerView;
 
   return (
-    <Box
-      component="section"
-      sx={{
-        position: "relative",
-
-      }}
-    >
+    <Box component="section" sx={{ position: "relative" }}>
       {/* Section Header */}
       <Stack spacing={3} sx={{ mb: 4, textAlign: "center", alignItems: "center" }}>
         <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
@@ -75,7 +81,6 @@ const ServicesProcess = () => {
       {/* Navigation Arrows */}
       {showNavigation && (
         <>
-          {/* Left Arrow */}
           <IconButton
             aria-label="Previous process"
             onClick={handlePrev}
@@ -101,11 +106,9 @@ const ServicesProcess = () => {
             <KeyboardArrowLeftRoundedIcon />
           </IconButton>
 
-          {/* Right Arrow */}
           <IconButton
             aria-label="Next process"
             onClick={handleNext}
-            disabled={currentIndex === maxIndex}
             sx={{
               position: "absolute",
               top: "60%",
@@ -156,12 +159,10 @@ const ServicesProcess = () => {
                   : "0 4px 30px rgba(15,23,42,0.15)",
                 "&:hover": {
                   transform: "translateY(-8px) scale(1.02)",
-
                   borderColor: alpha(accentColor, 0.5),
                 },
               }}
             >
-              {/* Step Image */}
               <Box
                 sx={{
                   position: "relative",
@@ -186,13 +187,16 @@ const ServicesProcess = () => {
                 </Box>
               </Box>
 
-              {/* Step Text */}
               <Stack spacing={1.5} sx={{ p: 2 }}>
-                <Typography variant="h6" sx={{
-                  fontWeight: 700, "&:hover": {
-                    color: isDark ? "#67e8f9" : theme.palette.primary.main,
-                  },
-                }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    "&:hover": {
+                      color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                    },
+                  }}
+                >
                   {step.title}
                 </Typography>
 
