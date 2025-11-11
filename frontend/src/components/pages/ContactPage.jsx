@@ -49,10 +49,12 @@ const contactDetails = [
 const ContactPage = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
 
   return (
-    <Box component="main" sx={{ pt: { xs: 10, md: 14 } }}>
+    <Box component="main">
+      {/* Hero Section */}
       <Box
         sx={{
           backgroundImage:
@@ -61,6 +63,11 @@ const ContactPage = () => {
           backgroundPosition: 'center',
           color: 'common.white',
           py: { xs: 12, md: 16 },
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: { xs: '90vh', md: '100vh' },
+          display: 'flex',
+          alignItems: 'center',
           textAlign: 'center'
         }}
       >
@@ -79,7 +86,7 @@ const ContactPage = () => {
                 color: 'transparent'
               }}
             >
-              Contact us
+              Contact Us
             </Typography>
             <Typography
               variant="h6"
@@ -94,19 +101,43 @@ const ContactPage = () => {
         </Container>
       </Box>
 
+      {/* Contact Section */}
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
         <Stack spacing={{ xs: 6, md: 8 }}>
+          {/* Section Title */}
           <Stack spacing={3} alignItems="center">
-            <Typography
-              variant="overline"
+            <Box
               sx={{
-                color: theme.palette.primary.main,
-                fontWeight: 700,
-                letterSpacing: 2
+                display: 'inline-flex',
+                alignItems: 'center',
+                px: 2,
+                py: 1,
+                borderRadius: 0.5,
+                border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                background: !isDark
+                  ? alpha('#ddddddff', 0.9)
+                  : alpha('#0000007c', 0.9),
+                color: alpha(accentColor, 0.9),
+                fontWeight: 600,
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                fontSize: 11,
+                lineHeight: 1.3,
+                width: 'fit-content'
               }}
             >
-              Contact Details
-            </Typography>
+              <Box
+                component="span"
+                sx={{
+                  background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}
+              >
+                Contact Details
+              </Box>
+            </Box>
+
             <Typography
               variant="h4"
               sx={{
@@ -119,17 +150,18 @@ const ContactPage = () => {
             </Typography>
           </Stack>
 
+          {/* Contact Cards */}
           <Grid container spacing={3}>
             {contactDetails.map((detail) => (
               <Grid item xs={12} md={4} key={detail.label}>
                 <Card
                   sx={{
                     height: '100%',
-                    borderRadius: 3,
+                    borderRadius: 0.5,
                     background: isDark
                       ? 'linear-gradient(135deg, rgba(33, 34, 55, 0.9), rgba(18, 18, 30, 0.95))'
                       : 'linear-gradient(135deg, rgba(250, 250, 255, 0.98), rgba(238, 240, 255, 0.92))',
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+                    border: `1px solid ${alpha(isDark ? '#67e8f9' : theme.palette.primary.main, 0.35)}`,
                     boxShadow: '0 18px 45px rgba(14, 18, 68, 0.22)'
                   }}
                 >
@@ -174,27 +206,16 @@ const ContactPage = () => {
             ))}
           </Grid>
 
+          {/* Contact Form Section */}
           <Grid container spacing={4} alignItems="stretch">
-            <Grid item xs={12} lg={6}>
-              <Box
-                sx={{
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                  minHeight: { xs: 360, md: '100%' },
-                  backgroundImage: `url(${servicesContactImage})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }}
-              />
-            </Grid>
             <Grid item xs={12} lg={6}>
               <Stack
                 spacing={3}
                 sx={{
                   height: '100%',
-                  borderRadius: 4,
+                  borderRadius: 0.5,
                   backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.9 : 1),
-                  boxShadow: isDark ? '0 20px 45px rgba(4, 8, 34, 0.55)' : '0 16px 32px rgba(15, 23, 42, 0.12)',
+
                   p: { xs: 3, md: 4 }
                 }}
               >
@@ -206,6 +227,8 @@ const ContactPage = () => {
                     Fill out the form and we will reach out within 24 hours with a tailored plan for your requirements.
                   </Typography>
                 </Stack>
+
+                {/* Contact Form */}
                 <Stack component="form" spacing={2.5}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
                     <TextField label="Name" fullWidth required variant="outlined" />
@@ -243,37 +266,43 @@ const ContactPage = () => {
                 </Stack>
               </Stack>
             </Grid>
+            <Grid item xs={12} lg={6}>
+              {/* Google Map Embed */}
+              <Box
+                sx={{
+                  position: 'relative',
+                  borderRadius: 0.5,
+                  overflow: 'hidden',
+                  boxShadow: isDark
+                    ? '0 30px 60px rgba(3, 7, 18, 0.75)'
+                    : '0 30px 45px rgba(15, 23, 42, 0.18)',
+                  '&::after': {
+                    content: '""',
+                    display: 'block',
+                    paddingBottom: { xs: '62%', md: '100%' }
+                  }
+                }}
+              >
+                <Box
+                  component="iframe"
+                  title="VedX Solutions Pvt Ltd map"
+                  src={contactLocation.embedUrl}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  sx={{
+                    border: 0,
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%'
+                  }}
+                />
+              </Box>
+            </Grid>
           </Grid>
 
-          <Box
-            sx={{
-              position: 'relative',
-              borderRadius: 4,
-              overflow: 'hidden',
-              boxShadow: isDark ? '0 30px 60px rgba(3, 7, 18, 0.75)' : '0 30px 45px rgba(15, 23, 42, 0.18)',
-              '&::after': {
-                content: '""',
-                display: 'block',
-                paddingBottom: { xs: '62%', md: '45%' }
-              }
-            }}
-          >
-            <Box
-              component="iframe"
-              title="VedX Solutions Pvt Ltd map"
-              src={contactLocation.embedUrl}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              sx={{
-                border: 0,
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%'
-              }}
-            />
-          </Box>
+
         </Stack>
       </Container>
     </Box>
