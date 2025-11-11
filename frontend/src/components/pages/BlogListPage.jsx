@@ -140,11 +140,29 @@ const BlogListPage = () => {
     <Box sx={{ bgcolor: 'background.default' }}>
       <Box
         sx={{
-          bgcolor: isDark ? alpha('#0f172a', 0.92) : alpha('#dbeafe', 0.68),
-          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`
+
+          backgroundImage: `
+            linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
+            url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80")
+          `,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.25)}`,
+          transform: 'scale(1.05)',
+          transition: 'opacity 1.2s ease-in-out',
+          opacity: index === activeSlide ? 1 : 0,
+          filter: isDark ? 'brightness(0.55)' : 'brightness(0.8)',
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: { xs: '90vh', md: '100vh' },
+          display: 'flex',
+          alignItems: 'center',
+          pb: { xs: 12, md: 14 },
+          pt: { xs: 14, md: 18 }
         }}
       >
-        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 20 } }}>
+        <Container maxWidth="lg" >
           <Stack spacing={3} alignItems={{ xs: 'flex-start', md: 'center' }}>
             <Typography
               variant="h2"
