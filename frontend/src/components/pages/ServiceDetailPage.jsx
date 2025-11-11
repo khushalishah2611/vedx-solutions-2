@@ -90,63 +90,84 @@ const ServiceDetailPage = () => {
               <Typography sx={{ color: alpha('#fff', 0.85) }}>{service.name}</Typography>
             </Breadcrumbs>
 
-            <Stack spacing={2.5}>
-              <Typography
-                variant="h3"
-                sx={{
-                  fontSize: { xs: 32, md: 44 },
-                  fontWeight: 800,
-                  color: '#fff',
-                }}
-              >
-                {service.name}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ color: alpha('#fff', 0.85), maxWidth: 720 }}
-              >
-                {category.description}
-              </Typography>
-
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  onClick={() => navigate('/contact')}
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderRadius: 2,
-                    px: { xs: 3.5, md: 5 },
-                    py: { xs: 1.5, md: 1.75 },
-                  }}
-                >
-                  Discuss Your Project
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="large"
-                  component={RouterLink}
-                  to="/services"
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderRadius: 2,
-                    color: '#fff',
-                    borderColor: alpha('#fff', 0.5),
-                    px: { xs: 3.5, md: 5 },
-                    py: { xs: 1.5, md: 1.75 },
-                    '&:hover': {
-                      borderColor: '#fff',
-                      backgroundColor: alpha('#fff', 0.1),
-                    },
-                  }}
-                >
-                  View All Services
-                </Button>
-              </Stack>
-            </Stack>
+             <Grid item xs={12} md={6}>
+                       <Stack spacing={4}>
+                         <Typography
+                           variant="h1"
+                           sx={{
+                             fontSize: { xs: 38, sm: 46, md: 56 },
+                             fontWeight: 800,
+                             lineHeight: 1.1,
+                           }}
+                         >
+                           Full Stack Development Services
+                         </Typography>
+           
+                         <Typography
+                           variant="body1"
+                           sx={{ color: subtleText, maxWidth: 540, lineHeight: 1.7 }}
+                         >
+                           VedX Solutions offers full stack development services to help
+                           achieve your business objectives across platforms. Our agile
+                           squads deliver resilient, scalable solutions with zero
+                           disruption to your operations.
+                         </Typography>
+           
+                         <Button
+                           variant="contained"
+                           size="large"
+                           href="#contact"
+                           sx={{
+                             background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                             color: '#fff',
+                             borderRadius: '12px',
+                             textTransform: 'none',
+           
+                             fontWeight: 600,
+                             '&:hover': {
+                               background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                             },
+                           }}
+                         >
+                           Contact us
+                         </Button>
+           
+                         <Stack
+                           spacing={{ xs: 3, sm: 5 }}
+                           direction={{ xs: "column", sm: "row" }}
+                           alignItems={{ sm: "center" }}
+                           pt={2}
+                         >
+                           <Stack
+                             direction={{ xs: "column", sm: "row" }}
+                             spacing={{ xs: 2.5, sm: 4 }}
+                           >
+                             {HERO_STATS.map((stat) => (
+                               <Stack key={stat.label} spacing={0.5}>
+                                 <Typography
+                                   component="span"
+                                   sx={{
+                                     fontSize: { xs: 28, md: 32 },
+                                     fontWeight: 700,
+                                     color: accentColor,
+                                   }}
+                                 >
+                                   {stat.value}
+                                 </Typography>
+                                 <Typography
+                                   component="span"
+                                   variant="body2"
+                                   sx={{ color: subtleText, fontWeight: 500 }}
+                                 >
+                                   {stat.label}
+                                 </Typography>
+                               </Stack>
+                             ))}
+                           </Stack>
+                         </Stack>
+                       </Stack>
+                     </Grid>
+           
           </Stack>
         </Container>
       </Box>
