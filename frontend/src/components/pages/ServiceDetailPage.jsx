@@ -72,9 +72,9 @@ const ServiceDetailPage = () => {
                 Home
               </MuiLink>
               <MuiLink component={RouterLink} underline="hover" color="#fff" to="/services">
-                Services
+                {category.title}
               </MuiLink>
-              <Typography color="#fff">{category.title}</Typography>
+
               <Typography sx={{ color: alpha('#fff', 0.85) }}>{service.name}</Typography>
             </Breadcrumbs>
 

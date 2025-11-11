@@ -267,8 +267,6 @@ const NavigationBar = () => {
 
   const renderAboutMenu = (anchorEl, handleClose) => {
     const openPopover = Boolean(anchorEl);
-    const surfaceColor = alpha(theme.palette.background.paper, mode === 'dark' ? 0.95 : 0.98);
-    const dividerColor = alpha(theme.palette.divider, mode === 'dark' ? 0.6 : 0.4);
     const hoverColor = alpha(theme.palette.primary.main, mode === 'dark' ? 0.2 : 0.08);
 
     return (
@@ -286,10 +284,9 @@ const NavigationBar = () => {
               mt: 1.5,
               px: 0,
               py: 0.5,
-              borderRadius: 2,
+              borderRadius: 0.5,
               minWidth: 180,
-              backgroundColor: surfaceColor,
-              border: `1px solid ${dividerColor}`
+
             }
           }
         }}
@@ -303,12 +300,12 @@ const NavigationBar = () => {
               onClick={handleClose}
               sx={{
                 fontWeight: 500,
-                borderRadius: 1.5,
+
                 mx: 1,
                 my: 0.5,
                 px: 2,
                 py: 1,
-                '&:hover': { bgcolor: hoverColor }
+
               }}
             >
               {item.label}
