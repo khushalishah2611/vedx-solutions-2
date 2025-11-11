@@ -223,7 +223,7 @@ const BlogDetailPage = () => {
                             textDecoration: 'none',
                             color: theme.palette.text.primary,
                             fontWeight: 600,
-                            '&:hover': { color:  isDark ? '#67e8f9' : theme.palette.primary.main }
+                            '&:hover': { color: isDark ? '#67e8f9' : theme.palette.primary.main }
                           }}
                         >
                           {item.title}
@@ -249,12 +249,26 @@ const BlogDetailPage = () => {
           }}
         >
           <Container maxWidth="lg">
-            <Stack spacing={3} sx={{ mb: 6 }}>
-              <Typography variant="h4" sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 700 }}>
+            <Stack
+              spacing={3}
+              sx={{
+                mb: 6,
+                alignItems: "center",
+                textAlign: "center",
+              }}
+            >
+              <Typography
+                variant="h4"
+                sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 700 }}
+              >
                 Related Blogs
               </Typography>
-              <Typography variant="body1" sx={{ color: subtleText, maxWidth: 600 }}>
-                Continue exploring insights curated by our full stack engineers, product strategists, and UX experts.
+              <Typography
+                variant="body1"
+                sx={{ color: subtleText, maxWidth: 600 }}
+              >
+                Continue exploring insights curated by our full stack engineers,
+                product strategists, and UX experts.
               </Typography>
             </Stack>
 
