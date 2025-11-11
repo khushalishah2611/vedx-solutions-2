@@ -76,7 +76,7 @@ const ServicesShowcase = () => {
         >
           {/* Left side cards */}
           <Grid item xs={12} md={5.5}>
-            <Grid container spacing={3}>
+            <Grid container spacing={2}>
               {services.map((service, index) => {
                 const active = index === activeIndex;
                 return (

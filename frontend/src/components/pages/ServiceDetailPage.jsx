@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Container,
   Divider,
   Grid,
@@ -12,7 +11,7 @@ import {
   Stack,
   Typography,
   alpha,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -40,9 +39,7 @@ const ServiceDetailPage = () => {
     }
   }, [category, navigate, service]);
 
-  if (!category || !service) {
-    return null;
-  }
+  if (!category || !service) return null;
 
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? theme.palette.primary.light : theme.palette.primary.main;
@@ -51,44 +48,53 @@ const ServiceDetailPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
+      {/* ================= HERO SECTION ================= */}
       <Box
         sx={{
-          bgcolor: isDark ? alpha('#0f172a', 0.9) : alpha('#eff6ff', 0.85),
-          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.25)}`
+          position: 'relative',
+          backgroundImage: `
+            linear-gradient(to bottom, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)),
+            url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80")
+          `,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.25)}`,
         }}
       >
-        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 20 } }}>
           <Stack spacing={3}>
             <Breadcrumbs
               separator={<NavigateNextIcon fontSize="small" sx={{ color: subtleText }} />}
               aria-label="breadcrumb"
             >
-              <MuiLink component={RouterLink} underline="hover" color="inherit" to="/">
+              <MuiLink component={RouterLink} underline="hover" color="#fff" to="/">
                 Home
               </MuiLink>
-              <MuiLink component={RouterLink} underline="hover" color="inherit" to="/services">
+              <MuiLink component={RouterLink} underline="hover" color="#fff" to="/services">
                 Services
               </MuiLink>
-              <Typography color={subtleText}>{category.title}</Typography>
+              <Typography color="#fff">{category.title}</Typography>
             </Breadcrumbs>
 
             <Stack spacing={2.5}>
-              <Chip
-                label={category.title}
+              <Typography
+                variant="h3"
                 sx={{
-                  alignSelf: 'flex-start',
-                  fontWeight: 600,
-                  letterSpacing: 0.75,
-                  bgcolor: alpha(accentColor, 0.15),
-                  color: accentColor
+                  fontSize: { xs: 32, md: 44 },
+                  fontWeight: 800,
+                  color: '#fff',
                 }}
-              />
-              <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 44 }, fontWeight: 800 }}>
+              >
                 {service.name}
               </Typography>
-              <Typography variant="body1" sx={{ color: subtleText, maxWidth: 720 }}>
+              <Typography
+                variant="body1"
+                sx={{ color: alpha('#fff', 0.85), maxWidth: 720 }}
+              >
                 {category.description}
               </Typography>
+
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <Button
                   variant="contained"
@@ -100,7 +106,7 @@ const ServiceDetailPage = () => {
                     fontWeight: 600,
                     borderRadius: 2,
                     px: { xs: 3.5, md: 5 },
-                    py: { xs: 1.5, md: 1.75 }
+                    py: { xs: 1.5, md: 1.75 },
                   }}
                 >
                   Discuss Your Project
@@ -114,8 +120,14 @@ const ServiceDetailPage = () => {
                     textTransform: 'none',
                     fontWeight: 600,
                     borderRadius: 2,
+                    color: '#fff',
+                    borderColor: alpha('#fff', 0.5),
                     px: { xs: 3.5, md: 5 },
-                    py: { xs: 1.5, md: 1.75 }
+                    py: { xs: 1.5, md: 1.75 },
+                    '&:hover': {
+                      borderColor: '#fff',
+                      backgroundColor: alpha('#fff', 0.1),
+                    },
                   }}
                 >
                   View All Services
@@ -126,10 +138,13 @@ const ServiceDetailPage = () => {
         </Container>
       </Box>
 
+      {/* ================= MAIN CONTENT ================= */}
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
         <Grid container spacing={{ xs: 6, md: 8 }}>
+          {/* Left Column */}
           <Grid item xs={12} md={7}>
             <Stack spacing={4}>
+              {/* Overview Card */}
               <Card
                 elevation={0}
                 sx={{
@@ -138,7 +153,7 @@ const ServiceDetailPage = () => {
                   backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.6 : 0.96),
                   boxShadow: isDark
                     ? '0 30px 60px rgba(15,23,42,0.45)'
-                    : '0 30px 60px rgba(15,23,42,0.12)'
+                    : '0 30px 60px rgba(15,23,42,0.12)',
                 }}
               >
                 <CardContent sx={{ p: { xs: 3, md: 4 } }}>
@@ -160,17 +175,25 @@ const ServiceDetailPage = () => {
                       </Typography>
                       <Stack spacing={1.5}>
                         {service.outcomes.map((outcome) => (
-                          <Stack key={outcome} direction="row" spacing={1.5} alignItems="flex-start">
+                          <Stack
+                            key={outcome}
+                            direction="row"
+                            spacing={1.5}
+                            alignItems="flex-start"
+                          >
                             <Box
                               sx={{
                                 width: 8,
                                 height: 8,
                                 mt: 1,
                                 borderRadius: '50%',
-                                backgroundColor: accentColor
+                                backgroundColor: accentColor,
                               }}
                             />
-                            <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.7 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: subtleText, lineHeight: 1.7 }}
+                            >
                               {outcome}
                             </Typography>
                           </Stack>
@@ -181,12 +204,13 @@ const ServiceDetailPage = () => {
                 </CardContent>
               </Card>
 
+              {/* Deliverables Card */}
               <Card
                 elevation={0}
                 sx={{
                   borderRadius: 3,
                   border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`,
-                  backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.55 : 0.98)
+                  backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.55 : 0.98),
                 }}
               >
                 <CardContent sx={{ p: { xs: 3, md: 4 } }}>
@@ -201,7 +225,10 @@ const ServiceDetailPage = () => {
                             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                               {item.title}
                             </Typography>
-                            <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.6 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: subtleText, lineHeight: 1.6 }}
+                            >
                               {item.description}
                             </Typography>
                           </Stack>
@@ -214,6 +241,7 @@ const ServiceDetailPage = () => {
             </Stack>
           </Grid>
 
+          {/* Right Column */}
           <Grid item xs={12} md={5}>
             <Card
               elevation={0}
@@ -223,7 +251,7 @@ const ServiceDetailPage = () => {
                 background: isDark
                   ? 'linear-gradient(135deg, rgba(15,23,42,0.95), rgba(79,70,229,0.75))'
                   : 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(147,197,253,0.45))',
-                color: isDark ? '#f8fafc' : theme.palette.text.primary
+                color: isDark ? '#f8fafc' : theme.palette.text.primary,
               }}
             >
               <CardContent sx={{ p: { xs: 3, md: 4 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -245,7 +273,7 @@ const ServiceDetailPage = () => {
                           height: 10,
                           mt: 1,
                           borderRadius: '50%',
-                          backgroundColor: isDark ? alpha('#fff', 0.9) : accentColor
+                          backgroundColor: isDark ? alpha('#fff', 0.9) : accentColor,
                         }}
                       />
                       <Typography
@@ -280,22 +308,23 @@ const ServiceDetailPage = () => {
         </Grid>
       </Container>
 
+      {/* ================= RELATED INSIGHTS ================= */}
       {relatedBlogs.length > 0 && (
         <Box
           sx={{
             bgcolor: isDark ? alpha('#0f172a', 0.92) : alpha('#eff6ff', 0.6),
             borderTop: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.25)}`,
-            mt: { xs: 6, md: 8 }
+            mt: { xs: 6, md: 8 },
           }}
         >
           <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
-            <Stack spacing={3} sx={{ mb: 6 }}>
+            <Stack spacing={3} sx={{ mb: 6, alignItems: 'center', textAlign: 'center' }}>
               <Typography variant="h4" sx={{ fontSize: { xs: 28, md: 36 }, fontWeight: 700 }}>
                 Related Insights
               </Typography>
               <Typography variant="body1" sx={{ color: subtleText, maxWidth: 640 }}>
-                Dig deeper into the strategies, architectures, and best practices our specialists use to deliver measurable
-                outcomes across full stack engagements.
+                Dig deeper into the strategies, architectures, and best practices our specialists use to deliver
+                measurable outcomes across full stack engagements.
               </Typography>
             </Stack>
 
