@@ -75,6 +75,7 @@ const ServiceDetailPage = () => {
                 Services
               </MuiLink>
               <Typography color="#fff">{category.title}</Typography>
+              <Typography sx={{ color: alpha('#fff', 0.85) }}>{service.name}</Typography>
             </Breadcrumbs>
 
             <Stack spacing={2.5}>
@@ -326,6 +327,25 @@ const ServiceDetailPage = () => {
                 Dig deeper into the strategies, architectures, and best practices our specialists use to deliver
                 measurable outcomes across full stack engagements.
               </Typography>
+              <Button
+                component={RouterLink}
+                to="/blog"
+                variant="contained"
+                size="large"
+                sx={{
+                  background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                  color: '#fff',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: { xs: 3, md: 4 },
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                  }
+                }}
+              >
+                View All Blogs
+              </Button>
             </Stack>
 
             <Grid container spacing={4}>

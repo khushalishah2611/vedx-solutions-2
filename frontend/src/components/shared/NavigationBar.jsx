@@ -12,6 +12,8 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  MenuItem,
+  MenuList,
   Popover,
   Stack,
   Tooltip,
@@ -35,6 +37,11 @@ import { ColorModeContext } from '../../contexts/ColorModeContext.jsx';
 import { Link as RouterLink } from 'react-router-dom';
 import { createAnchorHref } from '../../utils/formatters.js';
 
+const aboutMenuItems = [
+  { label: 'About Us', to: '/about' },
+  { label: 'Careers', to: '/careers' }
+];
+
 const NavigationBar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -47,7 +54,6 @@ const NavigationBar = () => {
   const [aboutAnchor, setAboutAnchor] = useState(null);
   const [activeServiceIndex, setActiveServiceIndex] = useState(0);
   const [activeHireIndex, setActiveHireIndex] = useState(0);
-  const [activeAboutIndex, setActiveAboutIndex] = useState(0);
 
   const toggleDrawer = (state) => () => {
     setOpen(state);
@@ -259,6 +265,60 @@ const NavigationBar = () => {
     );
   };
 
+  const renderAboutMenu = (anchorEl, handleClose) => {
+    const openPopover = Boolean(anchorEl);
+    const surfaceColor = alpha(theme.palette.background.paper, mode === 'dark' ? 0.95 : 0.98);
+    const dividerColor = alpha(theme.palette.divider, mode === 'dark' ? 0.6 : 0.4);
+    const hoverColor = alpha(theme.palette.primary.main, mode === 'dark' ? 0.2 : 0.08);
+
+    return (
+      <Popover
+        open={openPopover}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        disableRestoreFocus
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        slotProps={{
+          paper: {
+            onMouseLeave: handleClose,
+            sx: {
+              mt: 1.5,
+              px: 0,
+              py: 0.5,
+              borderRadius: 2,
+              minWidth: 180,
+              backgroundColor: surfaceColor,
+              border: `1px solid ${dividerColor}`
+            }
+          }
+        }}
+      >
+        <MenuList sx={{ py: 0 }}>
+          {aboutMenuItems.map((item) => (
+            <MenuItem
+              key={item.label}
+              component={RouterLink}
+              to={item.to}
+              onClick={handleClose}
+              sx={{
+                fontWeight: 500,
+                borderRadius: 1.5,
+                mx: 1,
+                my: 0.5,
+                px: 2,
+                py: 1,
+                '&:hover': { bgcolor: hoverColor }
+              }}
+            >
+              {item.label}
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Popover>
+    );
+  };
+
   return (
     <AppBar
       position="fixed"
@@ -287,12 +347,37 @@ const NavigationBar = () => {
             <Stack direction="row" spacing={1} alignItems="center">
               {navigationLinks.map((item) => {
                 if (item.menu) {
+                  if (item.menu === 'about') {
+                    const isOpen = Boolean(aboutAnchor);
+                    return (
+                      <Box key={item.label}>
+                        <Button
+                          color="inherit"
+                          component={RouterLink}
+                          to={item.path ?? '/about'}
+                          sx={{ fontWeight: 500, letterSpacing: 0.5, opacity: 0.9 }}
+                          endIcon={
+                            <KeyboardArrowDownRoundedIcon
+                              sx={{
+                                transition: 'transform 0.2s ease',
+                                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                              }}
+                            />
+                          }
+                          onMouseEnter={handleAboutEnter}
+                          onFocus={handleAboutEnter}
+                        >
+                          {item.label}
+                        </Button>
+                      </Box>
+                    );
+                  }
+
                   const buttonProps = item.path ? { component: RouterLink, to: item.path } : {};
                   const menuKey = item.menu;
                   const menuConfig = {
                     services: { anchor: serviceAnchor, handleEnter: handleServiceEnter },
-                    hireDevelopers: { anchor: hireAnchor, handleEnter: handleHireEnter },
-                    about: { anchor: aboutAnchor, handleEnter: handleAboutEnter }
+                    hireDevelopers: { anchor: hireAnchor, handleEnter: handleHireEnter }
                   }[menuKey];
 
                   if (!menuConfig) {
@@ -428,6 +513,24 @@ const NavigationBar = () => {
           <List sx={{ flexGrow: 1 }}>
             {navigationLinks.map((item) => {
               if (item.menu) {
+                if (item.menu === 'about') {
+                  return (
+                    <Box key={item.label}>
+                      {aboutMenuItems.map((link) => (
+                        <ListItemButton
+                          key={link.label}
+                          component={RouterLink}
+                          to={link.to}
+                          onClick={toggleDrawer(false)}
+                        >
+                          <ListItemText primary={link.label} />
+                        </ListItemButton>
+                      ))}
+                      <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4) }} />
+                    </Box>
+                  );
+                }
+
                 const isExpanded = expandedMenus[item.menu];
                 const config = megaMenuContent[item.menu];
 
@@ -565,8 +668,7 @@ const NavigationBar = () => {
         renderMegaMenu(serviceAnchor, handleServiceClose, megaMenuContent.services, activeServiceIndex, setActiveServiceIndex)}
       {!isMobile &&
         renderMegaMenu(hireAnchor, handleHireClose, megaMenuContent.hireDevelopers, activeHireIndex, setActiveHireIndex)}
-      {!isMobile &&
-        renderMegaMenu(aboutAnchor, handleAboutClose, megaMenuContent.about, activeAboutIndex, setActiveAboutIndex)}
+      {!isMobile && renderAboutMenu(aboutAnchor, handleAboutClose)}
     </AppBar>
   );
 };
