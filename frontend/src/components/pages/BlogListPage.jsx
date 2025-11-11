@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
-  Chip,
   Container,
   Grid,
   List,
@@ -26,6 +25,7 @@ const POSTS_PER_PAGE = 6;
 const BlogListPage = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') ?? 'all';
   const queryParam = searchParams.get('q') ?? '';
@@ -59,18 +59,12 @@ const BlogListPage = () => {
     const normalisedQuery = queryParam.trim().toLowerCase();
 
     return blogPosts.filter((post) => {
-      if (normalisedCategory !== 'all' && post.category !== normalisedCategory) {
-        return false;
-      }
-
-      if (!normalisedQuery) {
-        return true;
-      }
+      if (normalisedCategory !== 'all' && post.category !== normalisedCategory) return false;
+      if (!normalisedQuery) return true;
 
       const haystack = [post.title, post.excerpt, ...(post.tags ?? [])]
         .join(' ')
         .toLowerCase();
-
       return haystack.includes(normalisedQuery);
     });
   }, [normalisedCategory, queryParam]);
@@ -91,11 +85,8 @@ const BlogListPage = () => {
 
   const handleCategoryChange = (value) => {
     const nextParams = new URLSearchParams(searchParams);
-    if (value === 'all') {
-      nextParams.delete('category');
-    } else {
-      nextParams.set('category', value);
-    }
+    if (value === 'all') nextParams.delete('category');
+    else nextParams.set('category', value);
     nextParams.delete('page');
     setSearchParams(nextParams);
   };
@@ -104,22 +95,16 @@ const BlogListPage = () => {
     const value = event.target.value;
     setSearchValue(value);
     const nextParams = new URLSearchParams(searchParams);
-    if (value.trim().length > 0) {
-      nextParams.set('q', value);
-    } else {
-      nextParams.delete('q');
-    }
+    if (value.trim().length > 0) nextParams.set('q', value);
+    else nextParams.delete('q');
     nextParams.delete('page');
     setSearchParams(nextParams);
   };
 
   const handlePageChange = (_, value) => {
     const nextParams = new URLSearchParams(searchParams);
-    if (value <= 1) {
-      nextParams.delete('page');
-    } else {
-      nextParams.set('page', value.toString());
-    }
+    if (value <= 1) nextParams.delete('page');
+    else nextParams.set('page', value.toString());
     setSearchParams(nextParams);
   };
 
@@ -138,9 +123,9 @@ const BlogListPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
+      {/* HERO SECTION */}
       <Box
         sx={{
-
           backgroundImage: `
             linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
             url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80")
@@ -161,7 +146,7 @@ const BlogListPage = () => {
           pt: { xs: 14, md: 18 }
         }}
       >
-        <Container maxWidth="lg" >
+        <Container maxWidth="lg">
           <Stack spacing={3} alignItems={{ xs: 'flex-start', md: 'center' }}>
             <Typography
               variant="h2"
@@ -189,10 +174,12 @@ const BlogListPage = () => {
         </Container>
       </Box>
 
+      {/* MAIN CONTENT */}
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
         <Grid container spacing={{ xs: 6, md: 8 }}>
           <Grid item xs={12} md={8}>
             <Stack spacing={4}>
+              {/* HEADER */}
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={2}
@@ -209,25 +196,84 @@ const BlogListPage = () => {
                 </Typography>
               </Stack>
 
+              {/* ACTIVE FILTER BOXES */}
               {hasFilters && (
-                <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Stack direction="row" spacing={1.5} flexWrap="wrap">
                   {normalisedCategory !== 'all' && (
-                    <Chip
-                      label={`Category: ${normalisedCategory}`}
-                      onDelete={() => handleCategoryChange('all')}
-                      sx={{ fontWeight: 600 }}
-                    />
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        px: 2,
+                        py: 1,
+                        borderRadius: 0.5,
+                        border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                        background: !isDark
+                          ? alpha('#ddddddff', 0.9)
+                          : alpha('#0000007c', 0.9),
+                        color: alpha(accentColor, 0.9),
+                        fontWeight: 600,
+                        letterSpacing: 1,
+                        textTransform: 'uppercase',
+                        fontSize: 11,
+                        lineHeight: 1.3,
+                        width: 'fit-content',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => handleCategoryChange('all')}
+                    >
+                      <Box
+                        component="span"
+                        sx={{
+                          background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent'
+                        }}
+                      >
+                        Category: {normalisedCategory}
+                      </Box>
+                    </Box>
                   )}
+
                   {queryParam.trim().length > 0 && (
-                    <Chip
-                      label={`Search: "${queryParam.trim()}"`}
-                      onDelete={clearSearch}
-                      sx={{ fontWeight: 600 }}
-                    />
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        px: 2,
+                        py: 1,
+                        borderRadius: 0.5,
+                        border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                        background: !isDark
+                          ? alpha('#ddddddff', 0.9)
+                          : alpha('#0000007c', 0.9),
+                        color: alpha(accentColor, 0.9),
+                        fontWeight: 600,
+                        letterSpacing: 1,
+                        textTransform: 'uppercase',
+                        fontSize: 11,
+                        lineHeight: 1.3,
+                        width: 'fit-content',
+                        cursor: 'pointer'
+                      }}
+                      onClick={clearSearch}
+                    >
+                      <Box
+                        component="span"
+                        sx={{
+                          background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent'
+                        }}
+                      >
+                        Search: "{queryParam.trim()}"
+                      </Box>
+                    </Box>
                   )}
                 </Stack>
               )}
 
+              {/* POSTS GRID */}
               {paginatedPosts.length > 0 ? (
                 <Grid container spacing={4}>
                   {paginatedPosts.map((post) => (
@@ -255,6 +301,7 @@ const BlogListPage = () => {
                 </Paper>
               )}
 
+              {/* PAGINATION */}
               {paginatedPosts.length > 0 && (
                 <Stack alignItems="center">
                   <Pagination
@@ -269,8 +316,10 @@ const BlogListPage = () => {
             </Stack>
           </Grid>
 
+          {/* SIDEBAR */}
           <Grid item xs={12} md={4}>
             <Stack spacing={2}>
+              {/* SEARCH BOX */}
               <Paper
                 variant="outlined"
                 sx={{
@@ -299,6 +348,7 @@ const BlogListPage = () => {
                 </Stack>
               </Paper>
 
+              {/* CATEGORIES */}
               <Paper
                 variant="outlined"
                 sx={{
