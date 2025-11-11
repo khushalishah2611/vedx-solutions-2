@@ -77,7 +77,7 @@ const ServiceDetailPage = () => {
           borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.25)}`
         }}
       >
-        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 16 } }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 20 } }}>
           <Stack spacing={5}>
             <Breadcrumbs
               separator={<NavigateNextIcon fontSize="small" sx={{ color: alpha('#fff', 0.75) }} />}
@@ -91,204 +91,119 @@ const ServiceDetailPage = () => {
               </MuiLink>
               <Typography sx={{ color: alpha('#fff', 0.85) }}>{service.name}</Typography>
             </Breadcrumbs>
+            <Grid
+              container
 
-            <Grid container spacing={{ xs: 6, md: 8 }} alignItems="center">
-              <Grid item xs={12} md={7}>
-                <Stack spacing={3}>
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              {/* Left Content */}
+              <Grid item xs={12} md={6}>
+                <Stack spacing={4}>
                   <Typography
-                    component="h1"
+                    variant="h1"
                     sx={{
                       fontSize: { xs: 38, sm: 46, md: 56 },
                       fontWeight: 800,
                       lineHeight: 1.1,
-                      color: '#fff'
                     }}
                   >
-                    {service.name}
-                  </Typography>
-
-                  <Typography variant="h6" sx={{ color: alpha('#fff', 0.85), fontWeight: 600 }}>
-                    {category.title}
+                    Full Stack Development Services
                   </Typography>
 
                   <Typography
                     variant="body1"
-                    sx={{ color: alpha('#fff', 0.82), maxWidth: 560, lineHeight: 1.7 }}
+                    sx={{ color: subtleText, maxWidth: 540, lineHeight: 1.7 }}
                   >
-                    {service.summary}
+                    VedX Solutions offers full stack development services to help
+                    achieve your business objectives across platforms. Our agile
+                    squads deliver resilient, scalable solutions with zero
+                    disruption to your operations.
                   </Typography>
 
-                  <Typography variant="body2" sx={{ color: alpha('#fff', 0.7), maxWidth: 540 }}>
-                    {category.description}
-                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    href="#contact"
+                    sx={{
+                      background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                      color: '#fff',
+                      borderRadius: '12px',
+                      textTransform: 'none',
 
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} pt={1}>
-                    <Button
-                      variant="contained"
-                      size="large"
-                      onClick={handleOpenContact}
-                      sx={{
-                        background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                        color: '#fff',
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        px: { xs: 3, md: 4 },
-                        '&:hover': {
-                          background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
-                        }
-                      }}
+                      fontWeight: 600,
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                      },
+                    }}
+                  >
+                    Contact us
+                  </Button>
+
+                  <Stack
+                    spacing={{ xs: 3, sm: 5 }}
+                    direction={{ xs: "column", sm: "row" }}
+                    alignItems={{ sm: "center" }}
+                    pt={2}
+                  >
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={{ xs: 2.5, sm: 4 }}
                     >
-                      Talk to our team
-                    </Button>
-                    <Button
-                      component={RouterLink}
-                      to="/services"
-                      variant="outlined"
-                      size="large"
-                      sx={{
-                        borderColor: alpha('#fff', 0.5),
-                        color: '#fff',
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        px: { xs: 3, md: 4 },
-                        '&:hover': {
-                          borderColor: '#fff',
-                          backgroundColor: alpha('#fff', 0.08)
-                        }
-                      }}
-                    >
-                      Explore all services
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Grid>
-
-              <Grid item xs={12} md={5}>
-                <Card
-                  sx={{
-                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.9 : 0.95),
-                    borderRadius: 3,
-                    boxShadow: '0 30px 60px rgba(15, 23, 42, 0.35)'
-                  }}
-                >
-                  <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                      Outcomes we drive
-                    </Typography>
-
-                    <Stack spacing={1.5}>
-                      {service.outcomes.map((outcome) => (
-                        <Stack key={outcome} direction="row" spacing={1.5} alignItems="flex-start">
-                          <ArrowForwardIcon sx={{ color: accentColor, mt: 0.5 }} />
-                          <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.6 }}>
-                            {outcome}
+                      {HERO_STATS.map((stat) => (
+                        <Stack key={stat.label} spacing={0.5}>
+                          <Typography
+                            component="span"
+                            sx={{
+                              fontSize: { xs: 28, md: 32 },
+                              fontWeight: 700,
+                              color: accentColor,
+                            }}
+                          >
+                            {stat.value}
+                          </Typography>
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            sx={{ color: subtleText, fontWeight: 500 }}
+                          >
+                            {stat.label}
                           </Typography>
                         </Stack>
                       ))}
                     </Stack>
-                  </CardContent>
-                </Card>
+                  </Stack>
+                </Stack>
               </Grid>
+
+
             </Grid>
           </Stack>
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
-        <Stack spacing={{ xs: 8, md: 12 }}>
-          <Grid container spacing={4} component="section">
-            <Grid item xs={12} md={6}>
-              <Card sx={{ height: '100%', borderRadius: 3, p: { xs: 2, md: 3 } }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-                  How we partner on {service.name.toLowerCase()}
-                </Typography>
-                <Typography variant="body1" sx={{ color: subtleText, lineHeight: 1.7 }}>
-                  {service.summary}
-                </Typography>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Card sx={{ height: '100%', borderRadius: 3, p: { xs: 2, md: 3 } }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-                  Core capabilities
-                </Typography>
-
-                <Stack spacing={1.5}>
-                  {service.capabilities.map((capability) => (
-                    <Stack key={capability} direction="row" spacing={1.5} alignItems="flex-start">
-                      <ArrowForwardIcon sx={{ color: accentColor, mt: 0.5 }} />
-                      <Typography variant="body1" sx={{ color: subtleText, lineHeight: 1.6 }}>
-                        {capability}
-                      </Typography>
-                    </Stack>
-                  ))}
-                </Stack>
-              </Card>
-            </Grid>
-          </Grid>
-
-          <Box component="section">
-            <Stack spacing={3} sx={{ mb: 4 }}>
-              <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 40 }, fontWeight: 700 }}>
-                What you receive
-              </Typography>
-              <Typography variant="body1" sx={{ color: subtleText, maxWidth: 720 }}>
-                Each engagement combines strategic planning, cross-functional delivery, and operational enablement so your team
-                can launch and scale with confidence.
-              </Typography>
-            </Stack>
-
-            <Grid container spacing={4}>
-              {service.deliverables.map((deliverable) => (
-                <Grid item xs={12} md={4} key={deliverable.title}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      borderRadius: 3,
-                      p: { xs: 2.5, md: 3 },
-                      border: `1px solid ${alpha(theme.palette.divider, 0.4)}`
-                    }}
-                  >
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-                      {deliverable.title}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.7 }}>
-                      {deliverable.description}
-                    </Typography>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-
-          <Divider sx={{ borderColor: dividerColor }} />
-          <PageSectionsContainer spacing={{ xs: 8, md: 12 }}>
-            <ServicesHighlights onContactClick={handleOpenContact} />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <ServicesBenefits />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <FullStackDeveloper onContactClick={handleOpenContact} />
-            <ServicesTechnologies />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <ServicesWhyChoose />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <ServicesProcess />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <ServicesIndustries />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <ServicesTestimonials />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <FAQAccordion />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <ServicesCTA onContactClick={handleOpenContact} />
-            <Divider sx={{ borderColor: dividerColor }} />
-            <ServicesBlog />
-          </PageSectionsContainer>
-        </Stack>
-      </Container>
+      <PageSectionsContainer >
+        <ServicesHighlights onContactClick={handleOpenContact} />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesBenefits />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <FullStackDeveloper onContactClick={handleOpenContact} />
+        <ServicesTechnologies />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesWhyChoose />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesProcess />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesIndustries />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesTestimonials />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <FAQAccordion />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesCTA onContactClick={handleOpenContact} />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <ServicesBlog />
+      </PageSectionsContainer>
     </Box>
   );
 };

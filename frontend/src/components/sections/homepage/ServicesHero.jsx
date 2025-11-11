@@ -34,10 +34,10 @@ const ServicesHero = ({ onContactClick }) => {
         bgcolor: isDark ? alpha("#0f172a", 0.9) : "#f8fafc",
       }}
     >
-      <Container maxWidth="lg" sx={{ py: { xs: 10, md: 16 } }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 8, md: 20 } }}>
         <Grid
           container
-          spacing={{ xs: 6, md: 10 }}
+        
           alignItems="center"
           justifyContent="space-between"
         >
