@@ -19,7 +19,21 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
 import { blogPosts } from '../../data/blogs.js';
-import BlogPreviewCard from '../shared/BlogPreviewCard.jsx';
+import { useNavigate } from 'react-router-dom';
+import ServicesHero from '../sections/homepage/ServicesHero.jsx';
+import ServicesHighlights from '../sections/homepage/ServicesHighlights.jsx';
+import ServicesBenefits from '../sections/homepage/ServicesBenefits.jsx';
+import FullStackDeveloper from '../sections/homepage/FullStackDeveloper.jsx';
+import ServicesTechnologies from '../sections/homepage/ServicesTechnologies.jsx';
+import ServicesCTA from '../sections/homepage/ServicesCTA.jsx';
+import ServicesBlog from '../shared/ServicesBlog.jsx';
+import FAQAccordion from '../shared/FAQAccordion.jsx';
+import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
+import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
+import ServicesIndustries from '../shared/ServicesIndustries.jsx';
+import ServicesProcess from '../shared/ServicesProcess.jsx';
+import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
+
 
 const ServiceDetailPage = () => {
   const theme = useTheme();
@@ -42,9 +56,7 @@ const ServiceDetailPage = () => {
   if (!category || !service) return null;
 
   const isDark = theme.palette.mode === 'dark';
-  const accentColor = isDark ? theme.palette.primary.light : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.75);
-  const relatedBlogs = blogPosts.slice(0, 3);
 
   return (
     <Box sx={{ bgcolor: 'background.default', color: 'text.primary' }}>
