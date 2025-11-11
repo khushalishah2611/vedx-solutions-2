@@ -72,6 +72,12 @@ export const fullStackDeveloperHighlights = [
   'Future-Proof Architecture & Scalability'
 ];
 
+export const servicesHeroStats = [
+  { label: 'Projects Delivered', value: '120+' },
+  { label: 'Client Satisfaction', value: '98%' },
+  { label: 'Avg. Time to Kick-off', value: '10 Days' }
+];
+
 export const technologyTabs = [
   {
     category: 'Frontend',

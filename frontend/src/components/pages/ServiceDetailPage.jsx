@@ -18,6 +18,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
+import { servicesHeroStats } from '../../data/servicesPage.js';
 import ServicesHighlights from '../sections/homepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/homepage/ServicesBenefits.jsx';
 import FullStackDeveloper from '../sections/homepage/FullStackDeveloper.jsx';
@@ -150,7 +151,7 @@ const ServiceDetailPage = () => {
                       direction={{ xs: "column", sm: "row" }}
                       spacing={{ xs: 2.5, sm: 4 }}
                     >
-                      {HERO_STATS.map((stat) => (
+                      {servicesHeroStats.map((stat) => (
                         <Stack key={stat.label} spacing={0.5}>
                           <Typography
                             component="span"

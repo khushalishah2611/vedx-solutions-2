@@ -8,16 +8,7 @@ import {
   alpha,
   useTheme,
 } from "@mui/material";
-import PhoneInTalkRoundedIcon from "@mui/icons-material/PhoneInTalkRounded";
-
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80";
-
-const HERO_STATS = [
-  { label: "Projects Delivered", value: "120+" },
-  { label: "Client Satisfaction", value: "98%" },
-  { label: "Avg. Time to Kick-off", value: "10 Days" },
-];
+import { servicesHeroStats } from "../../../data/servicesPage.js";
 
 const ServicesHero = ({ onContactClick }) => {
   const theme = useTheme();
@@ -94,7 +85,7 @@ const ServicesHero = ({ onContactClick }) => {
                   direction={{ xs: "column", sm: "row" }}
                   spacing={{ xs: 2.5, sm: 4 }}
                 >
-                  {HERO_STATS.map((stat) => (
+                  {servicesHeroStats.map((stat) => (
                     <Stack key={stat.label} spacing={0.5}>
                       <Typography
                         component="span"
