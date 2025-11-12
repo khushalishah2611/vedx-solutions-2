@@ -1,10 +1,15 @@
 export const aboutHero = {
-  eyebrow: 'Inside VedX',
-  title: 'Building resilient products and partnerships that go beyond the launch.',
+  label: 'We Are Vedx Solutions',
+  title: 'Business Growth Through Innovation, Expertise, and Custom Digital Solutions',
   description:
-    'VedX Solutions brings designers, engineers, strategists, and growth leaders together to deliver measurable transformation for modern businesses.',
-  image:
-    'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1600&q=80'
+    'Empowering your vision: unleashing dedicated resources for success. Partner with our dedicated tech leaders, UI/UX specialists, and product strategists to transform complex ideas into lasting digital experiences.',
+  extendedDescription:
+    'From ideation to launch and scale, Vedx Solutions brings the right talent, technology, and mindset to help you accelerate outcomes, modernise platforms, and build resilient teams.',
+  baseImage:
+    'https://images.unsplash.com/photo-1483478550801-78129c9120eb?auto=format&fit=crop&w=1400&q=80',
+  overlayImage:
+    'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80',
+  ctaLabel: 'Contact Us'
 };
 
 export const aboutStats = [
@@ -17,23 +22,36 @@ export const aboutStats = [
 export const aboutHighlights = [
   {
     icon: 'insights',
-    title: 'Strategy to scale',
+    title: 'Dedicated Development Team',
     description:
-      'We align long-term platform roadmaps with near-term experiments so you can ship confidently without losing sight of the bigger vision.'
+      'Scalable, no-commitment offshore teams that become an extension of your organisation and deliver exactly on your expectations.'
   },
   {
     icon: 'groups',
-    title: 'Cross-functional pods',
+    title: 'Flexible Engagement Model',
     description:
-      'Multi-disciplinary teams embed with your stakeholders, giving you unified ownership across product, design, and delivery.'
+      'Choose the approach that fits best—fixed cost, contract based, or time and material—for predictable velocity and transparency.'
   },
   {
     icon: 'verified',
-    title: 'Enterprise-grade rigour',
+    title: 'Future-ready Expertise',
     description:
-      'Security, compliance, and accessibility guardrails are woven into every engagement, keeping releases reliable from day one.'
+      'Engineers, designers, and strategists aligned on innovation, AI/ML adoption, and scalable architectures tailored to your roadmap.'
   }
 ];
+
+export const aboutMissionVision = {
+  mission: {
+    title: 'Our Mission',
+    description:
+      'At Vedx Solutions, our mission is to empower businesses through innovative and scalable digital solutions. We strive to simplify the complex journey of digital transformation by providing high-quality, custom software and technology services that are accessible, affordable, and impactful. By combining creativity, technical excellence, and a deep understanding of business needs, we help our clients achieve sustainable growth and long-term success.'
+  },
+  vision: {
+    title: 'Our Vision',
+    description:
+      'Our vision is to be a global leader in digital innovation, recognised for our ability to turn ideas into transformative solutions. We aim to build lasting partnerships with companies around the world, enabling them to innovate boldly, operate efficiently, and lead confidently in their industries. Through continuous learning, collaboration, and technological excellence, we envision a future where Vedx Solutions is synonymous with trust, quality, and innovation.'
+  }
+};
 
 export const cultureValues = [
   {
