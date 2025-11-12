@@ -290,12 +290,10 @@ const NavigationBar = () => {
               mt: 1.5,
               px: 0,
               py: 0.5,
-              borderRadius: 0.75,
+              borderRadius: 0.5,
               minWidth: 200,
               border: `1px solid ${borderColor}`,
-              boxShadow: mode === 'dark'
-                ? '0 12px 30px rgba(0,0,0,0.5)'
-                : '0 12px 30px rgba(0,0,0,0.12)'
+
             }
           }
         }}
@@ -315,11 +313,11 @@ const NavigationBar = () => {
                 my: 0.5,
                 px: 2.5,
                 py: 1.1,
-                borderRadius: 0.75,
+                borderRadius: 0.5,
                 transition: 'background-color 0.18s ease, color 0.18s ease, transform 0.18s ease',
                 color: theme.palette.text.primary,
 
-                // hover / focus / active → highlight text + soft tinted bg
+              
                 '&:hover': {
                   color: highlightColor,
 
@@ -336,7 +334,7 @@ const NavigationBar = () => {
 
                 },
 
-                // selected state (if you ever pass selected prop or use MUI selection)
+          
                 '&.Mui-selected, &.Mui-selected:hover': {
                   color: highlightColor,
 
