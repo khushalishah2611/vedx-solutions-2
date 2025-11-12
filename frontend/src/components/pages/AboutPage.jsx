@@ -1,7 +1,7 @@
 import {
   Box,
   Divider,
-  useTheme,alpha 
+  useTheme, alpha
 } from '@mui/material';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import {
@@ -16,6 +16,15 @@ import {
   AboutWhyChooseSection,
 } from '../sections/aboutpage/index.js';
 import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
+import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
+
+
+import {
+
+  CareerStorySection,
+
+} from '../sections/careerspage/index.js';
+
 const AboutPage = () => {
   const theme = useTheme();
 
@@ -26,9 +35,11 @@ const AboutPage = () => {
     <Box sx={{ bgcolor: 'background.default', overflow: 'hidden' }}>
       <AboutHeroSection hero={aboutHero} stats={aboutStats} onCtaClick={handleOpenContact} />
 
-      <AboutWhyChooseSection highlights={aboutHighlights} />
-      <PageSectionsContainer>
 
+      <PageSectionsContainer>
+        <CareerStorySection story={careerStory} />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <AboutWhyChooseSection highlights={aboutHighlights} />
         <Divider sx={{ borderColor: dividerColor }} />
         <AboutMissionVisionSection content={aboutMissionVision} />
         <Divider sx={{ borderColor: dividerColor }} />

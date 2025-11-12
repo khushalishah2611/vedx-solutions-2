@@ -26,8 +26,7 @@ const AboutWhyChooseSection = ({ highlights }) => {
   return (
     <Box
       sx={{
-        py: { xs: 8, md: 10 },
-        bgcolor: isDark ? alpha('#0f172a', 0.7) : alpha(theme.palette.primary.light, 0.08),
+      
       }}
     >
       <Container maxWidth="lg">
