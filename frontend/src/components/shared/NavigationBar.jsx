@@ -541,6 +541,19 @@ const NavigationBar = () => {
 
                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                       <List disablePadding>
+                        {item.path && (
+                          <>
+                            <ListItemButton
+                              component={RouterLink}
+                              to={item.path}
+                              onClick={toggleDrawer(false)}
+                              sx={{ pl: 4 }}
+                            >
+                              <ListItemText primary={`View all ${item.label.replace(/ \+$/, '')}`} />
+                            </ListItemButton>
+                            <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4), ml: 4 }} />
+                          </>
+                        )}
                         {config.categories.map((category, categoryIndex) => {
                           const [expandedCategory, setExpandedCategory] = useState(false);
                           return (

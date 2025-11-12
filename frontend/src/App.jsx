@@ -13,6 +13,8 @@ import AdminResetPasswordPage from './components/admin/AdminResetPasswordPage.js
 import HomePage from './components/pages/HomePage.jsx';
 import ServicesPage from './components/pages/ServicesPage.jsx';
 import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
+import HireDevelopersPage from './components/pages/HireDevelopersPage.jsx';
+import HireDeveloperDetailPage from './components/pages/HireDeveloperDetailPage.jsx';
 import ComingSoonPage from './components/shared/ComingSoonPage.jsx';
 import NotFoundPage from './components/shared/NotFoundPage.jsx';
 import BlogListPage from './components/pages/BlogListPage.jsx';
@@ -43,6 +45,19 @@ const App = () => {
             <Route path="services">
               <Route index element={<ServicesPage />} />
               <Route path=":categorySlug/:serviceSlug" element={<ServiceDetailPage />} />
+            </Route>
+            <Route path="hire-developers">
+              <Route index element={<HireDevelopersPage />} />
+              <Route path=":categorySlug/:roleSlug" element={<HireDeveloperDetailPage />} />
+              <Route
+                path="*"
+                element={
+                  <ComingSoonPage
+                    title="Dedicated Developer Profiles"
+                    description="We are curating detailed profiles for each role. In the meantime, connect with us to build your remote engineering team."
+                  />
+                }
+              />
             </Route>
             <Route path="about" element={<AboutPage />} />
             <Route path="careers" element={<CareersPage />} />
