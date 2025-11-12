@@ -13,6 +13,7 @@ import {
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import {
   aboutHero,
+  aboutStats,
   aboutHighlights,
   aboutMissionVision,
   cultureValues,
