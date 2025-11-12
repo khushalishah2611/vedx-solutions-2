@@ -1,12 +1,12 @@
 import { Box, Divider, alpha, useTheme } from '@mui/material';
 import CreativeAgencySection from '../sections/homepage/CreativeAgencySection.jsx';
 import HeroSection from '../sections/homepage/HeroSection.jsx';
-import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
-import ServicesBusinessSolutions from '../sections/homepage/ServicesBusinessSolutions.jsx';
-import ServicesContact from '../sections/homepage/ServicesContact.jsx';
-import ServicesEngagementModels from '../sections/homepage/ServicesEngagementModels.jsx';
+import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
+import ServicesBusinessSolutions from '../sections/servicepage/ServicesBusinessSolutions.jsx';
+import ServicesContact from '../sections/servicepage/ServicesContact.jsx';
+import ServicesEngagementModels from '../sections/servicepage/ServicesEngagementModels.jsx';
 
-import ServicesShowcase from '../sections/homepage/ServicesShowcase.jsx';
+import ServicesShowcase from '../sections/servicepage/ServicesShowcase.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';

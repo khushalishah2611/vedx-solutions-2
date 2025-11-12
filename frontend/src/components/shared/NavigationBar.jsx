@@ -269,7 +269,8 @@ const NavigationBar = () => {
 
   const renderAboutMenu = (anchorEl, handleClose) => {
     const openPopover = Boolean(anchorEl);
-    const hoverColor = alpha(theme.palette.primary.main, mode === 'dark' ? 0.2 : 0.08);
+    const hoverColor = alpha(theme.palette.primary.main, mode === 'dark' ? 0.25 : 0.12);
+    const focusColor = alpha(theme.palette.primary.main, mode === 'dark' ? 0.3 : 0.18);
 
     return (
       <Popover
@@ -301,13 +302,22 @@ const NavigationBar = () => {
               to={item.to}
               onClick={handleClose}
               sx={{
-                fontWeight: 500,
-
+                fontWeight: 600,
+                letterSpacing: 0.4,
                 mx: 1,
                 my: 0.5,
-                px: 2,
-                py: 1,
-
+                px: 2.5,
+                py: 1.25,
+                borderRadius: 1,
+                transition: 'all 0.2s ease',
+                color: 'inherit',
+                '&:hover': {
+                  backgroundColor: hoverColor,
+                  transform: 'translateX(4px)'
+                },
+                '&.Mui-focusVisible': {
+                  backgroundColor: focusColor
+                }
               }}
             >
               {item.label}

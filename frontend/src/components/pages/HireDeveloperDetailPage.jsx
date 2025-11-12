@@ -1,8 +1,8 @@
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import ServicesHighlights from '../sections/homepage/ServicesHighlights.jsx';
-import ServicesBenefits from '../sections/homepage/ServicesBenefits.jsx';
-import FullStackDeveloper from '../sections/homepage/FullStackDeveloper.jsx';
-import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
+import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
+import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
+import FullStackDeveloper from '../sections/servicepage/FullStackDeveloper.jsx';
+import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import {
@@ -28,7 +28,7 @@ import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 import FAQAccordion from '../shared/FAQAccordion.jsx';
 import PricingModels from '../shared/PricingModels.jsx';
-import ServicesCTA from '../sections/homepage/ServicesCTA.jsx';
+import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 
 const SectionTitle = ({ eyebrow, title, description }) => (

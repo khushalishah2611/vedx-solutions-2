@@ -66,71 +66,139 @@ export const timelineMilestones = [
 ];
 
 export const careerHero = {
-  eyebrow: 'Join the team',
-  title: 'Design, build, and grow products that make a measurable difference.',
+  title: 'Join Us On A Journey to Digital Innovation and Technology Excellence',
   description:
-    'Be part of distributed squads shipping experiences for ambitious organisations. We back you with mentorship, ownership, and flexible ways of working.'
+    'We believe in harnessing the collective brilliance of our diverse talents to craft innovative solutions and contribute to the ever-evolving digital landscape.',
+  caption:
+    'Ready to join us and be at the forefront of transformative projects, taking your career in IT beyond limits?',
+  ctaLabel: 'Contact Us',
+  ctaHref: '/contact',
+  image:
+    'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1920&q=80'
 };
 
-export const careerPerks = [
+export const careerStory = {
+  badge: 'We Are Vedx Solutions',
+  title: 'A Creative Digital Agency',
+  description:
+    'At Vedx, we bring together top-tier product strategists, designers, and software engineers to build industry-defining technology.',
+  body:
+    'From cutting-edge web and mobile apps to AI/ML, blockchain, eCommerce, and cloud-integrated enterprise solutions, we help brands, startups, and enterprises unlock their next level of growth.',
+  culture:
+    'Whether you\'re passionate about next-gen platforms, cross-functional teamwork, or solving real-world problems through innovation, you\'ll find a home here. Our work culture values creativity, ownership, and continuous learning.',
+  image:
+    'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80',
+  highlights: [
+    'Product strategists, designers, and engineers collaborating seamlessly.',
+    'Dedicated pods focused on outcomes and measurable business impact.'
+  ]
+};
+
+export const careerBenefits = [
   {
-    title: 'Remote-first culture',
-    description: 'Work where you thrive with asynchronous rituals, quarterly offsites, and home-office support.'
+    title: '5 Days Working Per Week',
+    description: 'Stay balanced with intentional downtime that keeps creativity thriving.',
+    icon: 'https://cdn-icons-png.flaticon.com/512/2885/2885380.png'
   },
   {
-    title: 'Learning budget',
-    description: 'Dedicated stipends for courses, conferences, and certifications to keep skills sharp.'
+    title: 'Open Work Culture',
+    description: 'Transparent communication, flat hierarchies, and supportive mentorship.',
+    icon: 'https://cdn-icons-png.flaticon.com/512/1048/1048940.png'
   },
   {
-    title: 'Wellness comes first',
-    description: 'Comprehensive health coverage, mental wellness days, and access to coaching resources.'
+    title: 'Competitive Salary And Benefits',
+    description: 'Performance-based appraisals, bonuses, and comprehensive health cover.',
+    icon: 'https://cdn-icons-png.flaticon.com/512/4213/4213206.png'
   },
   {
-    title: 'Transparent growth paths',
-    description: 'Individual development plans align your aspirations with mentorship and measurable milestones.'
+    title: 'Performance Appreciation Bonus',
+    description: 'Quarterly rewards that recognise impact, innovation, and leadership.',
+    icon: 'https://cdn-icons-png.flaticon.com/512/1900/1900614.png'
   }
+];
+
+export const careerLogos = [
+  { name: 'Google', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg' },
+  { name: 'Angular', logo: 'https://angular.io/assets/images/logos/angular/angular.svg' },
+  { name: 'Laravel', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Laravel.svg' },
+  { name: 'WooCommerce', logo: 'https://woocommerce.com/wp-content/themes/woo/images/logo-woocommerce.svg' },
+  { name: 'Magento', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0a/Magento_Logo.svg' },
+  { name: 'Pingdom', logo: 'https://upload.wikimedia.org/wikipedia/commons/8/8c/Pingdom_logo.svg' },
+  { name: 'Colorlib', logo: 'https://colorlib.com/wp/wp-content/uploads/sites/2/colorlib-new-logo.png' },
+  { name: 'Envato', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Envato_logo.svg' },
+  { name: 'Bootstrap', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Bootstrap_logo.svg' }
 ];
 
 export const careerOpenings = [
   {
-    title: 'Senior Full Stack Engineer',
-    location: 'Remote · India / Europe',
-    type: 'Full time',
-    description: 'Own the delivery of complex product initiatives across modern JavaScript, Node.js, and cloud-native stacks.'
+    title: 'Sr. Laravel Developer',
+    experience: 'Experience: 2-5 Year',
+    positions: 'Positions: 02',
+    type: 'Full Time',
+    description: 'Architect, build, and optimise Laravel applications with cloud-native best practices.'
   },
   {
-    title: 'Product Designer (UI/UX)',
-    location: 'Remote · Asia Pacific',
-    type: 'Full time',
-    description: 'Shape intuitive experiences through research-led design, prototyping, and design system stewardship.'
+    title: 'Business Development Trainee',
+    experience: 'Experience: Fresher',
+    positions: 'Positions: 02',
+    type: 'Full Time',
+    description: 'Support go-to-market initiatives, nurture leads, and contribute to strategic partnerships.'
   },
   {
-    title: 'Engagement Manager',
-    location: 'Remote · North America',
-    type: 'Full time',
-    description: 'Partner with clients to orchestrate delivery, manage roadmaps, and translate goals into measurable outcomes.'
+    title: 'Digital Marketing Trainee',
+    experience: 'Experience: Fresher',
+    positions: 'Positions: 02',
+    type: 'Full Time',
+    description: 'Experiment with growth channels, optimise campaigns, and tell compelling product stories.'
+  },
+  {
+    title: 'Full Stack Developer',
+    experience: 'Experience: 2-5 Year',
+    positions: 'Positions: 02',
+    type: 'Full Time',
+    description: 'Ship delightful experiences across modern front-end and back-end stacks.'
   }
 ];
 
 export const hiringJourney = [
   {
-    step: '1',
-    title: 'Introduce yourself',
-    description: 'Share your portfolio or GitHub along with the kind of problems you love solving.'
+    step: '01',
+    title: 'Application Review',
+    description: 'Our talent team evaluates your profile, portfolio, and interests.'
   },
   {
-    step: '2',
-    title: 'Deep-dive conversations',
-    description: 'Meet your potential teammates for conversations around craft, collaboration, and expectations.'
+    step: '02',
+    title: 'Initial Interview',
+    description: 'Get to know VedX and share how you like to solve problems.'
   },
   {
-    step: '3',
-    title: 'Collaborative challenge',
-    description: 'Tackle a realistic brief with guidance so you can experience how we work together.'
+    step: '03',
+    title: 'Skills Assessment',
+    description: 'Demonstrate your craft through a collaborative assignment.'
   },
   {
-    step: '4',
-    title: 'Offer & onboarding',
-    description: 'We align on growth plans, match you with a mentor, and get you embedded into a squad.'
+    step: '04',
+    title: 'Practical Round',
+    description: 'Pair with our experts to tackle real-world scenarios together.'
+  },
+  {
+    step: '05',
+    title: 'Final Discussion',
+    description: 'Align on expectations, growth paths, and team fit.'
+  },
+  {
+    step: '06',
+    title: 'Onboarding',
+    description: 'Receive your roadmap, meet your mentor, and join your squad.'
   }
 ];
+
+export const careerCta = {
+  title: "Let's Build Your Next Big Product, Together.",
+  description: "Let's collaborate and turn your vision into reality.",
+  caption: 'Contact us to explore how we can co-create digital experiences that scale.',
+  ctaLabel: 'Contact Us',
+  ctaHref: '/contact',
+  image:
+    'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80'
+};

@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Box,
   Button,
   Chip,
@@ -10,194 +11,367 @@ import {
   alpha,
   useTheme
 } from '@mui/material';
-import WorkOutlineRoundedIcon from '@mui/icons-material/WorkOutlineRounded';
-import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
-import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
-import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
-import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
-import { careerHero, careerPerks, careerOpenings, hiringJourney } from '../../data/company.js';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import {
+  careerBenefits,
+  careerCta,
+  careerHero,
+  careerLogos,
+  careerOpenings,
+  careerStory,
+  hiringJourney
+} from '../../data/company.js';
 
 const CareersPage = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const heroGradient = isDark
-    ? 'linear-gradient(135deg, rgba(10,12,26,0.98) 0%, rgba(37,99,235,0.85) 45%, rgba(12,74,110,0.75) 100%)'
-    : 'linear-gradient(135deg, rgba(219,234,254,0.95) 0%, rgba(191,219,254,0.82) 45%, rgba(125,211,252,0.75) 100%)';
-
-  const applyHref = 'mailto:talent@vedxsolution.com?subject=VedX%20Careers%20-%20Application';
 
   return (
-    <Box sx={{ pt: { xs: 12, md: 14 }, pb: { xs: 10, md: 14 }, bgcolor: 'background.default' }}>
-      <Container maxWidth="lg">
-        <Paper
-          elevation={0}
-          sx={{
-            px: { xs: 4, md: 8 },
-            py: { xs: 6, md: 8 },
-            borderRadius: { xs: 4, md: 6 },
-            background: heroGradient,
-            border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.35 : 0.55)}`,
-            overflow: 'hidden'
-          }}
-        >
-          <Grid container spacing={{ xs: 6, md: 8 }} alignItems="center">
-            <Grid item xs={12} md={7}>
-              <Stack spacing={3}>
-                <Chip
-                  label={careerHero.eyebrow}
-                  sx={{
-                    alignSelf: 'flex-start',
-                    bgcolor: alpha('#fff', isDark ? 0.12 : 0.2),
-                    borderColor: alpha('#fff', 0.4),
-                    color: '#fff',
-                    fontWeight: 600,
-                    letterSpacing: 1,
-                    textTransform: 'uppercase'
-                  }}
-                />
-                <Typography variant="h2" sx={{ fontSize: { xs: 34, md: 42 }, fontWeight: 700, color: '#fff' }}>
-                  {careerHero.title}
-                </Typography>
-                <Typography variant="body1" sx={{ color: alpha('#fff', 0.88), maxWidth: 520 }}>
-                  {careerHero.description}
-                </Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    color="secondary"
-                    component="a"
-                    href={applyHref}
-                    endIcon={<RocketLaunchRoundedIcon />}
-                    sx={{
-                      bgcolor: '#fff',
-                      color: '#0f172a',
-                      '&:hover': { bgcolor: alpha('#fff', 0.85) }
-                    }}
-                  >
-                    Share your profile
-                  </Button>
-                  <Button
-                    variant="text"
-                    size="large"
-                    color="inherit"
-                    endIcon={<ChevronRightRoundedIcon />}
-                    component="a"
-                    href="#open-roles"
-                    sx={{ color: alpha('#fff', 0.92) }}
-                  >
-                    Explore open roles
-                  </Button>
-                </Stack>
-              </Stack>
-            </Grid>
-            <Grid item xs={12} md={5}>
-              <Box
+    <Box sx={{ bgcolor: 'background.default', pb: { xs: 10, md: 16 } }}>
+      <Box
+        sx={{
+          position: 'relative',
+          color: '#fff',
+          pt: { xs: 14, md: 18 },
+          pb: { xs: 12, md: 16 },
+          backgroundImage: `linear-gradient(120deg, rgba(8,13,35,0.85) 10%, rgba(42,11,80,0.75) 55%, rgba(0,136,204,0.7) 100%), url(${careerHero.image})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          overflow: 'hidden'
+        }}
+      >
+        <Container maxWidth="lg">
+          <Stack spacing={3.5} sx={{ maxWidth: { xs: '100%', md: 720 } }}>
+            <Typography variant="h3" sx={{ fontSize: { xs: 34, md: 48 }, fontWeight: 700, lineHeight: 1.2 }}>
+              {careerHero.title}
+            </Typography>
+            <Typography variant="body1" sx={{ fontSize: { xs: 16, md: 18 }, color: alpha('#ffffff', 0.9) }}>
+              {careerHero.description}
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha('#ffffff', 0.8), maxWidth: 560 }}>
+              {careerHero.caption}
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              component="a"
+              href={careerHero.ctaHref}
+              endIcon={<ArrowForwardRoundedIcon />}
+              sx={{
+                alignSelf: 'flex-start',
+                px: 4,
+                py: 1.25,
+                borderRadius: 999,
+                bgcolor: '#f43f5e',
+                color: '#fff',
+                fontWeight: 600,
+                '&:hover': {
+                  bgcolor: alpha('#f43f5e', 0.85)
+                }
+              }}
+            >
+              {careerHero.ctaLabel}
+            </Button>
+          </Stack>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
+        <Grid container spacing={{ xs: 6, md: 10 }} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <Stack spacing={3}>
+              <Chip
+                label={careerStory.badge}
                 sx={{
-                  position: 'relative',
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                  height: { xs: 260, md: 340 },
-                  backgroundImage:
-                    'url(https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  boxShadow: isDark
-                    ? '0 30px 60px rgba(15,23,42,0.55)'
-                    : '0 40px 70px rgba(14,116,144,0.25)'
+                  alignSelf: 'flex-start',
+                  fontWeight: 600,
+                  letterSpacing: 1,
+                  bgcolor: alpha(theme.palette.primary.main, isDark ? 0.22 : 0.12),
+                  color: theme.palette.primary.main
                 }}
-              >
-                <Stack
-                  spacing={1}
-                  sx={{
-                    position: 'absolute',
-                    bottom: 24,
-                    left: 24,
-                    bgcolor: alpha('#0f172a', 0.72),
-                    borderRadius: 3,
-                    px: 2.5,
-                    py: 2,
-                    color: '#fff',
-                    maxWidth: 260
-                  }}
-                >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                    Hybrid collaboration, remote-first rituals
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: alpha('#fff', 0.78) }}>
-                    Squads sync weekly, demo often, and celebrate learning together.
-                  </Typography>
-                </Stack>
-              </Box>
-            </Grid>
+              />
+              <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: 28, md: 36 } }}>
+                {careerStory.title}
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                {careerStory.description}
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                {careerStory.body}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                {careerStory.culture}
+              </Typography>
+              <Stack spacing={1.5}>
+                {careerStory.highlights.map((item) => (
+                  <Stack key={item} direction="row" spacing={1.5} alignItems="flex-start">
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        mt: 1,
+                        bgcolor: theme.palette.primary.main
+                      }}
+                    />
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      {item}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </Stack>
           </Grid>
-        </Paper>
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: 5,
+                overflow: 'hidden',
+                minHeight: { xs: 260, md: 420 },
+                backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.12), rgba(15,23,42,0.65)), url(${careerStory.image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                boxShadow: isDark
+                  ? '0px 45px 80px rgba(15,23,42,0.6)'
+                  : '0px 40px 70px rgba(15,118,110,0.25)'
+              }}
+            />
+          </Grid>
+        </Grid>
       </Container>
 
-      <Container id="open-roles" maxWidth="lg" sx={{ mt: { xs: 8, md: 10 } }}>
-        <Stack spacing={3} alignItems="flex-start" sx={{ mb: 3 }}>
-          <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600 }}>
-            Now hiring
+      <Container id="benefits" maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
+        <Stack spacing={3} alignItems="center" textAlign="center" sx={{ mb: { xs: 4, md: 6 } }}>
+          <Typography variant="overline" sx={{ letterSpacing: 2, fontWeight: 700 }}>
+            Why Join Vedx?
           </Typography>
-          <Typography variant="h4">Open roles across our remote hubs</Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 520 }}>
-            We assemble squads around outcomes. Tell us where you create the most impact—even if you don&apos;t see a perfect fit
-            listed here.
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Benefits that keep our teams energised
           </Typography>
         </Stack>
-        <Grid container spacing={{ xs: 4, md: 6 }}>
-          {careerOpenings.map((role) => (
-            <Grid key={role.title} item xs={12} md={4}>
+        <Grid container spacing={{ xs: 4, md: 5 }}>
+          {careerBenefits.map((benefit) => (
+            <Grid key={benefit.title} item xs={12} sm={6} md={3}>
               <Paper
                 elevation={0}
                 sx={{
                   height: '100%',
-                  p: { xs: 3, md: 4 },
-                  borderRadius: 4,
+                  p: { xs: 4, md: 4 },
+                  borderRadius: 5,
+                  textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 2.5
+                  alignItems: 'center',
+                  gap: 2,
+                  bgcolor: alpha(theme.palette.background.paper, isDark ? 0.35 : 0.65),
+                  border: `1px solid ${alpha(theme.palette.primary.main, isDark ? 0.25 : 0.12)}`
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 2,
-                      bgcolor: alpha(theme.palette.primary.main, isDark ? 0.18 : 0.12),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <WorkOutlineRoundedIcon color="primary" />
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {role.title}
+                <Avatar
+                  src={benefit.icon}
+                  alt={benefit.title}
+                  variant="rounded"
+                  sx={{
+                    width: 72,
+                    height: 72,
+                    bgcolor: alpha(theme.palette.primary.main, 0.12),
+                    borderRadius: 18
+                  }}
+                />
+                <Stack spacing={1}>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    {benefit.title}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {benefit.description}
                   </Typography>
                 </Stack>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {role.description}
-                </Typography>
-                <Stack direction="row" spacing={1.5} sx={{ color: 'text.secondary', fontSize: 14 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    {role.location}
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+      <Container maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 4, md: 6 },
+            borderRadius: 5,
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(17,24,39,0.9) 0%, rgba(67,56,202,0.6) 100%)'
+              : 'linear-gradient(135deg, rgba(224,242,254,0.95) 0%, rgba(191,219,254,0.9) 100%)'
+          }}
+        >
+          <Stack spacing={4}>
+            <Stack spacing={1.5} alignItems={{ xs: 'flex-start', md: 'center' }} textAlign={{ xs: 'left', md: 'center' }}>
+              <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: 2, color: isDark ? alpha('#fff', 0.8) : 'text.secondary' }}>
+                Work With Us, Grow With Us
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: isDark ? '#fff' : 'text.primary' }}>
+                Trusted by teams that ship at scale
+              </Typography>
+            </Stack>
+            <Grid container spacing={{ xs: 3, md: 4 }} justifyContent="center" alignItems="center">
+              {careerLogos.map((brand) => (
+                <Grid key={brand.name} item xs={6} sm={4} md={2}>
+                  <Box
+                    component="img"
+                    src={brand.logo}
+                    alt={brand.name}
+                    sx={{
+                      width: '100%',
+                      height: 52,
+                      objectFit: 'contain',
+                      filter: isDark ? 'brightness(0) invert(1)' : 'none',
+                      opacity: isDark ? 0.9 : 1
+                    }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Stack>
+        </Paper>
+      </Container>
+
+      <Container id="journey" maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
+        <Stack spacing={3} alignItems="center" textAlign="center" sx={{ mb: { xs: 4, md: 6 } }}>
+          <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: 2 }}>
+            Hiring Process
+          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Your journey with Vedx
+          </Typography>
+        </Stack>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 4, md: 5 },
+            borderRadius: 5,
+            border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.3)}`
+          }}
+        >
+          <Grid
+            container
+            spacing={{ xs: 5, md: 0 }}
+            columnSpacing={{ md: 4 }}
+            justifyContent="center"
+          >
+            {hiringJourney.map((step, index) => {
+              const isLast = index === hiringJourney.length - 1;
+
+              return (
+                <Grid key={step.step} item xs={12} md={2}>
+                  <Stack
+                    spacing={2}
+                    alignItems={{ xs: 'flex-start', md: 'center' }}
+                    textAlign={{ xs: 'left', md: 'center' }}
+                    sx={{
+                      position: 'relative',
+                      '&::after': {
+                        content: '""',
+                        display: { xs: 'none', md: isLast ? 'none' : 'block' },
+                        position: 'absolute',
+                        top: 24,
+                        left: `calc(50% + ${theme.spacing(4)})`,
+                        width: `calc(100% + ${theme.spacing(4)})`,
+                        height: 2,
+                        bgcolor: alpha(theme.palette.primary.main, isDark ? 0.35 : 0.18)
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700,
+                        fontSize: 18,
+                        bgcolor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.12),
+                        color: theme.palette.primary.main,
+                        boxShadow: `0 10px 30px ${alpha(theme.palette.primary.main, isDark ? 0.3 : 0.2)}`
+                      }}
+                    >
+                      {step.step}
+                    </Box>
+                    <Stack spacing={1}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        {step.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        {step.description}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Paper>
+      </Container>
+
+      <Container id="open-roles" maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
+        <Stack spacing={3} alignItems={{ xs: 'flex-start', md: 'center' }} textAlign={{ xs: 'left', md: 'center' }} sx={{ mb: 4 }}>
+          <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: 2 }}>
+            Does your skill fit the job post?
+          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Explore opportunities that match your craft
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 640 }}>
+            We\'re always on the lookout for passionate innovators. Choose the role that aligns with your strengths and let\'s build impactful products together.
+          </Typography>
+        </Stack>
+        <Grid container spacing={{ xs: 4, md: 4 }}>
+          {careerOpenings.map((role) => (
+            <Grid key={role.title} item xs={12} sm={6}>
+              <Paper
+                elevation={0}
+                sx={{
+                  height: '100%',
+                  borderRadius: 4,
+                  p: { xs: 4, md: 5 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2.5,
+                  border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`,
+                  bgcolor: alpha(theme.palette.background.paper, isDark ? 0.4 : 0.7)
+                }}
+              >
+                <Stack spacing={1.5}>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    {role.title}
                   </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    •
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {role.description}
                   </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                    {role.type}
-                  </Typography>
+                </Stack>
+                <Stack direction="row" spacing={2} sx={{ color: 'text.secondary', fontWeight: 600, flexWrap: 'wrap' }}>
+                  <Typography variant="caption">{role.experience}</Typography>
+                  <Typography variant="caption">{role.positions}</Typography>
+                  <Typography variant="caption">{role.type}</Typography>
                 </Stack>
                 <Button
                   variant="contained"
                   component="a"
-                  href={`${applyHref}&body=Role%3A%20${encodeURIComponent(role.title)}`}
-                  endIcon={<ChevronRightRoundedIcon />}
+                  href={careerHero.ctaHref}
+                  endIcon={<ArrowForwardRoundedIcon />}
+                  sx={{
+                    alignSelf: 'flex-start',
+                    borderRadius: 999,
+                    px: 3,
+                    bgcolor: theme.palette.primary.main,
+                    color: '#fff',
+                    '&:hover': {
+                      bgcolor: alpha(theme.palette.primary.main, 0.85)
+                    }
+                  }}
                 >
-                  Apply now
+                  Apply Now
                 </Button>
               </Paper>
             </Grid>
@@ -205,130 +379,58 @@ const CareersPage = () => {
         </Grid>
       </Container>
 
-      <Container id="benefits" maxWidth="lg" sx={{ mt: { xs: 10, md: 12 } }}>
-        <Paper elevation={0} sx={{ p: { xs: 4, md: 6 }, borderRadius: 4 }}>
-          <Stack spacing={3} alignItems="flex-start">
-            <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600 }}>
-              Why people love working here
-            </Typography>
-            <Typography variant="h4">Benefits that support you and your craft</Typography>
-          </Stack>
-          <Grid container spacing={{ xs: 3, md: 4 }} sx={{ mt: { xs: 3, md: 4 } }}>
-            {careerPerks.map((perk) => (
-              <Grid key={perk.title} item xs={12} sm={6}>
-                <Stack spacing={1.5}>
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: 2,
-                        bgcolor: alpha(theme.palette.secondary.main, isDark ? 0.18 : 0.12),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <FavoriteRoundedIcon color="secondary" />
-                    </Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                      {perk.title}
-                    </Typography>
-                  </Stack>
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    {perk.description}
-                  </Typography>
-                </Stack>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
-      </Container>
-
-      <Container id="journey" maxWidth="lg" sx={{ mt: { xs: 10, md: 12 } }}>
-        <Stack spacing={3} alignItems="flex-start" sx={{ mb: 4 }}>
-          <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600 }}>
-            Hiring journey
-          </Typography>
-          <Typography variant="h4">What to expect when you apply</Typography>
-        </Stack>
-        <Grid container spacing={{ xs: 3, md: 4 }}>
-          {hiringJourney.map((step) => (
-            <Grid key={step.step} item xs={12} md={3}>
-              <Paper
-                elevation={0}
-                sx={{
-                  height: '100%',
-                  p: { xs: 3, md: 4 },
-                  borderRadius: 4,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2
-                }}
-              >
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '50%',
-                      bgcolor: alpha(theme.palette.primary.main, isDark ? 0.16 : 0.12),
-                      color: theme.palette.primary.main,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 700
-                    }}
-                  >
-                    {step.step}
-                  </Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    {step.title}
-                  </Typography>
-                </Stack>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {step.description}
-                </Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-
-      <Container maxWidth="lg" sx={{ mt: { xs: 10, md: 12 } }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 4, md: 6 },
-            borderRadius: 4,
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: { xs: 3, md: 6 }
+            position: 'relative',
+            overflow: 'hidden',
+            borderRadius: 5,
+            px: { xs: 4, md: 6 },
+            py: { xs: 5, md: 7 },
+            backgroundImage: `linear-gradient(120deg, rgba(59,7,100,0.8), rgba(14,116,144,0.7)), url(${careerCta.image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            color: '#fff'
           }}
         >
-          <Stack spacing={1.5}>
-            <Typography variant="overline" sx={{ letterSpacing: 1.5, fontWeight: 600 }}>
-              Ready to build with us?
-            </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              Send across your portfolio or CV and let us know the impact you want to create.
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              We review every application thoughtfully and respond within five business days.
-            </Typography>
-          </Stack>
-          <Button
-            variant="contained"
-            size="large"
-            color="primary"
-            component="a"
-            href={applyHref}
-            endIcon={<TrendingUpRoundedIcon />}
+          <Stack
+            spacing={2.5}
+            direction={{ xs: 'column', md: 'row' }}
+            alignItems={{ xs: 'flex-start', md: 'center' }}
+            justifyContent="space-between"
           >
-            Connect with talent team
-          </Button>
+            <Stack spacing={1.5} sx={{ maxWidth: 520 }}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                {careerCta.title}
+              </Typography>
+              <Typography variant="body1" sx={{ color: alpha('#ffffff', 0.9) }}>
+                {careerCta.description}
+              </Typography>
+              <Typography variant="body2" sx={{ color: alpha('#ffffff', 0.75) }}>
+                {careerCta.caption}
+              </Typography>
+            </Stack>
+            <Button
+              variant="contained"
+              size="large"
+              component="a"
+              href={careerCta.ctaHref}
+              endIcon={<ArrowForwardRoundedIcon />}
+              sx={{
+                borderRadius: 999,
+                px: 4,
+                bgcolor: '#f43f5e',
+                color: '#fff',
+                fontWeight: 600,
+                '&:hover': {
+                  bgcolor: alpha('#f43f5e', 0.85)
+                }
+              }}
+            >
+              {careerCta.ctaLabel}
+            </Button>
+          </Stack>
         </Paper>
       </Container>
     </Box>
