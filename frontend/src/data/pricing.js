@@ -40,6 +40,3 @@ export const pricingPlans = [
     ]
   }
 ];
-
-export const pricingDisclaimer =
-  '*Pricing shown reflects starting rates. Final investment varies based on role seniority, team composition, and engagement scope.';

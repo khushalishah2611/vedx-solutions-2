@@ -11,7 +11,7 @@ import {
   useTheme
 } from '@mui/material';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import { pricingDisclaimer, pricingPlans } from '../../data/pricing.js';
+import { pricingPlans } from '../../data/pricing.js';
 
 const PricingModels = () => {
   const theme = useTheme();
@@ -23,27 +23,49 @@ const PricingModels = () => {
       component="section"
       sx={{
         position: 'relative',
-        py: { xs: 10, md: 14 },
-        background: isDark
-          ? 'radial-gradient(circle at top, rgba(148,163,184,0.18), rgba(15,23,42,0.95) 55%)'
-          : 'linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,64,175,0.85))',
+
         color: 'common.white',
         overflow: 'hidden',
-        borderRadius: { xs: 2, md: 4 },
+
       }}
     >
       <Container maxWidth="lg">
         <Stack spacing={3} textAlign="center" alignItems="center" sx={{ mb: 6 }}>
-          <Typography
-            variant="overline"
+
+
+          <Box
             sx={{
-              letterSpacing: 1.5,
-              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              px: 2,
+              py: 1,
+              borderRadius: 0.5,
+              border: `1px solid ${alpha('#ffffff', 0.1)}`,
+              background: !isDark
+                ? alpha('#ddddddff', 0.9)
+                : alpha('#0000007c', 0.9),
               color: alpha(accentColor, 0.9),
+              fontWeight: 600,
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              fontSize: 11,
+              lineHeight: 1.3,
+              width: 'fit-content',
             }}
           >
-            Transparent Engagements
-          </Typography>
+            <Box
+              component="span"
+              sx={{
+                background:
+                  'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              Transparent Engagements
+            </Box>
+          </Box>
+
 
           <Typography
             variant="h3"
@@ -77,7 +99,7 @@ const PricingModels = () => {
                   sx={{
                     position: 'relative',
                     height: '100%',
-                    borderRadius: 3,
+                    borderRadius: 0.5,
                     px: { xs: 4, md: 5 },
                     py: { xs: 5, md: 6 },
                     backgroundColor: isHighlighted
@@ -103,7 +125,7 @@ const PricingModels = () => {
                         right: 32,
                         px: 1.5,
                         py: 0.5,
-                        borderRadius: 2,
+                        borderRadius: 0.5,
                         background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
                         fontSize: 12,
                         fontWeight: 700,
@@ -174,7 +196,7 @@ const PricingModels = () => {
                       color="inherit"
                       sx={{
                         mt: 2,
-                        borderRadius: 2,
+                        borderRadius: 0.5,
                         textTransform: 'none',
                         fontWeight: 600,
                         borderColor: alpha('#ffffff', isHighlighted ? 0 : 0.6),
@@ -199,17 +221,7 @@ const PricingModels = () => {
           })}
         </Grid>
 
-        <Typography
-          variant="caption"
-          sx={{
-            display: 'block',
-            textAlign: 'center',
-            mt: { xs: 6, md: 8 },
-            color: alpha('#ffffff', 0.65),
-          }}
-        >
-          {pricingDisclaimer}
-        </Typography>
+
       </Container>
     </Box>
   );
