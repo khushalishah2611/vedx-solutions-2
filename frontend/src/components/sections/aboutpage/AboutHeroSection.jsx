@@ -1,5 +1,4 @@
-import {  Stack, Typography, alpha, useTheme } from '@mui/material';
-
+import { Box, Button, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
 
 const AboutHeroSection = ({ hero, onCtaClick }) => {
   const theme = useTheme();

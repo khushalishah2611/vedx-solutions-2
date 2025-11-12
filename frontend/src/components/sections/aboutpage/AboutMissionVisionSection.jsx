@@ -16,7 +16,7 @@ const AboutMissionVisionSection = ({ content }) => {
         elevation={0}
         sx={{
           p: { xs: 4, md: 6 },
-          borderRadius: { xs: 4, md: 5 },
+          borderRadius: 0.5,
           background: isDark
             ? 'linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(79,70,229,0.45) 100%)'
             : 'linear-gradient(135deg, rgba(226,232,255,0.95) 0%, rgba(129,140,248,0.35) 100%)',

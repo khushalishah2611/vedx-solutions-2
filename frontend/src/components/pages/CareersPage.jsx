@@ -1,4 +1,4 @@
-import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
+import { Box,  Divider, alpha, useTheme } from '@mui/material';
 import {
   careerBenefits,
   careerHero,
@@ -38,9 +38,7 @@ const CareersPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
         <CareerOpenRolesSection roles={careerOpenings} applyHref={careerHero.ctaHref} />
         <Divider sx={{ borderColor: dividerColor }} />
-        <Container maxWidth="lg" sx={{ mt: { xs: 8, md: 12 }, pb: { xs: 10, md: 14 } }}>
-          <ServicesCTA onContactClick={handleOpenContact} />
-        </Container>
+        <ServicesCTA onContactClick={handleOpenContact} />
       </PageSectionsContainer>
 
     </Box>
