@@ -49,15 +49,7 @@ const App = () => {
             <Route path="hire-developers">
               <Route index element={<HireDevelopersPage />} />
               <Route path=":categorySlug/:roleSlug" element={<HireDeveloperDetailPage />} />
-              <Route
-                path="*"
-                element={
-                  <ComingSoonPage
-                    title="Dedicated Developer Profiles"
-                    description="We are curating detailed profiles for each role. In the meantime, connect with us to build your remote engineering team."
-                  />
-                }
-              />
+          
             </Route>
             <Route path="about" element={<AboutPage />} />
             <Route path="careers" element={<CareersPage />} />
