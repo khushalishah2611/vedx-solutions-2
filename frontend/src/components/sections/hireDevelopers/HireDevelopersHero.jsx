@@ -34,7 +34,7 @@ const HireDevelopersHero = ({ onContactClick }) => {
         filter: isDark ? 'brightness(0.55)' : 'brightness(0.85)',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: { xs: '70vh', md: '80vh' },
+        minHeight: { xs: '90vh', md: '100vh' },
         display: 'flex',
         alignItems: 'center',
         pb: { xs: 12, md: 14 },
@@ -84,26 +84,7 @@ const HireDevelopersHero = ({ onContactClick }) => {
                   Book a Consultation
                 </Button>
 
-                <Button
-                  variant="outlined"
-                  size="large"
-                  color="inherit"
-                  href="#talent"
-                  sx={{
-                    minWidth: 180,
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderColor: alpha('#fff', 0.6),
-                    color: '#fff',
-                    '&:hover': {
-                      borderColor: alpha('#fff', 0.9),
-                      backgroundColor: alpha('#fff', 0.1)
-                    }
-                  }}
-                >
-                  Explore Talent Pool
-                </Button>
+              
               </Stack>
 
               <Stack
