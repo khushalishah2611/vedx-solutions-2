@@ -7,19 +7,17 @@ const CareerJourneySection = ({ journey }) => {
   return (
     <Container id="journey" maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
       <Stack spacing={3} alignItems="center" textAlign="center" sx={{ mb: { xs: 4, md: 6 } }}>
-        <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: 2 }}>
-          Hiring Process
-        </Typography>
+
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Your journey with Vedx
+          Hiring Process
         </Typography>
       </Stack>
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 4, md: 5 },
-          borderRadius: 5,
-          border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.3)}`
+          p: 2,
+          borderRadius: 0.5,
+          border: `1px solid ${alpha(isDark ? "#67e8f9" : theme.palette.primary.main, isDark ? 0.5 : 0.3)}`
         }}
       >
         <Grid container spacing={{ xs: 5, md: 0 }} columnSpacing={{ md: 4 }} justifyContent="center">
@@ -42,7 +40,7 @@ const CareerJourneySection = ({ journey }) => {
                       left: `calc(50% + ${theme.spacing(4)})`,
                       width: `calc(100% + ${theme.spacing(4)})`,
                       height: 2,
-                      bgcolor: alpha(theme.palette.primary.main, isDark ? 0.35 : 0.18)
+                      bgcolor: alpha(isDark ? "#67e8f9" : theme.palette.primary.main, isDark ? 0.35 : 0.18)
                     }
                   }}
                 >
@@ -56,9 +54,9 @@ const CareerJourneySection = ({ journey }) => {
                       justifyContent: 'center',
                       fontWeight: 700,
                       fontSize: 18,
-                      bgcolor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.12),
-                      color: theme.palette.primary.main,
-                      boxShadow: `0 10px 30px ${alpha(theme.palette.primary.main, isDark ? 0.3 : 0.2)}`
+                      bgcolor: alpha(isDark ? "#67e8f9" : theme.palette.primary.main, isDark ? 0.2 : 0.12),
+                      color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                      boxShadow: `0 10px 30px ${alpha(isDark ? "#67e8f9" : theme.palette.primary.main, isDark ? 0.3 : 0.2)}`
                     }}
                   >
                     {step.step}
@@ -67,9 +65,7 @@ const CareerJourneySection = ({ journey }) => {
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                       {step.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      {step.description}
-                    </Typography>
+
                   </Stack>
                 </Stack>
               </Grid>

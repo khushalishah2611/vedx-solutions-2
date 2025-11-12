@@ -4,4 +4,3 @@ export { default as CareerBenefitsSection } from './CareerBenefitsSection.jsx';
 export { default as CareerTrustedSection } from './CareerTrustedSection.jsx';
 export { default as CareerJourneySection } from './CareerJourneySection.jsx';
 export { default as CareerOpenRolesSection } from './CareerOpenRolesSection.jsx';
-export { default as CareerPrimaryCTASection } from './CareerPrimaryCTASection.jsx';

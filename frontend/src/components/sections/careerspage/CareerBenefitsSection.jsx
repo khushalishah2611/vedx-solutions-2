@@ -1,5 +1,5 @@
 import {
-  Avatar,
+
   Box,
   Container,
   Grid,
@@ -9,6 +9,7 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 
 const CareerBenefitsSection = ({ benefits = [] }) => {
   const theme = useTheme();
@@ -56,7 +57,7 @@ const CareerBenefitsSection = ({ benefits = [] }) => {
       {/* === BENEFITS GRID === */}
       <Grid container spacing={{ xs: 4, md: 5 }}>
         {benefits.map((benefit, index) => {
-          const Icon = benefit.icon; // Ensure icons are passed as React components
+
 
           return (
             <Grid key={index} item xs={12} sm={6} md={3}>
@@ -64,8 +65,8 @@ const CareerBenefitsSection = ({ benefits = [] }) => {
                 elevation={0}
                 sx={{
                   height: '100%',
-                  borderRadius: 2,
-                  p: { xs: 3, md: 4 },
+                  borderRadius: 0.5,
+                  p: 2,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -106,18 +107,17 @@ const CareerBenefitsSection = ({ benefits = [] }) => {
                     mb: 2,
                   }}
                 >
-                  {Icon ? <Icon sx={{ fontSize: 32 }} /> : null}
+                  <WorkOutlineIcon sx={{ fontSize: 32 }} />
                 </Box>
-
                 {/* Text */}
                 <Stack spacing={1}>
                   <Typography
                     variant="h6"
                     sx={{
                       fontWeight: 700,
-                      color: isDark
-                        ? alpha('#ffffff', 0.95)
-                        : alpha('#000000', 0.95),
+                      "&:hover": {
+                        color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                      },
                     }}
                   >
                     {benefit.title}
