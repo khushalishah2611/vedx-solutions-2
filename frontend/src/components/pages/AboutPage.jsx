@@ -31,7 +31,7 @@ const AboutPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default', overflow: 'hidden' }}>
-      <AboutHeroSection hero={aboutHero} onCtaClick={handleOpenContact} />
+      <AboutHeroSection hero={aboutHero} stats={aboutStats} onCtaClick={handleOpenContact} />
 
       <AboutWhyChooseSection highlights={aboutHighlights} />
 
