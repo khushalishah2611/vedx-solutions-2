@@ -269,8 +269,11 @@ const NavigationBar = () => {
 
   const renderAboutMenu = (anchorEl, handleClose) => {
     const openPopover = Boolean(anchorEl);
-    const hoverColor = alpha(theme.palette.primary.main, mode === 'dark' ? 0.25 : 0.12);
-    const focusColor = alpha(theme.palette.primary.main, mode === 'dark' ? 0.3 : 0.18);
+
+    const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
+    const hoverBg = alpha(highlightColor, mode === 'dark' ? 0.14 : 0.10);
+    const focusBg = alpha(highlightColor, mode === 'dark' ? 0.18 : 0.14);
+    const borderColor = alpha(theme.palette.divider, 0.22);
 
     return (
       <Popover
@@ -287,9 +290,12 @@ const NavigationBar = () => {
               mt: 1.5,
               px: 0,
               py: 0.5,
-              borderRadius: 0.5,
-              minWidth: 180,
-
+              borderRadius: 0.75,
+              minWidth: 200,
+              border: `1px solid ${borderColor}`,
+              boxShadow: mode === 'dark'
+                ? '0 12px 30px rgba(0,0,0,0.5)'
+                : '0 12px 30px rgba(0,0,0,0.12)'
             }
           }
         }}
@@ -301,22 +307,39 @@ const NavigationBar = () => {
               component={RouterLink}
               to={item.to}
               onClick={handleClose}
+              disableRipple
               sx={{
                 fontWeight: 600,
                 letterSpacing: 0.4,
                 mx: 1,
                 my: 0.5,
                 px: 2.5,
-                py: 1.25,
-                borderRadius: 1,
-                transition: 'all 0.2s ease',
-                color: 'inherit',
+                py: 1.1,
+                borderRadius: 0.75,
+                transition: 'background-color 0.18s ease, color 0.18s ease, transform 0.18s ease',
+                color: theme.palette.text.primary,
+
+                // hover / focus / active → highlight text + soft tinted bg
                 '&:hover': {
-                  backgroundColor: hoverColor,
+                  color: highlightColor,
+
                   transform: 'translateX(4px)'
                 },
-                '&.Mui-focusVisible': {
-                  backgroundColor: focusColor
+                '&:focus-visible': {
+                  color: highlightColor,
+                  outline: '2px solid',
+                  outlineColor: alpha(highlightColor, 0.55),
+                  outlineOffset: 2
+                },
+                '&:active': {
+                  color: highlightColor,
+
+                },
+
+                // selected state (if you ever pass selected prop or use MUI selection)
+                '&.Mui-selected, &.Mui-selected:hover': {
+                  color: highlightColor,
+
                 }
               }}
             >
@@ -660,28 +683,28 @@ const NavigationBar = () => {
               alignItems: 'center',
             }}
           >
-              <Button
-                variant="contained"
-                size="large"
-                onClick={() => {
-                  openContactDialog();
-                  setOpen(false);
-                }}
-                startIcon={<PhoneInTalkRoundedIcon />}
-                sx={{
-                  background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                  color: '#fff',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 2, // optional: adds nice horizontal padding
-                  '&:hover': {
-                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                  },
-                }}
-              >
-                Hire Now
-              </Button>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => {
+                openContactDialog();
+                setOpen(false);
+              }}
+              startIcon={<PhoneInTalkRoundedIcon />}
+              sx={{
+                background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                color: '#fff',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 2, // optional: adds nice horizontal padding
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                },
+              }}
+            >
+              Hire Now
+            </Button>
           </Box>
 
         </Box>
