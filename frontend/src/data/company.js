@@ -81,7 +81,7 @@ export const careerStory = {
   badge: 'We Are Vedx Solutions',
   title: 'A Creative Digital Agency',
   description:
-    'At Vedx, we bring together top-tier product strategists, designers, and software engineers to build industry-defining technology.',
+    'At Vedx, we are a creative digital agency driven by innovation and strategy. Our team of top-tier product strategists, visionary designers, and expert software engineers collaborate to craft cutting-edge digital products and scalable solutions. We partner with forward-thinking brands to redefine industries, elevate user experiences, and empower businesses through the transformative power of design and technology..',
   body:
     'From cutting-edge web and mobile apps to AI/ML, blockchain, eCommerce, and cloud-integrated enterprise solutions, we help brands, startups, and enterprises unlock their next level of growth.',
   culture:
