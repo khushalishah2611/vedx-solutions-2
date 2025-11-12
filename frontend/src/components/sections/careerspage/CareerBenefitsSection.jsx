@@ -55,7 +55,7 @@ const CareerBenefitsSection = ({ benefits = [] }) => {
       </Stack>
 
       {/* === BENEFITS GRID === */}
-      <Grid container spacing={{ xs: 4, md: 5 }}>
+      <Grid container spacing={2}>
         {benefits.map((benefit, index) => {
 
 
