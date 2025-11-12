@@ -5,6 +5,7 @@ import ServicesWhyChoose from '../sections/homepage/ServicesWhyChoose.jsx';
 import ServicesBusinessSolutions from '../sections/homepage/ServicesBusinessSolutions.jsx';
 import ServicesContact from '../sections/homepage/ServicesContact.jsx';
 import ServicesEngagementModels from '../sections/homepage/ServicesEngagementModels.jsx';
+import PricingModels from '../shared/PricingModels.jsx';
 import ServicesShowcase from '../sections/homepage/ServicesShowcase.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
@@ -36,6 +37,8 @@ const HomePage = () => {
         <ServicesTestimonials />
         <Divider sx={{ borderColor: dividerColor }} />
         <ServicesEngagementModels />
+        <Divider sx={{ borderColor: dividerColor }} />
+        <PricingModels />
         <Divider sx={{ borderColor: dividerColor }} />
         <ServicesContact />
         <Divider sx={{ borderColor: dividerColor }} />

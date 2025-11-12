@@ -51,7 +51,7 @@ export const heroContent = {
 export const navigationLinks = [
   { label: 'Home', path: '/' },
   { label: 'Services', path: '/services', menu: 'services' },
-  { label: 'Hire Developer +', menu: 'hireDevelopers' },
+  { label: 'Hire Developer +', path: '/hire-developers', menu: 'hireDevelopers' },
   { label: 'About', path: '/about', menu: 'about' },
   // { label: 'Our Projects', path: '/ourprojects' },
   // { label: 'Case Study', path: '/casestudy' },
