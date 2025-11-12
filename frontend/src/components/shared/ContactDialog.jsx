@@ -30,8 +30,8 @@ const ContactDialog = ({ open, onClose }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 2,
-          mx: { xs: 2, sm: 'auto' }, // even outer margin on small screens
+          borderRadius: 0.5,
+
         },
       }}
     >
@@ -55,9 +55,7 @@ const ContactDialog = ({ open, onClose }) => {
       {/* Content */}
       <DialogContent
         sx={{
-          pr:8,
-          pt: 1,
-          pb: 4,
+
           display: 'flex',
           justifyContent: 'center',
         }}
@@ -65,7 +63,10 @@ const ContactDialog = ({ open, onClose }) => {
         <Box
           sx={{
             width: '100%',
-            maxWidth: 520, // ✅ Keeps form visually centered and not too wide
+            pr: 5,
+            pl: 1,
+            pt: 1,
+            pb: 4,
           }}
         >
           <Stack spacing={2.5} component="form">
@@ -109,7 +110,7 @@ const ContactDialog = ({ open, onClose }) => {
             </Grid>
 
             {/* Centered Button */}
-            <Box sx={{ textAlign: 'center', mt: 1 }}>
+            <Box sx={{ textAlign: 'start', mt: 1 }}>
               <Button
                 variant="contained"
                 size="large"
