@@ -1,97 +1,93 @@
-import { Grid, Stack, Typography, alpha, useTheme } from '@mui/material';
-import HeroMediaShowcase from '../../shared/HeroMediaShowcase.jsx';
+import {  Stack, Typography, alpha, useTheme } from '@mui/material';
 
-const AboutHeroSection = ({ hero, stats, onCtaClick }) => {
+
+const AboutHeroSection = ({ hero, onCtaClick }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  if (!hero) {
-    return null;
-  }
-
-  const eyebrow = hero.label ?? hero.eyebrow ?? hero.badge ?? hero.subtitle;
-  const description = hero.description ?? hero.caption ?? hero.body;
-  const extendedDescription =
-    hero.extendedDescription ?? hero.secondaryDescription ?? hero.subtext;
-  const baseImage = hero.baseImage ?? hero.image ?? hero.primaryImage;
-  const overlayImage =
-    hero.overlayImage ?? hero.secondaryImage ?? hero.image ?? hero.baseImage;
-  const heroStats = Array.isArray(stats)
-    ? stats
-    : Array.isArray(hero.stats)
-    ? hero.stats
-    : [];
-
-  const heroBackground =
-    hero.background ||
-    (isDark
-      ? 'linear-gradient(135deg, rgba(15,23,42,0.96) 0%, rgba(30,64,175,0.75) 55%, rgba(99,102,241,0.3) 100%)'
-      : 'linear-gradient(135deg, rgba(226,232,255,0.96) 0%, rgba(191,219,254,0.85) 55%, rgba(79,70,229,0.12) 100%)');
-
-  const statValueColor = isDark
-    ? alpha('#ffffff', 0.95)
-    : alpha(theme.palette.primary.contrastText ?? '#0f172a', 0.92);
-
   return (
-    <HeroMediaShowcase
-      eyebrow={eyebrow}
-      title={hero.title}
-      description={description}
-      extendedDescription={extendedDescription}
-      baseImage={baseImage}
-      overlayImage={overlayImage}
-      ctaLabel={hero.ctaLabel}
-      onCtaClick={onCtaClick}
+    <Box
       sx={{
-        pt: { xs: 12, md: 14 },
-        pb: { xs: 10, md: 12 },
-        background: heroBackground,
-        borderRadius: { xs: 4, md: 6 },
-        border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`,
-        boxShadow: isDark
-          ? '0 30px 60px rgba(15,23,42,0.55)'
-          : '0 40px 70px rgba(79,70,229,0.18)',
+        position: 'relative',
+        color: '#fff',
+        pt: { xs: 14, md: 18 },
+        pb: { xs: 12, md: 16 },
+        minHeight: { xs: '90vh', md: '100vh' },
+        display: 'flex',
+        alignItems: 'center',
+        backgroundImage: `linear-gradient(
+          120deg,
+          rgba(8, 13, 35, 0.85) 10%,
+          rgba(42, 11, 80, 0.75) 55%,
+          rgba(0, 136, 204, 0.7) 100%
+        ), url(${hero.image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         overflow: 'hidden',
-        mx: { xs: 2, md: 4 },
-        '& > .MuiContainer-root': {
-          position: 'relative',
-          zIndex: 1,
-          px: { xs: 3, md: 6 },
-        },
+        filter: isDark ? 'brightness(0.55)' : 'brightness(0.8)',
+        transform: 'scale(1.05)',
+        transition: 'transform 0.6s ease, filter 0.6s ease'
       }}
     >
-      {heroStats.length > 0 && (
-        <Grid container spacing={{ xs: 2, md: 3 }} sx={{ pt: 1 }}>
-          {heroStats.map((stat) => {
-            const key = stat.label ?? stat.title ?? stat.value;
+      <Container maxWidth="lg">
+        <Stack spacing={3.5} sx={{ maxWidth: { xs: '100%', md: 720 } }}>
+          <Typography
+            variant="h3"
+            sx={{
+              fontSize: { xs: 34, md: 48 },
+              fontWeight: 700,
+              lineHeight: 1.2
+            }}
+          >
+            {hero.title}
+          </Typography>
 
-            return (
-              <Grid key={key} item xs={6} sm={3}>
-                <Stack spacing={0.5} alignItems={{ xs: 'center', md: 'flex-start' }}>
-                  <Typography
-                    variant="h4"
-                    sx={{ fontWeight: 700, color: statValueColor }}
-                  >
-                    {stat.value ?? stat.title}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: alpha('#ffffff', isDark ? 0.75 : 0.82),
-                      letterSpacing: 0.5,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {stat.label ?? stat.subtitle}
-                  </Typography>
-                </Stack>
-              </Grid>
-            );
-          })}
-        </Grid>
-      )}
-    </HeroMediaShowcase>
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: { xs: 16, md: 18 },
+              color: alpha('#ffffff', 0.9)
+            }}
+          >
+            {hero.description}
+          </Typography>
+
+          {hero.caption && (
+            <Typography
+              variant="body2"
+              sx={{
+                color: alpha('#ffffff', 0.8),
+                maxWidth: 560
+              }}
+            >
+              {hero.caption}
+            </Typography>
+          )}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            {hero.ctaLabel && (
+              <Button
+                variant="contained"
+                size="large"
+                onClick={onCtaClick}
+                sx={{
+                  background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                  color: '#fff',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 2,
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                  }
+                }}
+              >
+                {hero.ctaLabel}
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+      </Container>
+    </Box>
   );
 };
-
 export default AboutHeroSection;
