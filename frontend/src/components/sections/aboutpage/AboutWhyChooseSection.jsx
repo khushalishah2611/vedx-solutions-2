@@ -66,7 +66,7 @@ const AboutWhyChooseSection = ({ highlights }) => {
                   sx={{
                     height: '100%',
                     p: { xs: 3, md: 4 },
-                    borderRadius: 3,
+                    borderRadius: 0.5,
                     background: isDark
                       ? 'linear-gradient(180deg, rgba(15,23,42,0.85) 0%, rgba(30,41,59,0.9) 100%)'
                       : 'linear-gradient(180deg, rgba(226,232,255,0.6) 0%, rgba(255,255,255,0.9) 100%)',
@@ -81,7 +81,7 @@ const AboutWhyChooseSection = ({ highlights }) => {
                       sx={{
                         width: 52,
                         height: 52,
-                        borderRadius: 2,
+                        borderRadius: 0.5,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
