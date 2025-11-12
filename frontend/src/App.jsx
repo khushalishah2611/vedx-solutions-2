@@ -14,6 +14,7 @@ import HomePage from './components/pages/HomePage.jsx';
 import ServicesPage from './components/pages/ServicesPage.jsx';
 import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
 import HireDevelopersPage from './components/pages/HireDevelopersPage.jsx';
+import HireDeveloperDetailPage from './components/pages/HireDeveloperDetailPage.jsx';
 import ComingSoonPage from './components/shared/ComingSoonPage.jsx';
 import NotFoundPage from './components/shared/NotFoundPage.jsx';
 import BlogListPage from './components/pages/BlogListPage.jsx';
@@ -47,6 +48,7 @@ const App = () => {
             </Route>
             <Route path="hire-developers">
               <Route index element={<HireDevelopersPage />} />
+              <Route path=":categorySlug/:roleSlug" element={<HireDeveloperDetailPage />} />
               <Route
                 path="*"
                 element={
