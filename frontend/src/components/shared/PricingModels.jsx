@@ -10,7 +10,6 @@ import {
   alpha,
   useTheme
 } from '@mui/material';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { pricingPlans } from '../../data/pricing.js';
 
 const PricingModels = () => {
@@ -185,7 +184,7 @@ const PricingModels = () => {
                             fontSize: 14,
                           }}
                         >
-                          <CheckCircleRoundedIcon sx={{ fontSize: 20, color: accentColor, mt: '2px' }} />
+             
                           {feature}
                         </ListItem>
                       ))}

@@ -10,7 +10,6 @@ import {
   alpha,
   useTheme
 } from '@mui/material';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { servicesShowcase } from '../../../data/content.js';
 
 const ServicesShowcase = () => {
@@ -193,9 +192,7 @@ const ServicesShowcase = () => {
                       spacing={1.2}
                       alignItems="center"
                     >
-                      <CheckCircleRoundedIcon
-                        sx={{ color: theme.palette.secondary.main, fontSize: 22 }}
-                      />
+                    
                       <Typography
                         component="a"
                         href="#"
