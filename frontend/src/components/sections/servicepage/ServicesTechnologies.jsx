@@ -35,8 +35,8 @@ const ServicesTechnologies = () => {
           Technologies We Support
         </Typography>
         <Typography variant="body1" sx={{ color: subtleText, maxWidth: 760 }}>
-          Choose from a comprehensive library of frontend, backend, database,
-          and DevOps expertise to ship resilient platforms.
+          Choose from a comprehensive library of frontend, backend, UI/UX,
+          database, and DevOps expertise to ship resilient platforms.
         </Typography>
       </Stack>
 
