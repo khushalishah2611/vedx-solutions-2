@@ -4,7 +4,6 @@ import {
   Box,
   Card,
   CardActionArea,
-  Chip,
   Stack,
   Typography,
   useTheme,
@@ -13,20 +12,24 @@ import { Link as RouterLink } from 'react-router-dom';
 
 const CaseStudyCard = ({ caseStudy }) => {
   const theme = useTheme();
-
+  const isDark = theme.palette.mode === 'dark';
+  const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
   return (
     <Card
       elevation={0}
       sx={{
         height: '100%',
-        borderRadius: 4,
+        borderRadius: 0.5,
         overflow: 'hidden',
-        backgroundColor: alpha(theme.palette.background.paper, 0.8),
-        border: `1px solid ${alpha(theme.palette.divider, theme.palette.mode === 'dark' ? 0.6 : 0.2)}`,
+        backgroundColor: alpha(theme.palette.background.paper, 0.7),
+        border: `1px solid ${alpha(
+         accentColor,
+          isDark ? 0.6 : 0.25
+        )}`,
         transition: 'transform 0.4s ease, box-shadow 0.4s ease',
         '&:hover': {
           transform: 'translateY(-8px)',
-          boxShadow: theme.shadows[10],
+      
         },
       }}
     >
@@ -35,64 +38,114 @@ const CaseStudyCard = ({ caseStudy }) => {
         to={`/casestudy/${caseStudy.slug}`}
         sx={{ height: '100%' }}
       >
+        {/* ---------- IMAGE ---------- */}
         <Box
           sx={{
             position: 'relative',
-            pt: '66.66%',
+            pt: '75%',
             backgroundImage: `url(${caseStudy.heroImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
         >
+          {/* Gradient Overlay */}
           <Box
             sx={{
               position: 'absolute',
               inset: 0,
-              background: `linear-gradient(180deg, ${alpha('#0f172a', 0)} 0%, ${alpha('#0f172a', 0.8)} 100%)`,
+              background: `linear-gradient(
+                180deg,
+                ${alpha('#0f172a', 0)} 0%,
+                ${alpha('#0f172a', 0.85)} 100%
+              )`,
             }}
           />
-          <Chip
-            label={caseStudy.category}
+
+          {/* Category Badge */}
+          <Box
             sx={{
               position: 'absolute',
               bottom: 16,
               left: 16,
-              color: '#fff',
+              display: 'inline-flex',
+              alignItems: 'center',
+              px: 1.8,
+              py: 0.8,
+              borderRadius: 0.5,
+              border: `1px solid ${alpha('#ffffff', 0.2)}`,
+              background: isDark
+                ? alpha('#000000', 0.45)
+                : alpha('#e2e8f0', 0.8),
               fontWeight: 600,
+              letterSpacing: 0.5,
               textTransform: 'uppercase',
-              letterSpacing: 0.8,
-              backgroundColor: alpha(caseStudy.accentColor ?? theme.palette.secondary.main, 0.9),
+              fontSize: 11,
+              lineHeight: 1.3,
             }}
-          />
+          >
+            <Box
+              component="span"
+              sx={{
+                background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 700,
+              }}
+            >
+              {caseStudy.category}
+            </Box>
+          </Box>
         </Box>
 
-        <Stack spacing={2.5} sx={{ p: { xs: 3, md: 3.5 } }}>
+        {/* ---------- CONTENT ---------- */}
+        <Stack spacing={2} sx={{ p: { xs: 3, md: 3.5 } }}>
           <Stack spacing={1}>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
               {caseStudy.title}
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
-              {caseStudy.summary}
-            </Typography>
+
+            
           </Stack>
 
-          {caseStudy.tags?.length ? (
+          {/* ---------- TAGS ---------- */}
+          {caseStudy.tags?.length > 0 && (
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              {caseStudy.tags.map((tag) => (
-                <Chip
-                  key={tag}
-                  label={tag}
-                  size="small"
+              {caseStudy.tags.map((tag, index) => (
+                <Box
+                  key={index}
                   sx={{
-                    borderRadius: 2,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    px: 1.8,
+                    py: 0.7,
+                    borderRadius: 0.5,
+                    border: `1px solid ${alpha('#ffffff', 0.15)}`,
+                    background: isDark
+                      ? alpha('#000000', 0.4)
+                      : alpha('#e2e8f0', 0.75),
                     fontWeight: 600,
                     letterSpacing: 0.5,
-                    backgroundColor: alpha(theme.palette.text.primary, 0.06),
+                    textTransform: 'uppercase',
+                    fontSize: 11,
+                    lineHeight: 1.3,
+                    width: 'fit-content',
                   }}
-                />
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {tag}
+                  </Box>
+                </Box>
               ))}
             </Stack>
-          ) : null}
+          )}
         </Stack>
       </CardActionArea>
     </Card>

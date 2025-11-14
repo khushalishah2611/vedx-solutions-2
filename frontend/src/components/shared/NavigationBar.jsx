@@ -271,8 +271,7 @@ const NavigationBar = () => {
     const openPopover = Boolean(anchorEl);
 
     const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
-    const hoverBg = alpha(highlightColor, mode === 'dark' ? 0.14 : 0.10);
-    const focusBg = alpha(highlightColor, mode === 'dark' ? 0.18 : 0.14);
+
     const borderColor = alpha(theme.palette.divider, 0.22);
 
     return (
@@ -361,7 +360,7 @@ const NavigationBar = () => {
       }}
     >
       <Container>
-        <Toolbar disableGutters sx={{ justifyContent: 'space-between', gap: 2 }}>
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between', gap: 5 }}>
 
           <Box
             component="img"
@@ -374,7 +373,7 @@ const NavigationBar = () => {
 
 
           {!isMobile && (
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={2} alignItems="center">
               {navigationLinks.map((item) => {
                 if (item.menu) {
                   if (item.menu === 'about') {
@@ -454,11 +453,11 @@ const NavigationBar = () => {
               })}
               <Divider orientation="vertical" flexItem sx={{ borderColor: theme.palette.divider }} />
 
-              <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
+              {/* <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
                 <IconButton color="inherit" onClick={toggleColorMode}>
                   {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
                 </IconButton>
-              </Tooltip>
+              </Tooltip> */}
 
               <Button
                 variant="contained"
@@ -484,11 +483,11 @@ const NavigationBar = () => {
 
           {isMobile && (
             <Stack direction="row" spacing={1} alignItems="center">
-              <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
+              {/* <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
                 <IconButton color="inherit" onClick={toggleColorMode}>
                   {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
                 </IconButton>
-              </Tooltip>
+              </Tooltip> */}
               <IconButton onClick={toggleDrawer(true)} color="inherit" aria-label="Open navigation menu">
                 <MenuRoundedIcon />
               </IconButton>
@@ -528,11 +527,11 @@ const NavigationBar = () => {
             </Box>
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ pr: 1 }}>
-              <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
+              {/* <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
                 <IconButton color="inherit" onClick={toggleColorMode}>
                   {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
                 </IconButton>
-              </Tooltip>
+              </Tooltip> */}
               <IconButton onClick={toggleDrawer(false)} color="inherit" aria-label="Close navigation menu">
                 <CloseRoundedIcon />
               </IconButton>

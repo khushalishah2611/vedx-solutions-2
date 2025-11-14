@@ -54,7 +54,7 @@ export const navigationLinks = [
   { label: 'Hire Developer +', path: '/hire-developers', menu: 'hireDevelopers' },
   { label: 'About', path: '/about', menu: 'about' },
   // { label: 'Our Projects', path: '/ourprojects' },
-  // { label: 'Case Study', path: '/casestudy' },
+  { label: 'Case Study', path: '/casestudy' },
   { label: 'Blog', path: '/blog' },
   { label: 'Contact', path: '/contact' }
 ];
