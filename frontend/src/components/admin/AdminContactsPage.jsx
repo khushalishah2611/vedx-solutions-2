@@ -4,13 +4,19 @@ import {
   CardContent,
   Chip,
   Divider,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
+  IconButton,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
   Typography
 } from '@mui/material';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
 const contacts = [
   {
@@ -44,39 +50,65 @@ const AdminContactsPage = () => {
             pipeline active.
           </Typography>
           <Divider sx={{ my: 1 }} />
-          <List>
-            {contacts.map((contact) => (
-              <ListItem key={contact.email} alignItems="flex-start" sx={{ px: 0 }}>
-                <ListItemAvatar>
-                  <Avatar>{contact.name.charAt(0)}</Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <Typography variant="subtitle1" fontWeight={600}>
-                        {contact.name}
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Contact</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Phone</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {contacts.map((contact) => (
+                  <TableRow key={contact.email} hover>
+                    <TableCell>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Avatar>{contact.name.charAt(0)}</Avatar>
+                        <Typography variant="subtitle1" fontWeight={600}>
+                          {contact.name}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {contact.email}
                       </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {contact.phone}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
                       <Chip
                         label={contact.status}
                         color={contact.status === 'New' ? 'primary' : contact.status === 'Replied' ? 'success' : 'warning'}
                         size="small"
+                        sx={{ fontWeight: 600 }}
                       />
-                    </Stack>
-                  }
-                  secondary={
-                    <Stack spacing={0.5} mt={1}>
-                      <Typography variant="body2" color="text.secondary">
-                        {contact.email}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {contact.phone}
-                      </Typography>
-                    </Stack>
-                  }
-                />
-              </ListItem>
-            ))}
-          </List>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <Tooltip title="Edit">
+                          <IconButton size="small" color="primary">
+                            <EditOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton size="small" color="error">
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Stack>
       </CardContent>
     </Card>
