@@ -1,7 +1,8 @@
 import {
   Box,
   Divider,
-  useTheme, alpha
+  alpha,
+  useTheme,
 } from '@mui/material';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import {
@@ -17,14 +18,6 @@ import {
 } from '../sections/aboutpage/index.js';
 import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
-
-
-import {
-
-  CareerStorySection,
-
-} from '../sections/careerspage/index.js';
-
 const AboutPage = () => {
   const theme = useTheme();
 
