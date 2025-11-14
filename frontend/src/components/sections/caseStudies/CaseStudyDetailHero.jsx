@@ -34,11 +34,10 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
           backgroundRepeat: 'no-repeat',
           borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`,
           overflow: 'hidden',
-          minHeight: { xs: '70vh', md: '80vh' },
+          minHeight: { xs: '90vh', md: '100vh' },
           display: 'flex',
           alignItems: 'center',
-          pb: { xs: 12, md: 14 },
-          pt: { xs: 14, md: 18 },
+      
         }}
       >
         <Container maxWidth="lg">
@@ -135,25 +134,6 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 >
                   {caseStudy.tagline}
                 </Typography>
-              ) : null}
-
-              {caseStudy.meta?.length ? (
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={2.5}
-                  sx={{
-                    color: alpha('#f8fafc', 0.9),
-                    justifyContent: { xs: 'center', md: 'flex-start' },
-                    flexWrap: 'wrap',
-                    rowGap: 1.5,
-                  }}
-                >
-                  {caseStudy.meta.map((item) => (
-                    <Typography key={item.label} variant="body2">
-                      <strong>{item.label}:</strong> {item.value}
-                    </Typography>
-                  ))}
-                </Stack>
               ) : null}
 
               {caseStudy.excerpt ? (
