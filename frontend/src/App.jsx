@@ -22,6 +22,8 @@ import BlogDetailPage from './components/pages/BlogDetailPage.jsx';
 import AboutPage from './components/pages/AboutPage.jsx';
 import CareersPage from './components/pages/CareersPage.jsx';
 import ContactPage from './components/pages/ContactPage.jsx';
+import CaseStudiesPage from './components/pages/CaseStudiesPage.jsx';
+import CaseStudyDetailPage from './components/pages/CaseStudyDetailPage.jsx';
 
 const App = () => {
   return (
@@ -53,15 +55,10 @@ const App = () => {
             </Route>
             <Route path="about" element={<AboutPage />} />
             <Route path="careers" element={<CareersPage />} />
-            <Route
-              path="casestudy"
-              element={
-                <ComingSoonPage
-                  title="Case Study Vedx Solutions"
-                  description="We are curating a detailed story about our mission, our people, and the values that drive every solution we build. Check back soon to explore the journey."
-                />
-              }
-            />
+            <Route path="casestudy">
+              <Route index element={<CaseStudiesPage />} />
+              <Route path=":slug" element={<CaseStudyDetailPage />} />
+            </Route>
             <Route
               path="ourprojects"
               element={
