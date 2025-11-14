@@ -23,7 +23,7 @@ const AdminLoginPage = () => {
       }}
     >
       <Container maxWidth="sm">
-        <Paper sx={{ p: { xs: 4, md: 6 }, borderRadius: 4 }} elevation={12}>
+        <Paper sx={{ p: { xs: 4, md: 6 }, borderRadius: 0.5 }} elevation={12}>
           <Stack spacing={3}>
             <Stack spacing={1}>
               <Typography variant="overline" sx={{ letterSpacing: 3, color: 'secondary.main' }}>

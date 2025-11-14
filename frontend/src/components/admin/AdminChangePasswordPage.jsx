@@ -2,7 +2,7 @@ import { Button, Card, CardContent, Stack, TextField, Typography } from '@mui/ma
 
 const AdminChangePasswordPage = () => {
   return (
-    <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', maxWidth: 560 }}>
+    <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider'}}>
       <CardContent>
         <Stack spacing={3}>
           <div>

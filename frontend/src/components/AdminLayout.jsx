@@ -55,20 +55,13 @@ const AdminLayout = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar sx={{ px: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center">
-          <Avatar sx={{ bgcolor: 'secondary.main' }}>{adminProfile.initials}</Avatar>
+        
           <Box>
-            <Typography variant="subtitle1" fontWeight={600}>
-              {adminProfile.fullName}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
+          
+            <Typography variant="h6" color="text.secondary">
               @{adminProfile.username}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {adminProfile.email}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {adminProfile.phone}
-            </Typography>
+
           </Box>
         </Stack>
       </Toolbar>
@@ -134,12 +127,7 @@ const AdminLayout = () => {
                 {mobileOpen ? <CloseRoundedIcon /> : <MenuRoundedIcon />}
               </IconButton>
             )}
-            <Box>
-              <Typography variant="h6">Vedx Admin Panel</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Signed in as @{adminProfile.username}
-              </Typography>
-            </Box>
+            
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
             <Box textAlign="right">
