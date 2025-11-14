@@ -44,6 +44,7 @@ const AboutMissionVisionSection = ({ content }) => {
             </Typography>
           </Grid>
 
+
           {/* Mission Text (Right → Left Animation) */}
           <Grid item xs={12} md={8}>
             <Typography
