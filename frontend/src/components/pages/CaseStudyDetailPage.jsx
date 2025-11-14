@@ -18,6 +18,89 @@ const CaseStudyDetailPage = () => {
       <CaseStudyDetailHero caseStudy={caseStudy} />
 
       <PageSectionsContainer spacing={{ xs: 8, md: 10 }}>
+        {caseStudy.screenshots?.length ? (
+          <Stack spacing={3}>
+            <Stack spacing={1.5} textAlign={{ xs: 'center', md: 'left' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                Application Screenshots
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'text.secondary',
+                  maxWidth: 720,
+                  mx: { xs: 'auto', md: 0 },
+                  lineHeight: 1.8,
+                }}
+              >
+                A glimpse into the experiences we crafted—from onboarding to practice streaks—captured directly from the live
+                application.
+              </Typography>
+            </Stack>
+
+            <Grid container spacing={{ xs: 2.5, md: 3 }}>
+              {caseStudy.screenshots.map((shot, index) => {
+                const isFeatured = index === 0;
+                const screenLabel = `Screen ${index + 1}`;
+
+                return (
+                  <Grid
+                    item
+                    key={shot.src}
+                    xs={12}
+                    sm={isFeatured ? 12 : 6}
+                    md={isFeatured ? 6 : 3}
+                  >
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        height: '100%',
+                        borderRadius: 3,
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        border: `1px solid ${alpha(
+                          theme.palette.divider,
+                          theme.palette.mode === 'dark' ? 0.6 : 0.25
+                        )}`,
+                        bgcolor: theme.palette.background.paper,
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={shot.src}
+                        alt={shot.alt}
+                        loading="lazy"
+                        sx={{
+                          width: '100%',
+                          height: { xs: 220, sm: isFeatured ? 320 : 260, md: isFeatured ? 360 : 260 },
+                          objectFit: 'cover',
+                        }}
+                      />
+                      <Stack spacing={1} sx={{ p: { xs: 2.5, md: 3 } }}>
+                        <Typography
+                          variant="overline"
+                          sx={{
+                            letterSpacing: 1.8,
+                            color: alpha(theme.palette.text.secondary, 0.9),
+                          }}
+                        >
+                          {screenLabel}
+                        </Typography>
+                        {shot.caption ? (
+                          <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                            {shot.caption}
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    </Paper>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Stack>
+        ) : null}
+
         <Stack spacing={3}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             Client Requirements

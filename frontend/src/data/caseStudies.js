@@ -101,6 +101,33 @@ const artOfLivingCaseStudy = {
     description:
       'We engineered a playful zig-zag progress tracker that guides practitioners through the SKY Breathing Technique. Every successful session unlocks the next level, motivating a 100-day streak without overwhelming the user.',
   },
+  screenshots: [
+    {
+      src: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80',
+      alt: 'Meditation app onboarding screens displayed on two phones',
+      caption: 'Guided onboarding screens welcome seekers and tailor breathing journeys to their pace.',
+    },
+    {
+      src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
+      alt: 'Calming blue meditation timer interface on a smartphone',
+      caption: 'Session timers keep practitioners focused while surface-level analytics highlight streaks.',
+    },
+    {
+      src: 'https://images.unsplash.com/photo-1604117559201-51ac38e34d35?auto=format&fit=crop&w=1200&q=80',
+      alt: 'Community meetup list inside the wellness application',
+      caption: 'Location-aware meetups showcase nearby community gatherings with RSVP and contribution flows.',
+    },
+    {
+      src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
+      alt: 'In-app lessons featuring meditation instructors',
+      caption: 'High-definition instructor videos make it effortless to revisit SKY breathing techniques.',
+    },
+    {
+      src: 'https://images.unsplash.com/photo-1520322082799-20c1288346da?auto=format&fit=crop&w=1200&q=80',
+      alt: 'Mobile dashboard summarising progress and featured programs',
+      caption: 'A personalised home dashboard curates journeys, wisdom drops, and upcoming workshops.',
+    },
+  ],
   advancedContent: [
     {
       title: 'Wisdom from Sri Sri Ravi Shankar',

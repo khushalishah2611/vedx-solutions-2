@@ -56,6 +56,27 @@ const NavigationBar = () => {
   const [aboutAnchor, setAboutAnchor] = useState(null);
   const [activeServiceIndex, setActiveServiceIndex] = useState(0);
   const [activeHireIndex, setActiveHireIndex] = useState(0);
+  const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
+  const desktopLinkSx = {
+    fontWeight: 600,
+    letterSpacing: 0.4,
+    opacity: 0.92,
+    px: 1.5,
+    py: 1,
+    color: 'inherit',
+    borderRadius: 1.5,
+    transition: 'color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease',
+    '&:hover': {
+      color: highlightColor,
+      backgroundColor: alpha(theme.palette.text.primary, mode === 'dark' ? 0.08 : 0.05),
+      opacity: 1,
+    },
+    '&:focus-visible': {
+      outline: '2px solid',
+      outlineColor: alpha(highlightColor, 0.5),
+      outlineOffset: 2,
+    },
+  };
 
   const toggleDrawer = (state) => () => {
     setOpen(state);
@@ -361,20 +382,33 @@ const NavigationBar = () => {
       }}
     >
       <Container>
-        <Toolbar disableGutters sx={{ justifyContent: 'space-between', gap: 2 }}>
+        <Toolbar
+          disableGutters
+          sx={{
+            alignItems: 'center',
+            gap: 3,
+            minHeight: 80,
+          }}
+        >
 
-          <Box
-            component="img"
-            src={
-              'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
-            }
-            alt="VedX Solutions logo"
-            sx={{ height: 50, width: 'auto' }}
-          />
+          <ButtonBase
+            component={RouterLink}
+            to="/"
+            sx={{ borderRadius: 1.5, display: 'inline-flex' }}
+          >
+            <Box
+              component="img"
+              src={
+                'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
+              }
+              alt="VedX Solutions logo"
+              sx={{ height: 50, width: 'auto', display: 'block' }}
+            />
+          </ButtonBase>
 
 
           {!isMobile && (
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2.5} alignItems="center" sx={{ ml: 'auto' }}>
               {navigationLinks.map((item) => {
                 if (item.menu) {
                   if (item.menu === 'about') {
@@ -385,7 +419,7 @@ const NavigationBar = () => {
                           color="inherit"
                           component={RouterLink}
                           to={item.path ?? '/about'}
-                          sx={{ fontWeight: 500, letterSpacing: 0.5, opacity: 0.9 }}
+                          sx={desktopLinkSx}
                           endIcon={
                             <KeyboardArrowDownRoundedIcon
                               sx={{
@@ -420,7 +454,7 @@ const NavigationBar = () => {
                     <Box key={item.label}>
                       <Button
                         color="inherit"
-                        sx={{ fontWeight: 500, letterSpacing: 0.5, opacity: 0.9 }}
+                        sx={desktopLinkSx}
                         endIcon={
                           <KeyboardArrowDownRoundedIcon
                             sx={{
@@ -446,7 +480,7 @@ const NavigationBar = () => {
                     component={RouterLink}
                     to={item.path}
                     color="inherit"
-                    sx={{ fontWeight: 500, letterSpacing: 0.5, opacity: 0.88 }}
+                    sx={desktopLinkSx}
                   >
                     {item.label}
                   </Button>
