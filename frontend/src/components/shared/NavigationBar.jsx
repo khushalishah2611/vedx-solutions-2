@@ -292,8 +292,6 @@ const NavigationBar = () => {
     const openPopover = Boolean(anchorEl);
 
     const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
-    const hoverBg = alpha(highlightColor, mode === 'dark' ? 0.14 : 0.10);
-    const focusBg = alpha(highlightColor, mode === 'dark' ? 0.18 : 0.14);
     const borderColor = alpha(theme.palette.divider, 0.22);
 
     return (
@@ -311,7 +309,7 @@ const NavigationBar = () => {
               mt: 1.5,
               px: 0,
               py: 0.5,
-              borderRadius: 0.5,
+              borderRadius: 0,
               minWidth: 200,
               border: `1px solid ${borderColor}`,
 
@@ -335,35 +333,38 @@ const NavigationBar = () => {
                 px: 2.5,
                 py: 1.1,
                 borderRadius: 0.5,
-                transition: 'background-color 0.18s ease, color 0.18s ease, transform 0.18s ease',
+
                 color: theme.palette.text.primary,
 
-              
+
+                backgroundColor: 'transparent !important',
+
                 '&:hover': {
                   color: highlightColor,
-
+                  backgroundColor: 'transparent !important',
                   transform: 'translateX(4px)'
                 },
                 '&:focus-visible': {
                   color: highlightColor,
+                  backgroundColor: 'transparent !important',
                   outline: '2px solid',
                   outlineColor: alpha(highlightColor, 0.55),
                   outlineOffset: 2
                 },
                 '&:active': {
                   color: highlightColor,
-
+                  backgroundColor: 'transparent !important'
                 },
 
-          
                 '&.Mui-selected, &.Mui-selected:hover': {
                   color: highlightColor,
-
+                  backgroundColor: 'transparent !important'
                 }
               }}
             >
               {item.label}
             </MenuItem>
+
           ))}
         </MenuList>
       </Popover>

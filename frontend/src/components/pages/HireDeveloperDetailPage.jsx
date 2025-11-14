@@ -97,7 +97,7 @@ const HireDeveloperDetailPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default', color: 'text.primary', overflowX: 'hidden' }}>
-  
+
       <Box
         sx={{
           backgroundImage: `linear-gradient(${heroOverlay}, ${heroOverlay}), url(${role.heroImage || category.heroImage})`,
@@ -209,18 +209,17 @@ const HireDeveloperDetailPage = () => {
       </Box>
       <PageSectionsContainer>
         <Stack spacing={{ xs: 8, md: 10 }}>
-    
-      <ServicesHighlights onContactClick={handleOpenContact} />
-        <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesBenefits onContactClick={handleOpenContact} />
-        <Divider sx={{ borderColor: dividerColor }} />
-        <FullStackDeveloper onContactClick={handleOpenContact} />
-        <ServicesWhyChoose />
-        <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesProcess />
-        <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesIndustries />
-        <Divider sx={{ borderColor: dividerColor }} />
+
+          <ServicesHighlights onContactClick={handleOpenContact} />
+          <Divider sx={{ borderColor: dividerColor }} />
+          <ServicesBenefits onContactClick={handleOpenContact} />
+          <Divider sx={{ borderColor: dividerColor }} />
+          <FullStackDeveloper onContactClick={handleOpenContact} />
+          <ServicesWhyChoose />
+          <Divider sx={{ borderColor: dividerColor }} />
+          <ServicesProcess />
+          <Divider sx={{ borderColor: dividerColor }} />
+          <ServicesIndustries />
           <Divider sx={{ borderColor: dividerColor }} />
           <ServicesTestimonials />
           <Divider sx={{ borderColor: dividerColor }} />
