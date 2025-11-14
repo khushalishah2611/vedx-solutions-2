@@ -517,7 +517,7 @@ const NavigationBar = () => {
           )}
 
           {isMobile && (
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 'auto' }}>
               {/* <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
                 <IconButton color="inherit" onClick={toggleColorMode}>
                   {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
