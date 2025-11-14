@@ -271,7 +271,8 @@ const NavigationBar = () => {
     const openPopover = Boolean(anchorEl);
 
     const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
-
+    const hoverBg = alpha(highlightColor, mode === 'dark' ? 0.14 : 0.10);
+    const focusBg = alpha(highlightColor, mode === 'dark' ? 0.18 : 0.14);
     const borderColor = alpha(theme.palette.divider, 0.22);
 
     return (
@@ -360,7 +361,7 @@ const NavigationBar = () => {
       }}
     >
       <Container>
-        <Toolbar disableGutters sx={{ justifyContent: 'space-between', gap: 5 }}>
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between', gap: 2 }}>
 
           <Box
             component="img"
