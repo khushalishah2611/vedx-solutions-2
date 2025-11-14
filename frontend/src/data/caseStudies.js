@@ -1,4 +1,41 @@
-export const artOfLivingCaseStudy = {
+export const caseStudiesList = [
+  {
+    slug: 'papa-johns-pizza-delivery-app',
+    title: "Papa John's Pizza Delivery App",
+    category: 'Food Delivery Platform',
+    summary:
+      'Revamped Papa John\'s ordering experience with location intelligence, driver tracking, and a rewards-led checkout.',
+    heroImage:
+      'https://images.unsplash.com/photo-1606755962773-0e7d12c0d2e8?auto=format&fit=crop&w=1600&q=80',
+    accentColor: '#FF7849',
+    tags: ['Mobile App', 'Logistics', 'Customer Experience'],
+  },
+  {
+    slug: 'astral-adhesives-resinwood-winners-circle',
+    title: "Astral Adhesives – Resinwood Winner's Circle",
+    category: 'Industrial Loyalty Solution',
+    summary:
+      'Digitized on-the-go loyalty accruals for contractors with QR validation, partner promos, and analytics dashboards.',
+    heroImage:
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80',
+    accentColor: '#38BDF8',
+    tags: ['Gamification', 'Analytics', 'CX'],
+  },
+  {
+    slug: 'art-of-living-meditation-app',
+    title: 'Art of Living Meditation App',
+    category: 'Wellness & Lifestyle',
+    summary:
+      'A serene platform blending guided meditations, SKY journeys, and community meetups for global practitioners.',
+    heroImage:
+      'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&w=1600&q=80',
+    accentColor: '#3E7CCE',
+    tags: ['iOS', 'Android', 'Mindfulness'],
+  },
+];
+
+const artOfLivingCaseStudy = {
+  slug: 'art-of-living-meditation-app',
   title: 'Art of Living Meditation App',
   category: 'Mobile App Development',
   tagline: 'From Inception to Success - Watch the Whole Story!',
@@ -97,3 +134,9 @@ export const artOfLivingCaseStudy = {
   ],
   technologyStack: ['Android', 'iOS', 'Swift', 'Xcode', 'Heroku'],
 };
+
+export const caseStudiesBySlug = {
+  [artOfLivingCaseStudy.slug]: artOfLivingCaseStudy,
+};
+
+export const featuredCaseStudies = caseStudiesList;
