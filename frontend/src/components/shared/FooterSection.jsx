@@ -96,7 +96,7 @@ const FooterSection = () => {
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {footerContent.heading}
           </Typography>
-          
+
         </Stack>
         <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
         <Box
@@ -145,11 +145,17 @@ const FooterSection = () => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 1,
-                        transition: 'color 0.2s ease, transform 0.2s ease',
+                        textDecoration: 'none',
+                        cursor: 'pointer',
+                        transition: 'color 0.3s ease, background-image 0.3s ease',
                         '&:hover': {
-                          color: accentColor,
-                          transform: 'translateX(4px)'
-                        }
+                          color: 'transparent',
+                          backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          WebkitBackgroundClip: 'text',
+                          backgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        },
+
                       }}
                     >
                       {linkData.label}
@@ -222,7 +228,18 @@ const FooterSection = () => {
                   underline="none"
                   color="text.secondary"
                   {...linkProps}
-                  sx={{ '&:hover': { color: accentColor } }}
+                  sx={{
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'color 0.3s ease, background-image 0.3s ease',
+                    '&:hover': {
+                      color: 'transparent',
+                      backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    },
+                  }}
                 >
                   {link.label}
                 </Link>

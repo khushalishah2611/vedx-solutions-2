@@ -92,7 +92,7 @@ const ServicesHighlights = () => {
               architecture for every solution.  From concept to deployment, we ensure high performance, scalability, and clean
               architecture for every solution.
             </Typography>
-         
+
           </Stack>
 
         </Grid>
@@ -102,7 +102,7 @@ const ServicesHighlights = () => {
         component="section"
         sx={{
           position: "relative",
-         mt: 10 
+          mt: 10
         }}
       >
         <Grid item xs={12} md={6}>
@@ -143,7 +143,7 @@ const ServicesHighlights = () => {
                   elevation={0}
                   sx={{
                     height: '100%',
-                    borderRadius: 2,
+                    borderRadius: 0.5,
                     p: 2.5,
                     display: 'flex',
                     flexDirection: 'column',
@@ -185,7 +185,16 @@ const ServicesHighlights = () => {
                     variant="h6"
                     sx={{
                       fontWeight: 700,
-                      '&:hover': { color: accentColor },
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      transition: 'color 0.3s ease, background-image 0.3s ease',
+                      '&:hover': {
+                        color: 'transparent',
+                        backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      },
                     }}
                   >
                     {title}

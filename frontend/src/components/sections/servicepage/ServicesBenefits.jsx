@@ -30,7 +30,7 @@ const ServicesBenefits = ({ onContactClick }) => {
   return (
     <Box
       component="section"
-     
+
     >
       {/* Section Header */}
       <Stack spacing={3} alignItems="center" textAlign="center" sx={{ mb: 6 }}>
@@ -122,8 +122,15 @@ const ServicesBenefits = ({ onContactClick }) => {
                 {/* Text */}
                 <Stack spacing={1}>
                   <Typography variant="h6" sx={{
-                    fontWeight: 700, "&:hover": {
-                      color: isDark ? "#67e8f9" : theme.palette.primary.main,
+                    fontWeight: 700, textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'color 0.3s ease, background-image 0.3s ease',
+                    '&:hover': {
+                      color: 'transparent',
+                      backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
                     },
                   }}>
                     {feature.title}

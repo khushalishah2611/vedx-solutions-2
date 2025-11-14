@@ -76,9 +76,9 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
                     p: 2,
                     display: 'flex',
                     flexDirection: 'column',
-                     boxShadow: isDark
-                        ? '0 8px 24px rgba(0,0,0,0.35)'
-                        : '0 8px 24px rgba(0,0,0,0.12)',
+                    boxShadow: isDark
+                      ? '0 8px 24px rgba(0,0,0,0.35)'
+                      : '0 8px 24px rgba(0,0,0,0.12)',
                     gap: 2.5,
                     border: `1px solid ${alpha(isDark ? "#67e8f9" : theme.palette.primary.main, isDark ? 0.5 : 0.25)}`,
                     bgcolor: alpha(theme.palette.background.paper, isDark ? 0.4 : 0.7),
@@ -87,7 +87,7 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
                     '&:hover, &:focus-visible': {
                       transform: 'translateY(-3px)',
                       borderColor: alpha(isDark ? "#67e8f9" : theme.palette.primary.main, 0.4),
-                     
+
                     },
                   }}
                 >
@@ -97,10 +97,17 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
                         variant="h6"
                         sx={{
                           fontWeight: 700,
-                          transition: 'color 0.2s ease',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          transition: 'color 0.3s ease, background-image 0.3s ease',
                           '&:hover': {
-                            color: isDark ? '#67e8f9' : theme.palette.primary.main,
+                            color: 'transparent',
+                            backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                            WebkitBackgroundClip: 'text',
+                            backgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
                           },
+
                         }}
                       >
                         {role.title}
@@ -127,7 +134,7 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
                   <Box
                     sx={{
                       mt: 'auto',
-                     
+
                       display: 'flex',
                       justifyContent: 'start',
                       alignItems: 'start',

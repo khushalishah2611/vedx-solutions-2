@@ -192,19 +192,22 @@ const ServicesShowcase = () => {
                       spacing={1.2}
                       alignItems="center"
                     >
-                    
+
                       <Typography
                         component="a"
                         href="#"
                         variant="body2"
                         sx={{
-                          color: supportingTextColor,
+                          color: alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.9),
                           textDecoration: 'none',
                           cursor: 'pointer',
-                          transition: 'color 0.3s ease',
+                          transition: 'color 0.3s ease, background-image 0.3s ease',
                           '&:hover': {
-                            color: isDark ? '#67e8f9' : theme.palette.primary.main,
-                            textDecoration: 'none',
+                            color: 'transparent',
+                            backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                            WebkitBackgroundClip: 'text',
+                            backgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
                           },
                         }}
                       >

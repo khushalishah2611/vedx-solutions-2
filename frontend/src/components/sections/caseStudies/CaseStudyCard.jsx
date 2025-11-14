@@ -23,13 +23,13 @@ const CaseStudyCard = ({ caseStudy }) => {
         overflow: 'hidden',
         backgroundColor: alpha(theme.palette.background.paper, 0.7),
         border: `1px solid ${alpha(
-         accentColor,
+          accentColor,
           isDark ? 0.6 : 0.25
         )}`,
         transition: 'transform 0.4s ease, box-shadow 0.4s ease',
         '&:hover': {
           transform: 'translateY(-8px)',
-      
+
         },
       }}
     >
@@ -100,11 +100,22 @@ const CaseStudyCard = ({ caseStudy }) => {
         {/* ---------- CONTENT ---------- */}
         <Stack spacing={2} sx={{ p: { xs: 3, md: 3.5 } }}>
           <Stack spacing={1}>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            <Typography variant="h5" sx={{
+              fontWeight: 700, textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'color 0.3s ease, background-image 0.3s ease',
+              '&:hover': {
+                color: 'transparent',
+                backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              },
+            }}>
               {caseStudy.title}
             </Typography>
 
-            
+
           </Stack>
 
           {/* ---------- TAGS ---------- */}

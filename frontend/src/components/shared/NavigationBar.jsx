@@ -269,9 +269,16 @@ const NavigationBar = () => {
                       <Typography
                         variant="body2"
                         sx={{
-                          color:
-                            mode === 'dark' ? 'rgba(255,255,255,0.88)' : theme.palette.text.primary,
-                          '&:hover': { color: highlightColor }
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          transition: 'color 0.3s ease, background-image 0.3s ease',
+                          '&:hover': {
+                            color: 'transparent',
+                            backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                            WebkitBackgroundClip: 'text',
+                            backgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                          },
                         }}
                       >
                         {label}
@@ -340,7 +347,16 @@ const NavigationBar = () => {
                 backgroundColor: 'transparent !important',
 
                 '&:hover': {
-                  color: highlightColor,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'color 0.3s ease, background-image 0.3s ease',
+                  '&:hover': {
+                    color: 'transparent',
+                    backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  },
                   backgroundColor: 'transparent !important',
                   transform: 'translateX(4px)'
                 },

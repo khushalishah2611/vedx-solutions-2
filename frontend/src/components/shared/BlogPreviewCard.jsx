@@ -89,50 +89,58 @@ const BlogPreviewCard = ({
           >
             {post.category}
           </Box>
-     </Box>
+        </Box>
 
-          <Stack spacing={1.5}>
-            <Typography
-              component={RouterLink}
-              to={`/blog/${post.slug}`}
-              variant="h6"
-              sx={{
-                textDecoration: 'none',
-                color: theme.palette.text.primary,
-                fontWeight: 700,
-                lineHeight: 1.3,
-                '&:hover': {
-                  color: accentColor
-                }
-              }}
-            >
-              {post.title}
-            </Typography>
-
-          </Stack>
-
-
-          <Box sx={{ flexGrow: 1 }} />
-          <Button
-            variant="contained"
-            size="large"
+        <Stack spacing={1.5}>
+          <Typography
             component={RouterLink}
             to={`/blog/${post.slug}`}
-
+            variant="h6"
             sx={{
-              background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-              color: '#fff',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 2,
+              textDecoration: 'none',
+              color: theme.palette.text.primary,
+              fontWeight: 700,
+              lineHeight: 1.3,
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'color 0.3s ease, background-image 0.3s ease',
               '&:hover': {
-                background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                color: 'transparent',
+                backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
               },
+
             }}
           >
-            Read More
-          </Button>
+            {post.title}
+          </Typography>
+
+        </Stack>
+
+
+        <Box sx={{ flexGrow: 1 }} />
+        <Button
+          variant="contained"
+          size="large"
+          component={RouterLink}
+          to={`/blog/${post.slug}`}
+
+          sx={{
+            background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+            color: '#fff',
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 600,
+            px: 2,
+            '&:hover': {
+              background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+            },
+          }}
+        >
+          Read More
+        </Button>
 
       </Stack>
     </Paper>
