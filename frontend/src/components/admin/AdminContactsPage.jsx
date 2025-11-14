@@ -137,7 +137,7 @@ const AdminContactsPage = () => {
                     <TableCell>Email &amp; Phone</TableCell>
                     <TableCell>Project Type</TableCell>
                     <TableCell>Description</TableCell>
-                    <TableCell>Project Assets</TableCell>
+
                     <TableCell>Status</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
@@ -173,19 +173,7 @@ const AdminContactsPage = () => {
                           {contact.description}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Stack direction="row" spacing={1}>
-                          {contact.attachments.map((asset) => (
-                            <Box
-                              key={asset.src}
-                              component="img"
-                              src={asset.src}
-                              alt={asset.title}
-                              sx={{ width: 40, height: 40, borderRadius: 1, objectFit: 'cover', border: '1px solid', borderColor: 'divider' }}
-                            />
-                          ))}
-                        </Stack>
-                      </TableCell>
+
                       <TableCell>
                         <Chip
                           label={contact.status}
@@ -271,20 +259,7 @@ const AdminContactsPage = () => {
                 minRows={3}
                 fullWidth
               />
-              {editForm.attachments?.length ? (
-                <Stack spacing={1}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Project assets
-                  </Typography>
-                  <ImageList cols={3} gap={8} rowHeight={100} sx={{ m: 0 }}>
-                    {editForm.attachments.map((asset) => (
-                      <ImageListItem key={asset.src} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                        <img src={asset.src} alt={asset.title} loading="lazy" />
-                      </ImageListItem>
-                    ))}
-                  </ImageList>
-                </Stack>
-              ) : null}
+
             </Stack>
           )}
         </DialogContent>
