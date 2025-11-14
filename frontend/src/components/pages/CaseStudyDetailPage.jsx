@@ -3,15 +3,23 @@ import { alpha, Box, Chip, Divider, Grid, Paper, Stack, Typography, useTheme } f
 import CaseStudyDetailHero from '../sections/caseStudies/CaseStudyDetailHero.jsx';
 import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
 import { caseStudiesBySlug } from '../../data/caseStudies.js';
-
+import React, { useEffect, useState } from "react";
 const CaseStudyDetailPage = () => {
   const { slug } = useParams();
   const caseStudy = caseStudiesBySlug[slug];
   const theme = useTheme();
 
+
+  const [animate, setAnimate] = useState(false);
+
+  // trigger animation on mount
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimate(true), 30);
+    return () => clearTimeout(timer);
+  }, []);
   const isDark = theme.palette.mode === 'dark';
   const accentColor = theme.palette.primary.main; // fallback accent color
-
+  const dividerColor = alpha(theme.palette.divider, 0.6);
   if (!caseStudy) {
     return <Navigate to="/casestudy" replace />;
   }
@@ -20,7 +28,7 @@ const CaseStudyDetailPage = () => {
     <Box sx={{ bgcolor: 'background.default' }}>
       <CaseStudyDetailHero caseStudy={caseStudy} />
 
-      <PageSectionsContainer spacing={{ xs: 8, md: 10 }}>
+      <PageSectionsContainer >
 
         {/* ---------------------- Screenshots Section ---------------------- */}
         {caseStudy.screenshots?.length ? (
@@ -119,19 +127,34 @@ const CaseStudyDetailPage = () => {
             </Grid>
           </Stack>
         ) : null}
-
+        <Divider sx={{ borderColor: dividerColor }} />
         {/* ---------------------- Client Requirements ---------------------- */}
-        <Stack spacing={3} textAlign="center" alignItems="center">
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Client Requirements
-          </Typography>
+        <Stack spacing={6} alignItems="center" sx={{ mt: 5 }}>
+          <Box
+            sx={{
+              opacity: animate ? 1 : 0,
+              transform: animate ? "translateX(0)" : "translateX(-30px)",
+              transition: "all 600ms cubic-bezier(.2,.9,.2,1)",
+              textAlign: "center"
+            }}
+          >
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              Client Requirements
+            </Typography>
+          </Box>
 
           <Stack spacing={2} maxWidth={720} textAlign="center">
             {caseStudy.clientRequirements.map((paragraph, index) => (
               <Typography
                 key={index}
                 variant="body1"
-                sx={{ color: 'text.secondary', lineHeight: 1.8 }}
+                sx={{
+                  color: "text.secondary",
+                  lineHeight: 1.8,
+                  opacity: animate ? 1 : 0,
+                  transform: animate ? "translateY(0)" : "translateY(10px)",
+                  transition: `all 600ms cubic-bezier(.2,.9,.2,1) ${index * 120}ms`,
+                }}
               >
                 {paragraph}
               </Typography>
@@ -139,29 +162,7 @@ const CaseStudyDetailPage = () => {
           </Stack>
         </Stack>
 
-        {/* ---------------------- Founder Highlight ---------------------- */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 3, md: 4 },
-            borderRadius: 0.5,
-            bgcolor:
-              isDark
-                ? alpha(theme.palette.secondary.main, 0.12)
-                : alpha(theme.palette.secondary.main, 0.08),
-          }}
-        >
-          <Stack spacing={1.5} textAlign={{ xs: 'center', md: 'left' }} alignItems={{ xs: 'center', md: 'flex-start' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {caseStudy.founderHighlight.name}
-            </Typography>
-
-            <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 720 }}>
-              {caseStudy.founderHighlight.message}
-            </Typography>
-          </Stack>
-        </Paper>
-
+        <Divider sx={{ borderColor: dividerColor }} />
         {/* ---------------------- Core Features ---------------------- */}
         <Stack spacing={4}>
           <Stack spacing={1.5} textAlign="center" alignItems="center">
@@ -209,7 +210,7 @@ const CaseStudyDetailPage = () => {
             ))}
           </Grid>
         </Stack>
-
+        <Divider sx={{ borderColor: dividerColor }} />
         {/* ---------------------- Journey Highlight ---------------------- */}
         <Paper
           elevation={0}
@@ -234,7 +235,7 @@ const CaseStudyDetailPage = () => {
             {caseStudy.journeyHighlight.description}
           </Typography>
         </Paper>
-
+        <Divider sx={{ borderColor: dividerColor }} />
         {/* ---------------------- Advanced Content ---------------------- */}
         <Stack spacing={3}>
           <Stack spacing={1.5} textAlign="center" alignItems="center">
@@ -281,7 +282,7 @@ const CaseStudyDetailPage = () => {
             ))}
           </Grid>
         </Stack>
-
+        <Divider sx={{ borderColor: dividerColor }} />
         {/* ---------------------- Colors & Typography ---------------------- */}
         <Stack spacing={3}>
           <Typography
@@ -355,7 +356,7 @@ const CaseStudyDetailPage = () => {
             </Grid>
           </Grid>
         </Stack>
-
+        <Divider sx={{ borderColor: dividerColor }} />
         {/* ---------------------- Challenges Section ---------------------- */}
         <Stack spacing={3}>
           <Typography
@@ -384,7 +385,7 @@ const CaseStudyDetailPage = () => {
             ))}
           </Stack>
         </Stack>
-
+        <Divider sx={{ borderColor: dividerColor }} />
         {/* ---------------------- Technology Stack ---------------------- */}
         <Stack spacing={2}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
@@ -431,7 +432,7 @@ const CaseStudyDetailPage = () => {
           </Box>
         </Stack>
 
-
+        <Divider sx={{ borderColor: dividerColor }} />
 
         {/* ---------------------- Final CTA ---------------------- */}
         <Stack spacing={2} textAlign={{ xs: 'center', md: 'left' }} alignItems={{ xs: 'center', md: 'flex-start' }}>
