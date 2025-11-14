@@ -1,69 +1,105 @@
-import { Container, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Container, Grid, Stack, Typography, alpha, useTheme, Box } from "@mui/material";
 
 const AboutMissionVisionSection = ({ content }) => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
+  const isDark = theme.palette.mode === "dark";
+
   const mission = content?.mission;
   const vision = content?.vision;
 
-  if (!mission && !vision) {
-    return null;
-  }
+  if (!mission && !vision) return null;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
-      <Paper
-        elevation={0}
-        sx={{
-          p: { xs: 4, md: 6 },
-          borderRadius: 0.5,
-          background: isDark
-            ? 'linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(79,70,229,0.45) 100%)'
-            : 'linear-gradient(135deg, rgba(226,232,255,0.95) 0%, rgba(129,140,248,0.35) 100%)',
-          border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.35 : 0.5)}`,
-        }}
-      >
-        <Grid container spacing={{ xs: 4, md: 6 }}>
-          {mission && (
-            <Grid item xs={12} md={6}>
-              <Stack spacing={2.5} sx={{ height: '100%' }}>
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: 700, color: isDark ? alpha('#ffffff', 0.92) : alpha('#000000', 0.9) }}
-                >
-                  {mission.title}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ color: isDark ? alpha('#ffffff', 0.8) : 'text.primary', lineHeight: 1.9 }}
-                >
-                  {mission.description}
-                </Typography>
-              </Stack>
-            </Grid>
-          )}
+    <Box
+      sx={{
+        width: "100%",
+     
+        // ANIMATION KEYFRAMES
+        "@keyframes slideLeftToRight": {
+          "0%": { opacity: 0, transform: "translateX(-60px)" },
+          "100%": { opacity: 1, transform: "translateX(0)" },
+        },
+        "@keyframes slideRightToLeft": {
+          "0%": { opacity: 0, transform: "translateX(60px)" },
+          "100%": { opacity: 1, transform: "translateX(0)" },
+        },
+      }}
+    >
+      <Container maxWidth="xl">
 
-          {vision && (
-            <Grid item xs={12} md={6}>
-              <Stack spacing={2.5} sx={{ height: '100%' }}>
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: 700, color: isDark ? alpha('#ffffff', 0.92) : alpha('#000000', 0.9) }}
-                >
-                  {vision.title}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ color: isDark ? alpha('#ffffff', 0.8) : 'text.primary', lineHeight: 1.9 }}
-                >
-                  {vision.description}
-                </Typography>
-              </Stack>
-            </Grid>
-          )}
+        {/* ---------------- MISSION SECTION ---------------- */}
+        <Grid container spacing={6} alignItems="flex-start">
+          {/* Mission Title (Left → Right Animation) */}
+          <Grid item xs={12} md={4}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                fontSize: { xs: 32, md: 44 },
+                color: "#fff",
+                animation: "slideLeftToRight 0.9s ease-out both",
+              }}
+            >
+              {mission.title}
+            </Typography>
+          </Grid>
+
+          {/* Mission Text (Right → Left Animation) */}
+          <Grid item xs={12} md={8}>
+            <Typography
+              variant="body1"
+              sx={{
+                color: alpha("#ffffff", 0.88),
+                fontSize: { xs: 16, md: 18 },
+                lineHeight: 1.9,
+                maxWidth: 1000,
+                animation: "slideRightToLeft 1s ease-out both",
+              }}
+            >
+              {mission.description}
+            </Typography>
+          </Grid>
         </Grid>
-      </Paper>
-    </Container>
+
+        {/* Spacing Between Mission & Vision */}
+        <Box sx={{ height: { xs: 40, md: 70 } }} />
+
+        {/* ---------------- VISION SECTION ---------------- */}
+        <Grid container spacing={6} alignItems="center">
+
+          {/* Vision Description (Left → Right Animation) */}
+          <Grid item xs={12} md={8}>
+            <Typography
+              variant="body1"
+              sx={{
+                color: alpha("#ffffff", 0.88),
+                fontSize: { xs: 16, md: 18 },
+                lineHeight: 1.9,
+                maxWidth: 1000,
+                animation: "slideLeftToRight 1s ease-out both",
+              }}
+            >
+              {vision.description}
+            </Typography>
+          </Grid>
+
+          {/* Vision Title (Right → Left Animation) */}
+          <Grid item xs={12} md={4} sx={{ textAlign: { xs: "left", md: "right" } }}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                fontSize: { xs: 32, md: 44 },
+                color: "#fff",
+                animation: "slideRightToLeft 0.9s ease-out both",
+              }}
+            >
+              {vision.title}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 

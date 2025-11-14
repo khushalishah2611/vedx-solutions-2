@@ -8,16 +8,20 @@ import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import {
   aboutHero,
   aboutStats,
-  aboutHighlights,
+  careerBenefits,
   aboutMissionVision,
+  careerStory,
 } from '../../data/company.js';
 import {
   AboutHeroSection,
   AboutMissionVisionSection,
-  AboutWhyChooseSection,
 } from '../sections/aboutpage/index.js';
 import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
+
+import {
+  CareerBenefitsSection, CareerStorySection
+} from '../sections/careerspage/index.js';
 const AboutPage = () => {
   const theme = useTheme();
 
@@ -32,7 +36,7 @@ const AboutPage = () => {
       <PageSectionsContainer>
         <CareerStorySection story={careerStory} />
         <Divider sx={{ borderColor: dividerColor }} />
-        <AboutWhyChooseSection highlights={aboutHighlights} />
+        <CareerBenefitsSection benefits={careerBenefits} />
         <Divider sx={{ borderColor: dividerColor }} />
         <AboutMissionVisionSection content={aboutMissionVision} />
         <Divider sx={{ borderColor: dividerColor }} />
