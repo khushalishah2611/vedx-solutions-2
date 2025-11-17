@@ -293,7 +293,7 @@ const AdminCareersPage = () => {
 
   return (
     <Stack spacing={3}>
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, bgcolor: 'background.paper' }}>
+      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 0.5, bgcolor: 'background.paper' }}>
         <Tabs
           value={activeSection}
           onChange={(event, value) => setActiveSection(value)}
@@ -391,11 +391,11 @@ const AdminCareersPage = () => {
           <CardHeader
             title="Applications"
             subheader="Review candidates, update their details, or download their resumes."
-            action={
-              <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
-                Add applicant
-              </Button>
-            }
+            // action={
+            //   <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
+            //     Add applicant
+            //   </Button>
+            // }
           />
           <Divider />
           <CardContent>
@@ -654,19 +654,7 @@ const AdminCareersPage = () => {
               </Stack>
               {resumeError && <FormHelperText error>{resumeError}</FormHelperText>}
             </Stack>
-            <TextField
-              label="Resume link"
-              placeholder="Paste resume URL or storage link"
-              value={applicationForm.resumeUrl}
-              onChange={(event) => handleApplicationFormChange('resumeUrl', event.target.value)}
-              disabled={Boolean(applicationForm.resumeFile)}
-              helperText={
-                applicationForm.resumeFile
-                  ? 'Resume PDF uploaded. Remove the file to enable link input.'
-                  : 'Provide a resume link if no PDF is uploaded.'
-              }
-              fullWidth
-            />
+
             <TextField
               label="Notes"
               placeholder="Add a quick summary or decision notes"
@@ -717,11 +705,7 @@ const AdminCareersPage = () => {
                 </Typography>
               </Stack>
               <Divider />
-              <Stack spacing={0.5}>
-                <Typography variant="body2" color="text.secondary">
-                  Resume: {viewApplication.resumeFile?.name || viewApplication.resumeUrl || 'Not provided'}
-                </Typography>
-              </Stack>
+
               <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                 {viewApplication.notes || 'No additional notes yet.'}
               </Typography>
