@@ -81,6 +81,11 @@ const AdminContactsPage = () => {
     []
   );
 
+  const enquiryStatuses = useMemo(
+    () => ['New', 'In progress', 'Replied', 'Closed'],
+    []
+  );
+
   const openEditDialog = (contact) => {
     setEditingContact(contact);
     setEditForm({ ...contact });
@@ -177,7 +182,15 @@ const AdminContactsPage = () => {
                       <TableCell>
                         <Chip
                           label={contact.status}
-                          color={contact.status === 'New' ? 'primary' : contact.status === 'Replied' ? 'success' : 'warning'}
+                          color={
+                            contact.status === 'New'
+                              ? 'primary'
+                              : contact.status === 'Replied'
+                                ? 'success'
+                                : contact.status === 'Closed'
+                                  ? 'secondary'
+                                  : 'warning'
+                          }
                           size="small"
                           sx={{ fontWeight: 600 }}
                         />
@@ -259,6 +272,19 @@ const AdminContactsPage = () => {
                 minRows={3}
                 fullWidth
               />
+              <TextField
+                select
+                label="Status"
+                value={editForm.status}
+                onChange={(event) => handleEditChange('status', event.target.value)}
+                fullWidth
+              >
+                {enquiryStatuses.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {status}
+                  </MenuItem>
+                ))}
+              </TextField>
 
             </Stack>
           )}
