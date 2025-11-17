@@ -103,7 +103,7 @@ const HireDeveloperDetailPage = () => {
           backgroundImage: `linear-gradient(${heroOverlay}, ${heroOverlay}), url(${role.heroImage || category.heroImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          minHeight: { xs: '70vh', md: '75vh' },
+          minHeight: { xs: '90vh', md: '100vh' },
           display: 'flex',
           alignItems: 'center',
           py: { xs: 12, md: 14 },

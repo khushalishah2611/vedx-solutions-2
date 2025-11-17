@@ -82,7 +82,7 @@ const ServiceDetailPage = () => {
           filter: isDark ? 'brightness(0.55)' : 'brightness(0.8)',
           position: 'relative',
           overflow: 'hidden',
-          minHeight: { xs: '70vh', md: '80vh' },
+          minHeight: { xs: '90vh', md: '100vh' },
           display: 'flex',
           alignItems: 'center',
           pb: { xs: 12, md: 14 },

@@ -19,7 +19,7 @@ const ServicesContact = () => {
 
   return (
     <Box component="section">
-          <Stack spacing={3} sx={{ mb: 8 }}>
+      <Stack spacing={3} sx={{ mb: 8 }}>
         <Typography
           variant="h3"
           sx={{
@@ -28,7 +28,7 @@ const ServicesContact = () => {
             textAlign: 'center',
           }}
         >
-         Conatct us
+          Conatct us
         </Typography>
       </Stack>
 
@@ -38,7 +38,7 @@ const ServicesContact = () => {
           xs={12}
           md={5}
           sx={{
-            minHeight: { xs: 220, md: '100%' },
+            minHeight: { xs: '90vh', md: '100vh' },
             backgroundImage: `url(${servicesContactImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
