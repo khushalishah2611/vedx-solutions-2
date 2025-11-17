@@ -97,7 +97,6 @@ const BlogPreviewCard = ({
             to={`/blog/${post.slug}`}
             variant="h6"
             sx={{
-              textDecoration: 'none',
               color: theme.palette.text.primary,
               fontWeight: 700,
               lineHeight: 1.3,

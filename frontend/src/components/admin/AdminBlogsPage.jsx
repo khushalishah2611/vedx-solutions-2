@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -11,6 +11,8 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  MenuItem,
+  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -18,7 +20,6 @@ import {
   TableHead,
   TableRow,
   TextField,
-  MenuItem,
   Stack,
   IconButton,
   Tooltip,
@@ -56,6 +57,58 @@ const mapBlogPostsToRows = (posts) =>
     isBold: false
   }));
 
+const dateFilterOptions = [
+  { value: 'all', label: 'All dates' },
+  { value: 'today', label: 'Today' },
+  { value: 'yesterday', label: 'Yesterday' },
+  { value: 'week', label: 'Last 7 days' },
+  { value: 'month', label: 'Last 30 days' },
+  { value: 'custom', label: 'Custom range' },
+];
+
+const matchesDateFilter = (value, filter, range) => {
+  if (filter === 'all') return true;
+  const target = value ? new Date(value) : null;
+  if (!target || Number.isNaN(target.getTime())) return false;
+
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const endOfToday = new Date(startOfToday);
+  endOfToday.setDate(endOfToday.getDate() + 1);
+
+  const dateInRange = (start, end) => target >= start && target < end;
+
+  switch (filter) {
+    case 'today':
+      return dateInRange(startOfToday, endOfToday);
+    case 'yesterday': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 1);
+      return dateInRange(start, startOfToday);
+    }
+    case 'week': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 7);
+      return target >= start && target < endOfToday;
+    }
+    case 'month': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 30);
+      return target >= start && target < endOfToday;
+    }
+    case 'custom': {
+      const start = range?.start ? new Date(range.start) : null;
+      const end = range?.end ? new Date(range.end) : null;
+      const normalizedEnd = end ? new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1) : null;
+      if (start && target < start) return false;
+      if (normalizedEnd && target >= normalizedEnd) return false;
+      return true;
+    }
+    default:
+      return true;
+  }
+};
+
 const AdminBlogsPage = () => {
   const categoryOptions = useMemo(
     () => Array.from(new Set(blogPosts.map((post) => post.category))),
@@ -83,6 +136,34 @@ const AdminBlogsPage = () => {
 
   // view dialog state
   const [viewBlog, setViewBlog] = useState(null);
+
+  const rowsPerPage = 5;
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ category: 'all', date: 'all', start: '', end: '' });
+
+  const filteredBlogs = useMemo(
+    () =>
+      blogList.filter((blog) => {
+        const categoryMatch = filters.category === 'all' || blog.category === filters.category;
+        const dateMatch = matchesDateFilter(blog.publishDate, filters.date, filters);
+        return categoryMatch && dateMatch;
+      }),
+    [blogList, filters]
+  );
+
+  const pagedBlogs = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return filteredBlogs.slice(start, start + rowsPerPage);
+  }, [filteredBlogs, page, rowsPerPage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredBlogs.length / rowsPerPage));
+    setPage((prev) => Math.min(prev, maxPage));
+  }, [filteredBlogs.length, rowsPerPage]);
 
   const openCreateDialog = () => {
     setDialogMode('create');
@@ -180,6 +261,55 @@ const AdminBlogsPage = () => {
         />
         <Divider />
         <CardContent>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'flex-end' }} mb={2}>
+            <TextField
+              select
+              label="Category"
+              value={filters.category}
+              onChange={(event) => setFilters((prev) => ({ ...prev, category: event.target.value }))}
+              sx={{ minWidth: 200 }}
+            >
+              <MenuItem value="all">All categories</MenuItem>
+              {categoryOptions.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Publish date"
+              value={filters.date}
+              onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
+              sx={{ minWidth: 200 }}
+            >
+              {dateFilterOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            {filters.date === 'custom' && (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
+                <TextField
+                  type="date"
+                  label="From"
+                  value={filters.start}
+                  onChange={(event) => setFilters((prev) => ({ ...prev, start: event.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+                <TextField
+                  type="date"
+                  label="To"
+                  value={filters.end}
+                  onChange={(event) => setFilters((prev) => ({ ...prev, end: event.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+              </Stack>
+            )}
+          </Stack>
           <TableContainer>
             <Table size="small">
               <TableHead>
@@ -192,7 +322,7 @@ const AdminBlogsPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {blogList.map((blog) => (
+                {pagedBlogs.map((blog) => (
                   <TableRow key={blog.id} hover>
                     <TableCell width="24%">
                       <Typography
@@ -252,9 +382,9 @@ const AdminBlogsPage = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {blogList.length === 0 && (
+                {filteredBlogs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={4}>
                       <Typography
                         variant="body2"
                         color="text.secondary"
@@ -267,7 +397,15 @@ const AdminBlogsPage = () => {
                 )}
               </TableBody>
             </Table>
-          </TableContainer>
+            </TableContainer>
+          <Stack mt={2} alignItems="flex-end">
+            <Pagination
+              count={Math.max(1, Math.ceil(filteredBlogs.length / rowsPerPage))}
+              page={page}
+              onChange={(event, value) => setPage(value)}
+              color="primary"
+            />
+          </Stack>
         </CardContent>
       </Card>
 

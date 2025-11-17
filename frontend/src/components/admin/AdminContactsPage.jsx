@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Avatar,
   Box,
@@ -15,6 +15,7 @@ import {
   ImageList,
   ImageListItem,
   MenuItem,
+  Pagination,
   Stack,
   Table,
   TableBody,
@@ -39,6 +40,7 @@ const initialContacts = [
     projectType: 'Web Application',
     description: 'Needs a responsive MVP to validate the new SaaS idea. Looking for a fast turnaround.',
     status: 'New',
+    receivedOn: '2024-07-12',
     attachments: [
       { src: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=320&q=80', title: 'Brand moodboard' },
       { src: 'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=320&q=80', title: 'Wireframe' }
@@ -52,6 +54,7 @@ const initialContacts = [
     projectType: 'Product Design',
     description: 'Interested in collaborating on UI/UX audit and brand refresh for premium clients.',
     status: 'In progress',
+    receivedOn: '2024-07-10',
     attachments: [
       { src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=320&q=80', title: 'Case study deck' }
     ]
@@ -64,12 +67,65 @@ const initialContacts = [
     projectType: 'Mobile App',
     description: 'Requested an estimate for logistics tracking app with driver onboarding.',
     status: 'Replied',
+    receivedOn: '2024-07-08',
     attachments: [
       { src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=320&q=80', title: 'Process diagram' },
       { src: 'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=320&q=80', title: 'App concept' }
     ]
   }
 ];
+
+const dateFilterOptions = [
+  { value: 'all', label: 'All dates' },
+  { value: 'today', label: 'Today' },
+  { value: 'yesterday', label: 'Yesterday' },
+  { value: 'week', label: 'Last 7 days' },
+  { value: 'month', label: 'Last 30 days' },
+  { value: 'custom', label: 'Custom range' },
+];
+
+const matchesDateFilter = (value, filter, range) => {
+  if (filter === 'all') return true;
+  const target = value ? new Date(value) : null;
+  if (!target || Number.isNaN(target.getTime())) return false;
+
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const endOfToday = new Date(startOfToday);
+  endOfToday.setDate(endOfToday.getDate() + 1);
+
+  const dateInRange = (start, end) => target >= start && target < end;
+
+  switch (filter) {
+    case 'today':
+      return dateInRange(startOfToday, endOfToday);
+    case 'yesterday': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 1);
+      return dateInRange(start, startOfToday);
+    }
+    case 'week': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 7);
+      return target >= start && target < endOfToday;
+    }
+    case 'month': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 30);
+      return target >= start && target < endOfToday;
+    }
+    case 'custom': {
+      const start = range?.start ? new Date(range.start) : null;
+      const end = range?.end ? new Date(range.end) : null;
+      const normalizedEnd = end ? new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1) : null;
+      if (start && target < start) return false;
+      if (normalizedEnd && target >= normalizedEnd) return false;
+      return true;
+    }
+    default:
+      return true;
+  }
+};
 
 const AdminContactsPage = () => {
   const [contactList, setContactList] = useState(initialContacts);
@@ -87,6 +143,48 @@ const AdminContactsPage = () => {
     () => ['New', 'In progress', 'Replied', 'Closed'],
     []
   );
+
+  const rowsPerPage = 5;
+  const [filters, setFilters] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    status: 'all',
+    date: 'all',
+    start: '',
+    end: '',
+  });
+  const [page, setPage] = useState(1);
+
+  const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
+
+  const filteredContacts = useMemo(
+    () =>
+      contactList.filter((contact) => {
+        const nameMatch = !filters.name || matchesQuery(contact.name, filters.name);
+        const emailMatch = !filters.email || matchesQuery(contact.email, filters.email);
+        const phoneMatch =
+          !filters.phone || matchesQuery(`${contact.countryCode} ${contact.phone}`, filters.phone);
+        const statusMatch = filters.status === 'all' || contact.status === filters.status;
+        const dateMatch = matchesDateFilter(contact.receivedOn, filters.date, filters);
+        return nameMatch && emailMatch && phoneMatch && statusMatch && dateMatch;
+      }),
+    [contactList, filters]
+  );
+
+  const pagedContacts = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return filteredContacts.slice(start, start + rowsPerPage);
+  }, [filteredContacts, page, rowsPerPage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredContacts.length / rowsPerPage));
+    setPage((prev) => Math.min(prev, maxPage));
+  }, [filteredContacts.length, rowsPerPage]);
 
   const openEditDialog = (contact) => {
     setEditingContact(contact);
@@ -144,6 +242,75 @@ const AdminContactsPage = () => {
               pipeline active.
             </Typography>
             <Divider sx={{ my: 1 }} />
+            <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }}>
+              <TextField
+                label="Name"
+                value={filters.name}
+                onChange={(event) => setFilters((prev) => ({ ...prev, name: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                label="Email"
+                value={filters.email}
+                onChange={(event) => setFilters((prev) => ({ ...prev, email: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                label="Mobile"
+                value={filters.phone}
+                onChange={(event) => setFilters((prev) => ({ ...prev, phone: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                select
+                label="Status"
+                value={filters.status}
+                onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+                sx={{ minWidth: 180 }}
+              >
+                <MenuItem value="all">All statuses</MenuItem>
+                {enquiryStatuses.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {status}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }}>
+              <TextField
+                select
+                label="Date filter"
+                value={filters.date}
+                onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
+                sx={{ minWidth: 200 }}
+              >
+                {dateFilterOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {filters.date === 'custom' && (
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
+                  <TextField
+                    type="date"
+                    label="From"
+                    value={filters.start}
+                    onChange={(event) => setFilters((prev) => ({ ...prev, start: event.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                  <TextField
+                    type="date"
+                    label="To"
+                    value={filters.end}
+                    onChange={(event) => setFilters((prev) => ({ ...prev, end: event.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                </Stack>
+              )}
+            </Stack>
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -152,13 +319,13 @@ const AdminContactsPage = () => {
                     <TableCell>Email &amp; Phone</TableCell>
                     <TableCell>Project Type</TableCell>
                     <TableCell>Description</TableCell>
-
+                    <TableCell>Received</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {contactList.map((contact) => (
+                  {pagedContacts.map((contact) => (
                     <TableRow key={contact.email} hover>
                       <TableCell>
                         <Stack direction="row" spacing={2} alignItems="center">
@@ -188,7 +355,11 @@ const AdminContactsPage = () => {
                           {contact.description}
                         </Typography>
                       </TableCell>
-
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {contact.receivedOn || '-'}
+                        </Typography>
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={contact.status}
@@ -230,9 +401,26 @@ const AdminContactsPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
+                  {filteredContacts.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No enquiries yet. Everything new will show up here.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(filteredContacts.length / rowsPerPage))}
+                page={page}
+                onChange={(event, value) => setPage(value)}
+                color="primary"
+              />
+            </Stack>
           </Stack>
         </CardContent>
       </Card>

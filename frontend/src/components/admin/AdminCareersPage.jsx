@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -16,6 +16,7 @@ import {
   IconButton,
   MenuItem,
   InputAdornment,
+  Pagination,
   Stack,
   Table,
   TableBody,
@@ -44,6 +45,7 @@ const initialJobPosts = [
     position: 'Frontend Engineer',
     experience: '5+ years',
     employmentType: 'Full-time',
+    postedOn: '2024-07-01',
     description:
       'Lead UI development for SaaS dashboards, mentor junior engineers, and collaborate with designers on component systems.'
   },
@@ -53,6 +55,7 @@ const initialJobPosts = [
     position: 'Design',
     experience: '3+ years',
     employmentType: 'Full-time',
+    postedOn: '2024-06-28',
     description:
       'Work closely with engineering and product to craft thoughtful user experiences and run usability studies.'
   }
@@ -66,6 +69,7 @@ const initialApplications = [
     contact: '+91 98765 43210',
     experience: '4 years',
     employmentType: 'Full-time',
+    appliedOn: '2024-07-10',
     resumeUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
     notes: 'Interested in remote-first teams and prefers frontend-heavy roles.'
   },
@@ -76,6 +80,7 @@ const initialApplications = [
     contact: '+91 91234 56789',
     experience: '2 years',
     employmentType: 'Part-time',
+    appliedOn: '2024-07-08',
     resumeUrl: 'https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf',
     notes: 'Has prior startup experience and contributed to design systems.'
   }
@@ -87,6 +92,7 @@ const emptyJobForm = {
   position: '',
   experience: '',
   employmentType: 'Full-time',
+  postedOn: new Date().toISOString().split('T')[0],
   description: ''
 };
 
@@ -97,9 +103,62 @@ const emptyApplicationForm = {
   contact: '',
   experience: '',
   employmentType: 'Full-time',
+  appliedOn: new Date().toISOString().split('T')[0],
   resumeUrl: '',
   resumeFile: null,
   notes: ''
+};
+
+const dateFilterOptions = [
+  { value: 'all', label: 'All dates' },
+  { value: 'today', label: 'Today' },
+  { value: 'yesterday', label: 'Yesterday' },
+  { value: 'week', label: 'Last 7 days' },
+  { value: 'month', label: 'Last 30 days' },
+  { value: 'custom', label: 'Custom range' },
+];
+
+const matchesDateFilter = (value, filter, range) => {
+  if (filter === 'all') return true;
+  const target = value ? new Date(value) : null;
+  if (!target || Number.isNaN(target.getTime())) return false;
+
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const endOfToday = new Date(startOfToday);
+  endOfToday.setDate(endOfToday.getDate() + 1);
+
+  const dateInRange = (start, end) => target >= start && target < end;
+
+  switch (filter) {
+    case 'today':
+      return dateInRange(startOfToday, endOfToday);
+    case 'yesterday': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 1);
+      return dateInRange(start, startOfToday);
+    }
+    case 'week': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 7);
+      return target >= start && target < endOfToday;
+    }
+    case 'month': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 30);
+      return target >= start && target < endOfToday;
+    }
+    case 'custom': {
+      const start = range?.start ? new Date(range.start) : null;
+      const end = range?.end ? new Date(range.end) : null;
+      const normalizedEnd = end ? new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1) : null;
+      if (start && target < start) return false;
+      if (normalizedEnd && target >= normalizedEnd) return false;
+      return true;
+    }
+    default:
+      return true;
+  }
 };
 
 const AdminCareersPage = () => {
@@ -123,6 +182,82 @@ const AdminCareersPage = () => {
   const [viewApplication, setViewApplication] = useState(null);
   const [resumeError, setResumeError] = useState('');
 
+  const rowsPerPage = 5;
+  const [jobFilters, setJobFilters] = useState({ position: '', type: 'all', date: 'all', start: '', end: '' });
+  const [jobPage, setJobPage] = useState(1);
+  const [applicationFilters, setApplicationFilters] = useState({
+    name: '',
+    email: '',
+    contact: '',
+    experience: '',
+    type: 'all',
+    date: 'all',
+    start: '',
+    end: '',
+  });
+  const [applicationPage, setApplicationPage] = useState(1);
+
+  const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
+
+  const filteredJobPosts = useMemo(
+    () =>
+      jobPosts.filter((job) => {
+        const positionMatch =
+          !jobFilters.position ||
+          matchesQuery(job.position, jobFilters.position) ||
+          matchesQuery(job.title, jobFilters.position);
+        const typeMatch = jobFilters.type === 'all' || job.employmentType === jobFilters.type;
+        const dateMatch = matchesDateFilter(job.postedOn, jobFilters.date, jobFilters);
+        return positionMatch && typeMatch && dateMatch;
+      }),
+    [jobFilters, jobPosts]
+  );
+
+  const pagedJobPosts = useMemo(() => {
+    const start = (jobPage - 1) * rowsPerPage;
+    return filteredJobPosts.slice(start, start + rowsPerPage);
+  }, [filteredJobPosts, jobPage, rowsPerPage]);
+
+  useEffect(() => {
+    setJobPage(1);
+  }, [jobFilters]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredJobPosts.length / rowsPerPage));
+    setJobPage((prev) => Math.min(prev, maxPage));
+  }, [filteredJobPosts.length, rowsPerPage]);
+
+  const filteredApplications = useMemo(
+    () =>
+      applications.filter((application) => {
+        const nameMatch = !applicationFilters.name || matchesQuery(application.name, applicationFilters.name);
+        const emailMatch = !applicationFilters.email || matchesQuery(application.email, applicationFilters.email);
+        const contactMatch =
+          !applicationFilters.contact || matchesQuery(application.contact, applicationFilters.contact);
+        const experienceMatch =
+          !applicationFilters.experience || matchesQuery(application.experience, applicationFilters.experience);
+        const typeMatch =
+          applicationFilters.type === 'all' || application.employmentType === applicationFilters.type;
+        const dateMatch = matchesDateFilter(application.appliedOn, applicationFilters.date, applicationFilters);
+        return nameMatch && emailMatch && contactMatch && experienceMatch && typeMatch && dateMatch;
+      }),
+    [applicationFilters, applications]
+  );
+
+  const pagedApplications = useMemo(() => {
+    const start = (applicationPage - 1) * rowsPerPage;
+    return filteredApplications.slice(start, start + rowsPerPage);
+  }, [applicationPage, filteredApplications, rowsPerPage]);
+
+  useEffect(() => {
+    setApplicationPage(1);
+  }, [applicationFilters]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredApplications.length / rowsPerPage));
+    setApplicationPage((prev) => Math.min(prev, maxPage));
+  }, [filteredApplications.length, rowsPerPage]);
+
   const handleJobFormChange = (field, value) => {
     setJobForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -134,7 +269,11 @@ const AdminCareersPage = () => {
   const openJobCreateDialog = () => {
     setJobDialogMode('create');
     setActiveJob(null);
-    setJobForm({ ...emptyJobForm, employmentType: employmentTypes[0] });
+    setJobForm({
+      ...emptyJobForm,
+      employmentType: employmentTypes[0],
+      postedOn: new Date().toISOString().split('T')[0],
+    });
     setJobDialogOpen(true);
   };
 
@@ -188,7 +327,11 @@ const AdminCareersPage = () => {
   const openApplicationCreateDialog = () => {
     setApplicationDialogMode('create');
     setActiveApplication(null);
-    setApplicationForm({ ...emptyApplicationForm, employmentType: employmentTypes[0] });
+    setApplicationForm({
+      ...emptyApplicationForm,
+      employmentType: employmentTypes[0],
+      appliedOn: new Date().toISOString().split('T')[0],
+    });
     setApplicationDialogOpen(true);
   };
 
@@ -322,12 +465,68 @@ const AdminCareersPage = () => {
           />
           <Divider />
           <CardContent>
+            <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
+              <TextField
+                label="Position or title"
+                value={jobFilters.position}
+                onChange={(event) => setJobFilters((prev) => ({ ...prev, position: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                select
+                label="Type"
+                value={jobFilters.type}
+                onChange={(event) => setJobFilters((prev) => ({ ...prev, type: event.target.value }))}
+                sx={{ minWidth: 180 }}
+              >
+                <MenuItem value="all">All types</MenuItem>
+                {employmentTypes.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                label="Date filter"
+                value={jobFilters.date}
+                onChange={(event) => setJobFilters((prev) => ({ ...prev, date: event.target.value }))}
+                sx={{ minWidth: 180 }}
+              >
+                {dateFilterOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {jobFilters.date === 'custom' && (
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
+                  <TextField
+                    type="date"
+                    label="From"
+                    value={jobFilters.start}
+                    onChange={(event) => setJobFilters((prev) => ({ ...prev, start: event.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                  <TextField
+                    type="date"
+                    label="To"
+                    value={jobFilters.end}
+                    onChange={(event) => setJobFilters((prev) => ({ ...prev, end: event.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                </Stack>
+              )}
+            </Stack>
             <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
                     <TableCell>Position</TableCell>
+                    <TableCell>Posted</TableCell>
                     <TableCell>Experience</TableCell>
                     <TableCell>Type</TableCell>
                     <TableCell>Description</TableCell>
@@ -335,10 +534,11 @@ const AdminCareersPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {jobPosts.map((job) => (
+                  {pagedJobPosts.map((job) => (
                     <TableRow key={job.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{job.title}</TableCell>
                       <TableCell>{job.position}</TableCell>
+                      <TableCell>{job.postedOn || '-'}</TableCell>
                       <TableCell>{job.experience}</TableCell>
                       <TableCell>
                         <Chip label={job.employmentType} size="small" color="primary" variant="outlined" />
@@ -373,9 +573,9 @@ const AdminCareersPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {jobPosts.length === 0 && (
+                  {filteredJobPosts.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={7}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No job posts yet. Click "New job" to add your first opening.
                         </Typography>
@@ -385,6 +585,14 @@ const AdminCareersPage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(filteredJobPosts.length / rowsPerPage))}
+                page={jobPage}
+                onChange={(event, value) => setJobPage(value)}
+                color="primary"
+              />
+            </Stack>
           </CardContent>
         </Card>
       )}
@@ -402,6 +610,81 @@ const AdminCareersPage = () => {
           />
           <Divider />
           <CardContent>
+            <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
+              <TextField
+                label="Name"
+                value={applicationFilters.name}
+                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, name: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                label="Email"
+                value={applicationFilters.email}
+                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, email: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                label="Mobile"
+                value={applicationFilters.contact}
+                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, contact: event.target.value }))}
+                fullWidth
+              />
+            </Stack>
+            <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
+              <TextField
+                label="Experience"
+                value={applicationFilters.experience}
+                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, experience: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                select
+                label="Type"
+                value={applicationFilters.type}
+                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, type: event.target.value }))}
+                sx={{ minWidth: 160 }}
+              >
+                <MenuItem value="all">All types</MenuItem>
+                {employmentTypes.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                label="Applied date"
+                value={applicationFilters.date}
+                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, date: event.target.value }))}
+                sx={{ minWidth: 180 }}
+              >
+                {dateFilterOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {applicationFilters.date === 'custom' && (
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
+                  <TextField
+                    type="date"
+                    label="From"
+                    value={applicationFilters.start}
+                    onChange={(event) => setApplicationFilters((prev) => ({ ...prev, start: event.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                  <TextField
+                    type="date"
+                    label="To"
+                    value={applicationFilters.end}
+                    onChange={(event) => setApplicationFilters((prev) => ({ ...prev, end: event.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                </Stack>
+              )}
+            </Stack>
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -409,13 +692,14 @@ const AdminCareersPage = () => {
                     <TableCell>Name</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Contact</TableCell>
+                    <TableCell>Applied</TableCell>
                     <TableCell>Experience</TableCell>
                     <TableCell>Type</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {applications.map((application) => (
+                  {pagedApplications.map((application) => (
                     <TableRow key={application.id} hover>
                       <TableCell sx={{ fontWeight: 600 }}>{application.name}</TableCell>
                       <TableCell>
@@ -424,6 +708,7 @@ const AdminCareersPage = () => {
                         </Typography>
                       </TableCell>
                       <TableCell>{application.contact}</TableCell>
+                      <TableCell>{application.appliedOn || '-'}</TableCell>
                       <TableCell>{application.experience}</TableCell>
                       <TableCell>
                         <Chip
@@ -472,9 +757,9 @@ const AdminCareersPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {applications.length === 0 && (
+                  {filteredApplications.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={7}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No applications received yet. Add applicants manually or import them later.
                         </Typography>
@@ -484,6 +769,14 @@ const AdminCareersPage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(filteredApplications.length / rowsPerPage))}
+                page={applicationPage}
+                onChange={(event, value) => setApplicationPage(value)}
+                color="primary"
+              />
+            </Stack>
           </CardContent>
         </Card>
       )}

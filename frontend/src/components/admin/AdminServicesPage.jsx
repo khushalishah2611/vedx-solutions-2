@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -13,6 +13,8 @@ import {
   Divider,
   Grid,
   IconButton,
+  MenuItem,
+  Pagination,
   Stack,
   Tab,
   Table,
@@ -54,6 +56,9 @@ const imageLibrary = [
   },
 ];
 
+const imagePlaceholder =
+  'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=60';
+
 const initialServices = [
   {
     id: 'full-stack',
@@ -67,6 +72,7 @@ const initialServices = [
     bannerTitle: 'Launch cohesive products faster',
     bannerSubtitle: 'Unified squads that own discovery to deployment.',
     bannerImage: imageLibrary[0].value,
+    createdAt: '2024-07-05',
     totalServices: 12,
     totalProjects: 120,
     totalClients: 65,
@@ -98,6 +104,7 @@ const initialServices = [
     bannerTitle: 'Build premium mobile experiences',
     bannerSubtitle: 'Native performance, consistent design systems, and automated releases.',
     bannerImage: imageLibrary[1].value,
+    createdAt: '2024-07-08',
     totalServices: 9,
     totalProjects: 85,
     totalClients: 40,
@@ -163,6 +170,7 @@ const emptyServiceForm = {
   bannerTitle: '',
   bannerSubtitle: '',
   bannerImage: imageLibrary[0].value,
+  createdAt: new Date().toISOString().split('T')[0],
   totalServices: 0,
   totalProjects: 0,
   totalClients: 0,
@@ -190,6 +198,58 @@ const emptyHireServiceForm = {
   description: ''
 };
 
+const dateFilterOptions = [
+  { value: 'all', label: 'All dates' },
+  { value: 'today', label: 'Today' },
+  { value: 'yesterday', label: 'Yesterday' },
+  { value: 'week', label: 'Last 7 days' },
+  { value: 'month', label: 'Last 30 days' },
+  { value: 'custom', label: 'Custom range' },
+];
+
+const matchesDateFilter = (value, filter, range) => {
+  if (filter === 'all') return true;
+  const target = value ? new Date(value) : null;
+  if (!target || Number.isNaN(target.getTime())) return false;
+
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const endOfToday = new Date(startOfToday);
+  endOfToday.setDate(endOfToday.getDate() + 1);
+
+  const dateInRange = (start, end) => target >= start && target < end;
+
+  switch (filter) {
+    case 'today':
+      return dateInRange(startOfToday, endOfToday);
+    case 'yesterday': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 1);
+      return dateInRange(start, startOfToday);
+    }
+    case 'week': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 7);
+      return target >= start && target < endOfToday;
+    }
+    case 'month': {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 30);
+      return target >= start && target < endOfToday;
+    }
+    case 'custom': {
+      const start = range?.start ? new Date(range.start) : null;
+      const end = range?.end ? new Date(range.end) : null;
+      const normalizedEnd = end ? new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1) : null;
+      if (start && target < start) return false;
+      if (normalizedEnd && target >= normalizedEnd) return false;
+      return true;
+    }
+    default:
+      return true;
+  }
+};
+
 const ImageUpload = ({ label, value, onChange, required }) => {
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -201,6 +261,8 @@ const ImageUpload = ({ label, value, onChange, required }) => {
     };
     reader.readAsDataURL(file);
   };
+
+  const previewSrc = value || imagePlaceholder;
 
   return (
     <Stack spacing={1.5}>
@@ -215,35 +277,23 @@ const ImageUpload = ({ label, value, onChange, required }) => {
           backgroundColor: 'background.default',
         }}
       >
-        {value ? (
-          <Box
-            component="img"
-            src={value}
-            alt={`${label} preview`}
-            sx={{
-              width: '100%',
-              height: 220,
-              objectFit: 'cover',
-              borderRadius: 1,
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              width: '100%',
-              height: 220,
-              display: 'grid',
-              placeItems: 'center',
-              backgroundColor: 'action.hover',
-              borderRadius: 1,
-              color: 'text.disabled',
-              typography: 'body2',
-            }}
-          >
-            No image selected
-          </Box>
-        )}
+        <Box
+          component="img"
+          src={previewSrc}
+          alt={`${label} preview`}
+          sx={{
+            width: '100%',
+            height: 220,
+            objectFit: 'cover',
+            borderRadius: 1,
+          }}
+        />
       </Box>
+      {!value && (
+        <Typography variant="caption" color="text.secondary">
+          A default placeholder is shown until you pick an image.
+        </Typography>
+      )}
       <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
         Choose image
         <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
@@ -287,7 +337,16 @@ const AdminServicesPage = () => {
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
 
-  const resetServiceForm = () => setServiceForm(emptyServiceForm);
+  const rowsPerPage = 5;
+  const [serviceDateFilter, setServiceDateFilter] = useState('all');
+  const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
+  const [servicePage, setServicePage] = useState(1);
+  const [technologyPage, setTechnologyPage] = useState(1);
+  const [benefitPage, setBenefitPage] = useState(1);
+  const [hireServicePage, setHireServicePage] = useState(1);
+
+  const resetServiceForm = () =>
+    setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
   const resetTechnologyForm = () => setTechnologyForm(emptyTechnologyForm);
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
@@ -346,6 +405,55 @@ const AdminServicesPage = () => {
     setHeroSaved(true);
     setTimeout(() => setHeroSaved(false), 3000);
   };
+
+  const filteredServices = useMemo(
+    () => services.filter((service) => matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange)),
+    [services, serviceDateFilter, serviceDateRange]
+  );
+
+  const pagedServices = useMemo(() => {
+    const start = (servicePage - 1) * rowsPerPage;
+    return filteredServices.slice(start, start + rowsPerPage);
+  }, [filteredServices, rowsPerPage, servicePage]);
+
+  useEffect(() => {
+    setServicePage(1);
+  }, [serviceDateFilter, serviceDateRange.start, serviceDateRange.end]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredServices.length / rowsPerPage));
+    setServicePage((prev) => Math.min(prev, maxPage));
+  }, [filteredServices.length, rowsPerPage]);
+
+  const pagedTechnologies = useMemo(() => {
+    const start = (technologyPage - 1) * rowsPerPage;
+    return technologies.slice(start, start + rowsPerPage);
+  }, [technologies, rowsPerPage, technologyPage]);
+
+  const pagedBenefits = useMemo(() => {
+    const start = (benefitPage - 1) * rowsPerPage;
+    return benefits.slice(start, start + rowsPerPage);
+  }, [benefits, rowsPerPage, benefitPage]);
+
+  const pagedHireServices = useMemo(() => {
+    const start = (hireServicePage - 1) * rowsPerPage;
+    return hireContent.services.slice(start, start + rowsPerPage);
+  }, [hireContent.services, rowsPerPage, hireServicePage]);
+
+  useEffect(() => {
+    const maxTechPage = Math.max(1, Math.ceil(technologies.length / rowsPerPage));
+    setTechnologyPage((prev) => Math.min(prev, maxTechPage));
+  }, [rowsPerPage, technologies.length]);
+
+  useEffect(() => {
+    const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
+    setBenefitPage((prev) => Math.min(prev, maxBenefitPage));
+  }, [benefits.length, rowsPerPage]);
+
+  useEffect(() => {
+    const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
+    setHireServicePage((prev) => Math.min(prev, maxHireServicePage));
+  }, [hireContent.services.length, rowsPerPage]);
 
   const openServiceCreateDialog = () => {
     setServiceDialogMode('create');
@@ -561,6 +669,50 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
+            <Stack
+              spacing={2}
+              direction={{ xs: 'column', md: 'row' }}
+              alignItems={{ xs: 'stretch', md: 'flex-end' }}
+              mb={2}
+            >
+              <TextField
+                select
+                label="Date filter"
+                value={serviceDateFilter}
+                onChange={(event) => setServiceDateFilter(event.target.value)}
+                sx={{ minWidth: 220 }}
+              >
+                {dateFilterOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {serviceDateFilter === 'custom' && (
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
+                  <TextField
+                    type="date"
+                    label="From"
+                    value={serviceDateRange.start}
+                    onChange={(event) =>
+                      setServiceDateRange((prev) => ({ ...prev, start: event.target.value }))
+                    }
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                  <TextField
+                    type="date"
+                    label="To"
+                    value={serviceDateRange.end}
+                    onChange={(event) =>
+                      setServiceDateRange((prev) => ({ ...prev, end: event.target.value }))
+                    }
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                </Stack>
+              )}
+            </Stack>
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -569,6 +721,7 @@ const AdminServicesPage = () => {
                     <TableCell>Slug</TableCell>
                     <TableCell>Sub-categories</TableCell>
                     <TableCell>Banner</TableCell>
+                    <TableCell>Created</TableCell>
                     <TableCell>FAQs</TableCell>
                     <TableCell>Totals</TableCell>
                     <TableCell>Description</TableCell>
@@ -576,7 +729,7 @@ const AdminServicesPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {services.map((service) => (
+                  {pagedServices.map((service) => (
                     <TableRow key={service.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{service.category}</TableCell>
                       <TableCell>
@@ -595,6 +748,12 @@ const AdminServicesPage = () => {
                       </TableCell>
                       <TableCell>
                         <Stack spacing={0.5}>
+                          <Box
+                            component="img"
+                            src={service.bannerImage || imagePlaceholder}
+                            alt={`${service.category} banner`}
+                            sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                          />
                           <Typography variant="body2" fontWeight={600}>
                             {service.bannerTitle}
                           </Typography>
@@ -603,6 +762,7 @@ const AdminServicesPage = () => {
                           </Typography>
                         </Stack>
                       </TableCell>
+                      <TableCell>{service.createdAt || '-'}</TableCell>
                       <TableCell>
                         <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" />
                       </TableCell>
@@ -647,9 +807,9 @@ const AdminServicesPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {services.length === 0 && (
+                  {filteredServices.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8}>
+                      <TableCell colSpan={9}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No service categories yet. Click "Add service" to create your first entry.
                         </Typography>
@@ -659,6 +819,14 @@ const AdminServicesPage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(filteredServices.length / rowsPerPage))}
+                page={servicePage}
+                onChange={(event, page) => setServicePage(page)}
+                color="primary"
+              />
+            </Stack>
           </CardContent>
         </Card>
       )}
@@ -687,15 +855,16 @@ const AdminServicesPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {technologies.map((tech) => (
+                  {pagedTechnologies.map((tech) => (
                     <TableRow key={tech.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{tech.title}</TableCell>
                       <TableCell>
-                        <Stack spacing={0.5}>
-                          <Typography variant="caption" color="text.secondary" noWrap>
-                            {tech.image ? 'Selected image' : 'Not set'}
-                          </Typography>
-                        </Stack>
+                        <Box
+                          component="img"
+                          src={tech.image || imagePlaceholder}
+                          alt={`${tech.title} preview`}
+                          sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                        />
                       </TableCell>
                       <TableCell sx={{ maxWidth: 220 }}>
                         <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
@@ -736,6 +905,14 @@ const AdminServicesPage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(technologies.length / rowsPerPage))}
+                page={technologyPage}
+                onChange={(event, page) => setTechnologyPage(page)}
+                color="primary"
+              />
+            </Stack>
           </CardContent>
         </Card>
       )}
@@ -764,13 +941,16 @@ const AdminServicesPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {benefits.map((benefit) => (
+                  {pagedBenefits.map((benefit) => (
                     <TableRow key={benefit.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
                       <TableCell sx={{ maxWidth: 200 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {benefit.image}
-                        </Typography>
+                        <Box
+                          component="img"
+                          src={benefit.image || imagePlaceholder}
+                          alt={`${benefit.title} visual`}
+                          sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                        />
                       </TableCell>
                       <TableCell sx={{ maxWidth: 240 }}>
                         <Typography variant="body2" color="text.secondary" noWrap>
@@ -809,6 +989,14 @@ const AdminServicesPage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(benefits.length / rowsPerPage))}
+                page={benefitPage}
+                onChange={(event, page) => setBenefitPage(page)}
+                color="primary"
+              />
+            </Stack>
           </CardContent>
         </Card>
       )}
@@ -883,7 +1071,7 @@ const AdminServicesPage = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {hireContent.services.map((service) => (
+                    {pagedHireServices.map((service) => (
                       <TableRow key={service.id} hover>
                         <TableCell sx={{ fontWeight: 700 }}>{service.title}</TableCell>
                         <TableCell sx={{ maxWidth: 320 }}>
@@ -927,6 +1115,14 @@ const AdminServicesPage = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage))}
+                  page={hireServicePage}
+                  onChange={(event, page) => setHireServicePage(page)}
+                  color="primary"
+                />
+              </Stack>
             </CardContent>
           </Card>
         </Stack>
