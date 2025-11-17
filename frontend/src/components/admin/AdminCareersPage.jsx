@@ -118,6 +118,18 @@ const dateFilterOptions = [
   { value: 'custom', label: 'Custom range' },
 ];
 
+const defaultJobFilters = { position: '', type: 'all', date: 'all', start: '', end: '' };
+const defaultApplicationFilters = {
+  name: '',
+  email: '',
+  contact: '',
+  experience: '',
+  type: 'all',
+  date: 'all',
+  start: '',
+  end: '',
+};
+
 const matchesDateFilter = (value, filter, range) => {
   if (filter === 'all') return true;
   const target = value ? new Date(value) : null;
@@ -183,18 +195,11 @@ const AdminCareersPage = () => {
   const [resumeError, setResumeError] = useState('');
 
   const rowsPerPage = 5;
-  const [jobFilters, setJobFilters] = useState({ position: '', type: 'all', date: 'all', start: '', end: '' });
+  const [jobFilterDraft, setJobFilterDraft] = useState(defaultJobFilters);
+  const [jobAppliedFilters, setJobAppliedFilters] = useState(defaultJobFilters);
   const [jobPage, setJobPage] = useState(1);
-  const [applicationFilters, setApplicationFilters] = useState({
-    name: '',
-    email: '',
-    contact: '',
-    experience: '',
-    type: 'all',
-    date: 'all',
-    start: '',
-    end: '',
-  });
+  const [applicationFilterDraft, setApplicationFilterDraft] = useState(defaultApplicationFilters);
+  const [applicationAppliedFilters, setApplicationAppliedFilters] = useState(defaultApplicationFilters);
   const [applicationPage, setApplicationPage] = useState(1);
 
   const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
@@ -203,14 +208,15 @@ const AdminCareersPage = () => {
     () =>
       jobPosts.filter((job) => {
         const positionMatch =
-          !jobFilters.position ||
-          matchesQuery(job.position, jobFilters.position) ||
-          matchesQuery(job.title, jobFilters.position);
-        const typeMatch = jobFilters.type === 'all' || job.employmentType === jobFilters.type;
-        const dateMatch = matchesDateFilter(job.postedOn, jobFilters.date, jobFilters);
+          !jobAppliedFilters.position ||
+          matchesQuery(job.position, jobAppliedFilters.position) ||
+          matchesQuery(job.title, jobAppliedFilters.position);
+        const typeMatch =
+          jobAppliedFilters.type === 'all' || job.employmentType === jobAppliedFilters.type;
+        const dateMatch = matchesDateFilter(job.postedOn, jobAppliedFilters.date, jobAppliedFilters);
         return positionMatch && typeMatch && dateMatch;
       }),
-    [jobFilters, jobPosts]
+    [jobAppliedFilters, jobPosts]
   );
 
   const pagedJobPosts = useMemo(() => {
@@ -220,7 +226,7 @@ const AdminCareersPage = () => {
 
   useEffect(() => {
     setJobPage(1);
-  }, [jobFilters]);
+  }, [jobAppliedFilters]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredJobPosts.length / rowsPerPage));
@@ -230,18 +236,27 @@ const AdminCareersPage = () => {
   const filteredApplications = useMemo(
     () =>
       applications.filter((application) => {
-        const nameMatch = !applicationFilters.name || matchesQuery(application.name, applicationFilters.name);
-        const emailMatch = !applicationFilters.email || matchesQuery(application.email, applicationFilters.email);
+        const nameMatch =
+          !applicationAppliedFilters.name || matchesQuery(application.name, applicationAppliedFilters.name);
+        const emailMatch =
+          !applicationAppliedFilters.email || matchesQuery(application.email, applicationAppliedFilters.email);
         const contactMatch =
-          !applicationFilters.contact || matchesQuery(application.contact, applicationFilters.contact);
+          !applicationAppliedFilters.contact ||
+          matchesQuery(application.contact, applicationAppliedFilters.contact);
         const experienceMatch =
-          !applicationFilters.experience || matchesQuery(application.experience, applicationFilters.experience);
+          !applicationAppliedFilters.experience ||
+          matchesQuery(application.experience, applicationAppliedFilters.experience);
         const typeMatch =
-          applicationFilters.type === 'all' || application.employmentType === applicationFilters.type;
-        const dateMatch = matchesDateFilter(application.appliedOn, applicationFilters.date, applicationFilters);
+          applicationAppliedFilters.type === 'all' ||
+          application.employmentType === applicationAppliedFilters.type;
+        const dateMatch = matchesDateFilter(
+          application.appliedOn,
+          applicationAppliedFilters.date,
+          applicationAppliedFilters
+        );
         return nameMatch && emailMatch && contactMatch && experienceMatch && typeMatch && dateMatch;
       }),
-    [applicationFilters, applications]
+    [applicationAppliedFilters, applications]
   );
 
   const pagedApplications = useMemo(() => {
@@ -251,12 +266,81 @@ const AdminCareersPage = () => {
 
   useEffect(() => {
     setApplicationPage(1);
-  }, [applicationFilters]);
+  }, [applicationAppliedFilters]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredApplications.length / rowsPerPage));
     setApplicationPage((prev) => Math.min(prev, maxPage));
   }, [filteredApplications.length, rowsPerPage]);
+
+  const applyJobFilters = () => setJobAppliedFilters(jobFilterDraft);
+
+  const clearJobFilters = () => {
+    setJobFilterDraft(defaultJobFilters);
+    setJobAppliedFilters(defaultJobFilters);
+  };
+
+  const removeJobFilter = (key) => {
+    const updated = { ...jobFilterDraft, [key]: defaultJobFilters[key] };
+    if (key === 'date') {
+      updated.start = '';
+      updated.end = '';
+    }
+    setJobFilterDraft(updated);
+    setJobAppliedFilters(updated);
+  };
+
+  const jobFilterChips = useMemo(() => {
+    const chips = [];
+    if (jobAppliedFilters.position)
+      chips.push({ key: 'position', label: `Position/Title: ${jobAppliedFilters.position}` });
+    if (jobAppliedFilters.type !== 'all') chips.push({ key: 'type', label: `Type: ${jobAppliedFilters.type}` });
+    if (jobAppliedFilters.date !== 'all') {
+      const rangeLabel =
+        jobAppliedFilters.date === 'custom'
+          ? ` (${jobAppliedFilters.start || 'any'} → ${jobAppliedFilters.end || 'any'})`
+          : '';
+      chips.push({ key: 'date', label: `Posted: ${jobAppliedFilters.date}${rangeLabel}` });
+    }
+    return chips;
+  }, [jobAppliedFilters]);
+
+  const applyApplicationFilters = () => setApplicationAppliedFilters(applicationFilterDraft);
+
+  const clearApplicationFilters = () => {
+    setApplicationFilterDraft(defaultApplicationFilters);
+    setApplicationAppliedFilters(defaultApplicationFilters);
+  };
+
+  const removeApplicationFilter = (key) => {
+    const updated = { ...applicationFilterDraft, [key]: defaultApplicationFilters[key] };
+    if (key === 'date') {
+      updated.start = '';
+      updated.end = '';
+    }
+    setApplicationFilterDraft(updated);
+    setApplicationAppliedFilters(updated);
+  };
+
+  const applicationFilterChips = useMemo(() => {
+    const chips = [];
+    if (applicationAppliedFilters.name) chips.push({ key: 'name', label: `Name: ${applicationAppliedFilters.name}` });
+    if (applicationAppliedFilters.email) chips.push({ key: 'email', label: `Email: ${applicationAppliedFilters.email}` });
+    if (applicationAppliedFilters.contact)
+      chips.push({ key: 'contact', label: `Mobile: ${applicationAppliedFilters.contact}` });
+    if (applicationAppliedFilters.experience)
+      chips.push({ key: 'experience', label: `Experience: ${applicationAppliedFilters.experience}` });
+    if (applicationAppliedFilters.type !== 'all')
+      chips.push({ key: 'type', label: `Type: ${applicationAppliedFilters.type}` });
+    if (applicationAppliedFilters.date !== 'all') {
+      const rangeLabel =
+        applicationAppliedFilters.date === 'custom'
+          ? ` (${applicationAppliedFilters.start || 'any'} → ${applicationAppliedFilters.end || 'any'})`
+          : '';
+      chips.push({ key: 'date', label: `Applied: ${applicationAppliedFilters.date}${rangeLabel}` });
+    }
+    return chips;
+  }, [applicationAppliedFilters]);
 
   const handleJobFormChange = (field, value) => {
     setJobForm((prev) => ({ ...prev, [field]: value }));
@@ -468,15 +552,15 @@ const AdminCareersPage = () => {
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
               <TextField
                 label="Position or title"
-                value={jobFilters.position}
-                onChange={(event) => setJobFilters((prev) => ({ ...prev, position: event.target.value }))}
+                value={jobFilterDraft.position}
+                onChange={(event) => setJobFilterDraft((prev) => ({ ...prev, position: event.target.value }))}
                 fullWidth
               />
               <TextField
                 select
                 label="Type"
-                value={jobFilters.type}
-                onChange={(event) => setJobFilters((prev) => ({ ...prev, type: event.target.value }))}
+                value={jobFilterDraft.type}
+                onChange={(event) => setJobFilterDraft((prev) => ({ ...prev, type: event.target.value }))}
                 sx={{ minWidth: 180 }}
               >
                 <MenuItem value="all">All types</MenuItem>
@@ -489,8 +573,8 @@ const AdminCareersPage = () => {
               <TextField
                 select
                 label="Date filter"
-                value={jobFilters.date}
-                onChange={(event) => setJobFilters((prev) => ({ ...prev, date: event.target.value }))}
+                value={jobFilterDraft.date}
+                onChange={(event) => setJobFilterDraft((prev) => ({ ...prev, date: event.target.value }))}
                 sx={{ minWidth: 180 }}
               >
                 {dateFilterOptions.map((option) => (
@@ -499,26 +583,46 @@ const AdminCareersPage = () => {
                   </MenuItem>
                 ))}
               </TextField>
-              {jobFilters.date === 'custom' && (
+              {jobFilterDraft.date === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                   <TextField
                     type="date"
                     label="From"
-                    value={jobFilters.start}
-                    onChange={(event) => setJobFilters((prev) => ({ ...prev, start: event.target.value }))}
+                    value={jobFilterDraft.start}
+                    onChange={(event) => setJobFilterDraft((prev) => ({ ...prev, start: event.target.value }))}
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
                   <TextField
                     type="date"
                     label="To"
-                    value={jobFilters.end}
-                    onChange={(event) => setJobFilters((prev) => ({ ...prev, end: event.target.value }))}
+                    value={jobFilterDraft.end}
+                    onChange={(event) => setJobFilterDraft((prev) => ({ ...prev, end: event.target.value }))}
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
                 </Stack>
               )}
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" mb={2}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                {jobFilterChips.map((chip) => (
+                  <Chip key={chip.key} label={chip.label} onDelete={() => removeJobFilter(chip.key)} />
+                ))}
+                {jobFilterChips.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    No filters applied
+                  </Typography>
+                )}
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <Button variant="outlined" color="inherit" onClick={clearJobFilters}>
+                  Clear filters
+                </Button>
+                <Button variant="contained" onClick={applyJobFilters}>
+                  Apply filters
+                </Button>
+              </Stack>
             </Stack>
             <TableContainer>
               <Table size="small">
@@ -613,35 +717,45 @@ const AdminCareersPage = () => {
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
               <TextField
                 label="Name"
-                value={applicationFilters.name}
-                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, name: event.target.value }))}
+                value={applicationFilterDraft.name}
+                onChange={(event) =>
+                  setApplicationFilterDraft((prev) => ({ ...prev, name: event.target.value }))
+                }
                 fullWidth
               />
               <TextField
                 label="Email"
-                value={applicationFilters.email}
-                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, email: event.target.value }))}
+                value={applicationFilterDraft.email}
+                onChange={(event) =>
+                  setApplicationFilterDraft((prev) => ({ ...prev, email: event.target.value }))
+                }
                 fullWidth
               />
               <TextField
                 label="Mobile"
-                value={applicationFilters.contact}
-                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, contact: event.target.value }))}
+                value={applicationFilterDraft.contact}
+                onChange={(event) =>
+                  setApplicationFilterDraft((prev) => ({ ...prev, contact: event.target.value }))
+                }
                 fullWidth
               />
             </Stack>
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
               <TextField
                 label="Experience"
-                value={applicationFilters.experience}
-                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, experience: event.target.value }))}
+                value={applicationFilterDraft.experience}
+                onChange={(event) =>
+                  setApplicationFilterDraft((prev) => ({ ...prev, experience: event.target.value }))
+                }
                 fullWidth
               />
               <TextField
                 select
                 label="Type"
-                value={applicationFilters.type}
-                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, type: event.target.value }))}
+                value={applicationFilterDraft.type}
+                onChange={(event) =>
+                  setApplicationFilterDraft((prev) => ({ ...prev, type: event.target.value }))
+                }
                 sx={{ minWidth: 160 }}
               >
                 <MenuItem value="all">All types</MenuItem>
@@ -654,8 +768,10 @@ const AdminCareersPage = () => {
               <TextField
                 select
                 label="Applied date"
-                value={applicationFilters.date}
-                onChange={(event) => setApplicationFilters((prev) => ({ ...prev, date: event.target.value }))}
+                value={applicationFilterDraft.date}
+                onChange={(event) =>
+                  setApplicationFilterDraft((prev) => ({ ...prev, date: event.target.value }))
+                }
                 sx={{ minWidth: 180 }}
               >
                 {dateFilterOptions.map((option) => (
@@ -664,26 +780,50 @@ const AdminCareersPage = () => {
                   </MenuItem>
                 ))}
               </TextField>
-              {applicationFilters.date === 'custom' && (
+              {applicationFilterDraft.date === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                   <TextField
                     type="date"
                     label="From"
-                    value={applicationFilters.start}
-                    onChange={(event) => setApplicationFilters((prev) => ({ ...prev, start: event.target.value }))}
+                    value={applicationFilterDraft.start}
+                    onChange={(event) =>
+                      setApplicationFilterDraft((prev) => ({ ...prev, start: event.target.value }))
+                    }
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
                   <TextField
                     type="date"
                     label="To"
-                    value={applicationFilters.end}
-                    onChange={(event) => setApplicationFilters((prev) => ({ ...prev, end: event.target.value }))}
+                    value={applicationFilterDraft.end}
+                    onChange={(event) =>
+                      setApplicationFilterDraft((prev) => ({ ...prev, end: event.target.value }))
+                    }
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
                 </Stack>
               )}
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" mb={2}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                {applicationFilterChips.map((chip) => (
+                  <Chip key={chip.key} label={chip.label} onDelete={() => removeApplicationFilter(chip.key)} />
+                ))}
+                {applicationFilterChips.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    No filters applied
+                  </Typography>
+                )}
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <Button variant="outlined" color="inherit" onClick={clearApplicationFilters}>
+                  Clear filters
+                </Button>
+                <Button variant="contained" onClick={applyApplicationFilters}>
+                  Apply filters
+                </Button>
+              </Stack>
             </Stack>
             <TableContainer>
               <Table size="small">

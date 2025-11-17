@@ -127,6 +127,16 @@ const matchesDateFilter = (value, filter, range) => {
   }
 };
 
+const defaultFilters = {
+  name: '',
+  email: '',
+  phone: '',
+  status: 'all',
+  date: 'all',
+  start: '',
+  end: '',
+};
+
 const AdminContactsPage = () => {
   const [contactList, setContactList] = useState(initialContacts);
   const [editingContact, setEditingContact] = useState(null);
@@ -145,15 +155,8 @@ const AdminContactsPage = () => {
   );
 
   const rowsPerPage = 5;
-  const [filters, setFilters] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    status: 'all',
-    date: 'all',
-    start: '',
-    end: '',
-  });
+  const [filterDraft, setFilterDraft] = useState(defaultFilters);
+  const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
   const [page, setPage] = useState(1);
 
   const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
@@ -161,15 +164,15 @@ const AdminContactsPage = () => {
   const filteredContacts = useMemo(
     () =>
       contactList.filter((contact) => {
-        const nameMatch = !filters.name || matchesQuery(contact.name, filters.name);
-        const emailMatch = !filters.email || matchesQuery(contact.email, filters.email);
+        const nameMatch = !appliedFilters.name || matchesQuery(contact.name, appliedFilters.name);
+        const emailMatch = !appliedFilters.email || matchesQuery(contact.email, appliedFilters.email);
         const phoneMatch =
-          !filters.phone || matchesQuery(`${contact.countryCode} ${contact.phone}`, filters.phone);
-        const statusMatch = filters.status === 'all' || contact.status === filters.status;
-        const dateMatch = matchesDateFilter(contact.receivedOn, filters.date, filters);
+          !appliedFilters.phone || matchesQuery(`${contact.countryCode} ${contact.phone}`, appliedFilters.phone);
+        const statusMatch = appliedFilters.status === 'all' || contact.status === appliedFilters.status;
+        const dateMatch = matchesDateFilter(contact.receivedOn, appliedFilters.date, appliedFilters);
         return nameMatch && emailMatch && phoneMatch && statusMatch && dateMatch;
       }),
-    [contactList, filters]
+    [contactList, appliedFilters]
   );
 
   const pagedContacts = useMemo(() => {
@@ -179,7 +182,7 @@ const AdminContactsPage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [filters]);
+  }, [appliedFilters]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredContacts.length / rowsPerPage));
@@ -231,6 +234,42 @@ const AdminContactsPage = () => {
     closeDeleteDialog();
   };
 
+  const applyFilters = () => {
+    setAppliedFilters(filterDraft);
+  };
+
+  const clearFilters = () => {
+    setFilterDraft(defaultFilters);
+    setAppliedFilters(defaultFilters);
+  };
+
+  const removeFilter = (key) => {
+    const reset = { ...filterDraft, [key]: defaultFilters[key] };
+    // when clearing date, also clear range
+    if (key === 'date') {
+      reset.start = '';
+      reset.end = '';
+    }
+    setFilterDraft(reset);
+    setAppliedFilters(reset);
+  };
+
+  const activeFilterChips = useMemo(() => {
+    const chips = [];
+    if (appliedFilters.name) chips.push({ key: 'name', label: `Name: ${appliedFilters.name}` });
+    if (appliedFilters.email) chips.push({ key: 'email', label: `Email: ${appliedFilters.email}` });
+    if (appliedFilters.phone) chips.push({ key: 'phone', label: `Mobile: ${appliedFilters.phone}` });
+    if (appliedFilters.status !== 'all') chips.push({ key: 'status', label: `Status: ${appliedFilters.status}` });
+    if (appliedFilters.date !== 'all') {
+      const rangeLabel =
+        appliedFilters.date === 'custom'
+          ? ` (${appliedFilters.start || 'any'} → ${appliedFilters.end || 'any'})`
+          : '';
+      chips.push({ key: 'date', label: `Date: ${appliedFilters.date}${rangeLabel}` });
+    }
+    return chips;
+  }, [appliedFilters]);
+
   return (
     <>
       <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -245,27 +284,27 @@ const AdminContactsPage = () => {
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }}>
               <TextField
                 label="Name"
-                value={filters.name}
-                onChange={(event) => setFilters((prev) => ({ ...prev, name: event.target.value }))}
+                value={filterDraft.name}
+                onChange={(event) => setFilterDraft((prev) => ({ ...prev, name: event.target.value }))}
                 fullWidth
               />
               <TextField
                 label="Email"
-                value={filters.email}
-                onChange={(event) => setFilters((prev) => ({ ...prev, email: event.target.value }))}
+                value={filterDraft.email}
+                onChange={(event) => setFilterDraft((prev) => ({ ...prev, email: event.target.value }))}
                 fullWidth
               />
               <TextField
                 label="Mobile"
-                value={filters.phone}
-                onChange={(event) => setFilters((prev) => ({ ...prev, phone: event.target.value }))}
+                value={filterDraft.phone}
+                onChange={(event) => setFilterDraft((prev) => ({ ...prev, phone: event.target.value }))}
                 fullWidth
               />
               <TextField
                 select
                 label="Status"
-                value={filters.status}
-                onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+                value={filterDraft.status}
+                onChange={(event) => setFilterDraft((prev) => ({ ...prev, status: event.target.value }))}
                 sx={{ minWidth: 180 }}
               >
                 <MenuItem value="all">All statuses</MenuItem>
@@ -280,8 +319,8 @@ const AdminContactsPage = () => {
               <TextField
                 select
                 label="Date filter"
-                value={filters.date}
-                onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
+                value={filterDraft.date}
+                onChange={(event) => setFilterDraft((prev) => ({ ...prev, date: event.target.value }))}
                 sx={{ minWidth: 200 }}
               >
                 {dateFilterOptions.map((option) => (
@@ -290,26 +329,46 @@ const AdminContactsPage = () => {
                   </MenuItem>
                 ))}
               </TextField>
-              {filters.date === 'custom' && (
+              {filterDraft.date === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                   <TextField
                     type="date"
                     label="From"
-                    value={filters.start}
-                    onChange={(event) => setFilters((prev) => ({ ...prev, start: event.target.value }))}
+                    value={filterDraft.start}
+                    onChange={(event) => setFilterDraft((prev) => ({ ...prev, start: event.target.value }))}
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
                   <TextField
                     type="date"
                     label="To"
-                    value={filters.end}
-                    onChange={(event) => setFilters((prev) => ({ ...prev, end: event.target.value }))}
+                    value={filterDraft.end}
+                    onChange={(event) => setFilterDraft((prev) => ({ ...prev, end: event.target.value }))}
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
                 </Stack>
               )}
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+              <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                {activeFilterChips.map((chip) => (
+                  <Chip key={chip.key} label={chip.label} onDelete={() => removeFilter(chip.key)} />
+                ))}
+                {activeFilterChips.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    No filters applied
+                  </Typography>
+                )}
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <Button variant="outlined" color="inherit" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+                <Button variant="contained" onClick={applyFilters}>
+                  Apply filters
+                </Button>
+              </Stack>
             </Stack>
             <TableContainer>
               <Table size="small">

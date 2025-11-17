@@ -109,6 +109,8 @@ const matchesDateFilter = (value, filter, range) => {
   }
 };
 
+const defaultBlogFilters = { category: 'all', date: 'all', start: '', end: '' };
+
 const AdminBlogsPage = () => {
   const categoryOptions = useMemo(
     () => Array.from(new Set(blogPosts.map((post) => post.category))),
@@ -139,16 +141,17 @@ const AdminBlogsPage = () => {
 
   const rowsPerPage = 5;
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ category: 'all', date: 'all', start: '', end: '' });
+  const [filterDraft, setFilterDraft] = useState(defaultBlogFilters);
+  const [appliedFilters, setAppliedFilters] = useState(defaultBlogFilters);
 
   const filteredBlogs = useMemo(
     () =>
       blogList.filter((blog) => {
-        const categoryMatch = filters.category === 'all' || blog.category === filters.category;
-        const dateMatch = matchesDateFilter(blog.publishDate, filters.date, filters);
+        const categoryMatch = appliedFilters.category === 'all' || blog.category === appliedFilters.category;
+        const dateMatch = matchesDateFilter(blog.publishDate, appliedFilters.date, appliedFilters);
         return categoryMatch && dateMatch;
       }),
-    [blogList, filters]
+    [blogList, appliedFilters]
   );
 
   const pagedBlogs = useMemo(() => {
@@ -158,7 +161,7 @@ const AdminBlogsPage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [filters]);
+  }, [appliedFilters]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredBlogs.length / rowsPerPage));
@@ -193,6 +196,36 @@ const AdminBlogsPage = () => {
     setActiveBlog(null);
     setDialogOpen(false);
   };
+
+  const applyFilters = () => setAppliedFilters(filterDraft);
+
+  const clearFilters = () => {
+    setFilterDraft(defaultBlogFilters);
+    setAppliedFilters(defaultBlogFilters);
+  };
+
+  const removeFilter = (key) => {
+    const updated = { ...filterDraft, [key]: defaultBlogFilters[key] };
+    if (key === 'date') {
+      updated.start = '';
+      updated.end = '';
+    }
+    setFilterDraft(updated);
+    setAppliedFilters(updated);
+  };
+
+  const activeFilterChips = useMemo(() => {
+    const chips = [];
+    if (appliedFilters.category !== 'all') chips.push({ key: 'category', label: `Category: ${appliedFilters.category}` });
+    if (appliedFilters.date !== 'all') {
+      const rangeLabel =
+        appliedFilters.date === 'custom'
+          ? ` (${appliedFilters.start || 'any'} → ${appliedFilters.end || 'any'})`
+          : '';
+      chips.push({ key: 'date', label: `Publish date: ${appliedFilters.date}${rangeLabel}` });
+    }
+    return chips;
+  }, [appliedFilters]);
 
   const handleFormChange = (field, value) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
@@ -265,8 +298,8 @@ const AdminBlogsPage = () => {
             <TextField
               select
               label="Category"
-              value={filters.category}
-              onChange={(event) => setFilters((prev) => ({ ...prev, category: event.target.value }))}
+              value={filterDraft.category}
+              onChange={(event) => setFilterDraft((prev) => ({ ...prev, category: event.target.value }))}
               sx={{ minWidth: 200 }}
             >
               <MenuItem value="all">All categories</MenuItem>
@@ -279,8 +312,8 @@ const AdminBlogsPage = () => {
             <TextField
               select
               label="Publish date"
-              value={filters.date}
-              onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
+              value={filterDraft.date}
+              onChange={(event) => setFilterDraft((prev) => ({ ...prev, date: event.target.value }))}
               sx={{ minWidth: 200 }}
             >
               {dateFilterOptions.map((option) => (
@@ -289,26 +322,46 @@ const AdminBlogsPage = () => {
                 </MenuItem>
               ))}
             </TextField>
-            {filters.date === 'custom' && (
+            {filterDraft.date === 'custom' && (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                 <TextField
                   type="date"
                   label="From"
-                  value={filters.start}
-                  onChange={(event) => setFilters((prev) => ({ ...prev, start: event.target.value }))}
+                  value={filterDraft.start}
+                  onChange={(event) => setFilterDraft((prev) => ({ ...prev, start: event.target.value }))}
                   InputLabelProps={{ shrink: true }}
                   fullWidth
                 />
                 <TextField
                   type="date"
                   label="To"
-                  value={filters.end}
-                  onChange={(event) => setFilters((prev) => ({ ...prev, end: event.target.value }))}
+                  value={filterDraft.end}
+                  onChange={(event) => setFilterDraft((prev) => ({ ...prev, end: event.target.value }))}
                   InputLabelProps={{ shrink: true }}
                   fullWidth
                 />
               </Stack>
             )}
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" mb={2}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+              {activeFilterChips.map((chip) => (
+                <Chip key={chip.key} label={chip.label} onDelete={() => removeFilter(chip.key)} />
+              ))}
+              {activeFilterChips.length === 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  No filters applied
+                </Typography>
+              )}
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Button variant="outlined" color="inherit" onClick={clearFilters}>
+                Clear filters
+              </Button>
+              <Button variant="contained" onClick={applyFilters}>
+                Apply filters
+              </Button>
+            </Stack>
           </Stack>
           <TableContainer>
             <Table size="small">
