@@ -30,14 +30,28 @@ import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { blogPosts } from '../../data/blogs.js';
 
+const normalizeDateInput = (value) => {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return new Date().toISOString().split('T')[0];
+  return parsed.toISOString().split('T')[0];
+};
+
+const normalizeConclusion = (conclusion) => {
+  if (typeof conclusion === 'string') return conclusion;
+  if (conclusion?.paragraphs?.length) {
+    return conclusion.paragraphs.join('\n\n');
+  }
+  return '';
+};
+
 const mapBlogPostsToRows = (posts) =>
   posts.slice(0, 5).map((post) => ({
     id: post.slug,
     title: post.title,
     category: post.category,
-    publishDate: post.publishedOn,
+    publishDate: normalizeDateInput(post.publishedOn),
     description: post.excerpt,
-    conclusion: post.conclusion || '',
+    conclusion: normalizeConclusion(post.conclusion),
     textColor: '#1f2937',
     isBold: false
   }));
