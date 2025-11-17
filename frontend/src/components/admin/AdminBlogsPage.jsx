@@ -37,6 +37,7 @@ const mapBlogPostsToRows = (posts) =>
     category: post.category,
     publishDate: post.publishedOn,
     description: post.excerpt,
+    conclusion: post.conclusion || '',
     textColor: '#1f2937',
     isBold: false
   }));
@@ -59,6 +60,7 @@ const AdminBlogsPage = () => {
     category: categoryOptions[0] || 'General',
     publishDate: new Date().toISOString().split('T')[0],
     description: '',
+    conclusion: '',
     textColor: '#1f2937',
     isBold: false
   });
@@ -78,6 +80,7 @@ const AdminBlogsPage = () => {
       category: categoryOptions[0] || 'General',
       publishDate: new Date().toISOString().split('T')[0],
       description: '',
+      conclusion: '',
       textColor: '#1f2937',
       isBold: false
     });
@@ -316,6 +319,16 @@ const AdminBlogsPage = () => {
               fullWidth
               required
             />
+            <TextField
+              label="Conclusion"
+              placeholder="Summarize the key takeaway for readers"
+              value={formState.conclusion}
+              onChange={(event) => handleFormChange('conclusion', event.target.value)}
+              multiline
+              minRows={3}
+              maxRows={10}
+              fullWidth
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -357,6 +370,15 @@ const AdminBlogsPage = () => {
               <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                 {viewBlog.description}
               </Typography>
+              <Divider />
+              <Stack spacing={0.5}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Conclusion
+                </Typography>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+                  {viewBlog.conclusion || 'No conclusion added yet.'}
+                </Typography>
+              </Stack>
             </Stack>
           )}
         </DialogContent>
