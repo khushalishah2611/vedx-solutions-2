@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormHelperText,
   IconButton,
   MenuItem,
   Stack,
@@ -22,7 +23,9 @@ import {
   TableRow,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  Tab,
+  Tabs
 } from '@mui/material';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
@@ -92,6 +95,7 @@ const emptyApplicationForm = {
   experience: '',
   employmentType: 'Full-time',
   resumeUrl: '',
+  resumeFile: null,
   notes: ''
 };
 
@@ -99,6 +103,7 @@ const AdminCareersPage = () => {
   const employmentTypes = useMemo(() => ['Full-time', 'Part-time', 'Contract'], []);
   const [jobPosts, setJobPosts] = useState(initialJobPosts);
   const [applications, setApplications] = useState(initialApplications);
+  const [activeSection, setActiveSection] = useState('job-posts');
 
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const [jobDialogMode, setJobDialogMode] = useState('create');
@@ -113,6 +118,7 @@ const AdminCareersPage = () => {
   const [applicationForm, setApplicationForm] = useState(emptyApplicationForm);
   const [applicationToDelete, setApplicationToDelete] = useState(null);
   const [viewApplication, setViewApplication] = useState(null);
+  const [resumeError, setResumeError] = useState('');
 
   const handleJobFormChange = (field, value) => {
     setJobForm((prev) => ({ ...prev, [field]: value }));
@@ -186,13 +192,14 @@ const AdminCareersPage = () => {
   const openApplicationEditDialog = (application) => {
     setApplicationDialogMode('edit');
     setActiveApplication(application);
-    setApplicationForm(application);
+    setApplicationForm({ ...application, resumeFile: application.resumeFile ?? null });
     setApplicationDialogOpen(true);
   };
 
   const closeApplicationDialog = () => {
     setApplicationDialogOpen(false);
     setActiveApplication(null);
+    setResumeError('');
   };
 
   const handleApplicationSubmit = (event) => {
@@ -222,6 +229,7 @@ const AdminCareersPage = () => {
 
   const handleConfirmDeleteApplication = () => {
     if (!applicationToDelete) return;
+    revokeResumeObjectUrl(applicationToDelete.resumeFile);
     setApplications((prev) => prev.filter((application) => application.id !== applicationToDelete.id));
     closeApplicationDeleteDialog();
   };
@@ -234,7 +242,46 @@ const AdminCareersPage = () => {
     setViewApplication(null);
   };
 
-  const handleResumeDownload = (resumeUrl) => {
+  const revokeResumeObjectUrl = (file) => {
+    if (file?.url?.startsWith('blob:')) {
+      URL.revokeObjectURL(file.url);
+    }
+  };
+
+  const handleResumeFileChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      handleClearResumeFile();
+      return;
+    }
+
+    if (file.type !== 'application/pdf') {
+      setResumeError('Only PDF files are supported.');
+      return;
+    }
+
+    setResumeError('');
+    setApplicationForm((prev) => {
+      revokeResumeObjectUrl(prev.resumeFile);
+      return {
+        ...prev,
+        resumeFile: { name: file.name, url: URL.createObjectURL(file) },
+        resumeUrl: ''
+      };
+    });
+  };
+
+  const handleClearResumeFile = () => {
+    setApplicationForm((prev) => {
+      revokeResumeObjectUrl(prev.resumeFile);
+      return { ...prev, resumeFile: null };
+    });
+    setResumeError('');
+  };
+
+  const handleResumeDownload = (application) => {
+    const resumeUrl = application?.resumeFile?.url || application?.resumeUrl;
     if (!resumeUrl) return;
     const link = document.createElement('a');
     link.href = resumeUrl;
@@ -245,183 +292,198 @@ const AdminCareersPage = () => {
   };
 
   return (
-    <Stack spacing={4}>
+    <Stack spacing={3}>
+      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, bgcolor: 'background.paper' }}>
+        <Tabs
+          value={activeSection}
+          onChange={(event, value) => setActiveSection(value)}
+          variant="fullWidth"
+          textColor="primary"
+          indicatorColor="primary"
+        >
+          <Tab value="job-posts" label="Job posts" icon={<WorkOutlineIcon />} iconPosition="start" />
+          <Tab value="applications" label="Applications" icon={<DownloadOutlinedIcon />} iconPosition="start" />
+        </Tabs>
+      </Box>
 
-
-      <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-        <CardHeader
-         
-          title="Job posts"
-          subheader="Add new openings, update details, or remove closed positions."
-          action={
-            <Button variant="contained" startIcon={<PersonAddAltIcon />} onClick={openJobCreateDialog}>
-              New job
-            </Button>
-          }
-        />
-        <Divider />
-        <CardContent>
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Position</TableCell>
-                  <TableCell>Experience</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Description</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {jobPosts.map((job) => (
-                  <TableRow key={job.id} hover>
-                    <TableCell sx={{ fontWeight: 700 }}>{job.title}</TableCell>
-                    <TableCell>{job.position}</TableCell>
-                    <TableCell>{job.experience}</TableCell>
-                    <TableCell>
-                      <Chip label={job.employmentType} size="small" color="primary" variant="outlined" />
-                    </TableCell>
-                    <TableCell sx={{ maxWidth: 320 }}>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {job.description}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <Tooltip title="View details">
-                          <IconButton size="small" onClick={() => handleViewJob(job)}>
-                            <VisibilityOutlinedIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Edit">
-                          <IconButton size="small" color="primary" onClick={() => openJobEditDialog(job)}>
-                            <EditOutlinedIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => openJobDeleteDialog(job)}
-                          >
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {jobPosts.length === 0 && (
+      {activeSection === 'job-posts' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Job posts"
+            subheader="Add new openings, update details, or remove closed positions."
+            action={
+              <Button variant="contained" startIcon={<PersonAddAltIcon />} onClick={openJobCreateDialog}>
+                New job
+              </Button>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={6}>
-                      <Typography variant="body2" color="text.secondary" align="center">
-                        No job posts yet. Click "New job" to add your first opening.
-                      </Typography>
-                    </TableCell>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Position</TableCell>
+                    <TableCell>Experience</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell align="right">Actions</TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+                </TableHead>
+                <TableBody>
+                  {jobPosts.map((job) => (
+                    <TableRow key={job.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{job.title}</TableCell>
+                      <TableCell>{job.position}</TableCell>
+                      <TableCell>{job.experience}</TableCell>
+                      <TableCell>
+                        <Chip label={job.employmentType} size="small" color="primary" variant="outlined" />
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 320 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {job.description}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="View details">
+                            <IconButton size="small" onClick={() => handleViewJob(job)}>
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit">
+                            <IconButton size="small" color="primary" onClick={() => openJobEditDialog(job)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => openJobDeleteDialog(job)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {jobPosts.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No job posts yet. Click "New job" to add your first opening.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-        <CardHeader
-          title="Applications"
-          subheader="Review candidates, update their details, or download their resumes."
-          action={
-            <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
-              Add applicant
-            </Button>
-          }
-        />
-        <Divider />
-        <CardContent>
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Contact</TableCell>
-                  <TableCell>Experience</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {applications.map((application) => (
-                  <TableRow key={application.id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{application.name}</TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {application.email}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{application.contact}</TableCell>
-                    <TableCell>{application.experience}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={application.employmentType}
-                        size="small"
-                        color="secondary"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <Tooltip title="View details">
-                          <IconButton size="small" onClick={() => handleViewApplication(application)}>
-                            <VisibilityOutlinedIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Download resume">
-                          <IconButton
-                            size="small"
-                            color="inherit"
-                            onClick={() => handleResumeDownload(application.resumeUrl)}
-                          >
-                            <DownloadOutlinedIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Edit applicant">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => openApplicationEditDialog(application)}
-                          >
-                            <EditOutlinedIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => openApplicationDeleteDialog(application)}
-                          >
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {applications.length === 0 && (
+      {activeSection === 'applications' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Applications"
+            subheader="Review candidates, update their details, or download their resumes."
+            action={
+              <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
+                Add applicant
+              </Button>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={6}>
-                      <Typography variant="body2" color="text.secondary" align="center">
-                        No applications received yet. Add applicants manually or import them later.
-                      </Typography>
-                    </TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Contact</TableCell>
+                    <TableCell>Experience</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell align="right">Actions</TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+                </TableHead>
+                <TableBody>
+                  {applications.map((application) => (
+                    <TableRow key={application.id} hover>
+                      <TableCell sx={{ fontWeight: 600 }}>{application.name}</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {application.email}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{application.contact}</TableCell>
+                      <TableCell>{application.experience}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={application.employmentType}
+                          size="small"
+                          color="secondary"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="View details">
+                            <IconButton size="small" onClick={() => handleViewApplication(application)}>
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Download resume">
+                            <IconButton
+                              size="small"
+                              color="secondary"
+                              onClick={() => handleResumeDownload(application)}
+                              disabled={!application.resumeFile?.url && !application.resumeUrl}
+                            >
+                              <DownloadOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => openApplicationEditDialog(application)}
+                            >
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => openApplicationDeleteDialog(application)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {applications.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No applications received yet. Add applicants manually or import them later.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={jobDialogOpen} onClose={closeJobDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{jobDialogMode === 'edit' ? 'Edit job post' : 'New job post'}</DialogTitle>
@@ -573,11 +635,36 @@ const AdminCareersPage = () => {
                 </MenuItem>
               ))}
             </TextField>
+            <Stack spacing={0.5}>
+              <Button component="label" variant="outlined">
+                {applicationForm.resumeFile ? 'Change resume (PDF)' : 'Upload resume (PDF)'}
+                <input type="file" hidden accept="application/pdf" onChange={handleResumeFileChange} />
+              </Button>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2" color="text.secondary">
+                  {applicationForm.resumeFile
+                    ? `Selected: ${applicationForm.resumeFile.name}`
+                    : 'No file selected yet.'}
+                </Typography>
+                {applicationForm.resumeFile && (
+                  <Button color="error" size="small" onClick={handleClearResumeFile}>
+                    Remove file
+                  </Button>
+                )}
+              </Stack>
+              {resumeError && <FormHelperText error>{resumeError}</FormHelperText>}
+            </Stack>
             <TextField
               label="Resume link"
               placeholder="Paste resume URL or storage link"
               value={applicationForm.resumeUrl}
               onChange={(event) => handleApplicationFormChange('resumeUrl', event.target.value)}
+              disabled={Boolean(applicationForm.resumeFile)}
+              helperText={
+                applicationForm.resumeFile
+                  ? 'Resume PDF uploaded. Remove the file to enable link input.'
+                  : 'Provide a resume link if no PDF is uploaded.'
+              }
               fullWidth
             />
             <TextField
@@ -630,13 +717,19 @@ const AdminCareersPage = () => {
                 </Typography>
               </Stack>
               <Divider />
+              <Stack spacing={0.5}>
+                <Typography variant="body2" color="text.secondary">
+                  Resume: {viewApplication.resumeFile?.name || viewApplication.resumeUrl || 'Not provided'}
+                </Typography>
+              </Stack>
               <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                 {viewApplication.notes || 'No additional notes yet.'}
               </Typography>
               <Button
                 variant="outlined"
                 startIcon={<DownloadOutlinedIcon />}
-                onClick={() => handleResumeDownload(viewApplication.resumeUrl)}
+                onClick={() => handleResumeDownload(viewApplication)}
+                disabled={!viewApplication.resumeFile?.url && !viewApplication.resumeUrl}
               >
                 Download resume
               </Button>
