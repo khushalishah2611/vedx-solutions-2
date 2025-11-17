@@ -14,6 +14,7 @@ import {
   FormHelperText,
   IconButton,
   MenuItem,
+  InputAdornment,
   Stack,
   Table,
   TableBody,
@@ -33,6 +34,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import CloseIcon from '@mui/icons-material/Close';
 
 const initialJobPosts = [
   {
@@ -592,89 +594,165 @@ const AdminCareersPage = () => {
       </Dialog>
 
       <Dialog open={applicationDialogOpen} onClose={closeApplicationDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{applicationDialogMode === 'edit' ? 'Edit applicant' : 'New applicant'}</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2} mt={1} component="form" onSubmit={handleApplicationSubmit}>
-            <TextField
-              label="Full name"
-              value={applicationForm.name}
-              onChange={(event) => handleApplicationFormChange('name', event.target.value)}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Email"
-              value={applicationForm.email}
-              onChange={(event) => handleApplicationFormChange('email', event.target.value)}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Contact number"
-              value={applicationForm.contact}
-              onChange={(event) => handleApplicationFormChange('contact', event.target.value)}
-              fullWidth
-            />
-            <TextField
-              label="Experience"
-              placeholder="e.g. 2 years"
-              value={applicationForm.experience}
-              onChange={(event) => handleApplicationFormChange('experience', event.target.value)}
-              fullWidth
-            />
-            <TextField
-              select
-              label="Employment type"
-              value={applicationForm.employmentType}
-              onChange={(event) => handleApplicationFormChange('employmentType', event.target.value)}
-              fullWidth
-            >
-              {employmentTypes.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </TextField>
+        <DialogTitle sx={{ px: { xs: 3, sm: 4 }, pb: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack spacing={0.5}>
-              <Button component="label" variant="outlined">
-                {applicationForm.resumeFile ? 'Change resume (PDF)' : 'Upload resume (PDF)'}
-                <input type="file" hidden accept="application/pdf" onChange={handleResumeFileChange} />
-              </Button>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="body2" color="text.secondary">
-                  {applicationForm.resumeFile
-                    ? `Selected: ${applicationForm.resumeFile.name}`
-                    : 'No file selected yet.'}
-                </Typography>
-                {applicationForm.resumeFile && (
-                  <Button color="error" size="small" onClick={handleClearResumeFile}>
-                    Remove file
-                  </Button>
-                )}
-              </Stack>
-              {resumeError && <FormHelperText error>{resumeError}</FormHelperText>}
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {applicationDialogMode === 'edit' ? 'Edit applicant' : 'New applicant'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Match the Hire Now contact flow with applicant-friendly fields and uploads.
+              </Typography>
             </Stack>
-
-            <TextField
-              label="Notes"
-              placeholder="Add a quick summary or decision notes"
-              value={applicationForm.notes}
-              onChange={(event) => handleApplicationFormChange('notes', event.target.value)}
-              fullWidth
-              multiline
-              minRows={3}
-              maxRows={8}
-            />
+            <IconButton onClick={closeApplicationDialog}>
+              <CloseIcon />
+            </IconButton>
           </Stack>
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              pr: { sm: 5 },
+              pl: { xs: 1, sm: 2 },
+              pt: 1,
+              pb: 3,
+            }}
+          >
+            <Stack spacing={2.5} component="form" onSubmit={handleApplicationSubmit}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Full name"
+                    value={applicationForm.name}
+                    onChange={(event) => handleApplicationFormChange('name', event.target.value)}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Email"
+                    type="email"
+                    value={applicationForm.email}
+                    onChange={(event) => handleApplicationFormChange('email', event.target.value)}
+                    fullWidth
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Mobile number"
+                    value={applicationForm.contact}
+                    onChange={(event) => handleApplicationFormChange('contact', event.target.value)}
+                    fullWidth
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>🇮🇳</Box>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Experience"
+                    placeholder="e.g. 2 years"
+                    value={applicationForm.experience}
+                    onChange={(event) => handleApplicationFormChange('experience', event.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    label="Employment type"
+                    value={applicationForm.employmentType}
+                    onChange={(event) => handleApplicationFormChange('employmentType', event.target.value)}
+                    fullWidth
+                  >
+                    {employmentTypes.map((type) => (
+                      <MenuItem key={type} value={type}>
+                        {type}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Resume link (optional)"
+                    placeholder="https://..."
+                    value={applicationForm.resumeUrl}
+                    onChange={(event) => handleApplicationFormChange('resumeUrl', event.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Stack spacing={0.5}>
+                    <Button component="label" variant="outlined">
+                      {applicationForm.resumeFile ? 'Change resume (PDF)' : 'Upload resume (PDF)'}
+                      <input type="file" hidden accept="application/pdf" onChange={handleResumeFileChange} />
+                    </Button>
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                      <Typography variant="body2" color="text.secondary">
+                        {applicationForm.resumeFile
+                          ? `Selected: ${applicationForm.resumeFile.name}`
+                          : 'No file selected yet.'}
+                      </Typography>
+                      {applicationForm.resumeFile && (
+                        <Button color="error" size="small" onClick={handleClearResumeFile}>
+                          Remove file
+                        </Button>
+                      )}
+                    </Stack>
+                    {resumeError && <FormHelperText error>{resumeError}</FormHelperText>}
+                  </Stack>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Notes"
+                    placeholder="Add a quick summary or decision notes"
+                    value={applicationForm.notes}
+                    onChange={(event) => handleApplicationFormChange('notes', event.target.value)}
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    maxRows={8}
+                  />
+                </Grid>
+              </Grid>
+
+              <Box sx={{ textAlign: 'start', mt: 1 }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  onClick={handleApplicationSubmit}
+                  sx={{
+                    background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                    color: '#fff',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: { xs: 4, md: 5 },
+                    py: { xs: 1.25, md: 1.5 },
+                    '&:hover': {
+                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
+                    },
+                  }}
+                >
+                  {applicationDialogMode === 'edit' ? 'Save applicant' : 'Submit applicant'}
+                </Button>
+              </Box>
+            </Stack>
+          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeApplicationDialog} color="inherit">
-            Cancel
-          </Button>
-          <Button onClick={handleApplicationSubmit} variant="contained">
-            {applicationDialogMode === 'edit' ? 'Save changes' : 'Save applicant'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <Dialog
