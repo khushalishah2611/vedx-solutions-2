@@ -198,6 +198,39 @@ const emptyHireServiceForm = {
   description: ''
 };
 
+const initialWhyChoose = {
+  heroTitle: 'Why choose our services',
+  heroDescription:
+    'Reassure visitors with outcomes, trusted delivery, and transparent engagement models backed by our teams.',
+  heroImage: imageLibrary[0].value,
+  tableTitle: 'Service highlights',
+  tableDescription: 'Spotlight capabilities by category and sub-category so clients can pick the right path.',
+  services: [
+    {
+      id: 'why-fs-front',
+      category: 'Full Stack Development',
+      subcategory: 'Frontend',
+      title: 'Product-minded engineers',
+      description: 'Frontend specialists who pair with UX and back-end teams to ship cohesive experiences.',
+    },
+    {
+      id: 'why-mobile-ios',
+      category: 'Mobile App Development',
+      subcategory: 'iOS',
+      title: 'Release-ready iOS pods',
+      description: 'Swift and SwiftUI teams who manage App Store releases, QA, and observability.',
+    },
+  ],
+};
+
+const emptyWhyServiceForm = {
+  id: '',
+  category: '',
+  subcategory: '',
+  title: '',
+  description: '',
+};
+
 const dateFilterOptions = [
   { value: 'all', label: 'All dates' },
   { value: 'today', label: 'Today' },
@@ -337,12 +370,21 @@ const AdminServicesPage = () => {
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
 
+  const [whyChoose, setWhyChoose] = useState(initialWhyChoose);
+  const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChoose);
+  const [whyServiceDialogOpen, setWhyServiceDialogOpen] = useState(false);
+  const [whyServiceDialogMode, setWhyServiceDialogMode] = useState('create');
+  const [whyServiceForm, setWhyServiceForm] = useState(emptyWhyServiceForm);
+  const [activeWhyService, setActiveWhyService] = useState(null);
+  const [whyServiceToDelete, setWhyServiceToDelete] = useState(null);
+
   const rowsPerPage = 5;
   const [serviceDateFilter, setServiceDateFilter] = useState('all');
   const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
   const [servicePage, setServicePage] = useState(1);
   const [technologyPage, setTechnologyPage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
+  const [whyServicePage, setWhyServicePage] = useState(1);
   const [hireServicePage, setHireServicePage] = useState(1);
 
   const resetServiceForm = () =>
@@ -350,6 +392,7 @@ const AdminServicesPage = () => {
   const resetTechnologyForm = () => setTechnologyForm(emptyTechnologyForm);
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
+  const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
 
   const handleServiceFormChange = (field, value) => {
     setServiceForm((prev) => ({ ...prev, [field]: value }));
@@ -406,6 +449,22 @@ const AdminServicesPage = () => {
     setTimeout(() => setHeroSaved(false), 3000);
   };
 
+  const handleWhyHeroChange = (field, value) => {
+    setWhyHeroForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleWhyHeroSave = (event) => {
+    event?.preventDefault();
+    setWhyChoose((prev) => ({
+      ...prev,
+      heroTitle: whyHeroForm.heroTitle,
+      heroDescription: whyHeroForm.heroDescription,
+      heroImage: whyHeroForm.heroImage,
+      tableTitle: whyHeroForm.tableTitle,
+      tableDescription: whyHeroForm.tableDescription,
+    }));
+  };
+
   const filteredServices = useMemo(
     () => services.filter((service) => matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange)),
     [services, serviceDateFilter, serviceDateRange]
@@ -435,6 +494,11 @@ const AdminServicesPage = () => {
     return benefits.slice(start, start + rowsPerPage);
   }, [benefits, rowsPerPage, benefitPage]);
 
+  const pagedWhyServices = useMemo(() => {
+    const start = (whyServicePage - 1) * rowsPerPage;
+    return whyChoose.services.slice(start, start + rowsPerPage);
+  }, [whyChoose.services, rowsPerPage, whyServicePage]);
+
   const pagedHireServices = useMemo(() => {
     const start = (hireServicePage - 1) * rowsPerPage;
     return hireContent.services.slice(start, start + rowsPerPage);
@@ -449,6 +513,11 @@ const AdminServicesPage = () => {
     const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
     setBenefitPage((prev) => Math.min(prev, maxBenefitPage));
   }, [benefits.length, rowsPerPage]);
+
+  useEffect(() => {
+    const maxWhyPage = Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage));
+    setWhyServicePage((prev) => Math.min(prev, maxWhyPage));
+  }, [whyChoose.services.length, rowsPerPage]);
 
   useEffect(() => {
     const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
@@ -584,6 +653,55 @@ const AdminServicesPage = () => {
     closeBenefitDeleteDialog();
   };
 
+  const openWhyServiceCreateDialog = () => {
+    setWhyServiceDialogMode('create');
+    setActiveWhyService(null);
+    resetWhyServiceForm();
+    setWhyServiceDialogOpen(true);
+  };
+
+  const openWhyServiceEditDialog = (service) => {
+    setWhyServiceDialogMode('edit');
+    setActiveWhyService(service);
+    setWhyServiceForm({ ...service });
+    setWhyServiceDialogOpen(true);
+  };
+
+  const closeWhyServiceDialog = () => {
+    setWhyServiceDialogOpen(false);
+    setActiveWhyService(null);
+  };
+
+  const handleWhyServiceSubmit = (event) => {
+    event?.preventDefault();
+    if (!whyServiceForm.title.trim() || !whyServiceForm.category.trim()) return;
+
+    if (whyServiceDialogMode === 'edit' && activeWhyService) {
+      setWhyChoose((prev) => ({
+        ...prev,
+        services: prev.services.map((service) =>
+          service.id === activeWhyService.id ? { ...whyServiceForm } : service
+        ),
+      }));
+    } else {
+      const newWhyService = { ...whyServiceForm, id: `why-${Date.now()}` };
+      setWhyChoose((prev) => ({ ...prev, services: [newWhyService, ...prev.services] }));
+    }
+
+    closeWhyServiceDialog();
+  };
+
+  const openWhyServiceDeleteDialog = (service) => setWhyServiceToDelete(service);
+  const closeWhyServiceDeleteDialog = () => setWhyServiceToDelete(null);
+  const handleConfirmDeleteWhyService = () => {
+    if (!whyServiceToDelete) return;
+    setWhyChoose((prev) => ({
+      ...prev,
+      services: prev.services.filter((service) => service.id !== whyServiceToDelete.id),
+    }));
+    closeWhyServiceDeleteDialog();
+  };
+
   const openHireServiceCreateDialog = () => {
     setHireServiceDialogMode('create');
     setActiveHireService(null);
@@ -638,6 +756,19 @@ const AdminServicesPage = () => {
     [technologyForm.items]
   );
 
+  const categoryOptions = useMemo(
+    () => Array.from(new Set(services.map((service) => service.category))).map((category) => ({
+      value: category,
+      label: category,
+    })),
+    [services]
+  );
+
+  const subcategoryOptions = useMemo(() => {
+    const selected = services.find((service) => service.category === whyServiceForm.category);
+    return selected?.subcategories || [];
+  }, [services, whyServiceForm.category]);
+
   return (
     <Stack spacing={3}>
       <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 0.5, bgcolor: 'background.paper' }}>
@@ -650,6 +781,7 @@ const AdminServicesPage = () => {
           textColor="primary"
         >
           <Tab value="services" label="Service menu" />
+          <Tab value="why-choose" label="Why choose service" />
           <Tab value="technologies" label="Technologies we support" />
           <Tab value="benefits" label="Benefits" />
           <Tab value="hire" label="Hire developers" />
@@ -826,6 +958,162 @@ const AdminServicesPage = () => {
                 onChange={(event, page) => setServicePage(page)}
                 color="primary"
               />
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'why-choose' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Why choose this service"
+            subheader="Set the hero headline, supporting description, and highlight cards per category/sub-category."
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <Box
+                component="form"
+                onSubmit={handleWhyHeroSave}
+                sx={{ border: '1px dashed', borderColor: 'divider', borderRadius: 1, p: 2 }}
+              >
+                <Grid container spacing={2} alignItems="flex-start">
+                  <Grid item xs={12} md={8}>
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Hero title"
+                        value={whyHeroForm.heroTitle}
+                        onChange={(event) => handleWhyHeroChange('heroTitle', event.target.value)}
+                        fullWidth
+                        required
+                      />
+                      <TextField
+                        label="Hero description"
+                        value={whyHeroForm.heroDescription}
+                        onChange={(event) => handleWhyHeroChange('heroDescription', event.target.value)}
+                        fullWidth
+                        multiline
+                        minRows={3}
+                      />
+                      <TextField
+                        label="Service table title"
+                        value={whyHeroForm.tableTitle}
+                        onChange={(event) => handleWhyHeroChange('tableTitle', event.target.value)}
+                        fullWidth
+                      />
+                      <TextField
+                        label="Service table description"
+                        value={whyHeroForm.tableDescription}
+                        onChange={(event) => handleWhyHeroChange('tableDescription', event.target.value)}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                      />
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Button type="submit" variant="contained">
+                          Save hero content
+                        </Button>
+                        <Typography variant="body2" color="text.secondary">
+                          This content powers the hero and highlights intro on the service detail page.
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyHeroForm.heroImage}
+                      onChange={(value) => handleWhyHeroChange('heroImage', value)}
+                      required
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Stack spacing={1}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                  <Box>
+                    <Typography variant="h6">{whyChoose.tableTitle || 'Service highlights'}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {whyChoose.tableDescription || 'Add category and sub-category wise proof points for this service.'}
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={openWhyServiceCreateDialog}
+                    sx={{ mt: { xs: 1, sm: 0 } }}
+                  >
+                    Add highlight
+                  </Button>
+                </Stack>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Sub-category</TableCell>
+                        <TableCell>Title</TableCell>
+                        <TableCell>Description</TableCell>
+                        <TableCell align="right">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {pagedWhyServices.map((service) => (
+                        <TableRow key={service.id} hover>
+                          <TableCell>{service.category || '-'}</TableCell>
+                          <TableCell>{service.subcategory || '-'}</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>{service.title}</TableCell>
+                          <TableCell sx={{ maxWidth: 340 }}>
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {service.description}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => openWhyServiceEditDialog(service)}
+                                >
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => openWhyServiceDeleteDialog(service)}
+                                >
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {whyChoose.services.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5}>
+                            <Typography variant="body2" color="text.secondary" align="center">
+                              No highlights yet. Use "Add highlight" to create category-wise reasons to choose you.
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Stack mt={2} alignItems="flex-end">
+                  <Pagination
+                    count={Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage))}
+                    page={whyServicePage}
+                    onChange={(event, page) => setWhyServicePage(page)}
+                    color="primary"
+                  />
+                </Stack>
+              </Stack>
             </Stack>
           </CardContent>
         </Card>
@@ -1408,6 +1696,91 @@ const AdminServicesPage = () => {
             Cancel
           </Button>
           <Button onClick={handleConfirmDeleteService} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={whyServiceDialogOpen} onClose={closeWhyServiceDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{whyServiceDialogMode === 'edit' ? 'Edit highlight' : 'Add highlight'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleWhyServiceSubmit}>
+            <TextField
+              select
+              label="Category"
+              value={whyServiceForm.category}
+              onChange={(event) =>
+                setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }))
+              }
+              fullWidth
+              required
+            >
+              {categoryOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Sub-category"
+              value={whyServiceForm.subcategory}
+              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
+              fullWidth
+              disabled={!whyServiceForm.category || subcategoryOptions.length === 0}
+              helperText={
+                !whyServiceForm.category
+                  ? 'Select a category first'
+                  : subcategoryOptions.length === 0
+                  ? 'No sub-categories available for this category'
+                  : undefined
+              }
+            >
+              {subcategoryOptions.map((option) => (
+                <MenuItem key={option.slug} value={option.name}>
+                  {option.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Highlight title"
+              value={whyServiceForm.title}
+              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={whyServiceForm.description}
+              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, description: event.target.value }))}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeWhyServiceDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleWhyServiceSubmit} variant="contained">
+            {whyServiceDialogMode === 'edit' ? 'Save changes' : 'Add highlight'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(whyServiceToDelete)} onClose={closeWhyServiceDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete highlight</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{whyServiceToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeWhyServiceDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteWhyService} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>
