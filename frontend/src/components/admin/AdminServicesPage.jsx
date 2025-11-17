@@ -63,11 +63,10 @@ const initialServices = [
   {
     id: 'full-stack',
     category: 'Full Stack Development',
-    categorySlug: 'full-stack-development',
     subcategories: [
-      { name: 'Frontend', slug: 'frontend' },
-      { name: 'Backend', slug: 'backend' },
-      { name: 'DevOps', slug: 'devops' },
+      { name: 'Frontend' },
+      { name: 'Backend' },
+      { name: 'DevOps' },
     ],
     bannerTitle: 'Launch cohesive products faster',
     bannerSubtitle: 'Unified squads that own discovery to deployment.',
@@ -94,12 +93,11 @@ const initialServices = [
   {
     id: 'mobile',
     category: 'Mobile App Development',
-    categorySlug: 'mobile-app-development',
     subcategories: [
-      { name: 'Android', slug: 'android' },
-      { name: 'iOS', slug: 'ios' },
-      { name: 'Flutter', slug: 'flutter' },
-      { name: 'React Native', slug: 'react-native' },
+      { name: 'Android' },
+      { name: 'iOS' },
+      { name: 'Flutter' },
+      { name: 'React Native' },
     ],
     bannerTitle: 'Build premium mobile experiences',
     bannerSubtitle: 'Native performance, consistent design systems, and automated releases.',
@@ -162,13 +160,12 @@ const initialHireDevelopers = {
   ]
 };
 
-const emptyServiceForm = {
-  id: '',
-  category: '',
-  categorySlug: '',
-  subcategories: [],
-  bannerTitle: '',
-  bannerSubtitle: '',
+  const emptyServiceForm = {
+    id: '',
+    category: '',
+    subcategories: [],
+    bannerTitle: '',
+    bannerSubtitle: '',
   bannerImage: imageLibrary[0].value,
   createdAt: new Date().toISOString().split('T')[0],
   totalServices: 0,
@@ -345,7 +342,7 @@ const AdminServicesPage = () => {
   const [serviceForm, setServiceForm] = useState(emptyServiceForm);
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [viewService, setViewService] = useState(null);
-  const [subcategoryDraft, setSubcategoryDraft] = useState({ name: '', slug: '' });
+  const [subcategoryDraft, setSubcategoryDraft] = useState({ name: '' });
   const [faqDraft, setFaqDraft] = useState({ question: '', answer: '' });
 
   const [technologies, setTechnologies] = useState(initialTechnologies);
@@ -399,18 +396,18 @@ const AdminServicesPage = () => {
   };
 
   const addSubcategory = () => {
-    if (!subcategoryDraft.name.trim() || !subcategoryDraft.slug.trim()) return;
+    if (!subcategoryDraft.name.trim()) return;
     setServiceForm((prev) => ({
       ...prev,
       subcategories: [...prev.subcategories, { ...subcategoryDraft }],
     }));
-    setSubcategoryDraft({ name: '', slug: '' });
+    setSubcategoryDraft({ name: '' });
   };
 
-  const removeSubcategory = (slug) => {
+  const removeSubcategory = (name) => {
     setServiceForm((prev) => ({
       ...prev,
-      subcategories: prev.subcategories.filter((item) => item.slug !== slug),
+      subcategories: prev.subcategories.filter((item) => item.name !== name),
     }));
   };
 
@@ -528,7 +525,7 @@ const AdminServicesPage = () => {
     setServiceDialogMode('create');
     setActiveService(null);
     resetServiceForm();
-    setSubcategoryDraft({ name: '', slug: '' });
+    setSubcategoryDraft({ name: '' });
     setFaqDraft({ question: '', answer: '' });
     setServiceDialogOpen(true);
   };
@@ -537,7 +534,7 @@ const AdminServicesPage = () => {
     setServiceDialogMode('edit');
     setActiveService(service);
     setServiceForm({ ...service });
-    setSubcategoryDraft({ name: '', slug: '' });
+    setSubcategoryDraft({ name: '' });
     setFaqDraft({ question: '', answer: '' });
     setServiceDialogOpen(true);
   };
@@ -850,7 +847,6 @@ const AdminServicesPage = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Category</TableCell>
-                    <TableCell>Slug</TableCell>
                     <TableCell>Sub-categories</TableCell>
                     <TableCell>Banner</TableCell>
                     <TableCell>Created</TableCell>
@@ -864,15 +860,12 @@ const AdminServicesPage = () => {
                   {pagedServices.map((service) => (
                     <TableRow key={service.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{service.category}</TableCell>
-                      <TableCell>
-                        <Chip label={service.categorySlug || 'Not set'} size="small" />
-                      </TableCell>
                       <TableCell sx={{ maxWidth: 200 }}>
                         <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
                           {service.subcategories.map((item) => (
                             <Chip
-                              key={`${item.slug}-${item.name}`}
-                              label={`${item.name} (${item.slug})`}
+                              key={item.name}
+                              label={item.name}
                               size="small"
                             />
                           ))}
@@ -1430,15 +1423,6 @@ const AdminServicesPage = () => {
                   required
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Category slug"
-                  value={serviceForm.categorySlug}
-                  onChange={(event) => handleServiceFormChange('categorySlug', event.target.value)}
-                  fullWidth
-                  helperText="Used to generate links for this category."
-                />
-              </Grid>
               <Grid item xs={12}>
                 <Stack spacing={1.5}>
                   <Typography variant="subtitle2">Sub-categories</Typography>
@@ -1451,14 +1435,6 @@ const AdminServicesPage = () => {
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} sm={5}>
-                      <TextField
-                        label="Slug"
-                        value={subcategoryDraft.slug}
-                        onChange={(event) => setSubcategoryDraft((prev) => ({ ...prev, slug: event.target.value }))}
-                        fullWidth
-                      />
-                    </Grid>
                     <Grid item xs={12} sm={2}>
                       <Button fullWidth variant="outlined" onClick={addSubcategory} startIcon={<AddCircleOutlineIcon />}>
                         Add
@@ -1468,15 +1444,15 @@ const AdminServicesPage = () => {
                   <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
                     {serviceForm.subcategories.map((item) => (
                       <Chip
-                        key={`${item.slug}-${item.name}`}
-                        label={`${item.name} (${item.slug})`}
-                        onDelete={() => removeSubcategory(item.slug)}
+                        key={item.name}
+                        label={item.name}
+                        onDelete={() => removeSubcategory(item.name)}
                         size="small"
                       />
                     ))}
                     {!serviceForm.subcategories.length && (
                       <Typography variant="body2" color="text.secondary">
-                        Add category and sub-category slugs to link services dynamically.
+                        Add categories and sub-categories to manage your service list.
                       </Typography>
                     )}
                   </Stack>
@@ -1616,11 +1592,8 @@ const AdminServicesPage = () => {
                 {viewService.category}
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                <Chip label={viewService.categorySlug || 'No slug set'} size="small" color="primary" />
-              </Stack>
-              <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
                 {viewService.subcategories.map((item) => (
-                  <Chip key={`${item.slug}-${item.name}`} label={`${item.name} (${item.slug})`} size="small" />
+                  <Chip key={item.name} label={item.name} size="small" />
                 ))}
               </Stack>
               <Divider />
@@ -1737,7 +1710,7 @@ const AdminServicesPage = () => {
               }
             >
               {subcategoryOptions.map((option) => (
-                <MenuItem key={option.slug} value={option.name}>
+                <MenuItem key={option.name} value={option.name}>
                   {option.name}
                 </MenuItem>
               ))}
