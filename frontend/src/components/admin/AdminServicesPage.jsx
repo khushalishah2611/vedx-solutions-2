@@ -13,7 +13,6 @@ import {
   Divider,
   Grid,
   IconButton,
-  MenuItem,
   Stack,
   Tab,
   Table,
@@ -191,6 +190,68 @@ const emptyHireServiceForm = {
   description: ''
 };
 
+const ImageUpload = ({ label, value, onChange, required }) => {
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      onChange(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <Stack spacing={1.5}>
+      <Typography variant="subtitle2">{label}</Typography>
+      <Box
+        sx={{
+          width: '100%',
+          borderRadius: 1,
+          border: '1px dashed',
+          borderColor: 'divider',
+          p: 1,
+          backgroundColor: 'background.default',
+        }}
+      >
+        {value ? (
+          <Box
+            component="img"
+            src={value}
+            alt={`${label} preview`}
+            sx={{
+              width: '100%',
+              height: 220,
+              objectFit: 'cover',
+              borderRadius: 1,
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              height: 220,
+              display: 'grid',
+              placeItems: 'center',
+              backgroundColor: 'action.hover',
+              borderRadius: 1,
+              color: 'text.disabled',
+              typography: 'body2',
+            }}
+          >
+            No image selected
+          </Box>
+        )}
+      </Box>
+      <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
+        Choose image
+        <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
+      </Button>
+    </Stack>
+  );
+};
+
 const AdminServicesPage = () => {
   const [activeTab, setActiveTab] = useState('services');
 
@@ -224,6 +285,7 @@ const AdminServicesPage = () => {
   const [hireServiceForm, setHireServiceForm] = useState(emptyHireServiceForm);
   const [activeHireService, setActiveHireService] = useState(null);
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
+  const [heroSaved, setHeroSaved] = useState(false);
 
   const resetServiceForm = () => setServiceForm(emptyServiceForm);
   const resetTechnologyForm = () => setTechnologyForm(emptyTechnologyForm);
@@ -273,6 +335,16 @@ const AdminServicesPage = () => {
 
   const handleHireServiceFormChange = (field, value) => {
     setHireServiceForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleHireContentChange = (field, value) => {
+    setHeroSaved(false);
+    setHireContent((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleHeroSave = () => {
+    setHeroSaved(true);
+    setTimeout(() => setHeroSaved(false), 3000);
   };
 
   const openServiceCreateDialog = () => {
@@ -754,30 +826,33 @@ const AdminServicesPage = () => {
                 <TextField
                   label="Title"
                   value={hireContent.title}
-                  onChange={(event) => setHireContent((prev) => ({ ...prev, title: event.target.value }))}
+                  onChange={(event) => handleHireContentChange('title', event.target.value)}
                   fullWidth
                 />
                 <TextField
                   label="Description"
                   value={hireContent.description}
-                  onChange={(event) => setHireContent((prev) => ({ ...prev, description: event.target.value }))}
+                  onChange={(event) => handleHireContentChange('description', event.target.value)}
                   fullWidth
                   multiline
                   minRows={3}
                 />
-                <TextField
-                  select
+                <ImageUpload
                   label="Hero image"
                   value={hireContent.heroImage}
-                  onChange={(event) => setHireContent((prev) => ({ ...prev, heroImage: event.target.value }))}
-                  fullWidth
-                >
-                  {imageLibrary.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  onChange={(value) => handleHireContentChange('heroImage', value)}
+                  required
+                />
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Button variant="contained" onClick={handleHeroSave}>
+                    Save hero
+                  </Button>
+                  {heroSaved && (
+                    <Typography variant="body2" color="success.main">
+                      Saved
+                    </Typography>
+                  )}
+                </Stack>
               </Stack>
             </CardContent>
           </Card>
@@ -940,19 +1015,12 @@ const AdminServicesPage = () => {
                 />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  select
+                <ImageUpload
                   label="Banner image"
                   value={serviceForm.bannerImage}
-                  onChange={(event) => handleServiceFormChange('bannerImage', event.target.value)}
-                  fullWidth
-                >
-                  {imageLibrary.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  onChange={(value) => handleServiceFormChange('bannerImage', value)}
+                  required
+                />
               </Grid>
               <Grid item xs={12} sm={4}>
                 <TextField
@@ -1080,8 +1148,20 @@ const AdminServicesPage = () => {
                   {viewService.bannerSubtitle}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Banner image: {viewService.bannerImage || 'Not set'}
+                  Banner image preview
                 </Typography>
+                {viewService.bannerImage ? (
+                  <Box
+                    component="img"
+                    src={viewService.bannerImage}
+                    alt={`${viewService.category} banner`}
+                    sx={{ width: '100%', borderRadius: 1, objectFit: 'cover' }}
+                  />
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Not set
+                  </Typography>
+                )}
               </Stack>
               <Stack direction="row" spacing={2}>
                 <Chip label={`Services: ${viewService.totalServices}`} />
@@ -1148,20 +1228,12 @@ const AdminServicesPage = () => {
               fullWidth
               required
             />
-            <TextField
-              select
+            <ImageUpload
               label="Image selection"
               value={technologyForm.image}
-              onChange={(event) => handleTechnologyFormChange('image', event.target.value)}
-              fullWidth
-              helperText="Choose an image shown alongside the technology stack."
-            >
-              {imageLibrary.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
+              onChange={(value) => handleTechnologyFormChange('image', value)}
+              required
+            />
             <TextField
               label="Technologies (comma separated)"
               value={formattedTechnologyItems}
@@ -1216,19 +1288,12 @@ const AdminServicesPage = () => {
               fullWidth
               required
             />
-            <TextField
-              select
+            <ImageUpload
               label="Image"
               value={benefitForm.image}
-              onChange={(event) => handleBenefitFormChange('image', event.target.value)}
-              fullWidth
-            >
-              {imageLibrary.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
+              onChange={(value) => handleBenefitFormChange('image', value)}
+              required
+            />
             <TextField
               label="Description"
               value={benefitForm.description}
