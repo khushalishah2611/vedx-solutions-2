@@ -28,6 +28,7 @@ import {
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
 const initialContacts = [
   {
@@ -75,6 +76,7 @@ const AdminContactsPage = () => {
   const [editingContact, setEditingContact] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [contactToDelete, setContactToDelete] = useState(null);
+  const [viewingContact, setViewingContact] = useState(null);
 
   const projectTypes = useMemo(
     () => ['Web Application', 'Mobile App', 'Product Design', 'Consulting', 'Other'],
@@ -115,6 +117,14 @@ const AdminContactsPage = () => {
 
   const closeDeleteDialog = () => {
     setContactToDelete(null);
+  };
+
+  const openViewDialog = (contact) => {
+    setViewingContact(contact);
+  };
+
+  const closeViewDialog = () => {
+    setViewingContact(null);
   };
 
   const handleConfirmDelete = () => {
@@ -197,6 +207,15 @@ const AdminContactsPage = () => {
                       </TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="View details">
+                            <IconButton
+                              size="small"
+                              color="inherit"
+                              onClick={() => openViewDialog(contact)}
+                            >
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                           <Tooltip title="Edit">
                             <IconButton size="small" color="primary" onClick={() => openEditDialog(contact)}>
                               <EditOutlinedIcon fontSize="small" />
@@ -316,6 +335,87 @@ const AdminContactsPage = () => {
           </Button>
           <Button onClick={handleConfirmDelete} color="error" variant="contained">
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(viewingContact)} onClose={closeViewDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Enquiry details</DialogTitle>
+        <DialogContent dividers>
+          {viewingContact && (
+            <Stack spacing={3} mt={1}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Avatar sx={{ width: 56, height: 56 }}>{viewingContact.name.charAt(0)}</Avatar>
+                <Box>
+                  <Typography variant="h6" fontWeight={700} gutterBottom>
+                    {viewingContact.name}
+                  </Typography>
+                  <Chip
+                    label={viewingContact.status}
+                    color={
+                      viewingContact.status === 'New'
+                        ? 'primary'
+                        : viewingContact.status === 'Replied'
+                          ? 'success'
+                          : viewingContact.status === 'Closed'
+                            ? 'secondary'
+                            : 'warning'
+                    }
+                    size="small"
+                    sx={{ fontWeight: 600 }}
+                  />
+                </Box>
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Contact
+                </Typography>
+                <Typography variant="body1">{viewingContact.email}</Typography>
+                <Typography variant="body1">{`${viewingContact.countryCode} · ${viewingContact.phone}`}</Typography>
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Project type
+                </Typography>
+                <Typography variant="body1" fontWeight={600}>
+                  {viewingContact.projectType}
+                </Typography>
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Description
+                </Typography>
+                <Typography variant="body1" color="text.primary">
+                  {viewingContact.description}
+                </Typography>
+              </Stack>
+
+              {viewingContact.attachments?.length > 0 && (
+                <Stack spacing={1}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Attachments
+                  </Typography>
+                  <ImageList cols={3} gap={8} sx={{ m: 0 }}>
+                    {viewingContact.attachments.map((item) => (
+                      <ImageListItem key={item.src}>
+                        <img src={item.src} alt={item.title} loading="lazy" style={{ borderRadius: 8 }} />
+                        <Typography variant="caption" display="block" mt={0.5} noWrap>
+                          {item.title}
+                        </Typography>
+                      </ImageListItem>
+                    ))}
+                  </ImageList>
+                </Stack>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeViewDialog} color="primary">
+            Close
           </Button>
         </DialogActions>
       </Dialog>
