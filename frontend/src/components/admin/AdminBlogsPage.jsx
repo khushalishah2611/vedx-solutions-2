@@ -164,15 +164,6 @@ const AdminBlogsPage = () => {
 
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography variant="h4" gutterBottom>
-          Manage Blogs
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Add new blog drafts, update existing posts, and control how they appear on the site.
-        </Typography>
-      </Box>
-
       <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
         <CardHeader
           title="Blogs"
@@ -328,8 +319,8 @@ const AdminBlogsPage = () => {
               value={formState.description}
               onChange={(event) => handleFormChange('description', event.target.value)}
               multiline
-              minRows={4}          
-              maxRows={12}         
+              minRows={4}
+              maxRows={12}
               fullWidth
               required
             />

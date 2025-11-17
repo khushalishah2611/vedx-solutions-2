@@ -246,18 +246,11 @@ const AdminCareersPage = () => {
 
   return (
     <Stack spacing={4}>
-      <Box>
-        <Typography variant="h4" gutterBottom>
-          Careers Admin
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Create and maintain job posts, track incoming applications, and export resumes directly from the admin panel.
-        </Typography>
-      </Box>
+
 
       <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
         <CardHeader
-          avatar={<WorkOutlineIcon color="primary" />}
+         
           title="Job posts"
           subheader="Add new openings, update details, or remove closed positions."
           action={
