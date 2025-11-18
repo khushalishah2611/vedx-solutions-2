@@ -79,7 +79,7 @@ const FooterSection = () => {
           position: 'relative',
           zIndex: 1,
           py: { xs: 6, md: 10 },
-        
+         px: { xs: 2.5, md: 10 } ,
           display: 'flex',
           flexDirection: 'column',
           gap: { xs: 6, md: 8 }

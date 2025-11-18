@@ -78,62 +78,9 @@ const ServicesProcess = () => {
         </Typography>
       </Stack>
 
-      {/* Navigation Arrows */}
-      {showNavigation && (
-        <>
-          <IconButton
-            aria-label="Previous process"
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            sx={{
-              position: "absolute",
-              top: "60%",
-              left: { xs: 4, md: -48 },
-              transform: "translateY(-60%)",
-              zIndex: 2,
-              backgroundColor: alpha(theme.palette.background.paper, 0.9),
-              border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.6)}`,
-              boxShadow: isDark
-                ? "0 4px 10px rgba(255,255,255,0.05)"
-                : "0 4px 10px rgba(0,0,0,0.1)",
-              "&:hover": {
-                backgroundColor: alpha(theme.palette.background.paper, 0.98),
-                transform: "translateY(-50%) scale(1.1)",
-              },
-              transition: "all 0.3s ease",
-            }}
-          >
-            <KeyboardArrowLeftRoundedIcon />
-          </IconButton>
-
-          <IconButton
-            aria-label="Next process"
-            onClick={handleNext}
-            sx={{
-              position: "absolute",
-              top: "60%",
-              right: { xs: 4, md: -48 },
-              transform: "translateY(-60%)",
-              zIndex: 2,
-              backgroundColor: alpha(theme.palette.background.paper, 0.9),
-              border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.6)}`,
-              boxShadow: isDark
-                ? "0 4px 10px rgba(255,255,255,0.05)"
-                : "0 4px 10px rgba(0,0,0,0.1)",
-              "&:hover": {
-                backgroundColor: alpha(theme.palette.background.paper, 0.98),
-                transform: "translateY(-50%) scale(1.1)",
-              },
-              transition: "all 0.3s ease",
-            }}
-          >
-            <KeyboardArrowRightRoundedIcon />
-          </IconButton>
-        </>
-      )}
-
+      
       {/* Process Steps */}
-      <Grid container spacing={4} sx={{ overflow: "hidden" }}>
+      <Grid container spacing={2} sx={{ overflow: "hidden" }}>
         {visibleSteps.map((step, index) => (
           <Grid item xs={12} md={6} lg={4} key={step.title}>
             <Paper

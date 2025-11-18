@@ -22,40 +22,22 @@ const HeroSection = () => {
   const timerRef = useRef(null);
 
   const startAutoplay = useCallback(() => {
-    if (timerRef.current) {
-      window.clearInterval(timerRef.current);
-    }
-    timerRef.current = window.setInterval(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % slides.length);
     }, SLIDE_INTERVAL);
   }, [slides.length]);
 
   useEffect(() => {
     startAutoplay();
-    return () => {
-      if (timerRef.current) {
-        window.clearInterval(timerRef.current);
-      }
-    };
+    return () => clearInterval(timerRef.current);
   }, [startAutoplay]);
 
-  const handleSelectSlide = useCallback(
-    (index) => {
-      setActiveSlide(index);
-      startAutoplay();
-    },
-    [startAutoplay]
-  );
-
-  const handlePrev = useCallback(() => {
-    setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  const handleSelectSlide = (index) => {
+    setActiveSlide(index);
     startAutoplay();
-  }, [slides.length, startAutoplay]);
-
-  const handleNext = useCallback(() => {
-    setActiveSlide((prev) => (prev + 1) % slides.length);
-    startAutoplay();
-  }, [slides.length, startAutoplay]);
+  };
 
   const currentSlide = slides[activeSlide];
 
@@ -66,7 +48,7 @@ const HeroSection = () => {
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        minHeight: { xs: '90vh', md: '100vh' },
+        minHeight: { xs: '80vh', md: '90vh' },
         display: 'flex',
         alignItems: 'center',
         pb: { xs: 12, md: 14 },
@@ -87,10 +69,12 @@ const HeroSection = () => {
               transform: 'scale(1.05)',
               transition: 'opacity 1.2s ease-in-out',
               opacity: index === activeSlide ? 1 : 0,
-              filter: isDark ? 'brightness(0.55)' : 'brightness(0.8)'
+              filter: isDark ? 'brightness(0.9)' : 'brightness(0.8)'
             }}
           />
         ))}
+
+        {/* Overlay */}
         <Box
           sx={{
             position: 'absolute',
@@ -102,8 +86,15 @@ const HeroSection = () => {
         />
       </Box>
 
-      {/* Slide Content */}
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+      {/* CONTENT (Full width with padding same as navbar) */}
+      <Container
+        maxWidth={false}
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+           px: { xs: 2.5, md: 10 } ,
+        }}
+      >
         <Stack spacing={{ xs: 6, md: 8 }}>
           <Fade in key={currentSlide.title} timeout={900}>
             <Stack spacing={5} maxWidth={{ xs: '100%', md: 720 }}>
@@ -130,7 +121,6 @@ const HeroSection = () => {
                 spacing={2}
                 pt={1.5}
               >
-
                 <Button
                   variant="contained"
                   size="large"
@@ -142,20 +132,19 @@ const HeroSection = () => {
                     textTransform: 'none',
                     fontWeight: 600,
                     '&:hover': {
-                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                    },
+                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                    }
                   }}
                 >
                   {currentSlide.ctaPrimary}
                 </Button>
-
               </Stack>
             </Stack>
           </Fade>
         </Stack>
       </Container>
 
-      {/* Dots (bottom centered) */}
+      {/* Dots */}
       <Box
         sx={{
           position: 'absolute',
@@ -165,7 +154,7 @@ const HeroSection = () => {
           zIndex: 2
         }}
       >
-        <Stack direction="row" spacing={1.2} alignItems="center">
+        <Stack direction="row" spacing={1.2}>
           {slides.map((slide, index) => {
             const active = index === activeSlide;
             return (
@@ -176,9 +165,7 @@ const HeroSection = () => {
                   width: active ? 14 : 10,
                   height: active ? 14 : 10,
                   borderRadius: '50%',
-                  backgroundColor: active
-                    ? 'secondary.main'
-                    : alpha('#ffffff', 0.4),
+                  backgroundColor: active ? 'secondary.main' : alpha('#ffffff', 0.4),
                   transition: 'all 0.3s ease'
                 }}
               />

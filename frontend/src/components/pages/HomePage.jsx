@@ -1,4 +1,4 @@
-import { Box, Divider, alpha, useTheme } from '@mui/material';
+import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
 import CreativeAgencySection from '../sections/homepage/CreativeAgencySection.jsx';
 import HeroSection from '../sections/homepage/HeroSection.jsx';
 import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
@@ -20,7 +20,10 @@ const HomePage = () => {
       <HeroSection />
 
       {/* All sections wrapped inside common padding */}
-      <Box sx={{ px: { xs: 4, md: 10 }, mx: 'auto' }}>
+      <Container maxWidth={false}
+        sx={{
+            px: { xs: 2.5, md: 10 } ,
+        }}>
         <Box my={5}>
           <CreativeAgencySection />
         </Box>
@@ -55,7 +58,7 @@ const HomePage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={5}><ServicesBlog /></Box>
-      </Box>
+      </Container>
     </Box>
   );
 };

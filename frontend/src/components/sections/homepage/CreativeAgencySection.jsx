@@ -26,13 +26,13 @@ const TypingTitle = () => {
         setTimeout(() => setIsDeleting(true), 1500);
       } else if (isDeleting && text === '') {
         setIsDeleting(false);
-        setLoopNum(loopNum + 1);
+        setLoopNum((prev) => prev + 1);
       }
     };
 
     const timer = setTimeout(handleTyping, typingSpeed);
     return () => clearTimeout(timer);
-  }, [text, isDeleting]);
+  }, [text, isDeleting, loopNum, typingSpeed]);
 
   return (
     <Box
@@ -66,15 +66,28 @@ export default function CreativeAgencySection() {
 
   return (
     <Box sx={{ position: 'relative' }}>
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-        <Grid container spacing={{ xs: 6, md: 10 }}justifyContent="flex-start" 
-  alignItems="center">
-          {/* === IMAGES SECTION === */}
+      {/* Full-width container with same side padding as hero/navbar */}
+      <Container
+        maxWidth={false}
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+       
+        
+        }}
+      >
+        <Grid
+          container
+          spacing={{ xs: 6, md: 10 }}
+          justifyContent="flex-start"
+          alignItems="center"
+        >
+          {/* === IMAGES SECTION (LEFT) === */}
           <Grid item xs={12} md={6}>
             <Box
               sx={{
                 position: 'relative',
-                maxWidth: 520,
+                maxWidth: 800,
                 mx: { xs: 'auto', md: 0 },
                 height: { xs: 400, md: 600 },
               }}
@@ -121,7 +134,7 @@ export default function CreativeAgencySection() {
             </Box>
           </Grid>
 
-          {/* === TEXT SECTION === */}
+          {/* === TEXT SECTION (RIGHT) === */}
           <Grid item xs={12} md={6}>
             <Stack spacing={3}>
               {/* Label */}
@@ -167,9 +180,10 @@ export default function CreativeAgencySection() {
                 }}
               >
                 Creative Digital Agency Working For
-                <br /> {/* ✅ Use <br /> for a new line */}
+                <br />
                 <TypingTitle />
               </Typography>
+
               {/* Description */}
               <Typography
                 variant="body1"

@@ -46,8 +46,9 @@ const aboutMenuItems = [
 const NavigationBar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { mode, toggleColorMode } = useContext(ColorModeContext);
+  const { mode } = useContext(ColorModeContext);
   const { openDialog: openContactDialog } = useContactDialog();
+
   const [open, setOpen] = useState(false);
   const createDefaultExpanded = () => ({ services: false, hireDevelopers: false, about: false });
   const [expandedMenus, setExpandedMenus] = useState(createDefaultExpanded);
@@ -56,7 +57,17 @@ const NavigationBar = () => {
   const [aboutAnchor, setAboutAnchor] = useState(null);
   const [activeServiceIndex, setActiveServiceIndex] = useState(0);
   const [activeHireIndex, setActiveHireIndex] = useState(0);
+
+  const gradientTextHover = {
+    color: 'transparent',
+    backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    WebkitTextFillColor: 'transparent'
+  };
+
   const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
+
   const desktopLinkSx = {
     fontWeight: 600,
     letterSpacing: 0.4,
@@ -67,15 +78,15 @@ const NavigationBar = () => {
     borderRadius: 1.5,
     transition: 'color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease',
     '&:hover': {
-      color: highlightColor,
+      ...gradientTextHover,
       backgroundColor: alpha(theme.palette.text.primary, mode === 'dark' ? 0.08 : 0.05),
-      opacity: 1,
+      opacity: 1
     },
     '&:focus-visible': {
       outline: '2px solid',
       outlineColor: alpha(highlightColor, 0.5),
-      outlineOffset: 2,
-    },
+      outlineOffset: 2
+    }
   };
 
   const toggleDrawer = (state) => () => {
@@ -131,10 +142,10 @@ const NavigationBar = () => {
           theme.palette.background.default,
           0.85
         )} 45%, ${alpha(theme.palette.background.paper, 0.96)} 100%)`;
-    const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
-    const descriptorColor = mode === 'dark'
-      ? 'rgba(255,255,255,0.75)'
-      : alpha(theme.palette.text.secondary, 0.9);
+    const descriptorColor =
+      mode === 'dark'
+        ? 'rgba(255,255,255,0.75)'
+        : alpha(theme.palette.text.secondary, 0.9);
 
     return (
       <Popover
@@ -162,7 +173,6 @@ const NavigationBar = () => {
       >
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
           <Box sx={{ p: { xs: 3, md: 4 }, width: { xs: '100%', md: 340 } }}>
-
             <Stack spacing={2}>
               {config.categories.map((category, index) => {
                 const active = index === activeIndex;
@@ -174,12 +184,10 @@ const NavigationBar = () => {
                     sx={{
                       width: '100%',
                       textAlign: 'left',
-
                       alignItems: 'flex-start',
                       display: 'flex',
                       gap: 1.5,
                       justifyContent: 'space-between',
-
                       color: 'inherit'
                     }}
                   >
@@ -187,7 +195,6 @@ const NavigationBar = () => {
                       <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                         {category.label}
                       </Typography>
-
                     </Box>
                     <KeyboardArrowRightRoundedIcon sx={{ opacity: active ? 1 : 0.4 }} />
                   </ButtonBase>
@@ -195,6 +202,7 @@ const NavigationBar = () => {
               })}
             </Stack>
           </Box>
+
           <Divider
             orientation="vertical"
             flexItem
@@ -203,6 +211,7 @@ const NavigationBar = () => {
               display: { xs: 'none', md: 'block' }
             }}
           />
+
           <Box
             sx={{
               position: 'relative',
@@ -214,7 +223,6 @@ const NavigationBar = () => {
               gap: 2
             }}
           >
-
             <Box
               sx={{
                 position: 'absolute',
@@ -222,6 +230,7 @@ const NavigationBar = () => {
                 background: overlayGradient
               }}
             />
+
             <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {activeCategory.label}
@@ -241,9 +250,10 @@ const NavigationBar = () => {
                 {activeCategory.subItems.map((item) => {
                   const isObject = typeof item === 'object' && item !== null;
                   const label = isObject ? item.label : item;
-                  const href = isObject && item.href
-                    ? item.href
-                    : `/services${createAnchorHref(label)}`;
+                  const href =
+                    isObject && item.href
+                      ? item.href
+                      : `/services${createAnchorHref(label)}`;
                   const isRouteLink = href.startsWith('/');
                   const linkProps = isRouteLink
                     ? { component: RouterLink, to: href }
@@ -272,13 +282,7 @@ const NavigationBar = () => {
                           textDecoration: 'none',
                           cursor: 'pointer',
                           transition: 'color 0.3s ease, background-image 0.3s ease',
-                          '&:hover': {
-                            color: 'transparent',
-                            backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                            WebkitBackgroundClip: 'text',
-                            backgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                          },
+                          '&:hover': gradientTextHover
                         }}
                       >
                         {label}
@@ -288,7 +292,6 @@ const NavigationBar = () => {
                 })}
               </Stack>
             </Stack>
-
           </Box>
         </Box>
       </Popover>
@@ -297,8 +300,6 @@ const NavigationBar = () => {
 
   const renderAboutMenu = (anchorEl, handleClose) => {
     const openPopover = Boolean(anchorEl);
-
-    const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
     const borderColor = alpha(theme.palette.divider, 0.22);
 
     return (
@@ -318,8 +319,7 @@ const NavigationBar = () => {
               py: 0.5,
               borderRadius: 0,
               minWidth: 200,
-              border: `1px solid ${borderColor}`,
-
+              border: `1px solid ${borderColor}`
             }
           }
         }}
@@ -340,47 +340,17 @@ const NavigationBar = () => {
                 px: 2.5,
                 py: 1.1,
                 borderRadius: 0.5,
-
                 color: theme.palette.text.primary,
-
-
                 backgroundColor: 'transparent !important',
-
                 '&:hover': {
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                  transition: 'color 0.3s ease, background-image 0.3s ease',
-                  '&:hover': {
-                    color: 'transparent',
-                    backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  },
+                  ...gradientTextHover,
                   backgroundColor: 'transparent !important',
                   transform: 'translateX(4px)'
-                },
-                '&:focus-visible': {
-                  color: highlightColor,
-                  backgroundColor: 'transparent !important',
-                  outline: '2px solid',
-                  outlineColor: alpha(highlightColor, 0.55),
-                  outlineOffset: 2
-                },
-                '&:active': {
-                  color: highlightColor,
-                  backgroundColor: 'transparent !important'
-                },
-
-                '&.Mui-selected, &.Mui-selected:hover': {
-                  color: highlightColor,
-                  backgroundColor: 'transparent !important'
                 }
               }}
             >
               {item.label}
             </MenuItem>
-
           ))}
         </MenuList>
       </Popover>
@@ -393,85 +363,47 @@ const NavigationBar = () => {
       elevation={0}
       color="transparent"
       sx={{
+        px: { xs: 2.5, md: 10 },
         borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
         backgroundColor: alpha(theme.palette.background.paper, mode === 'dark' ? 0.85 : 0.9),
         backdropFilter: 'blur(20px)'
       }}
     >
-      <Container>
-        <Toolbar
-          disableGutters
-          sx={{
-               px: { xs: 2, md: 5 }, // left & right padding (spacing 5 on md+)
-            alignItems: 'center',
-            gap: 3,
-            minHeight: 80,
-          }}
+      <Toolbar
+        disableGutters
+        sx={{
+          alignItems: 'center',
+          gap: 3,
+          minHeight: 80
+        }}
+      >
+        {/* LEFT: LOGO */}
+        <ButtonBase
+          component={RouterLink}
+          to="/"
+          sx={{ borderRadius: 1.5, display: 'inline-flex' }}
         >
+          <Box
+            component="img"
+            src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
+            alt="VedX Solutions logo"
+            sx={{ height: 50, width: 'auto', display: 'block' }}
+          />
+        </ButtonBase>
 
-          <ButtonBase
-            component={RouterLink}
-            to="/"
-            sx={{ borderRadius: 1.5, display: 'inline-flex' }}
-          >
-            <Box
-              component="img"
-              src={
-                'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
-              }
-              alt="VedX Solutions logo"
-              sx={{ height: 50, width: 'auto', display: 'block' }}
-            />
-          </ButtonBase>
-
-
-          {!isMobile && (
-            <Stack direction="row" spacing={2.5} alignItems="center" sx={{ ml: 'auto' }}>
-              {navigationLinks.map((item) => {
-                if (item.menu) {
-                  if (item.menu === 'about') {
-                    const isOpen = Boolean(aboutAnchor);
-                    return (
-                      <Box key={item.label}>
-                        <Button
-                          color="inherit"
-                          component={RouterLink}
-                          to={item.path ?? '/about'}
-                          sx={desktopLinkSx}
-                          endIcon={
-                            <KeyboardArrowDownRoundedIcon
-                              sx={{
-                                transition: 'transform 0.2s ease',
-                                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
-                              }}
-                            />
-                          }
-                          onMouseEnter={handleAboutEnter}
-                          onFocus={handleAboutEnter}
-                        >
-                          {item.label}
-                        </Button>
-                      </Box>
-                    );
-                  }
-
-                  const buttonProps = item.path ? { component: RouterLink, to: item.path } : {};
-                  const menuKey = item.menu;
-                  const menuConfig = {
-                    services: { anchor: serviceAnchor, handleEnter: handleServiceEnter },
-                    hireDevelopers: { anchor: hireAnchor, handleEnter: handleHireEnter }
-                  }[menuKey];
-
-                  if (!menuConfig) {
-                    return null;
-                  }
-
-                  const isOpen = Boolean(menuConfig.anchor);
-
+        {/* RIGHT: DESKTOP NAV */}
+        {!isMobile && (
+          <Stack direction="row" spacing={2.5} alignItems="center" sx={{ ml: 'auto' }}>
+            {navigationLinks.map((item) => {
+              if (item.menu) {
+                if (item.menu === 'about') {
+                  const isOpen = Boolean(aboutAnchor);
                   return (
                     <Box key={item.label}>
                       <Button
                         color="inherit"
+                        component={RouterLink}
+                        to={item.path ?? '/about'}
                         sx={desktopLinkSx}
                         endIcon={
                           <KeyboardArrowDownRoundedIcon
@@ -481,10 +413,8 @@ const NavigationBar = () => {
                             }}
                           />
                         }
-                        onMouseEnter={menuConfig.handleEnter}
-                        onFocus={menuConfig.handleEnter}
-                        onClick={!item.path ? menuConfig.handleEnter : undefined}
-                        {...buttonProps}
+                        onMouseEnter={handleAboutEnter}
+                        onFocus={handleAboutEnter}
                       >
                         {item.label}
                       </Button>
@@ -492,63 +422,96 @@ const NavigationBar = () => {
                   );
                 }
 
+                const buttonProps = item.path ? { component: RouterLink, to: item.path } : {};
+                const menuKey = item.menu;
+                const menuConfig = {
+                  services: { anchor: serviceAnchor, handleEnter: handleServiceEnter },
+                  hireDevelopers: { anchor: hireAnchor, handleEnter: handleHireEnter }
+                }[menuKey];
+
+                if (!menuConfig) return null;
+
+                const isOpen = Boolean(menuConfig.anchor);
+
                 return (
-                  <Button
-                    key={item.label}
-                    component={RouterLink}
-                    to={item.path}
-                    color="inherit"
-                    sx={desktopLinkSx}
-                  >
-                    {item.label}
-                  </Button>
+                  <Box key={item.label}>
+                    <Button
+                      color="inherit"
+                      sx={desktopLinkSx}
+                      endIcon={
+                        <KeyboardArrowDownRoundedIcon
+                          sx={{
+                            transition: 'transform 0.2s ease',
+                            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                          }}
+                        />
+                      }
+                      onMouseEnter={menuConfig.handleEnter}
+                      onFocus={menuConfig.handleEnter}
+                      onClick={!item.path ? menuConfig.handleEnter : undefined}
+                      {...buttonProps}
+                    >
+                      {item.label}
+                    </Button>
+                  </Box>
                 );
-              })}
-              <Divider orientation="vertical" flexItem sx={{ borderColor: theme.palette.divider }} />
+              }
 
-              {/* <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
-                <IconButton color="inherit" onClick={toggleColorMode}>
-                  {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
-                </IconButton>
-              </Tooltip> */}
+              return (
+                <Button
+                  key={item.label}
+                  component={RouterLink}
+                  to={item.path}
+                  color="inherit"
+                  sx={desktopLinkSx}
+                >
+                  {item.label}
+                </Button>
+              );
+            })}
 
-              <Button
-                variant="contained"
-                size="large"
-                onClick={openContactDialog}
-                startIcon={<PhoneInTalkRoundedIcon />}
-                sx={{
-                  background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                  color: '#fff',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  '&:hover': {
-                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                  },
-                }}
-              >
-                Hire Now
-              </Button>
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ borderColor: theme.palette.divider }}
+            />
 
-            </Stack>
-          )}
+            <Button
+              variant="contained"
+              size="large"
+              onClick={openContactDialog}
+              startIcon={<PhoneInTalkRoundedIcon />}
+              sx={{
+                background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                color: '#fff',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                }
+              }}
+            >
+              Hire Now
+            </Button>
+          </Stack>
+        )}
 
-          {isMobile && (
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 'auto' }}>
-              {/* <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
-                <IconButton color="inherit" onClick={toggleColorMode}>
-                  {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
-                </IconButton>
-              </Tooltip> */}
-              <IconButton onClick={toggleDrawer(true)} color="inherit" aria-label="Open navigation menu">
-                <MenuRoundedIcon />
-              </IconButton>
-            </Stack>
-          )}
-        </Toolbar>
-      </Container>
+        {/* MOBILE RIGHT ICON */}
+        {isMobile && (
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 'auto' }}>
+            <IconButton
+              onClick={toggleDrawer(true)}
+              color="inherit"
+              aria-label="Open navigation menu"
+            >
+              <MenuRoundedIcon />
+            </IconButton>
+          </Stack>
+        )}
+      </Toolbar>
 
+      {/* === MOBILE DRAWER === */}
       <Drawer
         anchor="right"
         open={open}
@@ -560,37 +523,42 @@ const NavigationBar = () => {
           }
         }}
       >
-        <Box sx={{ width: { xs: 320, sm: 360 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Box
+          sx={{
+            width: { xs: 320, sm: 360 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}
+        >
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
             sx={{ width: '100%' }}
           >
-
             <Box sx={{ textAlign: 'left', px: 2, py: 1 }}>
               <Box
                 component="img"
-                src={
-                  'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
-                }
+                src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
                 alt="VedX Solutions logo"
                 sx={{ height: 50, width: 'auto' }}
               />
             </Box>
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ pr: 1 }}>
-              {/* <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
-                <IconButton color="inherit" onClick={toggleColorMode}>
-                  {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
-                </IconButton>
-              </Tooltip> */}
-              <IconButton onClick={toggleDrawer(false)} color="inherit" aria-label="Close navigation menu">
+              <IconButton
+                onClick={toggleDrawer(false)}
+                color="inherit"
+                aria-label="Close navigation menu"
+              >
                 <CloseRoundedIcon />
               </IconButton>
             </Stack>
           </Stack>
+
           <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
+
           <List sx={{ flexGrow: 1 }}>
             {navigationLinks.map((item) => {
               if (item.menu) {
@@ -603,6 +571,13 @@ const NavigationBar = () => {
                           component={RouterLink}
                           to={link.to}
                           onClick={toggleDrawer(false)}
+                          sx={{
+                            '&:hover .MuiListItemText-primary': gradientTextHover,
+                            '& .MuiListItemText-primary': {
+                              fontWeight: 600,
+                              letterSpacing: 0.2
+                            }
+                          }}
                         >
                           <ListItemText primary={link.label} />
                         </ListItemButton>
@@ -632,23 +607,33 @@ const NavigationBar = () => {
                               onClick={toggleDrawer(false)}
                               sx={{ pl: 4 }}
                             >
-                              <ListItemText primary={`View all ${item.label.replace(/ \+$/, '')}`} />
+                              <ListItemText
+                                primary={`View all ${item.label.replace(/ \+$/, '')}`}
+                              />
                             </ListItemButton>
-                            <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4), ml: 4 }} />
+                            <Divider
+                              sx={{
+                                borderColor: alpha(theme.palette.divider, 0.4),
+                                ml: 4
+                              }}
+                            />
                           </>
                         )}
-                        {config.categories.map((category, categoryIndex) => {
+
+                        {config.categories.map((category) => {
                           const [expandedCategory, setExpandedCategory] = useState(false);
                           return (
                             <Box key={category.label}>
-                              {/* Category header with label + toggle icon */}
                               <ListItemButton
                                 onClick={() => setExpandedCategory(!expandedCategory)}
                                 sx={{ pl: 4 }}
                               >
                                 <ListItemText
                                   primary={
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                    <Typography
+                                      variant="subtitle2"
+                                      sx={{ fontWeight: 600 }}
+                                    >
                                       {category.label}
                                     </Typography>
                                   }
@@ -656,7 +641,12 @@ const NavigationBar = () => {
                                     category.description && (
                                       <Typography
                                         variant="caption"
-                                        sx={{ color: alpha(theme.palette.text.secondary, 0.9) }}
+                                        sx={{
+                                          color: alpha(
+                                            theme.palette.text.secondary,
+                                            0.9
+                                          )
+                                        }}
                                       >
                                         {category.description}
                                       </Typography>
@@ -670,19 +660,25 @@ const NavigationBar = () => {
                                 )}
                               </ListItemButton>
 
-                              {/* Sub-items list */}
                               <Collapse in={expandedCategory} timeout="auto" unmountOnExit>
                                 <List disablePadding>
                                   {category.subItems.map((subItem) => {
-                                    const isObject = typeof subItem === 'object' && subItem !== null;
+                                    const isObject =
+                                      typeof subItem === 'object' && subItem !== null;
                                     const label = isObject ? subItem.label : subItem;
-                                    const href = isObject && subItem.href
-                                      ? subItem.href
-                                      : `/services${createAnchorHref(label)}`;
+                                    const href =
+                                      isObject && subItem.href
+                                        ? subItem.href
+                                        : `/services${createAnchorHref(label)}`;
                                     const isRouteLink = href.startsWith('/');
                                     const linkProps = isRouteLink
                                       ? { component: RouterLink, to: href }
-                                      : { component: 'a', href, target: '_blank', rel: 'noopener noreferrer' };
+                                      : {
+                                        component: 'a',
+                                        href,
+                                        target: '_blank',
+                                        rel: 'noopener noreferrer'
+                                      };
 
                                     return (
                                       <ListItemButton
@@ -693,7 +689,9 @@ const NavigationBar = () => {
                                       >
                                         <ListItemText
                                           primary={
-                                            <Typography variant="body2">{label}</Typography>
+                                            <Typography variant="body2">
+                                              {label}
+                                            </Typography>
                                           }
                                         />
                                       </ListItemButton>
@@ -707,7 +705,6 @@ const NavigationBar = () => {
                       </List>
                     </Collapse>
 
-
                     <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4) }} />
                   </Box>
                 );
@@ -719,18 +716,26 @@ const NavigationBar = () => {
                   component={RouterLink}
                   to={item.path}
                   onClick={toggleDrawer(false)}
+                  sx={{
+                    '&:hover .MuiListItemText-primary': gradientTextHover,
+                    '& .MuiListItemText-primary': {
+                      fontWeight: 600,
+                      letterSpacing: 0.2
+                    }
+                  }}
                 >
                   <ListItemText primary={item.label} />
                 </ListItemButton>
               );
             })}
           </List>
+
           <Box
             sx={{
               p: 2,
               display: 'flex',
               justifyContent: 'center',
-              alignItems: 'center',
+              alignItems: 'center'
             }}
           >
             <Button
@@ -747,23 +752,34 @@ const NavigationBar = () => {
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 2, // optional: adds nice horizontal padding
+                px: 2,
                 '&:hover': {
-                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                },
+                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                }
               }}
             >
               Hire Now
             </Button>
           </Box>
-
         </Box>
       </Drawer>
 
       {!isMobile &&
-        renderMegaMenu(serviceAnchor, handleServiceClose, megaMenuContent.services, activeServiceIndex, setActiveServiceIndex)}
+        renderMegaMenu(
+          serviceAnchor,
+          handleServiceClose,
+          megaMenuContent.services,
+          activeServiceIndex,
+          setActiveServiceIndex
+        )}
       {!isMobile &&
-        renderMegaMenu(hireAnchor, handleHireClose, megaMenuContent.hireDevelopers, activeHireIndex, setActiveHireIndex)}
+        renderMegaMenu(
+          hireAnchor,
+          handleHireClose,
+          megaMenuContent.hireDevelopers,
+          activeHireIndex,
+          setActiveHireIndex
+        )}
       {!isMobile && renderAboutMenu(aboutAnchor, handleAboutClose)}
     </AppBar>
   );
