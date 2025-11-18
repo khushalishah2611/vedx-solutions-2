@@ -20,14 +20,13 @@ import { useSearchParams } from 'react-router-dom';
 import BlogPreviewCard from '../shared/BlogPreviewCard.jsx';
 import { blogPosts } from '../../data/blogs.js';
 
-const POSTS_PER_PAGE = 6;
+const POSTS_PER_PAGE = 9;
 
 const BlogListPage = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const [searchParams, setSearchParams] = useSearchParams();
-  const categoryParam = searchParams.get('category') ?? 'all';
   const queryParam = searchParams.get('q') ?? '';
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10);
   const [searchValue, setSearchValue] = useState(queryParam);
@@ -36,6 +35,25 @@ const BlogListPage = () => {
     const unique = new Set(blogPosts.map((post) => post.category));
     return ['all', ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
   }, []);
+
+  const categoryParam = searchParams.get('category');
+  const categoriesParam = searchParams.get('categories');
+
+  const selectedCategories = useMemo(() => {
+    const raw = categoriesParam ?? categoryParam;
+
+    if (!raw) return ['all'];
+
+    const parsed = raw
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+
+    const valid = parsed.filter((item) => categories.includes(item));
+    return valid.length > 0 ? valid : ['all'];
+  }, [categories, categoryParam, categoriesParam]);
+
+  const hasAllSelected = selectedCategories.includes('all');
 
   const categoryCounts = useMemo(() => {
     return blogPosts.reduce(
@@ -48,7 +66,10 @@ const BlogListPage = () => {
     );
   }, []);
 
-  const normalisedCategory = categories.includes(categoryParam) ? categoryParam : 'all';
+  const activeCategories = useMemo(
+    () => (hasAllSelected ? [] : selectedCategories),
+    [hasAllSelected, selectedCategories]
+  );
   const normalisedPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
 
   useEffect(() => {
@@ -59,7 +80,7 @@ const BlogListPage = () => {
     const normalisedQuery = queryParam.trim().toLowerCase();
 
     return blogPosts.filter((post) => {
-      if (normalisedCategory !== 'all' && post.category !== normalisedCategory) return false;
+      if (activeCategories.length > 0 && !activeCategories.includes(post.category)) return false;
       if (!normalisedQuery) return true;
 
       const haystack = [post.title, post.excerpt, ...(post.tags ?? [])]
@@ -67,14 +88,14 @@ const BlogListPage = () => {
         .toLowerCase();
       return haystack.includes(normalisedQuery);
     });
-  }, [normalisedCategory, queryParam]);
+  }, [activeCategories, queryParam]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE));
   const currentPage = Math.min(totalPages, normalisedPage);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [normalisedCategory, currentPage]);
+  }, [activeCategories, currentPage]);
 
   const paginatedPosts = useMemo(() => {
     const start = (currentPage - 1) * POSTS_PER_PAGE;
@@ -85,8 +106,24 @@ const BlogListPage = () => {
 
   const handleCategoryChange = (value) => {
     const nextParams = new URLSearchParams(searchParams);
-    if (value === 'all') nextParams.delete('category');
-    else nextParams.set('category', value);
+    if (value === 'all') {
+      nextParams.delete('categories');
+      nextParams.delete('category');
+    } else {
+      const currentSelections = hasAllSelected ? [] : [...selectedCategories];
+      const exists = currentSelections.includes(value);
+      const updatedSelections = exists
+        ? currentSelections.filter((item) => item !== value)
+        : [...currentSelections, value];
+
+      if (updatedSelections.length === 0) {
+        nextParams.delete('categories');
+        nextParams.delete('category');
+      } else {
+        nextParams.set('categories', updatedSelections.join(','));
+        nextParams.delete('category');
+      }
+    }
     nextParams.delete('page');
     setSearchParams(nextParams);
   };
@@ -116,7 +153,7 @@ const BlogListPage = () => {
     setSearchParams(nextParams);
   };
 
-  const hasFilters = normalisedCategory !== 'all' || queryParam.trim().length > 0;
+  const hasFilters = !hasAllSelected || queryParam.trim().length > 0;
   const totalResults = filteredPosts.length;
   const startIndex = totalResults === 0 ? 0 : (currentPage - 1) * POSTS_PER_PAGE + 1;
   const endIndex = Math.min(totalResults, currentPage * POSTS_PER_PAGE);
@@ -199,41 +236,44 @@ const BlogListPage = () => {
               {/* ACTIVE FILTER BOXES */}
               {hasFilters && (
                 <Stack direction="row" spacing={1.5} flexWrap="wrap">
-                  {normalisedCategory !== 'all' && (
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        px: 2,
-                        py: 1,
-                        borderRadius: 0.5,
-                        border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                        background: !isDark
-                          ? alpha('#ddddddff', 0.9)
-                          : alpha('#0000007c', 0.9),
-                        color: alpha(accentColor, 0.9),
-                        fontWeight: 600,
-                        letterSpacing: 1,
-                        textTransform: 'uppercase',
-                        fontSize: 11,
-                        lineHeight: 1.3,
-                        width: 'fit-content',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => handleCategoryChange('all')}
-                    >
+                  {!hasAllSelected &&
+                    selectedCategories.map((category) => (
                       <Box
-                        component="span"
+                        key={category}
                         sx={{
-                          background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent'
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          px: 2,
+                          py: 1,
+                          borderRadius: 0.5,
+                          border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                          background: !isDark
+                            ? alpha('#ddddddff', 0.9)
+                            : alpha('#0000007c', 0.9),
+                          color: alpha(accentColor, 0.9),
+                          fontWeight: 600,
+                          letterSpacing: 1,
+                          textTransform: 'uppercase',
+                          fontSize: 11,
+                          lineHeight: 1.3,
+                          width: 'fit-content',
+                          cursor: 'pointer'
                         }}
+                        onClick={() => handleCategoryChange(category)}
+                        title={`Remove ${category} filter`}
                       >
-                        Category: {normalisedCategory}
+                        <Box
+                          component="span"
+                          sx={{
+                            background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                          }}
+                        >
+                          Category: {category}
+                        </Box>
                       </Box>
-                    </Box>
-                  )}
+                    ))}
 
                   {queryParam.trim().length > 0 && (
                     <Box
@@ -364,7 +404,7 @@ const BlogListPage = () => {
                   <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {categories.map((item) => {
                       const label = item === 'all' ? 'All Topics' : item;
-                      const isSelected = normalisedCategory === item;
+                      const isSelected = hasAllSelected ? item === 'all' : selectedCategories.includes(item);
                       const count = categoryCounts[item] ?? 0;
 
                       return (
