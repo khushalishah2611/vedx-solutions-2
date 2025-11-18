@@ -3,13 +3,13 @@ import { Container, Stack } from '@mui/material';
 
 const PageSectionsContainer = ({
   children = null,
-  spacing = { xs: 6, md: 8 },
+  spacing = 0,
   maxWidth = 'lg',
   containerSx = {},
   stackProps = {},
 }) => {
   return (
-    <Container maxWidth={maxWidth} sx={{ py: { xs: 6, md: 8 }, ...containerSx }}>
+    <Container maxWidth={maxWidth} sx={{  ...containerSx }}>
       <Stack spacing={spacing} {...stackProps}>
         {children}
       </Stack>

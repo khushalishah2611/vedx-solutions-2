@@ -45,8 +45,14 @@ const FooterSection = () => {
   return (
     <Box
       component="footer"
-      sx={{ position: 'relative', bgcolor: theme.palette.background.default, mt: { xs: 8, md: 10 } }}
+      sx={{
+        position: 'relative',
+        bgcolor: theme.palette.background.default,
+        mt: { xs: 8, md: 10 },
+        width: '100%' 
+      }}
     >
+      {/* Background image */}
       <Box
         sx={{
           position: 'absolute',
@@ -57,6 +63,7 @@ const FooterSection = () => {
           filter: isDark ? 'brightness(0.25)' : 'brightness(0.65)'
         }}
       />
+      {/* Overlay */}
       <Box
         sx={{
           position: 'absolute',
@@ -65,17 +72,20 @@ const FooterSection = () => {
         }}
       />
 
+      {/* MAIN CONTENT – full width Container */}
       <Container
-        maxWidth="lg"
+        maxWidth={false} // ✅ full width instead of "lg"
         sx={{
           position: 'relative',
           zIndex: 1,
           py: { xs: 6, md: 10 },
+        
           display: 'flex',
           flexDirection: 'column',
           gap: { xs: 6, md: 8 }
         }}
       >
+        {/* Top logo + heading */}
         <Stack
           spacing={2.5}
           alignItems="flex-start"
@@ -87,18 +97,18 @@ const FooterSection = () => {
         >
           <Box
             component="img"
-            src={
-              'https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png'
-            }
+            src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
             alt="VedX Solutions logo"
             sx={{ height: 50, width: 150, objectFit: 'contain' }}
           />
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {footerContent.heading}
           </Typography>
-
         </Stack>
+
         <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
+
+        {/* Columns + social */}
         <Box
           sx={{
             display: 'grid',
@@ -114,6 +124,7 @@ const FooterSection = () => {
             }
           }}
         >
+          {/* Link columns */}
           {footerContent.columns.map((column, index) => (
             <Stack
               key={column.title}
@@ -142,20 +153,20 @@ const FooterSection = () => {
                       color="text.secondary"
                       {...linkProps}
                       sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 1,
+                        fontWeight: 900,
+                        display: 'inline-block',
+                        color: alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.9),
                         textDecoration: 'none',
                         cursor: 'pointer',
                         transition: 'color 0.3s ease, background-image 0.3s ease',
                         '&:hover': {
                           color: 'transparent',
-                          backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          backgroundImage:
+                            'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                           WebkitBackgroundClip: 'text',
                           backgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                        },
-
+                          WebkitTextFillColor: 'transparent'
+                        }
                       }}
                     >
                       {linkData.label}
@@ -166,6 +177,7 @@ const FooterSection = () => {
             </Stack>
           ))}
 
+          {/* Social column */}
           <Stack
             spacing={1.5}
             sx={{
@@ -193,7 +205,10 @@ const FooterSection = () => {
                     sx={{
                       borderRadius: 2,
                       border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
-                      bgcolor: alpha(isDark ? '#ffffff' : theme.palette.primary.light, isDark ? 0.08 : 0.12),
+                      bgcolor: alpha(
+                        isDark ? '#ffffff' : theme.palette.primary.light,
+                        isDark ? 0.08 : 0.12
+                      ),
                       transition: 'all 0.2s ease',
                       '&:hover': {
                         bgcolor: alpha(accentColor, 0.25),
@@ -212,6 +227,7 @@ const FooterSection = () => {
 
         <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
 
+        {/* Bottom bar */}
         <Stack
           direction={{ xs: 'column', md: 'row' }}
           spacing={{ xs: 2, md: 0 }}
@@ -221,7 +237,9 @@ const FooterSection = () => {
           <Stack direction="row" spacing={2.5} flexWrap="wrap" alignItems="center">
             {footerContent.bottomLinks.map((link) => {
               const isRouteLink = link.href.startsWith('/');
-              const linkProps = isRouteLink ? { component: RouterLink, to: link.href } : { href: link.href };
+              const linkProps = isRouteLink
+                ? { component: RouterLink, to: link.href }
+                : { href: link.href };
               return (
                 <Link
                   key={link.label}
@@ -229,6 +247,9 @@ const FooterSection = () => {
                   color="text.secondary"
                   {...linkProps}
                   sx={{
+                    fontWeight: 900,
+                    display: 'inline-block',
+                    color: alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.9),
                     textDecoration: 'none',
                     cursor: 'pointer',
                     transition: 'color 0.3s ease, background-image 0.3s ease',
@@ -248,7 +269,11 @@ const FooterSection = () => {
           </Stack>
           <Typography
             variant="body2"
-            sx={{ color: isDark ? alpha('#ffffff', 0.55) : alpha(theme.palette.text.secondary, 0.75) }}
+            sx={{
+              color: isDark
+                ? alpha('#ffffff', 0.55)
+                : alpha(theme.palette.text.secondary, 0.75)
+            }}
           >
             {footerContent.copyright}
           </Typography>

@@ -402,6 +402,7 @@ const NavigationBar = () => {
         <Toolbar
           disableGutters
           sx={{
+               px: { xs: 2, md: 5 }, // left & right padding (spacing 5 on md+)
             alignItems: 'center',
             gap: 3,
             minHeight: 80,

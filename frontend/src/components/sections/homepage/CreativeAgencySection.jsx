@@ -67,7 +67,8 @@ export default function CreativeAgencySection() {
   return (
     <Box sx={{ position: 'relative' }}>
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-        <Grid container spacing={{ xs: 6, md: 10 }} alignItems="center">
+        <Grid container spacing={{ xs: 6, md: 10 }}justifyContent="flex-start" 
+  alignItems="center">
           {/* === IMAGES SECTION === */}
           <Grid item xs={12} md={6}>
             <Box

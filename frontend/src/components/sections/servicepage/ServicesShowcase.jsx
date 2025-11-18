@@ -198,6 +198,8 @@ const ServicesShowcase = () => {
                         href="#"
                         variant="body2"
                         sx={{
+                          fontWeight: 900,    
+                          display: 'inline-block', 
                           color: alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.9),
                           textDecoration: 'none',
                           cursor: 'pointer',
@@ -213,6 +215,7 @@ const ServicesShowcase = () => {
                       >
                         {capability}
                       </Typography>
+
                     </Stack>
                   ))}
                 </Stack>

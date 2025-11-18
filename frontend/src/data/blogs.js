@@ -95,6 +95,170 @@ export const blogPosts = [
     }
   },
   {
+    slug: 'how-to-build-scalable-web-applications-with-ruby-on-rails',
+    title: 'How to Build Scalable Web Applications with Ruby on Rails',
+    category: 'Product Delivery',
+    image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80',
+    heroImage:
+      'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80',
+    excerpt:
+      'Discover the conventions, tooling, and architectural patterns that help Rails teams scale products without sacrificing developer happiness.',
+    publishedOn: 'September 27, 2025',
+    readTime: '5 min read',
+    author: 'VedX Product Studio',
+    tags: ['Ruby on Rails', 'Scalability', 'Product Delivery'],
+    sections: [
+      {
+        heading: 'Convention over configuration to move faster',
+        paragraphs: [
+          'Rails enables teams to focus on business logic rather than boilerplate by leaning on sensible defaults. That foundation keeps codebases consistent even as teams grow and modules expand.'
+        ]
+      },
+      {
+        heading: 'Patterns that extend Rails for growth',
+        paragraphs: [
+          'Horizontal sharding, background job orchestration with Sidekiq, and service objects give enterprises confidence that their Rails apps can manage millions of requests without brittle rewrites.'
+        ]
+      }
+    ],
+    conclusion: {
+      heading: 'Make Rails your unfair advantage',
+      paragraphs: [
+        'Modern Rails products combine monolith-first delivery with clear modular boundaries, making it easier to extract services when the business is ready. With the right partner, you can adopt these best practices from day one.'
+      ]
+    },
+    cta: {
+      heading: 'Launch Your Next Feature Faster',
+      description:
+        'Our Rails squads embed with your product team to modernise legacy code, enhance performance, and deliver roadmap priorities on schedule.',
+      primaryCtaLabel: 'Hire Now',
+      primaryCtaHref: '/contact'
+    }
+  },
+  {
+    slug: 'how-to-build-scalable-web-applications-with-ruby-on-rails',
+    title: 'How to Build Scalable Web Applications with Ruby on Rails',
+    category: 'Product Delivery',
+    image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80',
+    heroImage:
+      'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80',
+    excerpt:
+      'Discover the conventions, tooling, and architectural patterns that help Rails teams scale products without sacrificing developer happiness.',
+    publishedOn: 'September 27, 2025',
+    readTime: '5 min read',
+    author: 'VedX Product Studio',
+    tags: ['Ruby on Rails', 'Scalability', 'Product Delivery'],
+    sections: [
+      {
+        heading: 'Convention over configuration to move faster',
+        paragraphs: [
+          'Rails enables teams to focus on business logic rather than boilerplate by leaning on sensible defaults. That foundation keeps codebases consistent even as teams grow and modules expand.'
+        ]
+      },
+      {
+        heading: 'Patterns that extend Rails for growth',
+        paragraphs: [
+          'Horizontal sharding, background job orchestration with Sidekiq, and service objects give enterprises confidence that their Rails apps can manage millions of requests without brittle rewrites.'
+        ]
+      }
+    ],
+    conclusion: {
+      heading: 'Make Rails your unfair advantage',
+      paragraphs: [
+        'Modern Rails products combine monolith-first delivery with clear modular boundaries, making it easier to extract services when the business is ready. With the right partner, you can adopt these best practices from day one.'
+      ]
+    },
+    cta: {
+      heading: 'Launch Your Next Feature Faster',
+      description:
+        'Our Rails squads embed with your product team to modernise legacy code, enhance performance, and deliver roadmap priorities on schedule.',
+      primaryCtaLabel: 'Hire Now',
+      primaryCtaHref: '/contact'
+    }
+  },
+  {
+    slug: 'how-to-build-scalable-web-applications-with-ruby-on-rails',
+    title: 'How to Build Scalable Web Applications with Ruby on Rails',
+    category: 'Product Delivery',
+    image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80',
+    heroImage:
+      'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80',
+    excerpt:
+      'Discover the conventions, tooling, and architectural patterns that help Rails teams scale products without sacrificing developer happiness.',
+    publishedOn: 'September 27, 2025',
+    readTime: '5 min read',
+    author: 'VedX Product Studio',
+    tags: ['Ruby on Rails', 'Scalability', 'Product Delivery'],
+    sections: [
+      {
+        heading: 'Convention over configuration to move faster',
+        paragraphs: [
+          'Rails enables teams to focus on business logic rather than boilerplate by leaning on sensible defaults. That foundation keeps codebases consistent even as teams grow and modules expand.'
+        ]
+      },
+      {
+        heading: 'Patterns that extend Rails for growth',
+        paragraphs: [
+          'Horizontal sharding, background job orchestration with Sidekiq, and service objects give enterprises confidence that their Rails apps can manage millions of requests without brittle rewrites.'
+        ]
+      }
+    ],
+    conclusion: {
+      heading: 'Make Rails your unfair advantage',
+      paragraphs: [
+        'Modern Rails products combine monolith-first delivery with clear modular boundaries, making it easier to extract services when the business is ready. With the right partner, you can adopt these best practices from day one.'
+      ]
+    },
+    cta: {
+      heading: 'Launch Your Next Feature Faster',
+      description:
+        'Our Rails squads embed with your product team to modernise legacy code, enhance performance, and deliver roadmap priorities on schedule.',
+      primaryCtaLabel: 'Hire Now',
+      primaryCtaHref: '/contact'
+    }
+  },
+  {
+    slug: 'how-to-build-scalable-web-applications-with-ruby-on-rails',
+    title: 'How to Build Scalable Web Applications with Ruby on Rails',
+    category: 'Product Delivery',
+    image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80',
+    heroImage:
+      'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80',
+    excerpt:
+      'Discover the conventions, tooling, and architectural patterns that help Rails teams scale products without sacrificing developer happiness.',
+    publishedOn: 'September 27, 2025',
+    readTime: '5 min read',
+    author: 'VedX Product Studio',
+    tags: ['Ruby on Rails', 'Scalability', 'Product Delivery'],
+    sections: [
+      {
+        heading: 'Convention over configuration to move faster',
+        paragraphs: [
+          'Rails enables teams to focus on business logic rather than boilerplate by leaning on sensible defaults. That foundation keeps codebases consistent even as teams grow and modules expand.'
+        ]
+      },
+      {
+        heading: 'Patterns that extend Rails for growth',
+        paragraphs: [
+          'Horizontal sharding, background job orchestration with Sidekiq, and service objects give enterprises confidence that their Rails apps can manage millions of requests without brittle rewrites.'
+        ]
+      }
+    ],
+    conclusion: {
+      heading: 'Make Rails your unfair advantage',
+      paragraphs: [
+        'Modern Rails products combine monolith-first delivery with clear modular boundaries, making it easier to extract services when the business is ready. With the right partner, you can adopt these best practices from day one.'
+      ]
+    },
+    cta: {
+      heading: 'Launch Your Next Feature Faster',
+      description:
+        'Our Rails squads embed with your product team to modernise legacy code, enhance performance, and deliver roadmap priorities on schedule.',
+      primaryCtaLabel: 'Hire Now',
+      primaryCtaHref: '/contact'
+    }
+  },
+  {
     slug: 'why-businesses-choose-dotnet-for-cloud-native-applications',
     title: 'Why Businesses Choose Dot NET for Cloud-Native Applications',
     category: 'Cloud',

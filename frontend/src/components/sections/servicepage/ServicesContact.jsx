@@ -38,7 +38,7 @@ const ServicesContact = () => {
           xs={12}
           md={5}
           sx={{
-            minHeight: { xs: '90vh', md: '100vh' },
+            minHeight: { xs: '60vh', md: '70vh' },
             backgroundImage: `url(${servicesContactImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
