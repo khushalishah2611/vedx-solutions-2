@@ -46,8 +46,8 @@ const ServicesBlog = () => {
       </Stack>
 
       <Grid container spacing={4}>
-        {blogPosts.slice(0, 4).map((post) => (
-          <Grid item xs={12} md={6} lg={3} key={post.slug}>
+        {blogPosts.slice(0, 6).map((post) => (
+          <Grid item xs={12} sm={6} lg={4} key={post.slug}>
             <BlogPreviewCard
               post={post}
               imageHeight={220}

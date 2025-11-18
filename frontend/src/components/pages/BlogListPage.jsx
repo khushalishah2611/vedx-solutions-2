@@ -20,7 +20,7 @@ import { useSearchParams } from 'react-router-dom';
 import BlogPreviewCard from '../shared/BlogPreviewCard.jsx';
 import { blogPosts } from '../../data/blogs.js';
 
-const POSTS_PER_PAGE = 9;
+const POSTS_PER_PAGE = 10;
 
 const BlogListPage = () => {
   const theme = useTheme();
