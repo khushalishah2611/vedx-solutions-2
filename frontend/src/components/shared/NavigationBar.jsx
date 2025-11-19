@@ -218,11 +218,11 @@ const NavigationBar = () => {
                   ? isRouteLink
                     ? { component: RouterLink, to: categoryHref }
                     : {
-                        component: 'a',
-                        href: categoryHref,
-                        target: '_blank',
-                        rel: 'noopener noreferrer'
-                      }
+                      component: 'a',
+                      href: categoryHref,
+                      target: '_blank',
+                      rel: 'noopener noreferrer'
+                    }
                   : {};
                 return (
                   <ButtonBase
@@ -331,45 +331,45 @@ const NavigationBar = () => {
                     ? { component: RouterLink, to: href }
                     : { component: 'a', href, target: '_blank', rel: 'noopener noreferrer' };
 
-                return (
-                  <Stack
-                    key={label}
-                    direction="row"
-                    spacing={1.5}
-                    alignItems="center"
-                    onClick={handleClose}
-                    sx={{
-                      textDecoration: 'none',
-                      transition: 'all 0.25s ease',
-                      color: 'inherit',
-                      '&:hover': {
-                        transform: 'translateX(4px)'
-                      },
-                      '&:focus-visible': {
-                        outline: '2px solid',
-                        outlineColor: alpha(highlightColor, 0.4),
-                        outlineOffset: 4
-                      },
-                      '&:hover .mega-subtitle, &:focus-visible .mega-subtitle': gradientTextHover,
-                      '& .mega-subtitle': {
-                        transition: 'color 0.3s ease, background-image 0.3s ease'
-                      }
-                    }}
-                    {...linkProps}
-                  >
-                    <Typography
-                      variant="body2"
-                      className="mega-subtitle"
+                  return (
+                    <Stack
+                      key={label}
+                      direction="row"
+                      spacing={1.5}
+                      alignItems="center"
+                      onClick={handleClose}
                       sx={{
                         textDecoration: 'none',
-                        cursor: 'pointer',
-                        fontWeight: 600
+                        transition: 'all 0.25s ease',
+                        color: 'inherit',
+                        '&:hover': {
+                          transform: 'translateX(4px)'
+                        },
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: alpha(highlightColor, 0.4),
+                          outlineOffset: 4
+                        },
+                        '&:hover .mega-subtitle, &:focus-visible .mega-subtitle': gradientTextHover,
+                        '& .mega-subtitle': {
+                          transition: 'color 0.3s ease, background-image 0.3s ease'
+                        }
                       }}
+                      {...linkProps}
                     >
-                      {label}
-                    </Typography>
-                  </Stack>
-                );
+                      <Typography
+                        variant="body2"
+                        className="mega-subtitle"
+                        sx={{
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          fontWeight: 600
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                    </Stack>
+                  );
                 })}
               </Stack>
             </Stack>
@@ -445,11 +445,10 @@ const NavigationBar = () => {
       color="transparent"
       sx={{
         px: { xs: 2.5, md: 10 },
-        borderBottom: `1px solid ${alpha('#ffffff', 0.2)}`,
-        backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-        color: '#fff',
-        backdropFilter: 'blur(12px)',
-        boxShadow: '0 20px 45px rgba(15,23,42,0.2)'
+        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+        backgroundColor: alpha(theme.palette.background.paper, mode === 'dark' ? 0.85 : 0.9),
+        backdropFilter: 'blur(20px)'
+
       }}
     >
       <Toolbar
@@ -684,20 +683,11 @@ const NavigationBar = () => {
                       <List disablePadding>
                         {item.path && (
                           <>
-                            <ListItemButton
-                              component={RouterLink}
-                              to={item.path}
-                              onClick={handleDrawerClose}
-                              sx={{ pl: 4 }}
-                            >
-                              <ListItemText
-                                primary={`View all ${item.label.replace(/ \+$/, '')}`}
-                              />
-                            </ListItemButton>
+
                             <Divider
                               sx={{
                                 borderColor: alpha(theme.palette.divider, 0.4),
-                                ml: 4
+
                               }}
                             />
                           </>
@@ -726,10 +716,7 @@ const NavigationBar = () => {
                                   py: 1.5,
                                   borderRadius: 1.5,
                                   transition: 'background-color 0.3s ease',
-                                  backgroundColor: alpha(theme.palette.background.paper, 0.4),
-                                  '&:hover': {
-                                    backgroundColor: alpha(theme.palette.primary.main, 0.08)
-                                  }
+
                                 }}
                               >
                                 <Box
@@ -742,7 +729,7 @@ const NavigationBar = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: 0.5,
-                                    pr: 1,
+                                    pr: 2,
                                     cursor: hasCategoryLink ? 'pointer' : 'default',
                                     '&:hover .drawer-category-title': gradientTextHover,
                                     '&:focus-visible': {
@@ -752,13 +739,24 @@ const NavigationBar = () => {
                                     }
                                   }}
                                 >
-                                  <Typography
-                                    variant="subtitle2"
-                                    className="drawer-category-title"
-                                    sx={{ fontWeight: 600 }}
+                                  <ListItemButton
+                                    component={RouterLink}
+                                    to={item.path}
+                                    onClick={handleDrawerClose}
+
                                   >
-                                    {category.label}
-                                  </Typography>
+                                    <ListItemText
+                                      primary={
+                                        <Typography
+                                          variant="subtitle2"
+                                          className="drawer-category-title"
+                                          sx={{ fontWeight: 600 }}
+                                        >
+                                          {category.label}
+                                        </Typography>
+                                      }
+                                    />
+                                  </ListItemButton>
                                   {category.description && (
                                     <Typography
                                       variant="caption"
@@ -799,22 +797,34 @@ const NavigationBar = () => {
                                     const linkProps = isRouteLink
                                       ? { component: RouterLink, to: href }
                                       : {
-                                          component: 'a',
-                                          href,
-                                          target: '_blank',
-                                          rel: 'noopener noreferrer'
-                                        };
+                                        component: 'a',
+                                        href,
+                                        target: '_blank',
+                                        rel: 'noopener noreferrer'
+                                      };
 
                                     return (
                                       <ListItemButton
                                         key={label}
-                                        sx={{ pl: 6 }}
+                                        sx={{ pl: 2 }}
                                         onClick={handleDrawerClose}
                                         {...linkProps}
                                       >
                                         <ListItemText
                                           primary={
-                                            <Typography variant="body2">
+                                            <Typography variant="body2" sx={{
+                                              fontWeight: 700,
+                                              textDecoration: 'none',
+                                              cursor: 'pointer',
+                                              transition: 'color 0.3s ease, background-image 0.3s ease',
+                                              '&:hover': {
+                                                color: 'transparent',
+                                                backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                                                WebkitBackgroundClip: 'text',
+                                                backgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                              },
+                                            }}>
                                               {label}
                                             </Typography>
                                           }

@@ -33,12 +33,7 @@ const CaseStudyDetailPage = () => {
 
         {/* ---------------------- Screenshots Section ---------------------- */}
         {caseStudy.screenshots?.length ? (
-          <Stack
-            spacing={3}
-            textAlign="center"
-            alignItems="center"
-            sx={{ mt: { xs: 4, md: 5 }, width: '100%' }}
-          >
+          <Stack spacing={3} textAlign="center" alignItems="center">
             <Stack spacing={1.5} textAlign="center" alignItems="center">
               <Typography variant="h4" sx={{ fontWeight: 700 }}>
                 Application Screenshots
