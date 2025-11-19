@@ -176,11 +176,27 @@ const NavigationBar = () => {
             <Stack spacing={2}>
               {config.categories.map((category, index) => {
                 const active = index === activeIndex;
+                const categoryHref = category.href;
+                const isRouteLink = categoryHref?.startsWith('/') ?? false;
+                const linkProps = categoryHref
+                  ? isRouteLink
+                    ? { component: RouterLink, to: categoryHref }
+                    : {
+                        component: 'a',
+                        href: categoryHref,
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                      }
+                  : {};
                 return (
                   <ButtonBase
                     key={category.label}
+                    {...linkProps}
                     onMouseEnter={() => setActiveIndex(index)}
                     onFocus={() => setActiveIndex(index)}
+                    onClick={() => {
+                      handleClose();
+                    }}
                     sx={{
                       width: '100%',
                       textAlign: 'left',
@@ -188,11 +204,31 @@ const NavigationBar = () => {
                       display: 'flex',
                       gap: 1.5,
                       justifyContent: 'space-between',
-                      color: 'inherit'
+                      color: 'inherit',
+                      borderRadius: 1,
+                      px: 1,
+                      py: 0.5,
+                      textDecoration: 'none',
+                      transition: 'all 0.25s ease',
+                      '&:hover .mega-category-title, &:focus-visible .mega-category-title':
+                        gradientTextHover,
+                      '& .mega-category-title': {
+                        transition: 'color 0.3s ease, background-image 0.3s ease',
+                        ...(active ? gradientTextHover : {})
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: alpha(highlightColor, 0.45),
+                        outlineOffset: 3
+                      }
                     }}
                   >
                     <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      <Typography
+                        variant="subtitle1"
+                        className="mega-category-title"
+                        sx={{ fontWeight: 600 }}
+                      >
                         {category.label}
                       </Typography>
                     </Box>
@@ -259,36 +295,45 @@ const NavigationBar = () => {
                     ? { component: RouterLink, to: href }
                     : { component: 'a', href, target: '_blank', rel: 'noopener noreferrer' };
 
-                  return (
-                    <Stack
-                      key={label}
-                      direction="row"
-                      spacing={1.5}
-                      alignItems="center"
-                      onClick={handleClose}
+                return (
+                  <Stack
+                    key={label}
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    onClick={handleClose}
+                    sx={{
+                      textDecoration: 'none',
+                      transition: 'all 0.25s ease',
+                      color: 'inherit',
+                      '&:hover': {
+                        transform: 'translateX(4px)'
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: alpha(highlightColor, 0.4),
+                        outlineOffset: 4
+                      },
+                      '&:hover .mega-subtitle, &:focus-visible .mega-subtitle': gradientTextHover,
+                      '& .mega-subtitle': {
+                        transition: 'color 0.3s ease, background-image 0.3s ease'
+                      }
+                    }}
+                    {...linkProps}
+                  >
+                    <Typography
+                      variant="body2"
+                      className="mega-subtitle"
                       sx={{
                         textDecoration: 'none',
-                        transition: 'all 0.25s ease',
-                        color: 'inherit',
-                        '&:hover': {
-                          transform: 'translateX(4px)'
-                        }
+                        cursor: 'pointer',
+                        fontWeight: 600
                       }}
-                      {...linkProps}
                     >
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          textDecoration: 'none',
-                          cursor: 'pointer',
-                          transition: 'color 0.3s ease, background-image 0.3s ease',
-                          '&:hover': gradientTextHover
-                        }}
-                      >
-                        {label}
-                      </Typography>
-                    </Stack>
-                  );
+                      {label}
+                    </Typography>
+                  </Stack>
+                );
                 })}
               </Stack>
             </Stack>

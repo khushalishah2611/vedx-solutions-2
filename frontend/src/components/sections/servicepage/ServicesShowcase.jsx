@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Box,
   ButtonBase,
@@ -27,40 +27,68 @@ const ServicesShowcase = () => {
   // Mobile scroll container ref
   const scrollRef = useRef(null);
 
+  const scrollToIndex = useCallback((index) => {
+    if (!scrollRef.current) return;
+
+    const card = scrollRef.current.children[index];
+    if (!card) return;
+
+    scrollRef.current.scrollTo({
+      left: card.offsetLeft,
+      behavior: "smooth",
+    });
+  }, []);
+
   // Manual Navigation + scroll movement
-  const goNext = () => {
+  const goNext = useCallback(() => {
     setActiveIndex((prev) => {
       const next = (prev + 1) % services.length;
-
-      if (scrollRef.current) {
-        const itemWidth =
-          scrollRef.current.firstChild?.clientWidth || scrollRef.current.clientWidth;
-        scrollRef.current.scrollTo({
-          left: next * (itemWidth + 16), // 16 = gap
-          behavior: "smooth",
-        });
-      }
-
+      scrollToIndex(next);
       return next;
     });
-  };
+  }, [scrollToIndex, services.length]);
 
-  const goPrev = () => {
+  const goPrev = useCallback(() => {
     setActiveIndex((prev) => {
       const next = (prev - 1 + services.length) % services.length;
-
-      if (scrollRef.current) {
-        const itemWidth =
-          scrollRef.current.firstChild?.clientWidth || scrollRef.current.clientWidth;
-        scrollRef.current.scrollTo({
-          left: next * (itemWidth + 16),
-          behavior: "smooth",
-        });
-      }
-
+      scrollToIndex(next);
       return next;
     });
-  };
+  }, [scrollToIndex, services.length]);
+
+  const syncActiveIndexWithScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+
+    const container = scrollRef.current;
+    const scrollLeft = container.scrollLeft;
+    const cards = Array.from(container.children);
+    if (!cards.length) return;
+
+    let closestIndex = 0;
+    let smallestDistance = Number.POSITIVE_INFINITY;
+
+    cards.forEach((card, index) => {
+      const distance = Math.abs(card.offsetLeft - scrollLeft);
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    setActiveIndex((prev) => (prev === closestIndex ? prev : closestIndex));
+  }, []);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return undefined;
+
+    const handleScroll = () => syncActiveIndexWithScroll();
+    container.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [syncActiveIndexWithScroll]);
 
   const activeBorder = `2px solid ${alpha(accentColor, 0.9)}`;
   const inactiveBorder = `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`;
@@ -110,21 +138,10 @@ const ServicesShowcase = () => {
           {/* LEFT SIDE */}
           <Grid item xs={12} md={5.5}>
             {/* MOBILE SCROLL + ARROWS */}
-            <Box
-              ref={scrollRef}
-              sx={{
-                display: { xs: "flex", md: "none" },
-                overflowX: "auto",
-                gap: 2,
-                pb: 1,
-                position: "relative",
-                scrollSnapType: "x mandatory",
-                "&::-webkit-scrollbar": { display: "none" },
-              }}
-            >
-              {/* Prev Arrow */}
+            <Box sx={{ display: { xs: "block", md: "none" }, position: "relative" }}>
               <IconButton
                 onClick={goPrev}
+                aria-label="Previous service"
                 sx={{
                   position: "absolute",
                   left: 4,
@@ -139,9 +156,9 @@ const ServicesShowcase = () => {
                 <ChevronLeft />
               </IconButton>
 
-              {/* Next Arrow */}
               <IconButton
                 onClick={goNext}
+                aria-label="Next service"
                 sx={{
                   position: "absolute",
                   right: 4,
@@ -156,60 +173,75 @@ const ServicesShowcase = () => {
                 <ChevronRight />
               </IconButton>
 
-              {services.map((service, index) => {
-                const active = index === activeIndex;
+              <Box
+                ref={scrollRef}
+                sx={{
+                  display: { xs: "flex", md: "none" },
+                  overflowX: "auto",
+                  gap: 2,
+                  pb: 1,
+                  scrollSnapType: "x mandatory",
+                  "&::-webkit-scrollbar": { display: "none" },
+                }}
+              >
+                {services.map((service, index) => {
+                  const active = index === activeIndex;
 
-                return (
-                  <Box key={service.title} sx={{ minWidth: "75%", scrollSnapAlign: "center" }}>
-                    <ButtonBase
-                      onClick={() => setActiveIndex(index)}
-                      sx={{
-                        width: "100%",
-                        height: 220,
-                        borderRadius: 1,
-                        overflow: "hidden",
-                        border: active ? activeBorder : inactiveBorder,
-                        boxShadow: active ? activeShadow : baseShadow,
-                        transition: "all 0.35s ease",
-                        position: "relative",
-                        color: "white",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          inset: 0,
-                          backgroundImage: `url(${service.image})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          transform: active ? "scale(1.06)" : "scale(1)",
-                          transition: "0.4s ease",
+                  return (
+                    <Box key={service.title} sx={{ minWidth: "75%", scrollSnapAlign: "center" }}>
+                      <ButtonBase
+                        onClick={() => {
+                          setActiveIndex(index);
+                          scrollToIndex(index);
                         }}
-                      />
-                      <Box
                         sx={{
-                          position: "absolute",
-                          inset: 0,
-                          background: overlayGradient,
-                        }}
-                      />
-
-                      <Stack
-                        sx={{
+                          width: "100%",
+                          height: 220,
+                          borderRadius: 1,
+                          overflow: "hidden",
+                          border: active ? activeBorder : inactiveBorder,
+                          boxShadow: active ? activeShadow : baseShadow,
+                          transition: "all 0.35s ease",
                           position: "relative",
-                          p: 2,
-                          height: "100%",
-                          justifyContent: "flex-end",
+                          color: "white",
                         }}
                       >
-                        <Typography sx={{ fontWeight: 700 }}>
-                          {service.title}
-                        </Typography>
-                      </Stack>
-                    </ButtonBase>
-                  </Box>
-                );
-              })}
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            inset: 0,
+                            backgroundImage: `url(${service.image})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            transform: active ? "scale(1.06)" : "scale(1)",
+                            transition: "0.4s ease",
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            inset: 0,
+                            background: overlayGradient,
+                          }}
+                        />
+
+                        <Stack
+                          sx={{
+                            position: "relative",
+                            p: 2,
+                            height: "100%",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 700 }}>
+                            {service.title}
+                          </Typography>
+                        </Stack>
+                      </ButtonBase>
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
 
             {/* DESKTOP GRID */}
@@ -289,8 +321,39 @@ const ServicesShowcase = () => {
 
           {/* RIGHT CONTENT */}
           <Grid item xs={12} md={6}>
-            <Slide in={true} direction="left" timeout={500} key={activeIndex}>
+            <Slide in={true} direction="left" timeout={500} key={activeService.title}>
               <Stack spacing={3}>
+                <Box
+                  sx={{
+                    width: "100%",
+                    height: { xs: 220, md: 260 },
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    position: "relative",
+                    boxShadow: baseShadow,
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={activeService.image}
+                    alt={`${activeService.title} visual`}
+                    loading="lazy"
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      background: overlayGradient,
+                    }}
+                  />
+                </Box>
+
                 <Typography
                   variant="h4"
                   sx={{

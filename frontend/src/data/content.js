@@ -66,6 +66,7 @@ export const megaMenuContent = {
     categories: [
       {
         label: 'Mobile App Development',
+        href: '/services/mobile-app-development',
         description: 'Native and cross-platform squads building high-performance apps.',
         subItems: [
           { label: 'Android App', href: '/services/mobile-app-development/android-app' },
@@ -80,6 +81,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Web & CMS Development',
+        href: '/services/web-cms-development',
         description: 'Composable websites, portals, and CMS ecosystems that scale.',
         subItems: [
           { label: 'Enterprise Websites', href: '/services/web-cms-development/enterprise-websites' },
@@ -94,6 +96,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Digital Marketing',
+        href: '/services/digital-marketing',
         description: 'Performance-driven lifecycle, SEO, and paid media acceleration.',
         subItems: [
           { label: 'SEO & ASO', href: '/services/digital-marketing/seo-aso' },
@@ -108,6 +111,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Blockchain Development',
+        href: '/services/blockchain-development',
         description: 'Secure ledgers, DeFi platforms, and tokenized ecosystems.',
         subItems: [
           { label: 'DApp Development', href: '/services/blockchain-development/dapp-development' },
@@ -122,6 +126,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Ecommerce Development',
+        href: '/services/ecommerce-development',
         description: 'Conversion-first storefronts for B2B, B2C, and D2C brands.',
         subItems: [
           { label: 'Shopify Plus', href: '/services/ecommerce-development/shopify-plus' },
@@ -136,6 +141,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Salesforce Solutions',
+        href: '/services/salesforce-solutions',
         description: 'Certified squads optimising Sales, Service, and Marketing Cloud.',
         subItems: [
           { label: 'Sales Cloud', href: '/services/salesforce-solutions/sales-cloud' },
@@ -150,6 +156,7 @@ export const megaMenuContent = {
       },
       {
         label: 'AI & ML',
+        href: '/services/ai-ml',
         description: 'Intelligent automation, forecasting, and decision-making engines.',
         subItems: [
           { label: 'ML Model Development', href: '/services/ai-ml/ml-model-development' },
@@ -169,6 +176,7 @@ export const megaMenuContent = {
     categories: [
       {
         label: 'Hire App Developer',
+        href: '/hire-developers/mobile',
         description: 'Dedicated mobile engineers aligned to your release cadences.',
         subItems: [
           { label: 'Android Developer', href: '/hire-developers/mobile/android' },
@@ -183,6 +191,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Hire Frontend Developer',
+        href: '/hire-developers/frontend',
         description: 'Pixel-perfect UI specialists across modern frameworks.',
         subItems: [
           { label: 'React.js Developer', href: '/hire-developers/frontend/react' },
@@ -197,6 +206,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Hire Backend Developer',
+        href: '/hire-developers/backend',
         description: 'API-first architectures, integrations, and cloud-native delivery.',
         subItems: [
           { label: 'Node.js Developer', href: '/hire-developers/backend/nodejs' },
@@ -211,6 +221,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Hire Ecommerce Developer',
+        href: '/hire-developers/ecommerce',
         description: 'Conversion specialists optimising storefront experiences.',
         subItems: [
           { label: 'Shopify Developer', href: '/hire-developers/ecommerce/shopify' },
@@ -225,6 +236,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Hire Dedicated Developers Team',
+        href: '/hire-developers/dedicated-teams',
         description: 'Assemble pods that plug directly into your product squads.',
         subItems: [
           { label: 'Scrum Team', href: '/hire-developers/dedicated-teams/scrum-team' },
@@ -244,6 +256,7 @@ export const megaMenuContent = {
     categories: [
       {
         label: 'About VedX Solutions',
+        href: '/about',
         description: 'Discover our mission, culture, and the impact our teams deliver for partners around the globe.',
         subItems: [
           { label: 'Who we are', href: '/about' },
@@ -254,6 +267,7 @@ export const megaMenuContent = {
       },
       {
         label: 'Careers at VedX',
+        href: '/careers',
         description: 'Join remote-first squads crafting digital products, growth programs, and customer experiences.',
         subItems: [
           { label: 'Open roles', href: '/careers#open-roles' },
