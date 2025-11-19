@@ -51,7 +51,15 @@ const NavigationBar = () => {
 
   const [open, setOpen] = useState(false);
   const createDefaultExpanded = () => ({ services: false, hireDevelopers: false, about: false });
+  const createDefaultCategoryExpanded = () =>
+    Object.keys(megaMenuContent).reduce((acc, key) => {
+      acc[key] = {};
+      return acc;
+    }, {});
   const [expandedMenus, setExpandedMenus] = useState(createDefaultExpanded);
+  const [expandedCategories, setExpandedCategories] = useState(
+    createDefaultCategoryExpanded
+  );
   const [serviceAnchor, setServiceAnchor] = useState(null);
   const [hireAnchor, setHireAnchor] = useState(null);
   const [aboutAnchor, setAboutAnchor] = useState(null);
@@ -89,14 +97,24 @@ const NavigationBar = () => {
     }
   };
 
+  const resetDrawerState = () => {
+    setExpandedMenus(createDefaultExpanded());
+    setExpandedCategories(createDefaultCategoryExpanded());
+    setServiceAnchor(null);
+    setHireAnchor(null);
+    setAboutAnchor(null);
+  };
+
   const toggleDrawer = (state) => () => {
     setOpen(state);
     if (!state) {
-      setExpandedMenus(createDefaultExpanded());
-      setServiceAnchor(null);
-      setHireAnchor(null);
-      setAboutAnchor(null);
+      resetDrawerState();
     }
+  };
+
+  const handleDrawerClose = () => {
+    setOpen(false);
+    resetDrawerState();
   };
 
   const handleServiceEnter = (event) => {
@@ -126,6 +144,24 @@ const NavigationBar = () => {
 
   const toggleDrawerMenu = (key) => () =>
     setExpandedMenus((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const toggleCategoryExpansion = (menuKey, categoryLabel) => (event) => {
+    event?.stopPropagation();
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [menuKey]: {
+        ...(prev[menuKey] ?? {}),
+        [categoryLabel]: !prev[menuKey]?.[categoryLabel]
+      }
+    }));
+  };
+
+  const getLinkProps = (href) => {
+    if (!href) return {};
+    return href.startsWith('/')
+      ? { component: RouterLink, to: href }
+      : { component: 'a', href, target: '_blank', rel: 'noopener noreferrer' };
+  };
 
   const renderMegaMenu = (anchorEl, handleClose, config, activeIndex, setActiveIndex) => {
     const openPopover = Boolean(anchorEl);
@@ -409,9 +445,11 @@ const NavigationBar = () => {
       color="transparent"
       sx={{
         px: { xs: 2.5, md: 10 },
-        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
-        backgroundColor: alpha(theme.palette.background.paper, mode === 'dark' ? 0.85 : 0.9),
-        backdropFilter: 'blur(20px)'
+        borderBottom: `1px solid ${alpha('#ffffff', 0.2)}`,
+        backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+        color: '#fff',
+        backdropFilter: 'blur(12px)',
+        boxShadow: '0 20px 45px rgba(15,23,42,0.2)'
       }}
     >
       <Toolbar
@@ -560,7 +598,7 @@ const NavigationBar = () => {
       <Drawer
         anchor="right"
         open={open}
-        onClose={toggleDrawer(false)}
+        onClose={handleDrawerClose}
         PaperProps={{
           sx: {
             backgroundColor: theme.palette.background.default,
@@ -570,7 +608,7 @@ const NavigationBar = () => {
       >
         <Box
           sx={{
-            width: { xs: 320, sm: 360 },
+            width: { xs: '100vw', sm: 360 },
             display: 'flex',
             flexDirection: 'column',
             height: '100%'
@@ -593,7 +631,7 @@ const NavigationBar = () => {
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ pr: 1 }}>
               <IconButton
-                onClick={toggleDrawer(false)}
+                onClick={handleDrawerClose}
                 color="inherit"
                 aria-label="Close navigation menu"
               >
@@ -615,7 +653,7 @@ const NavigationBar = () => {
                           key={link.label}
                           component={RouterLink}
                           to={link.to}
-                          onClick={toggleDrawer(false)}
+                          onClick={handleDrawerClose}
                           sx={{
                             '&:hover .MuiListItemText-primary': gradientTextHover,
                             '& .MuiListItemText-primary': {
@@ -649,7 +687,7 @@ const NavigationBar = () => {
                             <ListItemButton
                               component={RouterLink}
                               to={item.path}
-                              onClick={toggleDrawer(false)}
+                              onClick={handleDrawerClose}
                               sx={{ pl: 4 }}
                             >
                               <ListItemText
@@ -666,46 +704,88 @@ const NavigationBar = () => {
                         )}
 
                         {config.categories.map((category) => {
-                          const [expandedCategory, setExpandedCategory] = useState(false);
-                          return (
-                            <Box key={category.label}>
-                              <ListItemButton
-                                onClick={() => setExpandedCategory(!expandedCategory)}
-                                sx={{ pl: 4 }}
-                              >
-                                <ListItemText
-                                  primary={
-                                    <Typography
-                                      variant="subtitle2"
-                                      sx={{ fontWeight: 600 }}
-                                    >
-                                      {category.label}
-                                    </Typography>
-                                  }
-                                  secondary={
-                                    category.description && (
-                                      <Typography
-                                        variant="caption"
-                                        sx={{
-                                          color: alpha(
-                                            theme.palette.text.secondary,
-                                            0.9
-                                          )
-                                        }}
-                                      >
-                                        {category.description}
-                                      </Typography>
-                                    )
-                                  }
-                                />
-                                {expandedCategory ? (
-                                  <ExpandLessRoundedIcon fontSize="small" />
-                                ) : (
-                                  <ExpandMoreRoundedIcon fontSize="small" />
-                                )}
-                              </ListItemButton>
+                          const categoryHref =
+                            category.href ?? `/services${createAnchorHref(category.label)}`;
+                          const categoryLinkProps = getLinkProps(categoryHref);
+                          const hasCategoryLink = Boolean(categoryHref);
+                          const categoryClickHandler = hasCategoryLink
+                            ? handleDrawerClose
+                            : undefined;
+                          const isExpanded =
+                            expandedCategories[item.menu]?.[category.label] ?? false;
 
-                              <Collapse in={expandedCategory} timeout="auto" unmountOnExit>
+                          return (
+                            <Box key={category.label} sx={{ px: 2, py: 0.5 }}>
+                              <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={1}
+                                sx={{
+                                  pl: 2,
+                                  pr: 1,
+                                  py: 1.5,
+                                  borderRadius: 1.5,
+                                  transition: 'background-color 0.3s ease',
+                                  backgroundColor: alpha(theme.palette.background.paper, 0.4),
+                                  '&:hover': {
+                                    backgroundColor: alpha(theme.palette.primary.main, 0.08)
+                                  }
+                                }}
+                              >
+                                <Box
+                                  {...categoryLinkProps}
+                                  onClick={categoryClickHandler}
+                                  sx={{
+                                    flexGrow: 1,
+                                    textDecoration: 'none',
+                                    color: 'inherit',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 0.5,
+                                    pr: 1,
+                                    cursor: hasCategoryLink ? 'pointer' : 'default',
+                                    '&:hover .drawer-category-title': gradientTextHover,
+                                    '&:focus-visible': {
+                                      outline: '2px solid',
+                                      outlineColor: alpha(highlightColor, 0.5),
+                                      outlineOffset: 4
+                                    }
+                                  }}
+                                >
+                                  <Typography
+                                    variant="subtitle2"
+                                    className="drawer-category-title"
+                                    sx={{ fontWeight: 600 }}
+                                  >
+                                    {category.label}
+                                  </Typography>
+                                  {category.description && (
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        color: alpha(theme.palette.text.secondary, 0.9)
+                                      }}
+                                    >
+                                      {category.description}
+                                    </Typography>
+                                  )}
+                                </Box>
+
+                                <IconButton
+                                  size="small"
+                                  onClick={toggleCategoryExpansion(item.menu, category.label)}
+                                  aria-label={`Toggle ${category.label} sub categories`}
+                                  aria-expanded={isExpanded}
+                                >
+                                  {isExpanded ? (
+                                    <ExpandLessRoundedIcon fontSize="small" />
+                                  ) : (
+                                    <ExpandMoreRoundedIcon fontSize="small" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+
+                              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                                 <List disablePadding>
                                   {category.subItems.map((subItem) => {
                                     const isObject =
@@ -719,17 +799,17 @@ const NavigationBar = () => {
                                     const linkProps = isRouteLink
                                       ? { component: RouterLink, to: href }
                                       : {
-                                        component: 'a',
-                                        href,
-                                        target: '_blank',
-                                        rel: 'noopener noreferrer'
-                                      };
+                                          component: 'a',
+                                          href,
+                                          target: '_blank',
+                                          rel: 'noopener noreferrer'
+                                        };
 
                                     return (
                                       <ListItemButton
                                         key={label}
                                         sx={{ pl: 6 }}
-                                        onClick={toggleDrawer(false)}
+                                        onClick={handleDrawerClose}
                                         {...linkProps}
                                       >
                                         <ListItemText
@@ -760,7 +840,7 @@ const NavigationBar = () => {
                   key={item.label}
                   component={RouterLink}
                   to={item.path}
-                  onClick={toggleDrawer(false)}
+                  onClick={handleDrawerClose}
                   sx={{
                     '&:hover .MuiListItemText-primary': gradientTextHover,
                     '& .MuiListItemText-primary': {
