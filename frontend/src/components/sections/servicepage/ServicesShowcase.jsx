@@ -320,10 +320,10 @@ const ServicesShowcase = () => {
           </Grid>
 
           {/* RIGHT CONTENT */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} sx={{ mt: { xs: 5, md: 0 } }}>
             <Slide in={true} direction="left" timeout={500} key={activeService.title}>
               <Stack spacing={3}>
-              
+
                 <Typography
                   variant="h4"
                   sx={{
@@ -361,9 +361,11 @@ const ServicesShowcase = () => {
                     </Typography>
                   ))}
                 </Stack>
+
               </Stack>
             </Slide>
           </Grid>
+
         </Grid>
       </Stack>
     </Box>

@@ -243,7 +243,6 @@ const NavigationBar = () => {
                       color: 'inherit',
                       borderRadius: 1,
                       px: 1,
-                      py: 0.5,
                       textDecoration: 'none',
                       transition: 'all 0.25s ease',
                       '&:hover .mega-category-title, &:focus-visible .mega-category-title':
@@ -683,7 +682,6 @@ const NavigationBar = () => {
                       <List disablePadding>
                         {item.path && (
                           <>
-
                             <Divider
                               sx={{
                                 borderColor: alpha(theme.palette.divider, 0.4),
@@ -739,24 +737,16 @@ const NavigationBar = () => {
                                     }
                                   }}
                                 >
-                                  <ListItemButton
+                                  <Typography
+                                    variant="subtitle2"
+                                    className="drawer-category-title"
+                                    sx={{ fontWeight: 600 }}
                                     component={RouterLink}
                                     to={item.path}
-                                    onClick={handleDrawerClose}
-
+                                    style={{ textDecoration: "none", color: "inherit" }}
                                   >
-                                    <ListItemText
-                                      primary={
-                                        <Typography
-                                          variant="subtitle2"
-                                          className="drawer-category-title"
-                                          sx={{ fontWeight: 600 }}
-                                        >
-                                          {category.label}
-                                        </Typography>
-                                      }
-                                    />
-                                  </ListItemButton>
+                                    {category.label}
+                                  </Typography>
                                   {category.description && (
                                     <Typography
                                       variant="caption"
@@ -804,32 +794,32 @@ const NavigationBar = () => {
                                       };
 
                                     return (
-                                      <ListItemButton
-                                        key={label}
-                                        sx={{ pl: 2 }}
+                                      <Typography
+                                        variant="body2"
                                         onClick={handleDrawerClose}
                                         {...linkProps}
+                                        sx={{
+                                          fontWeight: 700,
+                                          px: 2, 
+                                          py: 1.2,
+                                          width: '100%',
+                                          display: 'block',
+                                          textDecoration: 'none',
+                                          cursor: 'pointer',
+                                          color: "#fff",
+                                          transition: 'color 0.3s ease, background-image 0.3s ease',
+                                          '&:hover': {
+                                            color: 'transparent',
+                                            backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                                            WebkitBackgroundClip: 'text',
+                                            backgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                          },
+                                        }}
                                       >
-                                        <ListItemText
-                                          primary={
-                                            <Typography variant="body2" sx={{
-                                              fontWeight: 700,
-                                              textDecoration: 'none',
-                                              cursor: 'pointer',
-                                              transition: 'color 0.3s ease, background-image 0.3s ease',
-                                              '&:hover': {
-                                                color: 'transparent',
-                                                backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                                                WebkitBackgroundClip: 'text',
-                                                backgroundClip: 'text',
-                                                WebkitTextFillColor: 'transparent',
-                                              },
-                                            }}>
-                                              {label}
-                                            </Typography>
-                                          }
-                                        />
-                                      </ListItemButton>
+                                        {label}
+                                      </Typography>
+
                                     );
                                   })}
                                 </List>
