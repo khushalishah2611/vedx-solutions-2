@@ -197,7 +197,7 @@ const ServicesShowcase = () => {
                         sx={{
                           width: "100%",
                           height: 220,
-                          borderRadius: 1,
+                          borderRadius: 0.5,
                           overflow: "hidden",
                           border: active ? activeBorder : inactiveBorder,
                           boxShadow: active ? activeShadow : baseShadow,
@@ -256,7 +256,7 @@ const ServicesShowcase = () => {
                       sx={{
                         width: "100%",
                         height: 220,
-                        borderRadius: 1,
+                        borderRadius: 0.5,
                         overflow: "hidden",
                         border: active ? activeBorder : inactiveBorder,
                         boxShadow: active ? activeShadow : baseShadow,
@@ -323,37 +323,7 @@ const ServicesShowcase = () => {
           <Grid item xs={12} md={6}>
             <Slide in={true} direction="left" timeout={500} key={activeService.title}>
               <Stack spacing={3}>
-                <Box
-                  sx={{
-                    width: "100%",
-                    height: { xs: 220, md: 260 },
-                    borderRadius: 2,
-                    overflow: "hidden",
-                    position: "relative",
-                    boxShadow: baseShadow,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={activeService.image}
-                    alt={`${activeService.title} visual`}
-                    loading="lazy"
-                    sx={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      inset: 0,
-                      background: overlayGradient,
-                    }}
-                  />
-                </Box>
-
+              
                 <Typography
                   variant="h4"
                   sx={{
