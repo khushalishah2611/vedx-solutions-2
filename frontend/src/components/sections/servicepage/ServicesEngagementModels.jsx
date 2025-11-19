@@ -72,7 +72,7 @@ const ServicesEngagementModels = () => {
       </Stack>
 
       {/* Engagement Cards */}
-      <Grid container spacing={4}>
+      <Grid container spacing={2}>
         {engagementModels.map((model) => (
           <Grid item xs={12} md={4} key={model.title}>
             <Paper
@@ -101,8 +101,7 @@ const ServicesEngagementModels = () => {
                   : '0 4px 30px rgba(15,23,42,0.15)',
                 '&:hover': {
                   transform: 'translateY(-8px) scale(1.02)',
-
-                  borderColor: alpha(accentColor, 0.5)
+                  borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
                 }
               }}
             >

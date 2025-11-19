@@ -7,10 +7,9 @@ const ServicesBlog = () => {
   return (
     <Box component="section">
       <Stack
-        spacing={{ xs: 2, md: 3 }}
-        direction={{ xs: 'column', md: 'row' }}
-        alignItems={{ xs: 'flex-start', md: 'center' }}
-        justifyContent="space-between"
+       
+        alignItems="center"
+        justifyContent="center"
         sx={{ mb: 8 }}
       >
         <Typography
@@ -18,39 +17,20 @@ const ServicesBlog = () => {
           sx={{
             fontSize: { xs: 32, md: 42 },
             fontWeight: 700,
-            textAlign: { xs: 'left', md: 'left' }
+            textAlign: "center",
+            width: "100%"
           }}
         >
           Latest Blogs
         </Typography>
-        <Button
-          component={RouterLink}
-          to="/blog"
-          variant="contained"
-          size="large"
-          sx={{
-            background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-            color: '#fff',
-            borderRadius: '12px',
-            textTransform: 'none',
-            fontWeight: 600,
-            alignSelf: { xs: 'flex-start', md: 'flex-end' },
-            px: { xs: 3, md: 4 },
-            '&:hover': {
-              background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
-            }
-          }}
-        >
-          View All
-        </Button>
       </Stack>
 
-      <Grid container spacing={4}>
-        {blogPosts.slice(0, 6).map((post) => (
-          <Grid item xs={12} sm={6} lg={4} key={post.slug}>
+      <Grid container spacing={2}>
+        {blogPosts.slice(0, 4).map((post) => (
+          <Grid item xs={12} md={6} lg={3} key={post.slug}>
             <BlogPreviewCard
               post={post}
-              imageHeight={220}
+              imageHeight={200}
               showExcerpt={false}
               showMeta={false}
             />

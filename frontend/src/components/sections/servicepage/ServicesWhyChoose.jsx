@@ -83,7 +83,7 @@ const ServicesWhyChoose = () => {
                   '&:hover': {
                     transform: 'translateY(-8px) scale(1.02)',
 
-                    borderColor: alpha(accentColor, 0.5),
+                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
                   },
                 }}
               >

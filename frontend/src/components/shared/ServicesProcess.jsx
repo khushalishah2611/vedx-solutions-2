@@ -40,36 +40,6 @@ const ServicesProcess = () => {
   const total = Array.isArray(processSteps) ? processSteps.length : 0;
   const maxIndex = Math.max(0, total - stepsPerView);
 
-  const slideIn = useMemo(
-    () =>
-      keyframes`
-        from { opacity: 0; transform: translateX(${animationDirection === "right" ? "24px" : "-24px"}); }
-        to { opacity: 1; transform: translateX(0); }
-      `,
-    [animationDirection]
-  );
-
-  const animationBadges = useMemo(
-    () => [
-      { label: "Autoplay slider", color: accentColor, delay: "0ms" },
-      { label: "Pause on hover", color: "#67e8f9", delay: "120ms" },
-      { label: "Left & right controls", color: "#a855f7", delay: "240ms" },
-      { label: "Cinematic transitions", color: "#22d3ee", delay: "360ms" },
-    ],
-    [accentColor]
-  );
-
-  const shimmer = keyframes`
-    0% { transform: translateX(-40%); opacity: 0.55; }
-    50% { transform: translateX(0%); opacity: 0.9; }
-    100% { transform: translateX(40%); opacity: 0.55; }
-  `;
-
-  const floatY = keyframes`
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
-    100% { transform: translateY(0px); }
-  `;
 
   const pulseBorder = keyframes`
     0% { box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.35); }
@@ -114,48 +84,6 @@ const ServicesProcess = () => {
   return (
     <Box
       component="section"
-      sx={{
-        position: "relative",
-        overflow: "hidden",
-        borderRadius: { xs: 0, md: 1.5 },
-        background: `radial-gradient(circle at 10% 20%, ${alpha(
-          accentColor,
-          0.08
-        )}, transparent 35%), radial-gradient(circle at 90% 10%, ${alpha(
-          "#a855f7",
-          0.08
-        )}, transparent 32%)`,
-        p: { xs: 1, md: 2 },
-        "&::before": {
-          content: "''",
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTc1dThybXBpdm41eGdzOGJtNHd3eWQ4OTZlcmZ5MWpyNTY5cTNyaSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/qgQUggAC3Pfv687qPC/giphy.gif')",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-          opacity: isDark ? 0.07 : 0.05,
-          filter: "saturate(0.7)",
-          pointerEvents: "none",
-        },
-        "&::after": {
-          content: "''",
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "120%",
-          height: "100%",
-          background: `linear-gradient(120deg, transparent, ${alpha(
-            accentColor,
-            0.08
-          )}, transparent)`,
-          animation: `${shimmer} 11s ease-in-out infinite`,
-          pointerEvents: "none",
-        },
-      }}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
     >
       {/* Section Header */}
       <Stack spacing={3} sx={{ mb: 3, textAlign: "center", alignItems: "center" }}>
@@ -167,35 +95,12 @@ const ServicesProcess = () => {
           can explore our delivery rhythm without missing a beat.
         </Typography>
 
-        <Stack
-          direction="row"
-          spacing={1}
-          justifyContent="center"
-          flexWrap="wrap"
-          useFlexGap
-        >
-          {animationBadges.map((badge) => (
-            <Chip
-              key={badge.label}
-              label={badge.label}
-              sx={{
-                color: badge.color,
-                backgroundColor: alpha(badge.color, isDark ? 0.16 : 0.1),
-                border: `1px solid ${alpha(badge.color, 0.35)}`,
-                fontWeight: 700,
-                letterSpacing: 0.2,
-                textTransform: "uppercase",
-                animation: `${floatY} 6s ease-in-out infinite`,
-                animationDelay: badge.delay,
-              }}
-            />
-          ))}
-        </Stack>
+       
       </Stack>
 
       {/* Process Steps */}
-      <Stack spacing={3} sx={{ position: "relative" }}>
-        <Grid container spacing={2} sx={{ overflow: "hidden" }}>
+      <Stack sx={{ position: "relative" }}>
+        <Grid container spacing={2} >
           {visibleSteps.map((step, index) => (
             <Grid item xs={12} md={6} lg={4} key={step.title}>
               <Paper
@@ -204,26 +109,22 @@ const ServicesProcess = () => {
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  borderRadius: 1,
+                  borderRadius: 0.5,
                   overflow: "hidden",
                   backgroundColor: alpha(
                     theme.palette.background.paper,
                     isDark ? 0.78 : 0.97
                   ),
-                  border: `1px solid ${alpha(
-                    theme.palette.divider,
-                    isDark ? 0.4 : 0.6
-                  )}`,
+                    border: `1px solid ${alpha(
+                  theme.palette.divider,
+                  isDark ? 0.4 : 0.6
+                )}`,
                   transition:
                     "transform 0.5s ease, box-shadow 0.5s ease, border-color 0.45s ease",
-                  animation: `${slideIn} 0.65s ease, ${floatY} 8s ease-in-out infinite`,
-                  animationDelay: `${index * 120}ms`,
-                  boxShadow: isDark
-                    ? "0 10px 50px rgba(2,6,23,0.35)"
-                    : "0 20px 60px rgba(15,23,42,0.12)",
+               
                   "&:hover": {
                     transform: "translateY(-10px) scale(1.02)",
-                    borderColor: alpha(accentColor, 0.5),
+                       borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
                   },
                 }}
               >

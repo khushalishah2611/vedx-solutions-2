@@ -66,7 +66,7 @@ const ServicesTestimonials = () => {
       }}
     >
       {/* Header */}
-      <Stack spacing={3} sx={{ mb: 6, alignItems: 'center' }}>
+      <Stack spacing={2} sx={{ mb: 6, alignItems: 'center' }}>
         <Box
           sx={{
             display: 'inline-flex',
@@ -163,7 +163,7 @@ const ServicesTestimonials = () => {
                 '&:hover': {
                   transform: 'translateY(-8px) scale(1.02)',
 
-                  borderColor: alpha(accentColor, 0.5)
+                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
                 }
               }}
             >

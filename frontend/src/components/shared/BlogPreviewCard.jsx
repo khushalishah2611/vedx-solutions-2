@@ -27,7 +27,7 @@ const BlogPreviewCard = ({
         '&:hover': {
           transform: 'translateY(-6px)',
 
-          borderColor: alpha(accentColor, 0.5)
+          borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
         }
       }}
     >
@@ -37,8 +37,8 @@ const BlogPreviewCard = ({
         sx={{
           display: 'block',
           textDecoration: 'none',
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16,
+          borderTopLeftRadius: 0.5,
+          borderTopRightRadius: 0.5,
           overflow: 'hidden'
         }}
       >
@@ -49,15 +49,12 @@ const BlogPreviewCard = ({
             backgroundImage: `url(${post.image})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            transition: 'transform 0.6s ease',
-            '&:hover': {
-              transform: 'scale(1.05)'
-            }
+
           }}
         />
       </Box>
 
-      <Stack spacing={2} sx={{ p: { xs: 3, md: 3.25 }, flexGrow: 1 }}>
+      <Stack spacing={2} sx={{ p: { xs: 2, md: 2}, flexGrow: 1 }}>
 
         <Box
           sx={{
