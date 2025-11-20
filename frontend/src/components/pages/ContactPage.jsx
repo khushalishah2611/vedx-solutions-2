@@ -18,7 +18,7 @@ import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import { contactProjectTypes } from '../../data/servicesPage.js';
 
 const contactLocation = {
-  address: 'Suite 6, Shivam, Gujarat, India',
+  address: 'Suite 6, Sharvari, Vadodra, India',
   mapUrl: 'https://maps.app.goo.gl/4eSx5vwd2B52r7SU6',
   embedUrl:
     'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.931298711962!2d73.16464287503293!3d22.618272779458066!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc92cc69482e9%3A0x4304382e37f95998!2sVedx%20solution%20Pvt%20ltd!5e0!3m2!1sen!2sin!4v1707162589470!5m2!1sen!2sin'
@@ -64,25 +64,28 @@ const ContactPage = () => {
       <Box
         sx={{
           backgroundImage:
-            'url(https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80)',
+            'linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          transform: { xs: 'none', md: 'scale(1.05)' },
-          transition: 'transform 0.6s ease, filter 0.6s ease',
-          filter: isDark ? 'brightness(0.9)' : 'brightness(0.8)',
+          filter: isDark ? 'brightness(0.9)' : 'brightness(0.85)',
           position: 'relative',
           overflow: 'hidden',
-          minHeight: { xs: '70vh', md: '80vh' },
+          minHeight: { xs: '65vh', md: '78vh' },
           display: 'flex',
           alignItems: 'center',
-          pb: { xs: 12, md: 14 },
-          pt: { xs: 14, md: 18 },
+          pb: { xs: 10, md: 14 },
+          pt: { xs: 12, md: 18 },
           color: 'common.white'
         }}
       >
         <Container
-         
+          maxWidth={false}
+          sx={{
+            position: 'relative',
+            zIndex: 1,
+            px: { xs: 3, md: 20 }
+          }}
         >
           <Stack
             spacing={2.5}
@@ -116,8 +119,15 @@ const ContactPage = () => {
       </Box>
 
       {/* Contact Section */}
-      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
-        <Stack spacing={{ xs: 6, md: 8 }}>
+      <Container
+        id="contact"
+        maxWidth={false}
+        sx={{
+          px: { xs: 3, md: 20 },
+          py: { xs: 6, md: 10 }
+        }}
+      >
+        <Stack spacing={{ xs: 6, md: 10 }}>
           {/* Section Title */}
           <Stack spacing={3} alignItems="center">
             <Box
@@ -130,7 +140,7 @@ const ContactPage = () => {
                 border: `1px solid ${alpha(theme.palette.divider, 0.3)}`,
                 background: !isDark
                   ? alpha('#ddddddff', 0.9)
-                  : alpha('#0000007c', 0.9),
+                  : alpha('#0b1022', 0.9),
                 color: alpha(accentColor, 0.9),
                 fontWeight: 600,
                 letterSpacing: 1,
@@ -173,13 +183,12 @@ const ContactPage = () => {
                     height: '100%',
                     borderRadius: 0.5,
                     background: isDark
-                      ? 'linear-gradient(135deg, rgba(33, 34, 55, 0.9), rgba(18, 18, 30, 0.95))'
-                      : 'linear-gradient(135deg, rgba(250, 250, 255, 0.98), rgba(238, 240, 255, 0.92))',
-                    border: `1px solid ${alpha(
-                      isDark ? '#67e8f9' : theme.palette.primary.main,
-                      0.35
-                    )}`,
-                    boxShadow: '0 18px 45px rgba(14, 18, 68, 0.22)',
+                      ? 'linear-gradient(160deg, #0f172a 0%, #111827 100%)'
+                      : 'linear-gradient(160deg, #ffffff 0%, #f7f8ff 100%)',
+                    border: `1px solid ${alpha(isDark ? accentColor : theme.palette.primary.main, 0.3)}`,
+                    boxShadow: isDark
+                      ? '0 18px 45px rgba(3, 7, 18, 0.65)'
+                      : '0 18px 45px rgba(14, 18, 68, 0.15)',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center'
@@ -240,10 +249,10 @@ const ContactPage = () => {
                 sx={{
                   height: '100%',
                   borderRadius: 0.5,
-                  p: { xs: 3, md: 4 },
+                  p: { xs: 3, sm: 4 },
                   background: isDark
-                    ? 'linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,64,175,0.75))'
-                    : 'linear-gradient(135deg, rgba(248,250,252,0.98), rgba(219,234,254,0.9))',
+                    ? 'linear-gradient(145deg, rgba(15,23,42,0.96), rgba(30,41,59,0.92))'
+                    : 'linear-gradient(145deg, rgba(248,250,252,0.98), rgba(219,234,254,0.9))',
                   boxShadow: isDark
                     ? '0 24px 48px rgba(3,7,18,0.85)'
                     : '0 24px 48px rgba(15,23,42,0.15)'
@@ -354,7 +363,7 @@ const ContactPage = () => {
                   boxShadow: isDark
                     ? '0 30px 60px rgba(3, 7, 18, 0.75)'
                     : '0 30px 45px rgba(15, 23, 42, 0.18)',
-                  height: { xs: 320, sm: 380, md: '100%' },
+                  height: { xs: 260, sm: 340, md: '100%' },
                   width: '100%',
                   maxWidth: '100%'
                 }}
