@@ -1,4 +1,4 @@
-import { Box,  Divider, alpha, useTheme ,Container} from '@mui/material';
+import { Box, Divider, alpha, useTheme, Container } from '@mui/material';
 import {
   careerBenefits,
   careerHero,
@@ -26,8 +26,8 @@ const CareersPage = () => {
   return (
     <Box sx={{ bgcolor: 'background.default', overflow: 'hidden', }}>
       <CareerHeroSection hero={careerHero} />
-      
-  <Container
+
+      <Container
         maxWidth={false}
         sx={{
           px: { xs: 3, md: 20 },
@@ -36,17 +36,17 @@ const CareersPage = () => {
       >
 
 
-        <CareerStorySection story={careerStory} />
+        <Box my={5}><CareerStorySection story={careerStory} /></Box>
+        <Box my={10}><Divider sx={{ borderColor: dividerColor }} /></Box>
+        <Box my={10}><CareerBenefitsSection benefits={careerBenefits} /></Box>
+        <Box my={10}> <CareerTrustedSection logos={careerLogos} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <CareerBenefitsSection benefits={careerBenefits} />
-        <CareerTrustedSection logos={careerLogos} />
+        <Box my={10}> <CareerJourneySection journey={hiringJourney} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <CareerJourneySection journey={hiringJourney} />
+        <Box my={10}> <CareerOpenRolesSection roles={careerOpenings} applyHref={careerHero.ctaHref} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <CareerOpenRolesSection roles={careerOpenings} applyHref={careerHero.ctaHref} />
-        <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesCTA onContactClick={handleOpenContact} />
-   </Container>
+        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} /></Box>
+      </Container>
 
     </Box>
   );

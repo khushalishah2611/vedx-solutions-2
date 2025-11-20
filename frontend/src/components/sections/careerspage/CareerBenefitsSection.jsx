@@ -18,10 +18,10 @@ const CareerBenefitsSection = ({ benefits = [] }) => {
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.9 : 0.75);
 
   return (
-    <Container id="benefits" maxWidth="lg" sx={{ mt: { xs: 10, md: 14 } }}>
+    <Container id="benefits" >
       {/* === SECTION HEADER === */}
       <Stack
-        spacing={2.5}
+        spacing={2}
         alignItems="center"
         textAlign="center"
         sx={{ mb: { xs: 6, md: 8 } }}

@@ -1,3 +1,4 @@
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,6 +15,54 @@ const DEFAULT_BASE_IMAGE =
 const DEFAULT_OVERLAY_IMAGE =
   'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&q=80';
 
+// Simple typing title component (you can replace with your own)
+const TypingTitle = () => {
+  const words = ['Enterprise Growth', 'Digital Success', 'Brand Visibility'];
+  const [text, setText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loopNum, setLoopNum] = useState(0);
+  const [typingSpeed, setTypingSpeed] = useState(130);
+
+  useEffect(() => {
+    const handleTyping = () => {
+      const current = loopNum % words.length;
+      const fullText = words[current];
+
+      setText((prev) =>
+        isDeleting
+          ? fullText.substring(0, prev.length - 1)
+          : fullText.substring(0, prev.length + 1)
+      );
+
+      setTypingSpeed(isDeleting ? 70 : 130);
+
+      if (!isDeleting && text === fullText) {
+        setTimeout(() => setIsDeleting(true), 1200);
+      } else if (isDeleting && text === '') {
+        setIsDeleting(false);
+        setLoopNum((prev) => prev + 1);
+      }
+    };
+
+    const timer = setTimeout(handleTyping, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [text, isDeleting, loopNum, typingSpeed, words]);
+
+  return (
+    <Box
+      component="span"
+      sx={{
+        background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        fontWeight: 800,
+      }}
+    >
+      {text || '\u00A0'}
+    </Box>
+  );
+};
+
 const HeroMediaShowcase = ({
   eyebrow,
   title,
@@ -24,7 +73,7 @@ const HeroMediaShowcase = ({
   baseImageAlt = 'Creative team collaborating',
   overlayImageAlt = 'Creative digital process',
   accentColor: accentColorProp,
-  ctaLabel,
+  ctaLabel = 'Start your project',
   onCtaClick,
   actions,
   children,
@@ -34,73 +83,149 @@ const HeroMediaShowcase = ({
   const isDark = theme.palette.mode === 'dark';
   const accentColor = accentColorProp ?? (isDark ? '#67e8f9' : theme.palette.primary.main);
 
+  const leftRef = useRef(null);
+  const rightRef = useRef(null);
+  const [leftInView, setLeftInView] = useState(false);
+  const [rightInView, setRightInView] = useState(false);
+
+  // Scroll animation using IntersectionObserver (no extra libs)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          if (entry.target === leftRef.current) {
+            setLeftInView(true);
+          }
+          if (entry.target === rightRef.current) {
+            setRightInView(true);
+          }
+        });
+      },
+      {
+        threshold: 0.25,
+      }
+    );
+
+    if (leftRef.current) observer.observe(leftRef.current);
+    if (rightRef.current) observer.observe(rightRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const headingText =
+    title || 'Creative Digital Agency Working For';
+
+  const mainDescription =
+    description ||
+    'We design, develop, and scale digital products that transform the way brands connect with their audiences. Our team merges creativity and technology to craft meaningful, measurable experiences.';
+
+  const extraDescription =
+    extendedDescription ||
+    'From brand strategy to full-stack engineering, we partner with enterprises to build the next generation of customer experiences — blending design thinking, storytelling, and advanced technology.';
+
   return (
-    <Box sx={{ position: 'relative', ...sx }}>
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-        <Grid container spacing={{ xs: 6, md: 10 }} alignItems="center">
-          <Grid item xs={12} md={6}>
-            <Box
+   <Box sx={{ position: 'relative', }}>
+        {/* Full-width container with same side padding as hero/navbar */}
+        <Container
+          maxWidth={false}
+          sx={{
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <Grid
+            container
+            spacing={{ xs: 6, md: 10 }}
+            justifyContent="flex-start"
+            alignItems="center"
+          >
+            {/* === IMAGES SECTION (LEFT) === */}
+            <Grid
+              item
+              xs={12}
+              md={6}
+              ref={leftRef}
               sx={{
-                position: 'relative',
-                maxWidth: 520,
-                mx: { xs: 'auto', md: 0 },
-                height: { xs: 360, md: 560 },
+                opacity: leftInView ? 1 : 0,
+                transform: leftInView ? 'translateX(0)' : 'translateX(-40px)',
+                transition: 'opacity 0.7s ease, transform 0.7s ease',
               }}
             >
               <Box
-                component="img"
-                src={baseImage}
-                alt={baseImageAlt}
-                loading="lazy"
                 sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '80%',
-                  height: '80%',
-                  borderRadius: 0.5,
-                  border: `1px solid ${alpha('#ffffff', 0.06)}`,
-                  boxShadow: '0 25px 100px rgba(0,0,0,0.6)',
-                  objectFit: 'cover',
-                  zIndex: 1,
+                  position: 'relative',
+                  maxWidth: 800,
+                  mx: { xs: 'auto', md: 0 },
+                  height: { xs: 400, md: 600 },
                 }}
-              />
-
-              <Box
-                component="img"
-                src={overlayImage}
-                alt={overlayImageAlt}
-                loading="lazy"
+              >
+                {/* Base Image */}
+                <Box
+                  component="img"
+                  src={HERO_IMAGE_BASE}
+                  alt="Creative team collaborating"
+                  loading="lazy"
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '80%',
+                    height: '80%',
+                    borderRadius: 0.5,
+                    border: `1px solid ${alpha('#ffffff', 0.06)}`,
+                    boxShadow: '0 25px 100px rgba(0,0,0,0.6)',
+                    objectFit: 'cover',
+                    zIndex: 1,
+                  }}
+                />
+  
+                {/* Overlay Image */}
+                <Box
+                  component="img"
+                  src={HERO_IMAGE_OVERLAY}
+                  alt="Creative digital process"
+                  loading="lazy"
+                  sx={{
+                    position: 'absolute',
+                    top: '10%',
+                    left: '10%',
+                    width: '80%',
+                    height: '80%',
+                    borderRadius: 0.5,
+                    border: `1px solid ${alpha('#ffffff', 0.08)}`,
+                    boxShadow: '0 35px 120px rgba(0,0,0,0.8)',
+                    objectFit: 'cover',
+                    zIndex: 2,
+                  }}
+                />
+              </Box>
+            </Grid>
+  
+            {/* === TEXT SECTION (RIGHT) === */}
+            <Grid
+              item
+              xs={12}
+              md={6}
+              ref={rightRef}
+              sx={{
+                opacity: rightInView ? 1 : 0,
+                transform: rightInView ? 'translateX(0)' : 'translateX(40px)',
+                transition: 'opacity 0.7s ease, transform 0.7s ease',
+              }}
+            >
+              <Stack
+                spacing={3}
                 sx={{
-                  position: 'absolute',
-                  top: '10%',
-                  left: '10%',
-                  width: '80%',
-                  height: '80%',
-                  borderRadius: 0.5,
-                  border: `1px solid ${alpha('#ffffff', 0.08)}`,
-                  boxShadow: '0 35px 120px rgba(0,0,0,0.8)',
-                  objectFit: 'cover',
-                  zIndex: 2,
+                  maxWidth: 520,
+                  mx: { xs: 'auto', md: 0 },
+                  textAlign: { xs: 'center', md: 'left' },
                 }}
-              />
-            </Box>
-          </Grid>
-
-          <Grid
-            item
-            xs={12}
-            md={6}
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              alignItems: { xs: 'center', md: 'flex-start' },
-              textAlign: { xs: 'center', md: 'left' },
-            }}
-          >
-            <Stack spacing={3.5} sx={{ maxWidth: 520 }}>
-              {eyebrow && (
+              >
+                {/* Label */}
                 <Box
                   sx={{
                     display: 'inline-flex',
@@ -125,90 +250,66 @@ const HeroMediaShowcase = ({
                   <Box
                     component="span"
                     sx={{
-                      background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      background:
+                        'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                     }}
                   >
-                    {eyebrow}
+                    We are
                   </Box>
                 </Box>
-              )}
-
-              {title && (
+  
+                {/* Heading with typing effect */}
                 <Typography
                   variant="h4"
                   sx={{
-                    fontWeight: 700,
-                    fontSize: { xs: 28, md: 36 },
-                    color: isDark ? alpha('#ffffff', 0.95) : alpha('#000000', 0.95),
-                    lineHeight: 1.3,
+                    fontWeight: 800,
+                    lineHeight: 1.5,
                   }}
                 >
-                  {title}
+                  Creative Digital Agency Working For
+                  <br />
+                  <TypingTitle />
                 </Typography>
-              )}
-
-              {description && (
+  
+                {/* Description */}
                 <Typography
                   variant="body1"
                   sx={{
-                    color: isDark ? alpha('#ffffff', 0.9) : alpha('#000', 0.9),
+                    color: !isDark
+                      ? alpha('#000', 0.9)
+                      : alpha('#ffffff', 0.9),
                     fontSize: { xs: 16, md: 17 },
                     lineHeight: 1.75,
                   }}
                 >
-                  {description}
+                  We design, develop, and scale digital products that transform the
+                  way brands connect with their audiences. Our team merges
+                  creativity and technology to craft meaningful, measurable
+                  experiences.
                 </Typography>
-              )}
-
-              {extendedDescription && (
+  
+                {/* Extended Description */}
                 <Typography
                   variant="body2"
                   sx={{
-                    color: isDark ? alpha('#ffffff', 0.85) : alpha('#000', 0.85),
+                    color: !isDark
+                      ? alpha('#000', 0.9)
+                      : alpha('#ffffff', 0.9),
                     lineHeight: 1.7,
                   }}
                 >
-                  {extendedDescription}
+                  From brand strategy to full-stack engineering, we partner with
+                  enterprises to build the next generation of customer experiences
+                  — blending design thinking, storytelling, and advanced
+                  technology.
                 </Typography>
-              )}
-
-              {children}
-
-              {(ctaLabel || actions) && (
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={2}
-                  sx={{ pt: 1, mx: { xs: 'auto', md: 0 } }}
-                >
-                  {actions ?? (
-                    <Button
-                      variant="contained"
-                      size="large"
-                      onClick={onCtaClick}
-                      sx={{
-                        background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                        color: '#fff',
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        px: 2,
-                        '&:hover': {
-                          background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                        },
-                      }}
-                    >
-                      {ctaLabel}
-                    </Button>
-                  )}
-                </Stack>
-              )}
-            </Stack>
+              </Stack>
+            </Grid>
           </Grid>
-        </Grid>
-      </Container>
-    </Box>
+        </Container>
+      </Box>
   );
 };
 

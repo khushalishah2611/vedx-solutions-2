@@ -56,18 +56,7 @@ const CareerHeroSection = ({ hero, onCtaClick }) => {
                 alignItems: { xs: 'center', md: 'flex-start' },
               }}
             >
-              {hero?.caption && (
-                <Typography
-                  variant="overline"
-                  sx={{
-                    letterSpacing: 2,
-                    color: subtleText,
-                  }}
-                >
-                  {hero.caption}
-                </Typography>
-              )}
-
+             
               <Typography
                 variant="h1"
                 sx={{
@@ -115,53 +104,7 @@ const CareerHeroSection = ({ hero, onCtaClick }) => {
             </Stack>
           </Grid>
 
-          <Grid item xs={12} md={6} lg={6}>
-            <Box
-              sx={{
-                position: 'relative',
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: '0px 24px 80px rgba(0,0,0,0.45)',
-                transform: { xs: 'none', md: 'translateY(10px)' },
-              }}
-            >
-              <Box
-                component="img"
-                src={hero?.image}
-                alt={hero?.title}
-                sx={{
-                  width: '100%',
-                  height: { xs: 260, sm: 320, md: 420 },
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 100%)',
-                }}
-              />
-              {hero?.caption && (
-                <Typography
-                  variant="subtitle1"
-                  sx={{
-                    position: 'absolute',
-                    bottom: 20,
-                    left: { xs: 20, sm: 28 },
-                    right: { xs: 20, sm: 28 },
-                    color: 'common.white',
-                    opacity: 0.9,
-                    fontWeight: 600,
-                    textAlign: { xs: 'center', md: 'left' },
-                  }}
-                >
-                  {hero.caption}
-                </Typography>
-              )}
-            </Box>
-          </Grid>
+          
         </Grid>
       </Container>
     </Box>

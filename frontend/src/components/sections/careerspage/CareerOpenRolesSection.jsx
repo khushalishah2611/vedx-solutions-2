@@ -116,7 +116,7 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
   };
 
   return (
-    <Container id="open-roles" maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
+    <Container id="open-roles"  >
       {/* Header */}
       <Stack
         spacing={3}
@@ -138,7 +138,7 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
           role="status"
           sx={{
             p: { xs: 3, md: 4 },
-            borderRadius: 1,
+            borderRadius: 0.5,
             textAlign: 'center',
             border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`,
             bgcolor: alpha(theme.palette.background.paper, isDark ? 0.4 : 0.7),

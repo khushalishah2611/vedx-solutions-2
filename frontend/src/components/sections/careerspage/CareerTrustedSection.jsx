@@ -10,7 +10,7 @@ const CareerTrustedSection = ({
   const isDark = theme.palette.mode === 'dark';
 
   return (
-    <Container id="trusted" maxWidth="lg" sx={{ mt: { xs: 8, md: 12 } }}>
+    <Container id="trusted">
       <Paper
         elevation={0}
         sx={{
@@ -24,6 +24,7 @@ const CareerTrustedSection = ({
           border: '1px solid',
           borderColor: isDark ? alpha('#A855F7', 0.35) : alpha('#4F46E5', 0.35),
 
+          // existing animations
           '@keyframes fadeUp': {
             '0%': { opacity: 0, transform: 'translateY(16px)' },
             '100%': { opacity: 1, transform: 'translateY(0)' },
@@ -32,6 +33,16 @@ const CareerTrustedSection = ({
             '0%': { transform: 'translateY(0)' },
             '50%': { transform: 'translateY(-3px)' },
             '100%': { transform: 'translateY(0)' },
+          },
+
+          // NEW: left & right animations for header content
+          '@keyframes slideInLeft': {
+            '0%': { opacity: 0, transform: 'translateX(-24px)' },
+            '100%': { opacity: 1, transform: 'translateX(0)' },
+          },
+          '@keyframes slideInRight': {
+            '0%': { opacity: 0, transform: 'translateX(24px)' },
+            '100%': { opacity: 1, transform: 'translateX(0)' },
           },
         }}
       >
@@ -42,8 +53,12 @@ const CareerTrustedSection = ({
             spacing={2}
             alignItems={{ xs: 'flex-start', md: 'center' }}
             justifyContent="space-between"
-            sx={{ animation: 'fadeUp 700ms ease forwards' }}
+            sx={{
+              animation: 'fadeUp 700ms ease forwards',
+              gap: { xs: 3, md: 4 },
+            }}
           >
+            {/* Left: Title (slide from left) */}
             <Typography
               variant="h4"
               sx={{
@@ -52,17 +67,26 @@ const CareerTrustedSection = ({
                 color: isDark ? alpha('#ffffff', 0.95) : alpha('#000000', 0.95),
                 flex: 1,
                 lineHeight: 1.2,
+                animation: {
+                  xs: 'slideInLeft 700ms ease forwards',
+                  md: 'slideInLeft 700ms ease forwards',
+                },
               }}
             >
               Work With Us, Grow With Us
             </Typography>
 
+            {/* Right: Description (slide from right) */}
             <Typography
               variant="body1"
               sx={{
                 color: isDark ? alpha('#E2E8F0', 0.82) : alpha('#1E293B', 0.78),
                 lineHeight: 1.7,
                 flex: 1,
+                animation: {
+                  xs: 'slideInRight 700ms ease 80ms forwards',
+                  md: 'slideInRight 700ms ease 80ms forwards',
+                },
               }}
             >
               We are a mixed group of like-minded professionals who firmly believe in leading rather than
@@ -105,11 +129,10 @@ const CareerTrustedSection = ({
               {logos.map((brand, idx) => {
                 const clickableProps = tileClickable
                   ? {
-                    component: 'a',
-                    href: contactHref,
-                    // Accessible focus + semantics:
-                    'aria-label': `Contact us about ${brand?.name || 'brand'}`,
-                  }
+                      component: 'a',
+                      href: contactHref,
+                      'aria-label': `Contact us about ${brand?.name || 'brand'}`,
+                    }
                   : {};
 
                 return (
@@ -130,9 +153,9 @@ const CareerTrustedSection = ({
                       opacity: 0,
                       textDecoration: 'none',
                       cursor: tileClickable ? 'pointer' : 'default',
-                      animation: `fadeUp 650ms ease ${100 + idx * 60}ms forwards, floaty 5s ease-in-out ${idx *
-                        120}ms infinite`,
-                      // corner brackets
+                      animation: `fadeUp 650ms ease ${100 + idx * 60}ms forwards, floaty 5s ease-in-out ${
+                        idx * 120
+                      }ms infinite`,
                       '&::before, &::after, & .extraCorner::before, & .extraCorner::after': {
                         content: '""',
                         position: 'absolute',
@@ -172,7 +195,8 @@ const CareerTrustedSection = ({
                         borderBottomLeftRadius: 8,
                       },
                       ...(tileClickable && {
-                        transition: 'transform 220ms ease, box-shadow 220ms ease, opacity 220ms ease',
+                        transition:
+                          'transform 220ms ease, box-shadow 220ms ease, opacity 220ms ease',
                         '&:hover': {
                           transform: 'translateY(-4px) scale(1.02)',
                           boxShadow: isDark
@@ -190,18 +214,17 @@ const CareerTrustedSection = ({
                   >
                     <Box className="extraCorner" sx={{ position: 'absolute', inset: 0 }} />
 
-                    {/* Centered, clickable image */}
                     <Box
                       component="img"
                       src={brand.logo}
                       alt={brand.name}
                       sx={{
                         display: 'block',
-                        width: { xs: '72%', md: '80%' }, // fixed from 850%
+                        width: { xs: '72%', md: '80%' },
                         height: '72%',
                         objectFit: 'contain',
-                        mx: 'auto', // perfect horizontal centering
-                        my: 'auto', // vertical centering within the flex box
+                        mx: 'auto',
+                        my: 'auto',
                         filter: isDark ? 'brightness(0) invert(1)' : 'grayscale(0.2)',
                         opacity: isDark ? 0.92 : 0.85,
                         userSelect: 'none',
