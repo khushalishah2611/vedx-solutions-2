@@ -1,92 +1,104 @@
-import { Box, Button, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Button, Container, Stack, Typography, Grid, useTheme } from '@mui/material';
 
 const CareerHeroSection = ({ hero, onCtaClick }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
   return (
-    <Box
+
+     <Box
+      component="section"
       sx={{
-        position: 'relative',
-        color: '#fff',
-        pt: { xs: 14, md: 18 },
-        pb: { xs: 12, md: 16 },
-        minHeight: { xs: '90vh', md: '100vh' },
-        display: 'flex',
-        alignItems: 'center',
-        backgroundImage: `linear-gradient(
-          120deg,
-          rgba(8, 13, 35, 0.85) 10%,
-          rgba(42, 11, 80, 0.75) 55%,
-          rgba(0, 136, 204, 0.7) 100%
-        ), url(${hero.image})`,
+        backgroundImage: `
+          linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
+          url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80")
+        `,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        transition: 'transform 0.6s ease, filter 0.6s ease',
+        filter: isDark ? 'brightness(0.9)' : 'brightness(0.8)',
+        position: 'relative',
         overflow: 'hidden',
-        filter: isDark ? 'brightness(0.55)' : 'brightness(0.8)',
-        transform: 'scale(1.05)',
-        transition: 'transform 0.6s ease, filter 0.6s ease'
+        minHeight: { xs: '70vh', md: '80vh' },
+        display: 'flex',
+        alignItems: 'center',
+        pb: { xs: 12, md: 14 },
+        pt: { xs: 14, md: 18 },
+        color: 'common.white',
       }}
     >
-      <Container maxWidth="lg">
-        <Stack spacing={3.5} sx={{ maxWidth: { xs: '100%', md: 720 } }}>
-          <Typography
-            variant="h3"
-            sx={{
-              fontSize: { xs: 34, md: 48 },
-              fontWeight: 700,
-              lineHeight: 1.2
-            }}
-          >
-            {hero.title}
-          </Typography>
-
-          <Typography
-            variant="body1"
-            sx={{
-              fontSize: { xs: 16, md: 18 },
-              color: alpha('#ffffff', 0.9)
-            }}
-          >
-            {hero.description}
-          </Typography>
-
-          {hero.caption && (
-            <Typography
-              variant="body2"
+      <Container
+        maxWidth={false}
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          px: { xs: 3, md: 20 },
+        }}
+      >
+        <Grid container alignItems="center" justifyContent="space-between">
+          {/* Left Content */}
+          <Grid item xs={12} md={6}>
+            <Stack
+              spacing={4}
               sx={{
-                color: alpha('#ffffff', 0.8),
-                maxWidth: 560
+                textAlign: { xs: 'center', md: 'left' },
+                alignItems: { xs: 'center', md: 'flex-start' },
               }}
             >
-              {hero.caption}
-            </Typography>
-          )}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            {hero.ctaLabel && (
+              <Typography
+                variant="h1"
+                sx={{
+                  fontSize: { xs: 38, sm: 46, md: 56 },
+                  fontWeight: 800,
+                  lineHeight: 1.1,
+                }}
+              >
+                {hero?.title}
+              </Typography>
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: subtleText,
+                  maxWidth: 540,
+                  lineHeight: 1.7,
+                  fontSize: { xs: 14, sm: 16, md: 18 },
+                }}
+              >
+                {hero?.subtleText}
+              </Typography>
+
               <Button
                 variant="contained"
                 size="large"
-                onClick={onCtaClick}
+                href="#contact"
+                onClick={handleCtaClick}
                 sx={{
-                  background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                  background:
+                    'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
                   color: '#fff',
                   borderRadius: '12px',
                   textTransform: 'none',
                   fontWeight: 600,
-                  px: 2,
+                  px: { xs: 4, sm: 6 },
+                  py: 1.25,
                   '&:hover': {
-                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
-                  }
+                    background:
+                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                  },
                 }}
               >
-                {hero.ctaLabel}
+                {hero?.ctaLabel}
               </Button>
-            )}
-          </Stack>
-        </Stack>
+            </Stack>
+          </Grid>
+
+
+        </Grid>
       </Container>
     </Box>
+  
   );
 };
 
