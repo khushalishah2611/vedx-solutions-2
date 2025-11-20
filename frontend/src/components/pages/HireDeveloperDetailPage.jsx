@@ -1,48 +1,62 @@
+import { useCallback, useEffect, useMemo } from 'react';
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
+
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+
+import {
+  Box,
+  Breadcrumbs,
+  Button,
+  Container,
+  Divider,
+  Grid,
+  Link as MuiLink,
+  Stack,
+  Typography,
+  alpha,
+  useTheme
+} from '@mui/material';
+
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
 import FullStackDeveloper from '../sections/servicepage/FullStackDeveloper.jsx';
 import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
-import {
-  Box,
-  Breadcrumbs,
-  Button,
-  Chip,
-  Container,
-  Divider,
-  Grid,
-  Link as MuiLink,
-  Paper,
-  Stack,
-  Typography,
-  alpha,
-  useTheme
-} from '@mui/material';
-import { useCallback, useEffect, useMemo } from 'react';
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
-import { hireDeveloperDetailContent } from '../../data/hireDevelopers.js';
-import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
-import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 import FAQAccordion from '../shared/FAQAccordion.jsx';
 import PricingModels from '../shared/PricingModels.jsx';
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 
+import { hireDeveloperDetailContent } from '../../data/hireDevelopers.js';
+import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
+
+// Reusable section title – keep if you’ll use it later, otherwise you can delete it
 const SectionTitle = ({ eyebrow, title, description }) => (
   <Stack spacing={2} textAlign={{ xs: 'center', md: 'left' }}>
     {eyebrow ? (
-      <Typography component="span" variant="overline" sx={{ letterSpacing: 1.5, color: 'primary.main' }}>
+      <Typography
+        component="span"
+        variant="overline"
+        sx={{ letterSpacing: 1.5, color: 'primary.main' }}
+      >
         {eyebrow}
       </Typography>
     ) : null}
-    <Typography variant="h3" sx={{ fontWeight: 800, fontSize: { xs: 30, md: 40 } }}>
+
+    <Typography
+      variant="h3"
+      sx={{ fontWeight: 800, fontSize: { xs: 30, md: 40 } }}
+    >
       {title}
     </Typography>
+
     {description ? (
-      <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 720, mx: { xs: 'auto', md: 0 } }}>
+      <Typography
+        variant="body1"
+        sx={{ color: 'text.secondary', maxWidth: 720, mx: { xs: 'auto', md: 0 } }}
+      >
         {description}
       </Typography>
     ) : null}
@@ -58,10 +72,12 @@ const HireDeveloperDetailPage = () => {
   const category = hireDeveloperDetailContent[categorySlug ?? ''];
   const role = category?.roles?.[roleSlug ?? ''];
 
+  // Scroll to top on slug change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [categorySlug, roleSlug]);
 
+  // Redirect if invalid category / role
   useEffect(() => {
     if (!category || !role) {
       navigate('/hire-developers', { replace: true });
@@ -73,16 +89,16 @@ const HireDeveloperDetailPage = () => {
   }, [openDialog]);
 
   const relatedRoles = useMemo(() => {
-    if (!category) return [];
+    if (!category?.roles) return [];
     return Object.entries(category.roles)
       .filter(([slug]) => slug !== roleSlug)
       .map(([slug, item]) => ({ slug, ...item }));
   }, [category, roleSlug]);
 
+  // If redirecting, avoid rendering
   if (!category || !role) {
     return null;
   }
-
 
   const isDark = theme.palette.mode === 'dark';
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
@@ -96,11 +112,19 @@ const HireDeveloperDetailPage = () => {
   ];
 
   return (
-    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', overflowX: 'hidden' }}>
-
+    <Box
+      sx={{
+        bgcolor: 'background.default',
+        color: 'text.primary',
+        overflowX: 'hidden'
+      }}
+    >
+      {/* === HERO SECTION === */}
       <Box
         sx={{
-          backgroundImage: `linear-gradient(${heroOverlay}, ${heroOverlay}), url(${role.heroImage || category.heroImage})`,
+          backgroundImage: `linear-gradient(${heroOverlay}, ${heroOverlay}), url(${
+            role.heroImage || category.heroImage
+          })`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           minHeight: { xs: '90vh', md: '100vh' },
@@ -110,24 +134,47 @@ const HireDeveloperDetailPage = () => {
           borderBottom: `1px solid ${dividerColor}`
         }}
       >
-        <Container>
+        <Container maxWidth="lg">
           <Stack spacing={{ xs: 5, md: 6 }}>
-
             <Breadcrumbs
-              separator={<NavigateNextIcon fontSize="small" sx={{ color: alpha('#fff', 0.7) }} />}
+              separator={
+                <NavigateNextIcon
+                  fontSize="small"
+                  sx={{ color: alpha('#fff', 0.7) }}
+                />
+              }
               aria-label="breadcrumb"
             >
-              <MuiLink component={RouterLink} underline="hover" color="#fff" to="/">
+              <MuiLink
+                component={RouterLink}
+                underline="hover"
+                color="#fff"
+                to="/"
+              >
                 Home
               </MuiLink>
-              <MuiLink component={RouterLink} underline="hover" color="#fff" to="/hire-developers">
+
+              <MuiLink
+                component={RouterLink}
+                underline="hover"
+                color="#fff"
+                to="/hire-developers"
+              >
                 {category.title}
               </MuiLink>
-              <Typography sx={{ color: alpha('#fff', 0.85) }}>{role.name}</Typography>
+
+              <Typography sx={{ color: alpha('#fff', 0.85) }}>
+                {role.name}
+              </Typography>
             </Breadcrumbs>
 
-            <Grid container alignItems="center" justifyContent="space-between">
-              <Grid item xs={12} md={6}>
+            <Grid
+              container
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={4}
+            >
+              <Grid item xs={12} md={7}>
                 <Stack spacing={4}>
                   <Typography
                     variant="h1"
@@ -143,14 +190,22 @@ const HireDeveloperDetailPage = () => {
 
                   <Typography
                     variant="body1"
-                    sx={{ color: alpha('#fff', 0.8), maxWidth: 560, lineHeight: 1.7 }}
+                    sx={{
+                      color: alpha('#fff', 0.8),
+                      maxWidth: 560,
+                      lineHeight: 1.7
+                    }}
                   >
-                    Scale your engineering capacity with vetted VedX developers who embed with your
-                    workflows from day one. Spin up agile pods or individual experts to accelerate
-                    delivery without compromising on quality.
+                    Scale your engineering capacity with vetted VedX developers
+                    who embed with your workflows from day one. Spin up agile
+                    pods or individual experts to accelerate delivery without
+                    compromising on quality.
                   </Typography>
 
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={2}
+                  >
                     <Button
                       variant="contained"
                       size="large"
@@ -160,9 +215,11 @@ const HireDeveloperDetailPage = () => {
                         borderRadius: '12px',
                         textTransform: 'none',
                         fontWeight: 600,
-                        background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                        background:
+                          'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
                         '&:hover': {
-                          background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                          background:
+                            'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
                         }
                       }}
                     >
@@ -170,14 +227,17 @@ const HireDeveloperDetailPage = () => {
                     </Button>
                   </Stack>
 
-                  {/* Stats Section */}
+                  {/* Stats */}
                   <Stack
                     spacing={{ xs: 3, sm: 5 }}
                     direction={{ xs: 'column', sm: 'row' }}
-                    alignItems={{ sm: 'center' }}
+                    alignItems={{ xs: 'flex-start', sm: 'center' }}
                     pt={2}
                   >
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2.5, sm: 4 }}>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={{ xs: 2.5, sm: 4 }}
+                    >
                       {servicesHeroStats.map((stat) => (
                         <Stack key={stat.label} spacing={0.5}>
                           <Typography
@@ -193,7 +253,10 @@ const HireDeveloperDetailPage = () => {
                           <Typography
                             component="span"
                             variant="body2"
-                            sx={{ color: alpha('#fff', 0.8), fontWeight: 500 }}
+                            sx={{
+                              color: alpha('#fff', 0.8),
+                              fontWeight: 500
+                            }}
                           >
                             {stat.label}
                           </Typography>
@@ -203,35 +266,101 @@ const HireDeveloperDetailPage = () => {
                   </Stack>
                 </Stack>
               </Grid>
+
+              {/* If later you want a right column (image/cards), add a Grid item here */}
             </Grid>
           </Stack>
         </Container>
       </Box>
-      <PageSectionsContainer>
-        <Stack spacing={{ xs: 8, md: 10 }}>
 
+      {/* === MAIN CONTENT === */}
+      <Container
+        maxWidth={false}
+        sx={{
+          px: { xs: 3, md: 20 },
+          py: { xs: 6, md: 10 }
+        }}
+      >
+        <Box my={5}>
           <ServicesHighlights onContactClick={handleOpenContact} />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <ServicesBenefits onContactClick={handleOpenContact} />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <FullStackDeveloper onContactClick={handleOpenContact} />
+        </Box>
+
+        <Box my={10}>
           <ServicesWhyChoose />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <ServicesProcess />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <ServicesIndustries />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <ServicesTestimonials />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <FAQAccordion />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <PricingModels />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <ServicesCTA onContactClick={handleOpenContact} />
+        </Box>
+
+        <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
           <ServicesBlog />
-        </Stack>
-      </PageSectionsContainer>
+        </Box>
+      </Container>
     </Box>
   );
 };
