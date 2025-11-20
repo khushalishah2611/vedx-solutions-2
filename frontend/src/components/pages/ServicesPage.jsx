@@ -1,4 +1,4 @@
-import  { useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   Box,
   Container,
@@ -22,7 +22,7 @@ import FAQAccordion from '../shared/FAQAccordion.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
-// import PricingModels from '../shared/PricingModels.jsx'; // currently commented out in JSX
+
 
 const ServicesPage = ({ showHero = true }) => {
   const { openDialog } = useContactDialog();
@@ -45,7 +45,7 @@ const ServicesPage = ({ showHero = true }) => {
         }}
       >
 
-        <ServicesHighlights onContactClick={handleOpenContact} />
+        <Box my={5}><ServicesHighlights onContactClick={handleOpenContact} /></Box>
 
         <Box my={10}><Divider sx={{ borderColor: dividerColor }} /></Box>
 
@@ -87,11 +87,6 @@ const ServicesPage = ({ showHero = true }) => {
           <FAQAccordion />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
-
-        {/* <Box my={10}>
-          <PricingModels />
-        </Box>
-        <Divider sx={{ borderColor: dividerColor }} /> */}
 
         <Box my={10}>
           <ServicesCTA onContactClick={handleOpenContact} />

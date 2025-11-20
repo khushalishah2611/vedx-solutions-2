@@ -20,11 +20,15 @@ const HomePage = () => {
       <HeroSection />
 
 
-      <Container maxWidth={false}
+
+      <Container
+        maxWidth={false}
         sx={{
           px: { xs: 3, md: 20 },
-        }}>
-        <Box my={10}>
+          py: { xs: 6, md: 10 },
+        }}
+      >
+        <Box my={5}>
           <CreativeAgencySection />
         </Box>
 

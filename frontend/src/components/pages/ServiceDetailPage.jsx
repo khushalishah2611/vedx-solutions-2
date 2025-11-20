@@ -82,8 +82,10 @@ const ServiceDetailPage = () => {
         }}
       >
 
-        <ServicesHighlights onContactClick={handleOpenContact} />
-        <Divider sx={{ borderColor: dividerColor }} />
+        <Box my={5}><ServicesHighlights onContactClick={handleOpenContact} /></Box> 
+
+        <Box my={10}><Divider sx={{ borderColor: dividerColor }} /></Box>
+
         <Box my={10}><ServicesBenefits onContactClick={handleOpenContact} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}><FullStackDeveloper onContactClick={handleOpenContact} /></Box>
