@@ -48,7 +48,7 @@ const HeroSection = () => {
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        minHeight: { xs: '80vh', md: '90vh' },
+        minHeight: { xs: "70vh", md: "80vh" },
         display: 'flex',
         alignItems: 'center',
         pb: { xs: 12, md: 14 },
@@ -92,7 +92,7 @@ const HeroSection = () => {
         sx={{
           position: 'relative',
           zIndex: 1,
-           px: { xs:3, md: 20} ,
+          px: { xs: 3, md: 20 },
         }}
       >
         <Stack spacing={{ xs: 6, md: 8 }}>
@@ -121,23 +121,27 @@ const HeroSection = () => {
                 spacing={2}
                 pt={1.5}
               >
+
                 <Button
                   variant="contained"
                   size="large"
                   href="#contact"
                   sx={{
-                    background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                    color: '#fff',
-                    borderRadius: '12px',
-                    textTransform: 'none',
+                    background:
+                      "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                    color: "#fff",
+                    borderRadius: "12px",
+                    textTransform: "none",
                     fontWeight: 600,
-                    '&:hover': {
-                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
-                    }
+                    "&:hover": {
+                      background:
+                        "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
+                    },
                   }}
                 >
-                  {currentSlide.ctaPrimary}
+                  Contact us
                 </Button>
+
               </Stack>
             </Stack>
           </Fade>

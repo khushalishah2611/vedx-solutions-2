@@ -19,10 +19,10 @@ const HomePage = () => {
     <Box sx={{ bgcolor: 'background.default' }}>
       <HeroSection />
 
-      {/* All sections wrapped inside common padding */}
+
       <Container maxWidth={false}
         sx={{
-            px: { xs:3, md: 20} ,
+          px: { xs: 3, md: 20 },
         }}>
         <Box my={10}>
           <CreativeAgencySection />
@@ -42,13 +42,13 @@ const HomePage = () => {
         <Box my={10}> <ServicesProcess /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}><ServicesIndustries /></Box>  
+        <Box my={10}><ServicesIndustries /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}><ServicesBusinessSolutions /></Box>  
+        <Box my={10}><ServicesBusinessSolutions /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}><ServicesTestimonials /></Box> 
+        <Box my={10}><ServicesTestimonials /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}><ServicesEngagementModels /></Box>

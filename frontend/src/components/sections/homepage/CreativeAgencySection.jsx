@@ -1,5 +1,33 @@
 import { Box, Container, Grid, Stack, Typography, alpha, useTheme } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+// === SIMPLE IN-VIEW HOOK (NO LIB) ===
+const useInView = (options = {}) => {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setInView(true);
+            observer.unobserve(entry.target); // animate once
+          }
+        });
+      },
+      { threshold: 0.2, ...options }
+    );
+
+    observer.observe(ref.current);
+
+    return () => observer.disconnect();
+  }, [options]);
+
+  return [ref, inView];
+};
 
 // === TYPING TITLE COMPONENT ===
 const TypingTitle = () => {
@@ -64,16 +92,18 @@ export default function CreativeAgencySection() {
   const HERO_IMAGE_OVERLAY =
     'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&q=80';
 
+  // Left/right animation
+  const [leftRef, leftInView] = useInView();
+  const [rightRef, rightInView] = useInView();
+
   return (
-    <Box sx={{ position: 'relative' }}>
+    <Box sx={{ position: 'relative', py: { xs: 6, md: 8 } }}>
       {/* Full-width container with same side padding as hero/navbar */}
       <Container
         maxWidth={false}
         sx={{
           position: 'relative',
           zIndex: 1,
-       
-        
         }}
       >
         <Grid
@@ -83,7 +113,17 @@ export default function CreativeAgencySection() {
           alignItems="center"
         >
           {/* === IMAGES SECTION (LEFT) === */}
-          <Grid item xs={12} md={6}>
+          <Grid
+            item
+            xs={12}
+            md={6}
+            ref={leftRef}
+            sx={{
+              opacity: leftInView ? 1 : 0,
+              transform: leftInView ? 'translateX(0)' : 'translateX(-40px)',
+              transition: 'opacity 0.7s ease, transform 0.7s ease',
+            }}
+          >
             <Box
               sx={{
                 position: 'relative',
@@ -135,8 +175,25 @@ export default function CreativeAgencySection() {
           </Grid>
 
           {/* === TEXT SECTION (RIGHT) === */}
-          <Grid item xs={12} md={6}>
-            <Stack spacing={3}>
+          <Grid
+            item
+            xs={12}
+            md={6}
+            ref={rightRef}
+            sx={{
+              opacity: rightInView ? 1 : 0,
+              transform: rightInView ? 'translateX(0)' : 'translateX(40px)',
+              transition: 'opacity 0.7s ease, transform 0.7s ease',
+            }}
+          >
+            <Stack
+              spacing={3}
+              sx={{
+                maxWidth: 520,
+                mx: { xs: 'auto', md: 0 },
+                textAlign: { xs: 'center', md: 'left' },
+              }}
+            >
               {/* Label */}
               <Box
                 sx={{
@@ -156,6 +213,7 @@ export default function CreativeAgencySection() {
                   fontSize: 11,
                   lineHeight: 1.3,
                   width: 'fit-content',
+                  mx: { xs: 'auto', md: 0 },
                 }}
               >
                 <Box
@@ -193,7 +251,6 @@ export default function CreativeAgencySection() {
                     : alpha('#ffffff', 0.9),
                   fontSize: { xs: 16, md: 17 },
                   lineHeight: 1.75,
-                  maxWidth: 520,
                 }}
               >
                 We design, develop, and scale digital products that transform the
@@ -210,7 +267,6 @@ export default function CreativeAgencySection() {
                     ? alpha('#000', 0.9)
                     : alpha('#ffffff', 0.9),
                   lineHeight: 1.7,
-                  maxWidth: 520,
                 }}
               >
                 From brand strategy to full-stack engineering, we partner with
