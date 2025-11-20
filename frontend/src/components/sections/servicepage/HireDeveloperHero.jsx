@@ -27,100 +27,160 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
   );
 
   return (
-    <Box
+
+
+
+  <Box
+      component="section"
       sx={{
-        backgroundImage: `linear-gradient(${heroOverlay}, ${heroOverlay}), url(${role.heroImage || category.heroImage})`,
+        backgroundImage: `
+          linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
+          url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80")
+        `,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        minHeight: { xs: '90vh', md: '100vh' },
+        backgroundRepeat: 'no-repeat',
+        transition: 'transform 0.6s ease, filter 0.6s ease',
+        filter: isDark ? 'brightness(0.9)' : 'brightness(0.8)',
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: { xs: '70vh', md: '80vh' },
         display: 'flex',
         alignItems: 'center',
-        py: { xs: 12, md: 14 },
-        borderBottom: `1px solid ${borderColor}`
+        pb: { xs: 12, md: 14 },
+        pt: { xs: 14, md: 18 },
       }}
     >
-      <Container maxWidth="lg">
-        <Stack spacing={{ xs: 5, md: 6 }}>
-          <Breadcrumbs
-            separator={
-              <NavigateNextIcon fontSize="small" sx={{ color: alpha('#fff', 0.7) }} />
-            }
-            aria-label="breadcrumb"
-          >
-            <MuiLink component={RouterLink} underline="hover" color="#fff" to="/">
-              Home
-            </MuiLink>
+      <Container
+        maxWidth={false}
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          px: { xs: 3, md: 20 },
+        }}
+      >
+        <Grid container alignItems="center" justifyContent="space-between" rowSpacing={4}>
+          {/* Breadcrumbs row */}
+          <Grid item xs={12}>
+            <Breadcrumbs
+              separator={
+                <NavigateNextIcon
+                  fontSize="small"
+                  sx={{ color: alpha('#fff', 0.75) }}
+                />
+              }
+              aria-label="breadcrumb"
+            >
+              <MuiLink
+                component={RouterLink}
+                underline="hover"
+                color="#fff"
+                to="/"
+              >
+                Home
+              </MuiLink>
+              <MuiLink
+                component={RouterLink}
+                underline="hover"
+                color="#fff"
+                to="/services"
+              >
+                {categoryTitle}
+              </MuiLink>
+              <Typography sx={{ color: alpha('#fff', 0.85) }}>
+                {serviceName}
+              </Typography>
+            </Breadcrumbs>
+          </Grid>
 
-            <MuiLink component={RouterLink} underline="hover" color="#fff" to="/hire-developers">
-              {category.title}
-            </MuiLink>
+          {/* Left Content */}
+          <Grid item xs={12} md={6}>
+            <Stack
+              spacing={4}
+              sx={{
+                textAlign: { xs: 'center', md: 'left' },
+                alignItems: { xs: 'center', md: 'flex-start' },
+              }}
+            >
+              <Typography
+                variant="h1"
+                sx={{
+                  fontSize: { xs: 38, sm: 46, md: 56 },
+                  fontWeight: 800,
+                  lineHeight: 1.1,
+                  color: '#fff',
+                }}
+              >
+                {heroTitle || 'Full Stack Development Services'}
+              </Typography>
 
-            <Typography sx={{ color: alpha('#fff', 0.85) }}>{role.name}</Typography>
-          </Breadcrumbs>
+              <Typography
+                variant="body1"
+                sx={{ color: subtleText, maxWidth: 540, lineHeight: 1.7 }}
+              >
+                {heroDescription ||
+                  `VedX Solutions offers full stack development services to help
+                achieve your business objectives across platforms. Our agile
+                squads deliver resilient, scalable solutions with zero disruption
+                to your operations.`}
+              </Typography>
 
-          <Grid container alignItems="center" justifyContent="space-between" spacing={4}>
-            <Grid item xs={12} md={7}>
-              <Stack spacing={4}>
-                <Typography
-                  variant="h1"
-                  sx={{
-                    fontSize: { xs: 36, sm: 44, md: 54 },
-                    fontWeight: 800,
-                    lineHeight: 1.1,
-                    color: '#fff'
-                  }}
+              <Button
+                variant="contained"
+                size="large"
+                href="#contact"
+                sx={{
+                  background:
+                    'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                  color: '#fff',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: { xs: 4, md: 6 },
+                  py: { xs: 1.5, md: 1.75 },
+                  '&:hover': {
+                    background:
+                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                  },
+                }}
+              >
+                Contact us
+              </Button>
+
+              {/* Stats */}
+              {stats.length > 0 && (
+                <Stack
+                  pt={2}
+                  width="100%"
+                  alignItems={{ xs: 'center', sm: 'flex-start' }}
                 >
-                  Hire Dedicated Remote Developers
-                </Typography>
-
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: alpha('#fff', 0.8),
-                    maxWidth: 560,
-                    lineHeight: 1.7
-                  }}
-                >
-                  Scale your engineering capacity with vetted VedX developers who embed with your
-                  workflows from day one. Spin up agile pods or individual experts to accelerate
-                  delivery without compromising on quality.
-                </Typography>
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={onContactClick}
+                  <Stack
+                    direction="row"
+                    spacing={{ xs: 3, sm: 4 }}
+                    justifyContent={{ xs: 'center', sm: 'flex-start' }}
+                    alignItems="center"
                     sx={{
-                      minWidth: 180,
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                      '&:hover': {
-                        background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
-                      }
+                      width: '100%',
+                      overflowX: { xs: 'auto', sm: 'visible' }, // scroll on mobile if too many
+                      pb: { xs: 1, sm: 0 },
                     }}
                   >
-                    Book a Consultation
-                  </Button>
-                </Stack>
-
-                <Stack
-                  spacing={{ xs: 3, sm: 5 }}
-                  direction={{ xs: 'column', sm: 'row' }}
-                  alignItems={{ xs: 'flex-start', sm: 'center' }}
-                  pt={2}
-                >
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2.5, sm: 4 }}>
                     {stats.map((stat) => (
-                      <Stack key={stat.label} spacing={0.5}>
+                      <Stack
+                        key={stat.label}
+                        spacing={0.5}
+                        sx={{
+                          minWidth: { xs: 110, sm: 'auto' },
+                          textAlign: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
                         <Typography
                           component="span"
                           sx={{
-                            fontSize: { xs: 28, md: 32 },
+                            fontSize: { xs: 24, md: 30 },
                             fontWeight: 700,
-                            color: accentColor
+                            color: accentColor,
                           }}
                         >
                           {stat.value}
@@ -128,10 +188,7 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
                         <Typography
                           component="span"
                           variant="body2"
-                          sx={{
-                            color: alpha('#fff', 0.8),
-                            fontWeight: 500
-                          }}
+                          sx={{ color: subtleText, fontWeight: 500 }}
                         >
                           {stat.label}
                         </Typography>
@@ -139,14 +196,16 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
                     ))}
                   </Stack>
                 </Stack>
-              </Stack>
-            </Grid>
-
-            {/* If later you want a right column (image/cards), add a Grid item here */}
+              )}
+            </Stack>
           </Grid>
-        </Stack>
+        </Grid>
       </Container>
     </Box>
+
+
+
+    
   );
 };
 
