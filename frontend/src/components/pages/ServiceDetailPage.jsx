@@ -1,8 +1,13 @@
-import { Box, Container, Divider, Stack, alpha, useTheme } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import {
+  Box,
+  Container,
+  Divider,
+  alpha,
+  useTheme
+} from '@mui/material';
+import { Link as useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
-import { servicesHeroStats } from '../../data/servicesPage.js';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
 import FullStackDeveloper from '../sections/servicepage/FullStackDeveloper.jsx';
@@ -15,7 +20,6 @@ import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
-import ServiceHero from '../sections/servicepage/ServiceHero.jsx';
 
 const ServiceDetailPage = () => {
   const theme = useTheme();
@@ -45,17 +49,24 @@ const ServiceDetailPage = () => {
   }
 
   const isDark = theme.palette.mode === 'dark';
+
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
+
 
   return (
     <Box sx={{ bgcolor: 'background.default', overflowX: 'hidden' }}>
       <ServiceHero
-        categoryTitle={category.title}
-        serviceName={service.name}
-        heroTitle="Full Stack Development Services"
-        heroDescription="VedX Solutions offers full stack development services to help achieve your business objectives across platforms. Our agile squads deliver resilient, scalable solutions with zero disruption to your operations."
-        stats={servicesHeroStats}
+        categoryTitle="Services"
+        serviceName="Full Stack Development"
+        heroTitle="Enterprise-Grade Full Stack Development"
+        heroDescription="We build scalable, secure, and high-performing digital platforms tailored to your growth."
+        stats={[
+          { label: 'Projects Delivered', value: '120+' },
+          { label: 'Client Retention', value: '95%' },
+          { label: 'Avg. ROI', value: '3.5x' },
+        ]}
       />
+
 
       <Container
         maxWidth={false}
@@ -64,7 +75,8 @@ const ServiceDetailPage = () => {
           py: { xs: 6, md: 10 },
         }}
       >
-        <Box my={10}><ServicesHighlights onContactClick={handleOpenContact} /></Box>
+
+        <ServicesHighlights onContactClick={handleOpenContact} />
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}><ServicesBenefits onContactClick={handleOpenContact} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
@@ -77,13 +89,13 @@ const ServiceDetailPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}><ServicesIndustries /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}><ServicesTestimonials /></Box>
+        <Box my={10}> <ServicesTestimonials /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}><FAQAccordion /></Box>
+        <Box my={10}> <FAQAccordion /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}><ServicesCTA onContactClick={handleOpenContact} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}><ServicesBlog /></Box>
+        <Box my={10}> <ServicesBlog /></Box>
       </Container>
     </Box>
   );
