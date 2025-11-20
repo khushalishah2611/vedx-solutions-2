@@ -69,8 +69,6 @@ const ContactPage = () => {
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           filter: isDark ? 'brightness(0.9)' : 'brightness(0.85)',
-          position: 'relative',
-          overflow: 'hidden',
           minHeight: { xs: '65vh', md: '78vh' },
           display: 'flex',
           alignItems: 'center',
@@ -82,7 +80,6 @@ const ContactPage = () => {
         <Container
           maxWidth={false}
           sx={{
-            position: 'relative',
             zIndex: 1,
             px: { xs: 3, md: 20 }
           }}
@@ -112,7 +109,8 @@ const ContactPage = () => {
                 textAlign: { xs: 'center', md: 'left' }
               }}
             >
-              We are here to discuss your ideas, understand your challenges, and build the next big thing together.
+              We are here to discuss your ideas, understand your challenges, and
+              build the next big thing together.
             </Typography>
           </Stack>
         </Container>
@@ -136,18 +134,19 @@ const ContactPage = () => {
                 alignItems: 'center',
                 px: 2,
                 py: 1,
-                borderRadius: 999,
-                border: `1px solid ${alpha(theme.palette.divider, 0.3)}`,
+                borderRadius: 0.5,
+                border: `1px solid ${alpha('#ffffff', 0.1)}`,
                 background: !isDark
                   ? alpha('#ddddddff', 0.9)
-                  : alpha('#0b1022', 0.9),
+                  : alpha('#0000007c', 0.9),
                 color: alpha(accentColor, 0.9),
                 fontWeight: 600,
                 letterSpacing: 1,
                 textTransform: 'uppercase',
                 fontSize: 11,
                 lineHeight: 1.3,
-                width: 'fit-content'
+                width: 'fit-content',
+                mx: { xs: 'auto', md: 0 }
               }}
             >
               <Box
@@ -175,9 +174,16 @@ const ContactPage = () => {
           </Stack>
 
           {/* Contact Cards */}
-          <Grid container spacing={2}>
+          <Grid
+            spacing={2}
+            container
+            sx={{
+              p: { xs: 3, sm: 4 },
+              m: 5
+            }}
+          >
             {contactDetails.map((detail) => (
-              <Grid item xs={12} sm={6} md={4} key={detail.label}>
+              <Grid item xs={12} md={4} key={detail.label}>
                 <Card
                   sx={{
                     height: '100%',
@@ -185,7 +191,10 @@ const ContactPage = () => {
                     background: isDark
                       ? 'linear-gradient(160deg, #0f172a 0%, #111827 100%)'
                       : 'linear-gradient(160deg, #ffffff 0%, #f7f8ff 100%)',
-                    border: `1px solid ${alpha(isDark ? accentColor : theme.palette.primary.main, 0.3)}`,
+                    border: `1px solid ${alpha(
+                      isDark ? accentColor : theme.palette.primary.main,
+                      0.3
+                    )}`,
                     boxShadow: isDark
                       ? '0 18px 45px rgba(3, 7, 18, 0.65)'
                       : '0 18px 45px rgba(14, 18, 68, 0.15)',
@@ -195,7 +204,7 @@ const ContactPage = () => {
                   }}
                 >
                   <CardContent>
-                    <Stack spacing={2.5} alignItems="center" textAlign="center">
+                    <Stack spacing={2} alignItems="center" textAlign="center">
                       <Box
                         sx={{
                           width: 72,
@@ -235,14 +244,11 @@ const ContactPage = () => {
               </Grid>
             ))}
           </Grid>
-
-          {/* Contact Form + Map */}
           <Grid
             container
-            spacing={4}
-            alignItems="stretch"
+            spacing={{ md: 2 }}  
           >
-            {/* Form */}
+            {/* Form column */}
             <Grid item xs={12} md={6}>
               <Stack
                 spacing={3}
@@ -263,48 +269,19 @@ const ContactPage = () => {
                     Share Your Project Brief
                   </Typography>
                   <Typography variant="body1" sx={{ color: subtleText }}>
-                    Fill out the form and we will reach out within 24 hours with a tailored plan for your
-                    requirements.
+                    Fill out the form and we will reach out within 24 hours with a tailored plan
+                    for your requirements.
                   </Typography>
                 </Stack>
 
-                {/* Contact Form */}
-                <Stack
-                  component="form"
-                  spacing={2}
-                  noValidate
-                >
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={2.5}
-                  >
-                    <TextField
-                      label="Name"
-                      fullWidth
-                      required
-                      variant="outlined"
-                      size="medium"
-                    />
-                    <TextField
-                      label="Email"
-                      type="email"
-                      fullWidth
-                      required
-                      variant="outlined"
-                      size="medium"
-                    />
+                <Stack component="form" spacing={2} noValidate>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
+                    <TextField label="Name" fullWidth required variant="outlined" size="medium" />
+                    <TextField label="Email" type="email" fullWidth required variant="outlined" size="medium" />
                   </Stack>
 
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={2.5}
-                  >
-                    <TextField
-                      label="Mobile Number"
-                      fullWidth
-                      variant="outlined"
-                      size="medium"
-                    />
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
+                    <TextField label="Mobile Number" fullWidth variant="outlined" size="medium" />
                     <TextField
                       select
                       label="Project Type"
@@ -353,11 +330,10 @@ const ContactPage = () => {
               </Stack>
             </Grid>
 
-            {/* Map */}
+            {/* Map column */}
             <Grid item xs={12} md={6}>
               <Box
                 sx={{
-                  position: 'relative',
                   borderRadius: 0.5,
                   overflow: 'hidden',
                   boxShadow: isDark
@@ -378,16 +354,14 @@ const ContactPage = () => {
                   sx={{
                     display: 'block',
                     border: 0,
-                    position: 'absolute',
-                    inset: 0,
                     width: '100%',
-                    maxWidth: '100%',
                     height: '100%'
                   }}
                 />
               </Box>
             </Grid>
           </Grid>
+
         </Stack>
       </Container>
     </Box>

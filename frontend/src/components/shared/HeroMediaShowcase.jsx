@@ -35,7 +35,7 @@ const HeroMediaShowcase = ({
   const accentColor = accentColorProp ?? (isDark ? '#67e8f9' : theme.palette.primary.main);
 
   return (
-    <Box sx={{ position: 'relative', py: { xs: 8, md: 12 }, ...sx }}>
+    <Box sx={{ position: 'relative', ...sx }}>
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
         <Grid container spacing={{ xs: 6, md: 10 }} alignItems="center">
           <Grid item xs={12} md={6}>

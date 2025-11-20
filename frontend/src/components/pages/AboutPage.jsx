@@ -2,7 +2,7 @@ import {
   Box,
   Divider,
   alpha,
-  useTheme,
+  useTheme,Container
 } from '@mui/material';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import {
@@ -16,7 +16,7 @@ import {
   AboutHeroSection,
   AboutMissionVisionSection,
 } from '../sections/aboutpage/index.js';
-import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
+
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 
 import {
@@ -33,15 +33,25 @@ const AboutPage = () => {
       <AboutHeroSection hero={aboutHero} stats={aboutStats} onCtaClick={handleOpenContact} />
 
 
-      <PageSectionsContainer>
-        <CareerStorySection story={careerStory} />
+      <Container
+        maxWidth={false}
+        sx={{
+          px: { xs: 3, md: 20 },
+          py: { xs: 6, md: 10 },
+        }}
+      >
+
+        <Box my={5}><CareerStorySection story={careerStory} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <CareerBenefitsSection benefits={careerBenefits} />
+      
+        <Box my={10}><CareerBenefitsSection benefits={careerBenefits} /></Box>  
         <Divider sx={{ borderColor: dividerColor }} />
-        <AboutMissionVisionSection content={aboutMissionVision} />
+      
+        <Box my={10}><AboutMissionVisionSection content={aboutMissionVision} /></Box>  
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesCTA onContactClick={handleOpenContact} />
-      </PageSectionsContainer>
+       
+        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} /></Box> 
+      </Container>
     </Box>
   );
 };

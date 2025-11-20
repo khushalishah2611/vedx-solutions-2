@@ -107,8 +107,6 @@ export const careerStory = {
   image:
     'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80',
   highlights: [
-    'Product strategists, designers, and engineers collaborating seamlessly.',
-    'Dedicated pods focused on outcomes and measurable business impact.'
   ]
 };
 
