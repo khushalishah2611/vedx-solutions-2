@@ -130,13 +130,13 @@ const ServicesShowcase = () => {
 
         {/* LAYOUT */}
         <Grid container spacing={{ xs: 0, md: 0 }} alignItems="stretch" justifyContent="center">
-          
+
           {/* LEFT SIDE */}
           <Grid item xs={12} md={5.5}>
 
             {/* MOBILE SLIDER */}
             <Box sx={{ display: { xs: "block", md: "none" }, position: "relative" }}>
-              
+
               <IconButton
                 onClick={goPrev}
                 aria-label="Previous service"
@@ -146,9 +146,14 @@ const ServicesShowcase = () => {
                   top: "50%",
                   transform: "translateY(-50%)",
                   zIndex: 10,
-                  bgcolor: alpha("#000", 0.4),
-                  color: "white",
-                  "&:hover": { bgcolor: alpha("#000", 0.6) },
+                  border: `1px solid ${alpha(accentColor, 0.4)}`,
+                  background: alpha(accentColor, isDark ? 0.12 : 0.18),
+                  color: accentColor,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    background: alpha(accentColor, isDark ? 0.2 : 0.28),
+
+                  },
                 }}
               >
                 <ChevronLeft />
@@ -163,9 +168,14 @@ const ServicesShowcase = () => {
                   top: "50%",
                   transform: "translateY(-50%)",
                   zIndex: 10,
-                  bgcolor: alpha("#000", 0.4),
-                  color: "white",
-                  "&:hover": { bgcolor: alpha("#000", 0.6) },
+                  border: `1px solid ${alpha("#a855f7", 0.45)}`,
+                  background: alpha("#a855f7", isDark ? 0.14 : 0.2),
+                  color: "#a855f7",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    background: alpha("#a855f7", isDark ? 0.22 : 0.3),
+                  
+                  },
                 }}
               >
                 <ChevronRight />
@@ -227,11 +237,13 @@ const ServicesShowcase = () => {
                         />
 
                         <Stack sx={{ position: "relative", mb: 5, height: "100%", justifyContent: "flex-end" }}>
-                          <Typography sx={{ fontWeight: 700 ,    "&:hover": {
-                          color: "transparent",
-                          backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
-                          WebkitBackgroundClip: "text",
-                        },}}>
+                          <Typography sx={{
+                            fontWeight: 700, "&:hover": {
+                              color: "transparent",
+                              backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
+                              WebkitBackgroundClip: "text",
+                            },
+                          }}>
                             {service.title}
                           </Typography>
                         </Stack>
@@ -279,11 +291,13 @@ const ServicesShowcase = () => {
                       <Box sx={{ position: "absolute", inset: 0, background: overlayGradient }} />
 
                       <Stack sx={{ position: "relative", mb: 5, height: "100%", justifyContent: "flex-end" }}>
-                        <Typography sx={{ fontWeight: 700,    "&:hover": {
-                          color: "transparent",
-                          backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
-                          WebkitBackgroundClip: "text",
-                        }, }}>
+                        <Typography sx={{
+                          fontWeight: 700, "&:hover": {
+                            color: "transparent",
+                            backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
+                            WebkitBackgroundClip: "text",
+                          },
+                        }}>
                           {service.title}
                         </Typography>
                       </Stack>
