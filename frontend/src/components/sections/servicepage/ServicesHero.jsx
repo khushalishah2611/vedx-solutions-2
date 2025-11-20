@@ -27,11 +27,7 @@ const ServicesHero = ({ onContactClick }) => {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        borderBottom: `1px solid ${alpha(
-          theme.palette.divider,
-          isDark ? 0.4 : 0.25
-        )}`,
-        // removed scale to avoid layout issues on mobile
+      
         transition: "transform 0.6s ease, filter 0.6s ease",
         filter: isDark ? "brightness(0.9)" : "brightness(0.8)",
         position: "relative",

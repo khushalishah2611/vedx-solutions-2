@@ -2,8 +2,6 @@ import {
   Box,
   Breadcrumbs,
   Button,
-  Card,
-  CardContent,
   Container,
   Divider,
   Grid,
@@ -14,7 +12,6 @@ import {
   useTheme
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
@@ -26,7 +23,6 @@ import ServicesTechnologies from '../sections/servicepage/ServicesTechnologies.j
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import FAQAccordion from '../shared/FAQAccordion.jsx';
-import PageSectionsContainer from '../shared/PageSectionsContainer.jsx';
 import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
@@ -66,7 +62,7 @@ const ServiceDetailPage = () => {
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 
   return (
-    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', overflowX: 'hidden' }}>
+    <Box sx={{ bgcolor: 'background.default',  overflowX: 'hidden' }}>
       <Box
         sx={{
           backgroundImage: `
@@ -76,7 +72,7 @@ const ServiceDetailPage = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.25)}`,
+    
           transform: 'scale(1.05)',
           transition: 'transform 0.6s ease, filter 0.6s ease',
           filter: isDark ? 'brightness(0.55)' : 'brightness(0.8)',
@@ -194,28 +190,35 @@ const ServiceDetailPage = () => {
         </Container>
       </Box>
 
-      <PageSectionsContainer >
-        <ServicesHighlights onContactClick={handleOpenContact} />
+     <Container
+        maxWidth={false}
+        sx={{
+          px: { xs: 3, md: 20 },
+          py: { xs: 6, md: 10 },
+        }}
+      >
+
+        <Box my={10}><ServicesHighlights onContactClick={handleOpenContact} /></Box> 
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesBenefits onContactClick={handleOpenContact} />
+        <Box my={10}><ServicesBenefits onContactClick={handleOpenContact} /></Box> 
         <Divider sx={{ borderColor: dividerColor }} />
-        <FullStackDeveloper onContactClick={handleOpenContact} />
-        <ServicesTechnologies />
+        <Box my={10}><FullStackDeveloper onContactClick={handleOpenContact} /></Box> 
+        <Box my={10}><ServicesTechnologies /></Box> 
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesWhyChoose />
+       <Box my={10}><ServicesWhyChoose /></Box>  
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesProcess />
+       <Box my={10}><ServicesProcess /></Box>  
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesIndustries />
+        <Box my={10}><ServicesIndustries /></Box> 
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesTestimonials />
+       <Box my={10}> <ServicesTestimonials /></Box> 
         <Divider sx={{ borderColor: dividerColor }} />
-        <FAQAccordion />
+    <Box my={10}> <FAQAccordion /></Box>    
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesCTA onContactClick={handleOpenContact} />
+      <Box my={10}><ServicesCTA onContactClick={handleOpenContact} /></Box>   
         <Divider sx={{ borderColor: dividerColor }} />
-        <ServicesBlog />
-      </PageSectionsContainer>
+      <Box my={10}> <ServicesBlog /></Box>  
+     </Container>
     </Box>
   );
 };

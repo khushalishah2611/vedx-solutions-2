@@ -97,7 +97,7 @@ export default function CreativeAgencySection() {
   const [rightRef, rightInView] = useInView();
 
   return (
-    <Box sx={{ position: 'relative', py: { xs: 6, md: 8 } }}>
+    <Box sx={{ position: 'relative', }}>
       {/* Full-width container with same side padding as hero/navbar */}
       <Container
         maxWidth={false}
