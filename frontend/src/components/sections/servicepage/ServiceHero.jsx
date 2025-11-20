@@ -18,7 +18,7 @@ const ServiceHero = ({
   serviceName,
   heroTitle,
   heroDescription,
-  stats = [], // expect array of { label, value }
+  stats = [], // [{ label, value }]
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -27,6 +27,7 @@ const ServiceHero = ({
 
   return (
     <Box
+      component="section"
       sx={{
         backgroundImage: `
           linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
@@ -35,7 +36,6 @@ const ServiceHero = ({
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        transform: 'scale(1.05)',
         transition: 'transform 0.6s ease, filter 0.6s ease',
         filter: isDark ? 'brightness(0.9)' : 'brightness(0.8)',
         position: 'relative',
@@ -43,161 +43,159 @@ const ServiceHero = ({
         minHeight: { xs: '70vh', md: '80vh' },
         display: 'flex',
         alignItems: 'center',
-        pb: { xs: 10, md: 14 },
-        pt: { xs: 12, md: 18 },
+        pb: { xs: 12, md: 14 },
+        pt: { xs: 14, md: 18 },
       }}
     >
       <Container
-        maxWidth="lg"
+        maxWidth={false}
         sx={{
-          px: { xs: 3, md: 4 },
+          position: 'relative',
+          zIndex: 1,
+          px: { xs: 3, md: 20 },
         }}
       >
-        <Stack spacing={5}>
-          {/* Breadcrumbs */}
-          <Breadcrumbs
-            separator={
-              <NavigateNextIcon
-                fontSize="small"
-                sx={{ color: alpha('#fff', 0.75) }}
-              />
-            }
-            aria-label="breadcrumb"
-          >
-            <MuiLink
-              component={RouterLink}
-              underline="hover"
-              color="#fff"
-              to="/"
+        <Grid container alignItems="center" justifyContent="space-between" rowSpacing={4}>
+          {/* Breadcrumbs row */}
+          <Grid item xs={12}>
+            <Breadcrumbs
+              separator={
+                <NavigateNextIcon
+                  fontSize="small"
+                  sx={{ color: alpha('#fff', 0.75) }}
+                />
+              }
+              aria-label="breadcrumb"
             >
-              Home
-            </MuiLink>
-            <MuiLink
-              component={RouterLink}
-              underline="hover"
-              color="#fff"
-              to="/services"
-            >
-              {categoryTitle}
-            </MuiLink>
-            <Typography sx={{ color: alpha('#fff', 0.85) }}>
-              {serviceName}
-            </Typography>
-          </Breadcrumbs>
+              <MuiLink
+                component={RouterLink}
+                underline="hover"
+                color="#fff"
+                to="/"
+              >
+                Home
+              </MuiLink>
+              <MuiLink
+                component={RouterLink}
+                underline="hover"
+                color="#fff"
+                to="/services"
+              >
+                {categoryTitle}
+              </MuiLink>
+              <Typography sx={{ color: alpha('#fff', 0.85) }}>
+                {serviceName}
+              </Typography>
+            </Breadcrumbs>
+          </Grid>
 
-          {/* Main Content */}
-          <Grid
-            container
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Grid item xs={12} md={7}>
-              <Stack
-                spacing={4}
+          {/* Left Content */}
+          <Grid item xs={12} md={6}>
+            <Stack
+              spacing={4}
+              sx={{
+                textAlign: { xs: 'center', md: 'left' },
+                alignItems: { xs: 'center', md: 'flex-start' },
+              }}
+            >
+              <Typography
+                variant="h1"
                 sx={{
-                  textAlign: { xs: 'center', md: 'left' },
-                  alignItems: { xs: 'center', md: 'flex-start' },
+                  fontSize: { xs: 38, sm: 46, md: 56 },
+                  fontWeight: 800,
+                  lineHeight: 1.1,
+                  color: '#fff',
                 }}
               >
-                <Typography
-                  variant="h1"
-                  sx={{
-                    fontSize: { xs: 34, sm: 42, md: 56 },
-                    fontWeight: 800,
-                    lineHeight: 1.1,
-                    color: '#fff',
-                  }}
-                >
-                  {heroTitle}
-                </Typography>
+                {heroTitle || 'Full Stack Development Services'}
+              </Typography>
 
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: subtleText,
-                    maxWidth: 540,
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {heroDescription}
-                </Typography>
+              <Typography
+                variant="body1"
+                sx={{ color: subtleText, maxWidth: 540, lineHeight: 1.7 }}
+              >
+                {heroDescription ||
+                  `VedX Solutions offers full stack development services to help
+                achieve your business objectives across platforms. Our agile
+                squads deliver resilient, scalable solutions with zero disruption
+                to your operations.`}
+              </Typography>
 
-                <Button
-                  variant="contained"
-                  size="large"
-                  href="#contact"
-                  sx={{
+              <Button
+                variant="contained"
+                size="large"
+                href="#contact"
+                sx={{
+                  background:
+                    'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                  color: '#fff',
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: { xs: 4, md: 6 },
+                  py: { xs: 1.5, md: 1.75 },
+                  '&:hover': {
                     background:
-                      'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                    color: '#fff',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: { xs: 4, md: 6 },
-                    py: { xs: 1.5, md: 1.75 },
-                    '&:hover': {
-                      background:
-                        'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                    },
-                  }}
-                >
-                  Contact us
-                </Button>
+                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                  },
+                }}
+              >
+                Contact us
+              </Button>
 
-                {/* Stats */}
-                {stats.length > 0 && (
+              {/* Stats */}
+              {stats.length > 0 && (
+                <Stack
+                  pt={2}
+                  width="100%"
+                  alignItems={{ xs: 'center', sm: 'flex-start' }}
+                >
                   <Stack
-                    pt={2}
-                    width="100%"
-                    alignItems={{ xs: 'center', sm: 'flex-start' }}
+                    direction="row"
+                    spacing={{ xs: 3, sm: 4 }}
+                    justifyContent={{ xs: 'center', sm: 'flex-start' }}
+                    alignItems="center"
+                    sx={{
+                      width: '100%',
+                      overflowX: { xs: 'auto', sm: 'visible' }, // scroll on mobile if too many
+                      pb: { xs: 1, sm: 0 },
+                    }}
                   >
-                    <Stack
-                      direction="row"
-                      spacing={{ xs: 3, sm: 4 }}
-                      justifyContent={{ xs: 'center', sm: 'flex-start' }}
-                      alignItems="center"
-                      sx={{
-                        width: '100%',
-                        overflowX: { xs: 'auto', sm: 'visible' }, // horizontal scroll on mobile
-                        pb: { xs: 1, sm: 0 },
-                      }}
-                    >
-                      {stats.map((stat) => (
-                        <Stack
-                          key={stat.label}
-                          spacing={0.5}
+                    {stats.map((stat) => (
+                      <Stack
+                        key={stat.label}
+                        spacing={0.5}
+                        sx={{
+                          minWidth: { xs: 110, sm: 'auto' },
+                          textAlign: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Typography
+                          component="span"
                           sx={{
-                            minWidth: { xs: 110, sm: 'auto' },
-                            textAlign: 'center',
-                            flexShrink: 0,
+                            fontSize: { xs: 24, md: 30 },
+                            fontWeight: 700,
+                            color: accentColor,
                           }}
                         >
-                          <Typography
-                            component="span"
-                            sx={{
-                              fontSize: { xs: 24, md: 30 },
-                              fontWeight: 700,
-                              color: accentColor,
-                            }}
-                          >
-                            {stat.value}
-                          </Typography>
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            sx={{ color: subtleText, fontWeight: 500 }}
-                          >
-                            {stat.label}
-                          </Typography>
-                        </Stack>
-                      ))}
-                    </Stack>
+                          {stat.value}
+                        </Typography>
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{ color: subtleText, fontWeight: 500 }}
+                        >
+                          {stat.label}
+                        </Typography>
+                      </Stack>
+                    ))}
                   </Stack>
-                )}
-              </Stack>
-            </Grid>
+                </Stack>
+              )}
+            </Stack>
           </Grid>
-        </Stack>
+        </Grid>
       </Container>
     </Box>
   );

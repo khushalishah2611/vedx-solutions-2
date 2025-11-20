@@ -1,5 +1,11 @@
-import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import {
+  Box,
+  Container,
+  Divider,
+  alpha,
+  useTheme
+} from '@mui/material';
+import { Link as useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
