@@ -16,25 +16,48 @@ import {
   useTheme
 } from '@mui/material';
 
-const HireDeveloperHero = ({ category, role, stats = [], onContactClick, dividerColor }) => {
+const HireDeveloperHero = ({
+  category,
+  role,
+  stats = [],
+  onContactClick,
+  dividerColor,
+  heroTitle,
+  heroDescription
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+
   const heroOverlay = isDark ? 'rgba(8, 15, 30, 0.8)' : 'rgba(5, 12, 28, 0.75)';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const subtleText = alpha('#ffffff', 0.8);
+
   const borderColor = useMemo(
     () => dividerColor ?? alpha(theme.palette.divider, isDark ? 0.4 : 0.25),
     [dividerColor, isDark, theme.palette.divider]
   );
 
+  const categoryTitle = category?.title ?? 'Services';
+  const serviceName = role?.name ?? 'Service Details';
+
+  const resolvedHeroTitle =
+    heroTitle || role?.heroTitle || role?.name || 'Full Stack Development Services';
+
+  const resolvedHeroDescription =
+    heroDescription ||
+    role?.heroDescription ||
+    category?.description ||
+    `VedX Solutions offers full stack development services to help
+     achieve your business objectives across platforms. Our agile
+     squads deliver resilient, scalable solutions with zero disruption
+     to your operations.`;
+
   return (
-
-
-
-  <Box
+    <Box
       component="section"
       sx={{
         backgroundImage: `
-          linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
+          linear-gradient(to bottom, ${heroOverlay}, ${heroOverlay}),
           url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80")
         `,
         backgroundSize: 'cover',
@@ -49,6 +72,7 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
         alignItems: 'center',
         pb: { xs: 12, md: 14 },
         pt: { xs: 14, md: 18 },
+       
       }}
     >
       <Container
@@ -56,10 +80,15 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
         sx={{
           position: 'relative',
           zIndex: 1,
-          px: { xs: 3, md: 20 },
+          px: { xs: 3, md: 20 }
         }}
       >
-        <Grid container alignItems="center" justifyContent="space-between" rowSpacing={4}>
+        <Grid
+          container
+          alignItems="center"
+          justifyContent="space-between"
+          rowSpacing={4}
+        >
           {/* Breadcrumbs row */}
           <Grid item xs={12}>
             <Breadcrumbs
@@ -83,7 +112,7 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
                 component={RouterLink}
                 underline="hover"
                 color="#fff"
-                to="/services"
+                to="/hire-developers"
               >
                 {categoryTitle}
               </MuiLink>
@@ -99,7 +128,7 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
               spacing={4}
               sx={{
                 textAlign: { xs: 'center', md: 'left' },
-                alignItems: { xs: 'center', md: 'flex-start' },
+                alignItems: { xs: 'center', md: 'flex-start' }
               }}
             >
               <Typography
@@ -108,27 +137,23 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
                   fontSize: { xs: 38, sm: 46, md: 56 },
                   fontWeight: 800,
                   lineHeight: 1.1,
-                  color: '#fff',
+                  color: '#fff'
                 }}
               >
-                {heroTitle || 'Full Stack Development Services'}
+                {resolvedHeroTitle}
               </Typography>
 
               <Typography
                 variant="body1"
                 sx={{ color: subtleText, maxWidth: 540, lineHeight: 1.7 }}
               >
-                {heroDescription ||
-                  `VedX Solutions offers full stack development services to help
-                achieve your business objectives across platforms. Our agile
-                squads deliver resilient, scalable solutions with zero disruption
-                to your operations.`}
+                {resolvedHeroDescription}
               </Typography>
 
               <Button
                 variant="contained"
                 size="large"
-                href="#contact"
+                onClick={onContactClick}
                 sx={{
                   background:
                     'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
@@ -140,8 +165,8 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
                   py: { xs: 1.5, md: 1.75 },
                   '&:hover': {
                     background:
-                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                  },
+                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                  }
                 }}
               >
                 Contact us
@@ -161,8 +186,8 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
                     alignItems="center"
                     sx={{
                       width: '100%',
-                      overflowX: { xs: 'auto', sm: 'visible' }, // scroll on mobile if too many
-                      pb: { xs: 1, sm: 0 },
+                      overflowX: { xs: 'auto', sm: 'visible' },
+                      pb: { xs: 1, sm: 0 }
                     }}
                   >
                     {stats.map((stat) => (
@@ -172,7 +197,7 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
                         sx={{
                           minWidth: { xs: 110, sm: 'auto' },
                           textAlign: 'center',
-                          flexShrink: 0,
+                          flexShrink: 0
                         }}
                       >
                         <Typography
@@ -180,7 +205,7 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
                           sx={{
                             fontSize: { xs: 24, md: 30 },
                             fontWeight: 700,
-                            color: accentColor,
+                            color: accentColor
                           }}
                         >
                           {stat.value}
@@ -202,10 +227,6 @@ const HireDeveloperHero = ({ category, role, stats = [], onContactClick, divider
         </Grid>
       </Container>
     </Box>
-
-
-
-    
   );
 };
 
