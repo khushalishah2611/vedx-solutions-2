@@ -24,35 +24,51 @@ const ServicesTestimonials = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const testimonials = testimonialList.filter(
+    (testimonial) => testimonial?.quote && testimonial?.name
+  );
 
   // Total slides to handle pagination
-  const slidesCount = isMobile
-    ? testimonialList.length
-    : Math.ceil(testimonialList.length / 2);
+  const slidesCount = testimonials.length === 0
+    ? 0
+    : isMobile
+      ? testimonials.length
+      : Math.ceil(testimonials.length / 2);
 
   const handlePrev = () => {
+    if (slidesCount === 0) return;
     setCurrentIndex((prev) => (prev === 0 ? slidesCount - 1 : prev - 1));
   };
 
   const handleNext = () => {
+    if (slidesCount === 0) return;
     setCurrentIndex((prev) => (prev === slidesCount - 1 ? 0 : prev + 1));
   };
 
   // Auto-slide every 4 seconds
   useEffect(() => {
+    if (slidesCount === 0) return undefined;
+
     const interval = setInterval(() => {
       handleNext();
     }, 4000);
     return () => clearInterval(interval);
-  }, [isMobile]);
+  }, [isMobile, slidesCount]);
 
   // Visible testimonials
-  const startIndex = isMobile ? currentIndex : currentIndex * 2;
+  if (testimonials.length === 0) {
+    return null;
+  }
+
+  const startIndex = isMobile
+    ? currentIndex % testimonials.length
+    : (currentIndex * 2) % testimonials.length;
+
   const visibleTestimonials = isMobile
-    ? [testimonialList[startIndex]]
+    ? [testimonials[startIndex]]
     : [
-      testimonialList[startIndex],
-      testimonialList[(startIndex + 1) % testimonialList.length]
+      testimonials[startIndex],
+      testimonials[(startIndex + 1) % testimonials.length]
     ];
 
   return (

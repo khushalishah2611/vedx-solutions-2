@@ -12,7 +12,7 @@ import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import ServicesHero from '../sections/servicepage/ServicesHero.jsx';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
-import FullStackDeveloper from '../sections/servicepage/developer.jsx';
+import FullStackDeveloper from '../sections/servicepage/FullStackDeveloper.jsx';
 import ServicesTechnologies from '../sections/servicepage/ServicesTechnologies.jsx';
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';

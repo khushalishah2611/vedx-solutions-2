@@ -54,18 +54,18 @@ export const blogPosts = [
     }
   },
   {
-    slug: 'how-to-build-scalable-web-applications-with-ruby-on-rails',
-    title: 'How to Build Scalable Web Applications with Ruby on Rails',
+    slug: 'rails-performance-playbook',
+    title: 'Rails Performance Playbook for Scale',
     category: 'Product Delivery',
     image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80',
     heroImage:
       'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80',
     excerpt:
-      'Discover the conventions, tooling, and architectural patterns that help Rails teams scale products without sacrificing developer happiness.',
-    publishedOn: 'September 27, 2025',
+      'A concise playbook covering caching, background jobs, and observability patterns that keep Rails products fast as traffic grows.',
+    publishedOn: 'September 12, 2025',
     readTime: '5 min read',
     author: 'VedX Product Studio',
-    tags: ['Ruby on Rails', 'Scalability', 'Product Delivery'],
+    tags: ['Ruby on Rails', 'Performance', 'Product Delivery'],
     sections: [
       {
         heading: 'Convention over configuration to move faster',
@@ -95,18 +95,18 @@ export const blogPosts = [
     }
   },
   {
-    slug: 'how-to-build-scalable-web-applications-with-ruby-on-rails',
-    title: 'How to Build Scalable Web Applications with Ruby on Rails',
+    slug: 'modernizing-legacy-rails-monoliths',
+    title: 'Modernizing Legacy Rails Monoliths',
     category: 'Product Delivery',
     image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80',
     heroImage:
       'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80',
     excerpt:
-      'Discover the conventions, tooling, and architectural patterns that help Rails teams scale products without sacrificing developer happiness.',
-    publishedOn: 'September 27, 2025',
+      'A pragmatic approach to upgrading legacy Rails codebases with improved test coverage, observability, and deployment safety.',
+    publishedOn: 'September 5, 2025',
     readTime: '5 min read',
     author: 'VedX Product Studio',
-    tags: ['Ruby on Rails', 'Scalability', 'Product Delivery'],
+    tags: ['Ruby on Rails', 'Modernization', 'Product Delivery'],
     sections: [
       {
         heading: 'Convention over configuration to move faster',
@@ -136,18 +136,18 @@ export const blogPosts = [
     }
   },
   {
-    slug: 'how-to-build-scalable-web-applications-with-ruby-on-rails',
-    title: 'How to Build Scalable Web Applications with Ruby on Rails',
+    slug: 'rails-delivery-checklist',
+    title: 'Rails Delivery Checklist for Product Teams',
     category: 'Product Delivery',
     image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80',
     heroImage:
       'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80',
     excerpt:
-      'Discover the conventions, tooling, and architectural patterns that help Rails teams scale products without sacrificing developer happiness.',
-    publishedOn: 'September 27, 2025',
-    readTime: '5 min read',
+      'Release-ready practices—from CI/CD to feature flags—that help Rails squads ship consistently without surprises.',
+    publishedOn: 'August 28, 2025',
+    readTime: '4 min read',
     author: 'VedX Product Studio',
-    tags: ['Ruby on Rails', 'Scalability', 'Product Delivery'],
+    tags: ['Ruby on Rails', 'Delivery', 'Product Delivery'],
     sections: [
       {
         heading: 'Convention over configuration to move faster',
@@ -177,18 +177,18 @@ export const blogPosts = [
     }
   },
   {
-    slug: 'how-to-build-scalable-web-applications-with-ruby-on-rails',
-    title: 'How to Build Scalable Web Applications with Ruby on Rails',
+    slug: 'rails-site-reliability-basics',
+    title: 'Site Reliability Basics for Rails Teams',
     category: 'Product Delivery',
     image: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80',
     heroImage:
       'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80',
     excerpt:
-      'Discover the conventions, tooling, and architectural patterns that help Rails teams scale products without sacrificing developer happiness.',
-    publishedOn: 'September 27, 2025',
-    readTime: '5 min read',
+      'SLI/SLO thinking, alert hygiene, and incident runbooks that keep Rails platforms reliable during rapid growth.',
+    publishedOn: 'August 10, 2025',
+    readTime: '6 min read',
     author: 'VedX Product Studio',
-    tags: ['Ruby on Rails', 'Scalability', 'Product Delivery'],
+    tags: ['Ruby on Rails', 'SRE', 'Product Delivery'],
     sections: [
       {
         heading: 'Convention over configuration to move faster',
