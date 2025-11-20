@@ -1,8 +1,23 @@
-import { Box, Button, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import {
+  Box,
+  Button,
+  Grid,
+  Paper,
+  Stack,
+  Typography,
+  alpha,
+  useTheme,
+  IconButton
+} from '@mui/material';
+
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import ChevronRight from '@mui/icons-material/ChevronRight';
+
+import { useRef } from 'react';
 import { whyChooseVedx } from '../../../data/servicesPage.js';
 
 const highlightIcons = [
@@ -14,139 +29,238 @@ const highlightIcons = [
 const ServicesWhyChoose = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
 
+  const scrollRef = useRef();
+
+  const scrollLeft = () => {
+    scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+  };
+
+  const scrollRight = () => {
+    scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+  };
+
   return (
     <Box component="section">
-      {/* Section Header */}
-      <Stack
-        spacing={3}
-        sx={{
-          mb: 4,
-          textAlign: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Typography
-          variant="h3"
-          sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}
-        >
+      {/* Heading */}
+      <Stack spacing={3} sx={{ mb: 4, textAlign: 'center', alignItems: 'center' }}>
+        <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
           Why choose Vedx Solutions
         </Typography>
-        <Typography
-          variant="body1"
-          sx={{ color: subtleText, maxWidth: 720 }}
-        >
+
+        <Typography variant="body1" sx={{ color: subtleText, maxWidth: 720 }}>
           A partner obsessed with outcomes, clarity, and dependable delivery. We build every engagement around
           collaboration and trust.
         </Typography>
       </Stack>
 
-      {/* Highlights Grid */}
-      <Grid
-        container
-        spacing={3}
+      {/* Mobile Arrows */}
+      <Box sx={{ display: { xs: 'block', md: 'none' }, position: 'relative' }}>
+        <IconButton
+          onClick={scrollLeft}
+          sx={{
+            position: 'absolute',
+            left: 4,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            bgcolor: alpha('#000', 0.4),
+            color: 'white',
+            '&:hover': { bgcolor: alpha('#000', 0.6) }
+          }}
+        >
+          <ChevronLeft />
+        </IconButton>
+
+        <IconButton
+          onClick={scrollRight}
+          sx={{
+            position: 'absolute',
+            right: 4,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            bgcolor: alpha('#000', 0.4),
+            color: 'white',
+            '&:hover': { bgcolor: alpha('#000', 0.6) }
+          }}
+        >
+          <ChevronRight />
+        </IconButton>
+      </Box>
+
+      {/* Mobile Scroll */}
+      <Box
+        ref={scrollRef}
         sx={{
-          textAlign: 'center',
-          alignItems: 'stretch',
+          display: { xs: 'flex', md: 'none' },
+          overflowX: 'auto',
+          gap: 2,
+          scrollBehavior: 'smooth',
+          pb: 1,
+          px: 1,
+          '&::-webkit-scrollbar': { display: 'none' }
         }}
       >
         {whyChooseVedx.map((highlight, index) => {
           const Icon = highlight.icon ?? highlightIcons[index % highlightIcons.length];
+
+          return (
+            <Paper
+              key={highlight.title}
+              elevation={0}
+              sx={{
+                minWidth: 280,
+                flexShrink: 0,
+                borderRadius: 1.5,
+                p: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.75 : 0.97),
+                border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`,
+                boxShadow: isDark
+                  ? '0 4px 30px rgba(2,6,23,0.35)'
+                  : '0 4px 30px rgba(15,23,42,0.15)',
+                transition: 'transform 0.45s ease',
+                height: '100%',
+                '&:hover': {
+                  transform: 'translateY(-8px) scale(1.03)',
+                  borderColor: accentColor
+                }
+              }}
+            >
+              {/* ICON CENTER FIXED */}
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  margin: '0 auto',
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: alpha(accentColor, 0.16),
+                  color: accentColor,
+                  mb: 2
+                }}
+              >
+                {Icon && <Icon sx={{ fontSize: 32 }} />}
+              </Box>
+
+              <Stack spacing={1} sx={{ textAlign: 'center' }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    transition: '0.3s',
+                    '&:hover': {
+                      color: 'transparent',
+                      backgroundImage: 'linear-gradient(90deg,#9c27b0,#2196f3)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }
+                  }}
+                >
+                  {highlight.title}
+                </Typography>
+
+                <Typography variant="body2" sx={{ color: subtleText }}>
+                  {highlight.description}
+                </Typography>
+              </Stack>
+            </Paper>
+          );
+        })}
+      </Box>
+
+      {/* Desktop Grid */}
+      <Grid container spacing={3} sx={{ display: { xs: 'none', md: 'flex' } }}>
+        {whyChooseVedx.map((highlight, index) => {
+          const Icon = highlight.icon ?? highlightIcons[index % highlightIcons.length];
+
           return (
             <Grid item xs={12} sm={6} md={4} key={highlight.title}>
               <Paper
                 elevation={0}
                 sx={{
                   height: '100%',
-                  borderRadius: 0.5,
+                  borderRadius: 1.5,
                   p: 3,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
                   textAlign: 'center',
-                  backgroundColor: alpha(
-                    theme.palette.background.paper,
-                    isDark ? 0.75 : 0.97
-                  ),
-                  border: `1px solid ${alpha(
-                    theme.palette.divider,
-                    isDark ? 0.4 : 0.6
-                  )}`,
+                  backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.75 : 0.97),
+                  border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`,
                   boxShadow: isDark
                     ? '0 4px 30px rgba(2,6,23,0.35)'
                     : '0 4px 30px rgba(15,23,42,0.15)',
-                  transition:
-                    'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
-
+                  transition: 'transform .45s ease',
                   '&:hover': {
                     transform: 'translateY(-8px) scale(1.02)',
-
-                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                  },
+                    borderColor: accentColor
+                  }
                 }}
               >
-                {/* Icon */}
                 <Box
                   sx={{
-                    width: 52,
-                    height: 52,
+                    width: 64,
+                    height: 64,
+                    mx: 'auto',
                     borderRadius: 2,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     background: alpha(accentColor, 0.16),
                     color: accentColor,
-                    mb: 2,
+                    mb: 2
                   }}
                 >
-                  {Icon && <Icon />}
+                  {Icon && <Icon sx={{ fontSize: 32 }} />}
                 </Box>
 
-                {/* Text */}
-                <Stack spacing={1}>
-                  <Typography variant="h6" sx={{
-                    fontWeight: 700, textDecoration: 'none',
-                    cursor: 'pointer',
-                    transition: 'color 0.3s ease, background-image 0.3s ease',
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    transition: '.3s',
                     '&:hover': {
                       color: 'transparent',
-                      backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      backgroundImage: 'linear-gradient(90deg,#9c27b0,#2196f3)',
                       WebkitBackgroundClip: 'text',
-                      backgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                    },
+                      WebkitTextFillColor: 'transparent'
+                    }
+                  }}
+                >
+                  {highlight.title}
+                </Typography>
 
-                  }}>
-                    {highlight.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: subtleText }}>
-                    {highlight.description}
-                  </Typography>
-                </Stack>
+                <Typography variant="body2" sx={{ color: subtleText }}>
+                  {highlight.description}
+                </Typography>
               </Paper>
             </Grid>
           );
         })}
       </Grid>
-      <Stack alignItems="center" sx={{ width: '100%', mt: 6 }}>
+
+      {/* CTA Button */}
+      <Stack alignItems="center" sx={{ mt: 6 }}>
         <Button
           variant="contained"
           size="large"
           endIcon={<ArrowOutwardRoundedIcon />}
           sx={{
-            background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+            background: 'linear-gradient(90deg,#FF5E5E,#A84DFF)',
             color: '#fff',
-            borderRadius: '12px',
+            borderRadius: 2,
             textTransform: 'none',
             fontWeight: 600,
             fontSize: '1.1rem',
             px: { xs: 4, md: 8 },
             py: { xs: 1.5, md: 2 },
-            '&:hover': {
-              background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-            },
+            '&:hover': { background: 'linear-gradient(90deg,#FF4C4C,#9939FF)' }
           }}
         >
           Request a Quote

@@ -92,7 +92,7 @@ const HeroSection = () => {
         sx={{
           position: 'relative',
           zIndex: 1,
-           px: { xs: 2.5, md: 10 } ,
+           px: { xs:3, md: 20} ,
         }}
       >
         <Stack spacing={{ xs: 6, md: 8 }}>

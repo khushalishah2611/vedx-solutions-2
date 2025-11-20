@@ -5,7 +5,6 @@ import {
   Button,
   ButtonBase,
   Collapse,
-  Container,
   Divider,
   Drawer,
   IconButton,
@@ -16,7 +15,6 @@ import {
   MenuList,
   Popover,
   Stack,
-  Tooltip,
   Toolbar,
   Typography,
   alpha,
@@ -30,8 +28,6 @@ import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownR
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
-import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
-import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import { megaMenuContent, navigationLinks } from '../../data/content.js';
 import { ColorModeContext } from '../../contexts/ColorModeContext.jsx';
 import { Link as RouterLink } from 'react-router-dom';
@@ -50,12 +46,19 @@ const NavigationBar = () => {
   const { openDialog: openContactDialog } = useContactDialog();
 
   const [open, setOpen] = useState(false);
-  const createDefaultExpanded = () => ({ services: false, hireDevelopers: false, about: false });
+
+  const createDefaultExpanded = () => ({
+    services: false,
+    hireDevelopers: false,
+    about: false
+  });
+
   const createDefaultCategoryExpanded = () =>
     Object.keys(megaMenuContent).reduce((acc, key) => {
       acc[key] = {};
       return acc;
     }, {});
+
   const [expandedMenus, setExpandedMenus] = useState(createDefaultExpanded);
   const [expandedCategories, setExpandedCategories] = useState(
     createDefaultCategoryExpanded
@@ -87,7 +90,10 @@ const NavigationBar = () => {
     transition: 'color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease',
     '&:hover': {
       ...gradientTextHover,
-      backgroundColor: alpha(theme.palette.text.primary, mode === 'dark' ? 0.08 : 0.05),
+      backgroundColor: alpha(
+        theme.palette.text.primary,
+        mode === 'dark' ? 0.08 : 0.05
+      ),
       opacity: 1
     },
     '&:focus-visible': {
@@ -164,20 +170,49 @@ const NavigationBar = () => {
   };
 
   const renderMegaMenu = (anchorEl, handleClose, config, activeIndex, setActiveIndex) => {
+    if (!config) return null;
+
     const openPopover = Boolean(anchorEl);
     const activeCategory = config.categories[activeIndex] ?? config.categories[0];
-    const surfaceColor = alpha(theme.palette.background.paper, mode === 'dark' ? 0.95 : 0.98);
-    const dividerColor = alpha(theme.palette.divider, mode === 'dark' ? 0.5 : 0.8);
+
+    const activeCategoryHref =
+      activeCategory?.href ??
+      (activeCategory?.label
+        ? `/services${createAnchorHref(activeCategory.label)}`
+        : undefined);
+
+    const activeCategoryLinkProps = activeCategoryHref
+      ? activeCategoryHref.startsWith('/')
+        ? { component: RouterLink, to: activeCategoryHref }
+        : {
+            component: 'a',
+            href: activeCategoryHref,
+            target: '_blank',
+            rel: 'noopener noreferrer'
+          }
+      : {};
+
+    const surfaceColor = alpha(
+      theme.palette.background.paper,
+      mode === 'dark' ? 0.95 : 0.98
+    );
+    const dividerColor = alpha(
+      theme.palette.divider,
+      mode === 'dark' ? 0.5 : 0.8
+    );
     const overlayGradient =
       mode === 'dark'
-        ? `linear-gradient(160deg, ${alpha('#0f172a', 0.82)} 0%, ${alpha('#0f172a', 0.6)} 45%, ${alpha(
-          '#0f172a',
-          0.94
-        )} 100%)`
-        : `linear-gradient(160deg, ${alpha(theme.palette.background.default, 0.92)} 0%, ${alpha(
-          theme.palette.background.default,
-          0.85
-        )} 45%, ${alpha(theme.palette.background.paper, 0.96)} 100%)`;
+        ? `linear-gradient(160deg, ${alpha('#0f172a', 0.82)} 0%, ${alpha(
+            '#0f172a',
+            0.6
+          )} 45%, ${alpha('#0f172a', 0.94)} 100%)`
+        : `linear-gradient(160deg, ${alpha(
+            theme.palette.background.default,
+            0.92
+          )} 0%, ${alpha(
+            theme.palette.background.default,
+            0.85
+          )} 45%, ${alpha(theme.palette.background.paper, 0.96)} 100%)`;
     const descriptorColor =
       mode === 'dark'
         ? 'rgba(255,255,255,0.75)'
@@ -208,6 +243,7 @@ const NavigationBar = () => {
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+          {/* LEFT COLUMN – CATEGORIES LIST */}
           <Box sx={{ p: { xs: 3, md: 4 }, width: { xs: '100%', md: 340 } }}>
             <Stack spacing={2}>
               {config.categories.map((category, index) => {
@@ -218,11 +254,11 @@ const NavigationBar = () => {
                   ? isRouteLink
                     ? { component: RouterLink, to: categoryHref }
                     : {
-                      component: 'a',
-                      href: categoryHref,
-                      target: '_blank',
-                      rel: 'noopener noreferrer'
-                    }
+                        component: 'a',
+                        href: categoryHref,
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                      }
                   : {};
                 return (
                   <ButtonBase
@@ -230,9 +266,7 @@ const NavigationBar = () => {
                     {...linkProps}
                     onMouseEnter={() => setActiveIndex(index)}
                     onFocus={() => setActiveIndex(index)}
-                    onClick={() => {
-                      handleClose();
-                    }}
+                    onClick={handleClose}
                     sx={{
                       width: '100%',
                       textAlign: 'left',
@@ -274,6 +308,7 @@ const NavigationBar = () => {
             </Stack>
           </Box>
 
+          {/* DIVIDER */}
           <Divider
             orientation="vertical"
             flexItem
@@ -283,6 +318,7 @@ const NavigationBar = () => {
             }}
           />
 
+          {/* RIGHT COLUMN – ACTIVE CATEGORY DETAILS */}
           <Box
             sx={{
               position: 'relative',
@@ -303,22 +339,38 @@ const NavigationBar = () => {
             />
 
             <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {activeCategory.label}
+              <Typography
+                variant="h6"
+                className="drawer-category-title"
+                {...activeCategoryLinkProps}
+                sx={{
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  cursor: activeCategoryHref ? 'pointer' : 'default',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  '&:hover': gradientTextHover
+                }}
+                onClick={handleClose}
+              >
+                {activeCategory?.label}
               </Typography>
 
-              <Typography
-                variant="body2"
-                sx={{
-                  color: descriptorColor,
-                  maxWidth: 360
-                }}
-              >
-                {activeCategory.description}
-              </Typography>
+              {activeCategory?.description && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: descriptorColor,
+                    maxWidth: 360
+                  }}
+                >
+                  {activeCategory.description}
+                </Typography>
+              )}
 
               <Stack spacing={1.2}>
-                {activeCategory.subItems.map((item) => {
+                {activeCategory?.subItems?.map((item) => {
                   const isObject = typeof item === 'object' && item !== null;
                   const label = isObject ? item.label : item;
                   const href =
@@ -328,7 +380,12 @@ const NavigationBar = () => {
                   const isRouteLink = href.startsWith('/');
                   const linkProps = isRouteLink
                     ? { component: RouterLink, to: href }
-                    : { component: 'a', href, target: '_blank', rel: 'noopener noreferrer' };
+                    : {
+                        component: 'a',
+                        href,
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                      };
 
                   return (
                     <Stack
@@ -349,7 +406,8 @@ const NavigationBar = () => {
                           outlineColor: alpha(highlightColor, 0.4),
                           outlineOffset: 4
                         },
-                        '&:hover .mega-subtitle, &:focus-visible .mega-subtitle': gradientTextHover,
+                        '&:hover .mega-subtitle, &:focus-visible .mega-subtitle':
+                          gradientTextHover,
                         '& .mega-subtitle': {
                           transition: 'color 0.3s ease, background-image 0.3s ease'
                         }
@@ -445,9 +503,11 @@ const NavigationBar = () => {
       sx={{
         px: { xs: 2.5, md: 10 },
         borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
-        backgroundColor: alpha(theme.palette.background.paper, mode === 'dark' ? 0.85 : 0.9),
+        backgroundColor: alpha(
+          theme.palette.background.paper,
+          mode === 'dark' ? 0.85 : 0.9
+        ),
         backdropFilter: 'blur(20px)'
-
       }}
     >
       <Toolbar
@@ -503,7 +563,9 @@ const NavigationBar = () => {
                   );
                 }
 
-                const buttonProps = item.path ? { component: RouterLink, to: item.path } : {};
+                const buttonProps = item.path
+                  ? { component: RouterLink, to: item.path }
+                  : {};
                 const menuKey = item.menu;
                 const menuConfig = {
                   services: { anchor: serviceAnchor, handleEnter: handleServiceEnter },
@@ -663,7 +725,9 @@ const NavigationBar = () => {
                           <ListItemText primary={link.label} />
                         </ListItemButton>
                       ))}
-                      <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4) }} />
+                      <Divider
+                        sx={{ borderColor: alpha(theme.palette.divider, 0.4) }}
+                      />
                     </Box>
                   );
                 }
@@ -681,25 +745,23 @@ const NavigationBar = () => {
                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                       <List disablePadding>
                         {item.path && (
-                          <>
-                            <Divider
-                              sx={{
-                                borderColor: alpha(theme.palette.divider, 0.4),
-
-                              }}
-                            />
-                          </>
+                          <Divider
+                            sx={{
+                              borderColor: alpha(theme.palette.divider, 0.4)
+                            }}
+                          />
                         )}
 
                         {config.categories.map((category) => {
                           const categoryHref =
-                            category.href ?? `/services${createAnchorHref(category.label)}`;
+                            category.href ??
+                            `/services${createAnchorHref(category.label)}`;
                           const categoryLinkProps = getLinkProps(categoryHref);
                           const hasCategoryLink = Boolean(categoryHref);
                           const categoryClickHandler = hasCategoryLink
                             ? handleDrawerClose
                             : undefined;
-                          const isExpanded =
+                          const isCategoryExpanded =
                             expandedCategories[item.menu]?.[category.label] ?? false;
 
                           return (
@@ -713,8 +775,7 @@ const NavigationBar = () => {
                                   pr: 1,
                                   py: 1.5,
                                   borderRadius: 1.5,
-                                  transition: 'background-color 0.3s ease',
-
+                                  transition: 'background-color 0.3s ease'
                                 }}
                               >
                                 <Box
@@ -741,9 +802,6 @@ const NavigationBar = () => {
                                     variant="subtitle2"
                                     className="drawer-category-title"
                                     sx={{ fontWeight: 600 }}
-                                    component={RouterLink}
-                                    to={item.path}
-                                    style={{ textDecoration: "none", color: "inherit" }}
                                   >
                                     {category.label}
                                   </Typography>
@@ -751,7 +809,10 @@ const NavigationBar = () => {
                                     <Typography
                                       variant="caption"
                                       sx={{
-                                        color: alpha(theme.palette.text.secondary, 0.9)
+                                        color: alpha(
+                                          theme.palette.text.secondary,
+                                          0.9
+                                        )
                                       }}
                                     >
                                       {category.description}
@@ -761,11 +822,14 @@ const NavigationBar = () => {
 
                                 <IconButton
                                   size="small"
-                                  onClick={toggleCategoryExpansion(item.menu, category.label)}
+                                  onClick={toggleCategoryExpansion(
+                                    item.menu,
+                                    category.label
+                                  )}
                                   aria-label={`Toggle ${category.label} sub categories`}
-                                  aria-expanded={isExpanded}
+                                  aria-expanded={isCategoryExpanded}
                                 >
-                                  {isExpanded ? (
+                                  {isCategoryExpanded ? (
                                     <ExpandLessRoundedIcon fontSize="small" />
                                   ) : (
                                     <ExpandMoreRoundedIcon fontSize="small" />
@@ -773,7 +837,11 @@ const NavigationBar = () => {
                                 </IconButton>
                               </Stack>
 
-                              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                              <Collapse
+                                in={isCategoryExpanded}
+                                timeout="auto"
+                                unmountOnExit
+                              >
                                 <List disablePadding>
                                   {category.subItems.map((subItem) => {
                                     const isObject =
@@ -787,39 +855,41 @@ const NavigationBar = () => {
                                     const linkProps = isRouteLink
                                       ? { component: RouterLink, to: href }
                                       : {
-                                        component: 'a',
-                                        href,
-                                        target: '_blank',
-                                        rel: 'noopener noreferrer'
-                                      };
+                                          component: 'a',
+                                          href,
+                                          target: '_blank',
+                                          rel: 'noopener noreferrer'
+                                        };
 
                                     return (
                                       <Typography
+                                        key={label}
                                         variant="body2"
                                         onClick={handleDrawerClose}
                                         {...linkProps}
                                         sx={{
                                           fontWeight: 700,
-                                          px: 2, 
+                                          px: 2,
                                           py: 1.2,
                                           width: '100%',
                                           display: 'block',
                                           textDecoration: 'none',
                                           cursor: 'pointer',
-                                          color: "#fff",
-                                          transition: 'color 0.3s ease, background-image 0.3s ease',
+                                          color: '#fff',
+                                          transition:
+                                            'color 0.3s ease, background-image 0.3s ease',
                                           '&:hover': {
                                             color: 'transparent',
-                                            backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                                            backgroundImage:
+                                              'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                                             WebkitBackgroundClip: 'text',
                                             backgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                          },
+                                            WebkitTextFillColor: 'transparent'
+                                          }
                                         }}
                                       >
                                         {label}
                                       </Typography>
-
                                     );
                                   })}
                                 </List>
@@ -830,7 +900,9 @@ const NavigationBar = () => {
                       </List>
                     </Collapse>
 
-                    <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.4) }} />
+                    <Divider
+                      sx={{ borderColor: alpha(theme.palette.divider, 0.4) }}
+                    />
                   </Box>
                 );
               }

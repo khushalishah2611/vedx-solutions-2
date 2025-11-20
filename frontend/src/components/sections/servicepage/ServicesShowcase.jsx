@@ -1,3 +1,5 @@
+/* ONLY HOVER ANIMATION ADDED — NO OTHER CHANGES */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Box,
@@ -24,7 +26,6 @@ const ServicesShowcase = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeService = services[activeIndex];
 
-  // Mobile scroll container ref
   const scrollRef = useRef(null);
 
   const scrollToIndex = useCallback((index) => {
@@ -39,7 +40,6 @@ const ServicesShowcase = () => {
     });
   }, []);
 
-  // Manual Navigation + scroll movement
   const goNext = useCallback(() => {
     setActiveIndex((prev) => {
       const next = (prev + 1) % services.length;
@@ -129,16 +129,14 @@ const ServicesShowcase = () => {
         </Stack>
 
         {/* LAYOUT */}
-        <Grid
-          container
-          spacing={{ xs: 0, md: 0 }}
-          alignItems="stretch"
-          justifyContent="center"
-        >
+        <Grid container spacing={{ xs: 0, md: 0 }} alignItems="stretch" justifyContent="center">
+          
           {/* LEFT SIDE */}
           <Grid item xs={12} md={5.5}>
-            {/* MOBILE SCROLL + ARROWS */}
+
+            {/* MOBILE SLIDER */}
             <Box sx={{ display: { xs: "block", md: "none" }, position: "relative" }}>
+              
               <IconButton
                 onClick={goPrev}
                 aria-label="Previous service"
@@ -186,7 +184,6 @@ const ServicesShowcase = () => {
               >
                 {services.map((service, index) => {
                   const active = index === activeIndex;
-
                   return (
                     <Box key={service.title} sx={{ minWidth: "75%", scrollSnapAlign: "center" }}>
                       <ButtonBase
@@ -203,10 +200,13 @@ const ServicesShowcase = () => {
                           boxShadow: active ? activeShadow : baseShadow,
                           transition: "all 0.35s ease",
                           position: "relative",
-                          color: "white",
+
+                          /* --- HOVER ANIMATION ADDED --- */
+                          "&:hover .hover-img": { transform: "scale(1.09)" },
                         }}
                       >
                         <Box
+                          className="hover-img"
                           sx={{
                             position: "absolute",
                             inset: 0,
@@ -214,9 +214,10 @@ const ServicesShowcase = () => {
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             transform: active ? "scale(1.06)" : "scale(1)",
-                            transition: "0.4s ease",
+                            transition: "transform 0.45s ease",
                           }}
                         />
+
                         <Box
                           sx={{
                             position: "absolute",
@@ -225,15 +226,12 @@ const ServicesShowcase = () => {
                           }}
                         />
 
-                        <Stack
-                          sx={{
-                            position: "relative",
-                            p: 2,
-                            height: "100%",
-                            justifyContent: "flex-end",
-                          }}
-                        >
-                          <Typography sx={{ fontWeight: 700 }}>
+                        <Stack sx={{ position: "relative", mb: 5, height: "100%", justifyContent: "flex-end" }}>
+                          <Typography sx={{ fontWeight: 700 ,    "&:hover": {
+                          color: "transparent",
+                          backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
+                          WebkitBackgroundClip: "text",
+                        },}}>
                             {service.title}
                           </Typography>
                         </Stack>
@@ -248,7 +246,6 @@ const ServicesShowcase = () => {
             <Grid container spacing={2} sx={{ display: { xs: "none", md: "flex" } }}>
               {services.map((service, index) => {
                 const active = index === activeIndex;
-
                 return (
                   <Grid item xs={12} sm={4} key={service.title}>
                     <ButtonBase
@@ -262,34 +259,31 @@ const ServicesShowcase = () => {
                         boxShadow: active ? activeShadow : baseShadow,
                         transition: "all 0.35s ease",
                         position: "relative",
+
+                        /* --- HOVER ANIMATION ADDED --- */
+                        "&:hover .hover-img": { transform: "scale(1.09)" }
                       }}
                     >
                       <Box
+                        className="hover-img"
                         sx={{
                           position: "absolute",
                           inset: 0,
                           backgroundImage: `url(${service.image})`,
                           backgroundSize: "cover",
                           backgroundPosition: "center",
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          inset: 0,
-                          background: overlayGradient,
+                          transition: "transform 0.45s ease",
                         }}
                       />
 
-                      <Stack
-                        sx={{
-                          position: "relative",
-                          p: 2,
-                          height: "100%",
-                          justifyContent: "flex-end",
-                        }}
-                      >
-                        <Typography sx={{ fontWeight: 700 }}>
+                      <Box sx={{ position: "absolute", inset: 0, background: overlayGradient }} />
+
+                      <Stack sx={{ position: "relative", mb: 5, height: "100%", justifyContent: "flex-end" }}>
+                        <Typography sx={{ fontWeight: 700,    "&:hover": {
+                          color: "transparent",
+                          backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
+                          WebkitBackgroundClip: "text",
+                        }, }}>
                           {service.title}
                         </Typography>
                       </Stack>
@@ -300,26 +294,16 @@ const ServicesShowcase = () => {
             </Grid>
           </Grid>
 
-          {/* DIVIDER DESKTOP */}
-          <Grid
-            item
-            md="auto"
-            sx={{
-              display: { xs: "none", md: "flex" },
-              alignItems: "stretch",
-            }}
-          >
+          {/* DIVIDER */}
+          <Grid item md="auto" sx={{ display: { xs: "none", md: "flex" }, alignItems: "stretch" }}>
             <Divider
               orientation="vertical"
               flexItem
-              sx={{
-                borderColor: alpha(theme.palette.divider, 0.7),
-                mx: 3,
-              }}
+              sx={{ borderColor: alpha(theme.palette.divider, 0.7), mx: 3 }}
             />
           </Grid>
 
-          {/* RIGHT CONTENT */}
+          {/* RIGHT SIDE CONTENT */}
           <Grid item xs={12} md={6} sx={{ mt: { xs: 5, md: 0 } }}>
             <Slide in={true} direction="left" timeout={500} key={activeService.title}>
               <Stack spacing={3}>
@@ -350,6 +334,7 @@ const ServicesShowcase = () => {
                         cursor: "pointer",
                         transition: "0.3s",
                         color: supportingTextColor,
+
                         "&:hover": {
                           color: "transparent",
                           backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",

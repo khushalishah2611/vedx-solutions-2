@@ -22,42 +22,42 @@ const HomePage = () => {
       {/* All sections wrapped inside common padding */}
       <Container maxWidth={false}
         sx={{
-            px: { xs: 2.5, md: 10 } ,
+            px: { xs:3, md: 20} ,
         }}>
-        <Box my={5}>
+        <Box my={10}>
           <CreativeAgencySection />
         </Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={5}>
+        <Box my={10}>
           <ServicesShowcase />
         </Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={5}> <ServicesWhyChoose /></Box>
+        <Box my={10}> <ServicesWhyChoose /></Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={5}> <ServicesProcess /></Box>
+        <Box my={10}> <ServicesProcess /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={5}><ServicesIndustries /></Box>  
+        <Box my={10}><ServicesIndustries /></Box>  
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={5}><ServicesBusinessSolutions /></Box>  
+        <Box my={10}><ServicesBusinessSolutions /></Box>  
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={5}><ServicesTestimonials /></Box> 
+        <Box my={10}><ServicesTestimonials /></Box> 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={5}><ServicesEngagementModels /></Box>
+        <Box my={10}><ServicesEngagementModels /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={5}> <ServicesContact /></Box>
+        <Box my={10}> <ServicesContact /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={5}><ServicesBlog /></Box>
+        <Box my={10}><ServicesBlog /></Box>
       </Container>
     </Box>
   );
