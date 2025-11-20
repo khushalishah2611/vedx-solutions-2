@@ -1,11 +1,5 @@
-import {
-  Box,
-  Container,
-  Divider,
-  alpha,
-  useTheme
-} from '@mui/material';
-import { Link as useNavigate, useParams } from 'react-router-dom';
+import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
@@ -20,6 +14,7 @@ import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
+import ServiceHero from '../sections/servicepage/ServiceHero.jsx';
 
 const ServiceDetailPage = () => {
   const theme = useTheme();
