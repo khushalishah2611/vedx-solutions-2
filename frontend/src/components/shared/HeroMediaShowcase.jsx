@@ -142,208 +142,210 @@ const HeroMediaShowcase = ({
           justifyContent="flex-start"
           alignItems="center"
         >
-            {/* === IMAGES SECTION (LEFT) === */}
-            <Grid
-              item
-              xs={12}
-              md={6}
-              ref={leftRef}
+          {/* === IMAGES SECTION (LEFT) === */}
+          <Grid
+            item
+            xs={12}
+            md={6}
+            ref={leftRef}
+            sx={{
+              opacity: leftInView ? 1 : 0,
+              transform: leftInView ? 'translateX(0)' : 'translateX(-40px)',
+              transition: 'opacity 0.7s ease, transform 0.7s ease',
+            }}
+          >
+            <Box
               sx={{
-                opacity: leftInView ? 1 : 0,
-                transform: leftInView ? 'translateX(0)' : 'translateX(-40px)',
-                transition: 'opacity 0.7s ease, transform 0.7s ease',
+                position: 'relative',
+                maxWidth: 800,
+                mx: { xs: 'auto', md: 0 },
+                height: { xs: 400, md: 600 },
               }}
             >
+              {/* Base Image */}
               <Box
+                component="img"
+                src={baseImage}
+                alt={baseImageAlt}
+                loading="lazy"
                 sx={{
-                  position: 'relative',
-                  maxWidth: 800,
-                  mx: { xs: 'auto', md: 0 },
-                  height: { xs: 400, md: 600 },
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '80%',
+                  height: '80%',
+                  borderRadius: 0.5,
+                  border: `1px solid ${alpha('#ffffff', 0.06)}`,
+                  boxShadow: '0 25px 100px rgba(0,0,0,0.6)',
+                  objectFit: 'cover',
+                  zIndex: 1,
                 }}
-              >
-                {/* Base Image */}
-                <Box
-                  component="img"
-                  src={baseImage}
-                  alt={baseImageAlt}
-                  loading="lazy"
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '80%',
-                    height: '80%',
-                    borderRadius: 0.5,
-                    border: `1px solid ${alpha('#ffffff', 0.06)}`,
-                    boxShadow: '0 25px 100px rgba(0,0,0,0.6)',
-                    objectFit: 'cover',
-                    zIndex: 1,
-                  }}
-                />
-  
-                {/* Overlay Image */}
-                <Box
-                  component="img"
-                  src={overlayImage}
-                  alt={overlayImageAlt}
-                  loading="lazy"
-                  sx={{
-                    position: 'absolute',
-                    top: '10%',
-                    left: '10%',
-                    width: '80%',
-                    height: '80%',
-                    borderRadius: 0.5,
-                    border: `1px solid ${alpha('#ffffff', 0.08)}`,
-                    boxShadow: '0 35px 120px rgba(0,0,0,0.8)',
-                    objectFit: 'cover',
-                    zIndex: 2,
-                  }}
-                />
-              </Box>
-            </Grid>
-  
-            {/* === TEXT SECTION (RIGHT) === */}
-            <Grid
-              item
-              xs={12}
-              md={6}
-              ref={rightRef}
+              />
+
+              {/* Overlay Image */}
+              <Box
+                component="img"
+                src={overlayImage}
+                alt={overlayImageAlt}
+                loading="lazy"
+                sx={{
+                  position: 'absolute',
+                  top: '10%',
+                  left: '10%',
+                  width: '80%',
+                  height: '80%',
+                  borderRadius: 0.5,
+                  border: `1px solid ${alpha('#ffffff', 0.08)}`,
+                  boxShadow: '0 35px 120px rgba(0,0,0,0.8)',
+                  objectFit: 'cover',
+                  zIndex: 2,
+                }}
+              />
+            </Box>
+          </Grid>
+
+          {/* === TEXT SECTION (RIGHT) === */}
+          <Grid
+            item
+            xs={12}
+            md={6}
+            ref={rightRef}
+            sx={{
+              opacity: rightInView ? 1 : 0,
+              transform: rightInView ? 'translateX(0)' : 'translateX(40px)',
+              transition: 'opacity 0.7s ease, transform 0.7s ease',
+            }}
+          >
+            <Stack
+              spacing={3}
               sx={{
-                opacity: rightInView ? 1 : 0,
-                transform: rightInView ? 'translateX(0)' : 'translateX(40px)',
-                transition: 'opacity 0.7s ease, transform 0.7s ease',
+                maxWidth: 520,
+                mx: { xs: 'auto', md: 0 },
+                textAlign: { xs: 'center', md: 'left' },
               }}
             >
-              <Stack
-                spacing={3}
-                sx={{
-                  maxWidth: 520,
-                  mx: { xs: 'auto', md: 0 },
-                  textAlign: { xs: 'center', md: 'left' },
-                }}
-              >
-                {/* Label */}
-                {eyebrow && (
+              {/* Label */}
+              {eyebrow && (
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    px: 2,
+                    py: 1,
+                    borderRadius: 0.5,
+                    border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                    background: !isDark
+                      ? alpha('#ddddddff', 0.9)
+                      : alpha('#0000007c', 0.9),
+                    color: alpha(accentColor, 0.9),
+                    fontWeight: 600,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    fontSize: 11,
+                    lineHeight: 1.3,
+                    width: 'fit-content',
+                    mx: { xs: 'auto', md: 0 },
+                  }}
+                >
                   <Box
+                    component="span"
                     sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      px: 2,
-                      py: 1,
-                      borderRadius: 0.5,
-                      border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                      background: !isDark
-                        ? alpha('#ddddddff', 0.9)
-                        : alpha('#0000007c', 0.9),
-                      color: alpha(accentColor, 0.9),
-                      fontWeight: 600,
-                      letterSpacing: 1,
-                      textTransform: 'uppercase',
-                      fontSize: 11,
-                      lineHeight: 1.3,
-                      width: 'fit-content',
-                      mx: { xs: 'auto', md: 0 },
+                      background:
+                        'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
                     }}
                   >
-                    <Box
-                      component="span"
+                    {eyebrow}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Heading with typing effect */}
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 800,
+                  lineHeight: 1.5,
+                }}
+              >
+                {headingText}
+                <br />
+                <TypingTitle />
+              </Typography>
+
+              {/* Description */}
+              <Typography
+                variant="body1"
+                sx={{
+                  color: !isDark
+                    ? alpha('#000', 0.9)
+                    : alpha('#ffffff', 0.9),
+                  fontSize: { xs: 16, md: 17 },
+                  lineHeight: 1.75,
+                }}
+              >
+                {mainDescription}
+              </Typography>
+
+              {/* Extended Description */}
+              <Typography
+                variant="body2"
+                sx={{
+                  color: !isDark
+                    ? alpha('#000', 0.9)
+                    : alpha('#ffffff', 0.9),
+                  lineHeight: 1.7,
+                }}
+              >
+                {extraDescription}
+              </Typography>
+
+              {(ctaLabel || actions) && (
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  sx={{ pt: 1, mx: { xs: 'auto', md: 0 } }}
+                >
+                  {actions ?? (
+                    <Button
+                      variant="contained"
+                      size="large"
+                      onClick={onCtaClick}
                       sx={{
                         background:
-                          'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
+                          'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                        color: '#fff',
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        px: 3,
+                        py: 1.3,
+                        fontSize: 15,
+                        '&:hover': {
+                          background:
+                            'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                        },
                       }}
                     >
-                      {eyebrow}
-                    </Box>
-                  </Box>
-                )}
-  
-                {/* Heading with typing effect */}
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontWeight: 800,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {headingText}
-                  <br />
-                  <TypingTitle />
-                </Typography>
-  
-                {/* Description */}
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: !isDark
-                      ? alpha('#000', 0.9)
-                      : alpha('#ffffff', 0.9),
-                    fontSize: { xs: 16, md: 17 },
-                    lineHeight: 1.75,
-                  }}
-                >
-                  {mainDescription}
-                </Typography>
-  
-                {/* Extended Description */}
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: !isDark
-                      ? alpha('#000', 0.9)
-                      : alpha('#ffffff', 0.9),
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {extraDescription}
-                </Typography>
+                      {ctaLabel}
+                    </Button>
+                  )}
 
-                {(ctaLabel || actions) && (
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={2}
-                    justifyContent={{ xs: 'center', md: 'flex-start' }}
-                    alignItems={{ xs: 'center', md: 'flex-start' }}
-                  >
-                    {ctaLabel && (
-                      <Button
-                        variant="contained"
-                        size="large"
-                        onClick={onCtaClick}
-                        sx={{
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          px: 3,
-                          background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                          boxShadow: isDark
-                            ? '0 12px 30px rgba(0,0,0,0.35)'
-                            : '0 12px 30px rgba(0,0,0,0.15)',
-                          '&:hover': {
-                            background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
-                          },
-                        }}
-                      >
-                        {ctaLabel}
-                      </Button>
-                    )}
+                  {Array.isArray(actions) && actions.length > 0 && (
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                      {actions}
+                    </Stack>
+                  )}
+                </Stack>
+              )}
 
-                    {Array.isArray(actions) && actions.length > 0 && (
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
-                        {actions}
-                      </Stack>
-                    )}
-                  </Stack>
-                )}
-
-                {children}
-              </Stack>
-            </Grid>
+              {children}
+            </Stack>
           </Grid>
-        </Container>
-      </Box>
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 

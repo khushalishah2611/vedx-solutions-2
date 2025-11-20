@@ -42,25 +42,22 @@ const CareerHeroSection = ({ hero, onCtaClick }) => {
           px: { xs: 3, md: 20 },
         }}
       >
-        <Grid
-          container
-          spacing={{ xs: 6, md: 4 }}
-          alignItems="center"
-          justifyContent="space-between"
-        >
-          <Grid item xs={12} md={6} lg={5}>
+
+
+ <Grid container alignItems="center" justifyContent="space-between">
+          {/* Left Content */}
+          <Grid item xs={12} md={6}>
             <Stack
-              spacing={3}
+              spacing={4}
               sx={{
                 textAlign: { xs: 'center', md: 'left' },
                 alignItems: { xs: 'center', md: 'flex-start' },
               }}
             >
-             
               <Typography
                 variant="h1"
                 sx={{
-                  fontSize: { xs: 36, sm: 44, md: 52 },
+                  fontSize: { xs: 38, sm: 46, md: 56 },
                   fontWeight: 800,
                   lineHeight: 1.1,
                 }}
@@ -72,9 +69,9 @@ const CareerHeroSection = ({ hero, onCtaClick }) => {
                 variant="body1"
                 sx={{
                   color: subtleText,
-                  maxWidth: 600,
+                  maxWidth: 540,
                   lineHeight: 1.7,
-                  fontSize: { xs: 15, sm: 16, md: 18 },
+                  fontSize: { xs: 14, sm: 16, md: 18 },
                 }}
               >
                 {hero?.description}
@@ -83,19 +80,20 @@ const CareerHeroSection = ({ hero, onCtaClick }) => {
               <Button
                 variant="contained"
                 size="large"
-                href={hero?.ctaHref || '#contact'}
+                href="#contact"
                 onClick={handleCtaClick}
                 sx={{
-                  background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                  background:
+                    'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
                   color: '#fff',
                   borderRadius: '12px',
                   textTransform: 'none',
                   fontWeight: 600,
                   px: { xs: 4, sm: 6 },
                   py: 1.25,
-                  width: { xs: '100%', sm: 'auto' },
                   '&:hover': {
-                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                    background:
+                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
                   },
                 }}
               >
@@ -104,8 +102,12 @@ const CareerHeroSection = ({ hero, onCtaClick }) => {
             </Stack>
           </Grid>
 
-          
+
         </Grid>
+
+
+
+      
       </Container>
     </Box>
   );
