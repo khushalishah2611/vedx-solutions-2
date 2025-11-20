@@ -287,6 +287,7 @@ const buildServiceDetailContent = () => {
     }, {});
 
     acc[categorySlug] = {
+      menuLabel: meta.menuLabel,
       title: meta.heroTitle,
       description: meta.heroDescription,
       services

@@ -5,7 +5,7 @@ import {
   alpha,
   useTheme
 } from '@mui/material';
-import { Link as useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
@@ -53,14 +53,19 @@ const ServiceDetailPage = () => {
 
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
 
+  const categoryTitle = category.menuLabel ?? 'Services';
+  const serviceName = service.name ?? 'Service Detail';
+  const heroTitle = category.title;
+  const heroDescription = category.description;
+
 
   return (
     <Box sx={{ bgcolor: 'background.default', overflowX: 'hidden' }}>
       <ServiceHero
-        categoryTitle="Services"
-        serviceName="Full Stack Development"
-        heroTitle="Enterprise-Grade Full Stack Development"
-        heroDescription="We build scalable, secure, and high-performing digital platforms tailored to your growth."
+        categoryTitle={categoryTitle}
+        serviceName={serviceName}
+        heroTitle={heroTitle}
+        heroDescription={heroDescription}
         stats={[
           { label: 'Projects Delivered', value: '120+' },
           { label: 'Client Retention', value: '95%' },
