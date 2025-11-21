@@ -13,7 +13,11 @@ import { Link as RouterLink } from 'react-router-dom';
 const CaseStudyCard = ({ caseStudy }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
+
+  const accentColor =
+    caseStudy.accentColor || (isDark ? '#67e8f9' : theme.palette.primary.main);
+  const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.9 : 0.75);
+
   return (
     <Card
       elevation={0}
@@ -21,15 +25,19 @@ const CaseStudyCard = ({ caseStudy }) => {
         height: '100%',
         borderRadius: 0.5,
         overflow: 'hidden',
-        backgroundColor: alpha(theme.palette.background.paper, 0.7),
+        backgroundColor: alpha(theme.palette.background.paper, 0.8),
         border: `1px solid ${alpha(
-          accentColor,
-          isDark ? 0.6 : 0.25
-        )}`,
-        transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+                              theme.palette.divider,
+                              isDark ? 0.5 : 0.6
+                            )}`,
+        transition:
+          'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
         '&:hover': {
           transform: 'translateY(-8px)',
-
+          boxShadow: isDark
+            ? '0 18px 40px rgba(15,23,42,0.7)'
+            : '0 18px 40px rgba(15,23,42,0.18)',
+          borderColor: isDark ? '#67e8f9' : theme.palette.primary.main,
         },
       }}
     >
@@ -42,7 +50,7 @@ const CaseStudyCard = ({ caseStudy }) => {
         <Box
           sx={{
             position: 'relative',
-            pt: '75%',
+            pt: '70%',
             backgroundImage: `url(${caseStudy.heroImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -74,8 +82,8 @@ const CaseStudyCard = ({ caseStudy }) => {
               borderRadius: 0.5,
               border: `1px solid ${alpha('#ffffff', 0.2)}`,
               background: isDark
-                ? alpha('#000000', 0.45)
-                : alpha('#e2e8f0', 0.8),
+                ? alpha('#000000', 0.5)
+                : alpha('#e2e8f0', 0.85),
               fontWeight: 600,
               letterSpacing: 0.5,
               textTransform: 'uppercase',
@@ -86,7 +94,8 @@ const CaseStudyCard = ({ caseStudy }) => {
             <Box
               component="span"
               sx={{
-                background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                background:
+                  'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 fontWeight: 700,
@@ -100,22 +109,43 @@ const CaseStudyCard = ({ caseStudy }) => {
         {/* ---------- CONTENT ---------- */}
         <Stack spacing={2} sx={{ p: { xs: 3, md: 3.5 } }}>
           <Stack spacing={1}>
-            <Typography variant="h5" sx={{
-              fontWeight: 700, textDecoration: 'none',
-              cursor: 'pointer',
-              transition: 'color 0.3s ease, background-image 0.3s ease',
-              '&:hover': {
-                color: 'transparent',
-                backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              },
-            }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition:
+                  'color 0.3s ease, background-image 0.3s ease',
+                '&:hover': {
+                  color: 'transparent',
+                  backgroundImage:
+                    'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                },
+              }}
+            >
               {caseStudy.title}
             </Typography>
 
-
+            {/* Summary / excerpt */}
+            {caseStudy.summary && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: subtleText,
+                  lineHeight: 1.7,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {caseStudy.summary}
+              </Typography>
+            )}
           </Stack>
 
           {/* ---------- TAGS ---------- */}
@@ -145,7 +175,8 @@ const CaseStudyCard = ({ caseStudy }) => {
                   <Box
                     component="span"
                     sx={{
-                      background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      background:
+                        'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       fontWeight: 700,
