@@ -55,9 +55,21 @@ const ServiceHero = ({
           px: { xs: 3, md: 20 },
         }}
       >
-        <Grid container alignItems="center" justifyContent="space-between" rowSpacing={4}>
+        <Grid
+          container
+          alignItems="center"
+          justifyContent="space-between"
+          rowSpacing={4}
+        >
           {/* Breadcrumbs row */}
-          <Grid item xs={12}>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              display: 'flex',
+              justifyContent: { xs: 'center', md: 'flex-start' },
+            }}
+          >
             <Breadcrumbs
               separator={
                 <NavigateNextIcon
@@ -66,6 +78,22 @@ const ServiceHero = ({
                 />
               }
               aria-label="breadcrumb"
+              sx={{
+                color: alpha('#fff', 0.85),
+                fontSize: { xs: 12, sm: 18 },
+                '& .MuiBreadcrumbs-ol': {
+                  flexWrap: 'wrap',
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                },
+                '& .MuiBreadcrumbs-li': {
+                  display: 'flex',
+                  alignItems: 'center',
+                },
+                '& a, & p': {
+                  fontSize: { xs: 12, sm: 18 },
+                  textAlign: { xs: 'center', md: 'left' },
+                },
+              }}
             >
               <MuiLink
                 component={RouterLink}

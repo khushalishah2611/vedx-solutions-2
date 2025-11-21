@@ -32,12 +32,14 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.25)}`,
+          borderBottom: `1px solid ${alpha(
+            theme.palette.divider,
+            isDark ? 0.5 : 0.25
+          )}`,
           overflow: 'hidden',
           minHeight: { xs: '90vh', md: '100vh' },
           display: 'flex',
           alignItems: 'center',
-      
         }}
       >
         <Container maxWidth="lg">
@@ -50,11 +52,32 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
               zIndex: 1,
             }}
           >
+            {/* Breadcrumbs */}
             {caseStudy.breadcrumbs?.length ? (
               <Breadcrumbs
-                separator={<NavigateNextIcon fontSize="small" sx={{ color: alpha('#e2e8f0', 0.9) }} />}
+                separator={
+                  <NavigateNextIcon
+                    fontSize="small"
+                    sx={{ color: alpha('#e2e8f0', 0.9) }}
+                  />
+                }
                 aria-label="breadcrumb"
-                sx={{ color: alpha('#e2e8f0', 0.9) }}
+                sx={{
+                  color: alpha('#e2e8f0', 0.9),
+                  fontSize: { xs: 12, sm: 18 },
+                  '& .MuiBreadcrumbs-ol': {
+                    flexWrap: 'wrap',
+                    justifyContent: { xs: 'center', md: 'flex-start' },
+                  },
+                  '& .MuiBreadcrumbs-li': {
+                    display: 'flex',
+                    alignItems: 'center',
+                  },
+                  '& a, & p': {
+                   fontSize: { xs: 12, sm: 18 },
+                    textAlign: { xs: 'center', md: 'left' },
+                  },
+                }}
               >
                 {caseStudy.breadcrumbs.map((crumb) =>
                   crumb.href ? (
@@ -71,7 +94,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                     <Typography key={crumb.label} color="inherit">
                       {crumb.label}
                     </Typography>
-                  ),
+                  )
                 )}
               </Breadcrumbs>
             ) : null}
@@ -102,7 +125,8 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                   <Box
                     component="span"
                     sx={{
-                      background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      background:
+                        'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                     }}
@@ -153,7 +177,10 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 <Stack
                   direction={{ xs: 'column', sm: 'row' }}
                   spacing={2.5}
-                  sx={{ pt: 1, alignItems: { xs: 'center', md: 'flex-start' } }}
+                  sx={{
+                    pt: 1,
+                    alignItems: { xs: 'center', md: 'flex-start' },
+                  }}
                 >
                   <Button
                     variant="contained"
@@ -162,14 +189,16 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                     to={caseStudy.cta.href}
                     endIcon={<ArrowForwardIcon />}
                     sx={{
-                      background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                      background:
+                        'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
                       color: '#fff',
                       borderRadius: '12px',
                       textTransform: 'none',
                       fontWeight: 600,
                       px: { sm: 5 },
                       '&:hover': {
-                        background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                        background:
+                          'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
                       },
                     }}
                   >
@@ -197,13 +226,13 @@ CaseStudyDetailHero.propTypes = {
       PropTypes.shape({
         label: PropTypes.string.isRequired,
         href: PropTypes.string,
-      }),
+      })
     ),
     meta: PropTypes.arrayOf(
       PropTypes.shape({
         label: PropTypes.string.isRequired,
         value: PropTypes.string.isRequired,
-      }),
+      })
     ),
     cta: PropTypes.shape({
       label: PropTypes.string.isRequired,

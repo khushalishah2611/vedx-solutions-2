@@ -13,7 +13,7 @@ import {
   Stack,
   Typography,
   alpha,
-  useTheme
+  useTheme,
 } from '@mui/material';
 
 const HireDeveloperHero = ({
@@ -23,7 +23,7 @@ const HireDeveloperHero = ({
   onContactClick,
   dividerColor,
   heroTitle,
-  heroDescription
+  heroDescription,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -72,7 +72,6 @@ const HireDeveloperHero = ({
         alignItems: 'center',
         pb: { xs: 12, md: 14 },
         pt: { xs: 14, md: 18 },
-       
       }}
     >
       <Container
@@ -80,7 +79,7 @@ const HireDeveloperHero = ({
         sx={{
           position: 'relative',
           zIndex: 1,
-          px: { xs: 3, md: 20 }
+          px: { xs: 3, md: 20 },
         }}
       >
         <Grid
@@ -90,7 +89,14 @@ const HireDeveloperHero = ({
           rowSpacing={4}
         >
           {/* Breadcrumbs row */}
-          <Grid item xs={12}>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              display: 'flex',
+              justifyContent: { xs: 'center', md: 'flex-start' },
+            }}
+          >
             <Breadcrumbs
               separator={
                 <NavigateNextIcon
@@ -99,6 +105,22 @@ const HireDeveloperHero = ({
                 />
               }
               aria-label="breadcrumb"
+              sx={{
+                color: alpha('#fff', 0.85),
+                  fontSize: { xs: 12, sm: 18 },
+                '& .MuiBreadcrumbs-ol': {
+                  flexWrap: 'wrap',
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                },
+                '& .MuiBreadcrumbs-li': {
+                  display: 'flex',
+                  alignItems: 'center',
+                },
+                '& a, & p': {
+                    fontSize: { xs: 12, sm: 18 },
+                  textAlign: { xs: 'center', md: 'left' },
+                },
+              }}
             >
               <MuiLink
                 component={RouterLink}
@@ -128,7 +150,7 @@ const HireDeveloperHero = ({
               spacing={4}
               sx={{
                 textAlign: { xs: 'center', md: 'left' },
-                alignItems: { xs: 'center', md: 'flex-start' }
+                alignItems: { xs: 'center', md: 'flex-start' },
               }}
             >
               <Typography
@@ -137,7 +159,7 @@ const HireDeveloperHero = ({
                   fontSize: { xs: 38, sm: 46, md: 56 },
                   fontWeight: 800,
                   lineHeight: 1.1,
-                  color: '#fff'
+                  color: '#fff',
                 }}
               >
                 {resolvedHeroTitle}
@@ -165,8 +187,8 @@ const HireDeveloperHero = ({
                   py: { xs: 1.5, md: 1.75 },
                   '&:hover': {
                     background:
-                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
-                  }
+                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                  },
                 }}
               >
                 Contact us
@@ -187,7 +209,7 @@ const HireDeveloperHero = ({
                     sx={{
                       width: '100%',
                       overflowX: { xs: 'auto', sm: 'visible' },
-                      pb: { xs: 1, sm: 0 }
+                      pb: { xs: 1, sm: 0 },
                     }}
                   >
                     {stats.map((stat) => (
@@ -197,7 +219,7 @@ const HireDeveloperHero = ({
                         sx={{
                           minWidth: { xs: 110, sm: 'auto' },
                           textAlign: 'center',
-                          flexShrink: 0
+                          flexShrink: 0,
                         }}
                       >
                         <Typography
@@ -205,7 +227,7 @@ const HireDeveloperHero = ({
                           sx={{
                             fontSize: { xs: 24, md: 30 },
                             fontWeight: 700,
-                            color: accentColor
+                            color: accentColor,
                           }}
                         >
                           {stat.value}
