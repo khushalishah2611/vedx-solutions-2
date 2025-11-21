@@ -7,6 +7,7 @@ import {
   ListItemButton,
   ListItemText,
   Pagination,
+  PaginationItem,
   Paper,
   Stack,
   TextField,
@@ -17,10 +18,9 @@ import {
 } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useSearchParams } from 'react-router-dom';
-import BlogPreviewCard from '../shared/BlogPreviewCard.jsx';
 import { blogPosts } from '../../data/blogs.js';
-
-const POSTS_PER_PAGE = 10;
+import ServicesBlog from '../shared/ServicesBlog.jsx';
+const POSTS_PER_PAGE = 4;
 
 const BlogListPage = () => {
   const theme = useTheme();
@@ -70,6 +70,7 @@ const BlogListPage = () => {
     () => (hasAllSelected ? [] : selectedCategories),
     [hasAllSelected, selectedCategories]
   );
+
   const normalisedPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
 
   useEffect(() => {
@@ -159,49 +160,56 @@ const BlogListPage = () => {
   const endIndex = Math.min(totalResults, currentPage * POSTS_PER_PAGE);
 
   return (
-    <Box sx={{ bgcolor: 'background.default' }}>
+    <Box
+      sx={{
+        bgcolor: 'background.default',
+        overflowX: 'hidden'
+      }}
+    >
       {/* HERO SECTION */}
       <Box
         sx={{
-          backgroundImage: `
-            linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
-            url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80")
-          `,
+          backgroundImage:
+            'linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          borderBottom: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.25)}`,
-          transform: 'scale(1.05)',
-          transition: 'transform 0.6s ease, filter 0.6s ease',
-          filter: isDark ? 'brightness(0.55)' : 'brightness(0.8)',
-          position: 'relative',
-          overflow: 'hidden',
-          minHeight: { xs: '90vh', md: '100vh' },
+          filter: isDark ? 'brightness(0.9)' : 'brightness(0.85)',
+          minHeight: { xs: '70vh', md: '80vh' },
           display: 'flex',
           alignItems: 'center',
-          pb: { xs: 12, md: 14 },
-          pt: { xs: 14, md: 18 }
+          pb: { xs: 10, md: 14 },
+          pt: { xs: 12, md: 18 },
+          color: 'common.white'
         }}
       >
-        <Container maxWidth="lg">
-          <Stack spacing={3} alignItems={{ xs: 'flex-start', md: 'center' }}>
+        <Container
+          maxWidth={false}
+          sx={{
+            zIndex: 1,
+            px: { xs: 3, md: 20 }
+          }}
+        >
+          <Stack spacing={2.5} alignItems={{ xs: 'center', md: 'flex-start' }}>
             <Typography
-              variant="h2"
+              variant="h1"
               sx={{
-                fontSize: { xs: 36, md: 52 },
+                fontSize: { xs: 34, sm: 42, md: 56 },
                 fontWeight: 800,
-                textAlign: { xs: 'left', md: 'center' }
+                lineHeight: 1.1,
+                textAlign: { xs: 'center', md: 'left' }
               }}
             >
               Insights that Power Product Growth
             </Typography>
+
             <Typography
-              variant="body1"
+              variant="h6"
               sx={{
-                maxWidth: 720,
-                textAlign: { xs: 'left', md: 'center' },
-                color: subtleText,
-                lineHeight: 1.7
+                color: alpha('#ffffff', 0.85),
+                maxWidth: 640,
+                fontSize: { xs: 14, md: 16 },
+                textAlign: { xs: 'center', md: 'left' }
               }}
             >
               Browse our latest thinking across engineering, UX, data, and growth. Filter by category or search for a topic to
@@ -212,34 +220,157 @@ const BlogListPage = () => {
       </Box>
 
       {/* MAIN CONTENT */}
-      <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
-        <Grid container spacing={{ xs: 6, md: 8 }}>
-          <Grid item xs={12} md={8}>
-            <Stack spacing={4}>
-              {/* HEADER */}
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={2}
-                justifyContent="space-between"
-                alignItems={{ xs: 'flex-start', sm: 'center' }}
-              >
-                <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: 26, md: 32 } }}>
-                  Latest Articles
-                </Typography>
-                <Typography variant="body2" sx={{ color: subtleText }}>
-                  {totalResults === 0
-                    ? 'No posts match your filters yet.'
-                    : `Showing ${startIndex}${endIndex !== startIndex ? `-${endIndex}` : ''} of ${totalResults} articles.`}
-                </Typography>
-              </Stack>
+      <Container
+        maxWidth={false}
+        sx={{
+          zIndex: 1,
+          px: { xs: 3, md: 20 },
+        }}
+      >
 
-              {/* ACTIVE FILTER BOXES */}
-              {hasFilters && (
-                <Stack direction="row" spacing={1.5} flexWrap="wrap">
-                  {!hasAllSelected &&
-                    selectedCategories.map((category) => (
+        <Box my={10}>
+          <Grid container spacing={{ xs: 6, md: 8 }}>
+            {/* SIDEBAR – mobile top, desktop right */}
+            <Grid item xs={12} md={4} order={{ xs: 1, md: 2 }}>
+              <Stack spacing={2}>
+                {/* SEARCH BOX */}
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: { xs: 3, md: 4 },
+                    borderRadius: 0.5,
+                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.92)
+                  }}
+                >
+                  <Stack spacing={2.5}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Search
+                    </Typography>
+                    <TextField
+                      value={searchValue}
+                      onChange={handleSearchChange}
+                      placeholder="Search articles..."
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchRoundedIcon fontSize="small" />
+                          </InputAdornment>
+                        )
+                      }}
+                    />
+                  </Stack>
+                </Paper>
+
+                {/* CATEGORIES */}
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: { xs: 3, md: 4 },
+                    borderRadius: 0.5,
+                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.92)
+                  }}
+                >
+                  <Stack spacing={2.5}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Categories
+                    </Typography>
+                    <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {categories.map((item) => {
+                        const label = item === 'all' ? 'All Topics' : item;
+                        const isSelected = hasAllSelected ? item === 'all' : selectedCategories.includes(item);
+                        const count = categoryCounts[item] ?? 0;
+
+                        return (
+                          <ListItemButton
+                            key={item}
+                            onClick={() => handleCategoryChange(item)}
+                            selected={isSelected}
+                            sx={{
+                              borderRadius: 0.5,
+                              transition: 'all 0.2s ease',
+                              '&.Mui-selected': {
+                                backgroundColor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.12)
+                              }
+                            }}
+                          >
+                            <ListItemText primary={label} />
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {count}
+                            </Typography>
+                          </ListItemButton>
+                        );
+                      })}
+                    </List>
+                  </Stack>
+                </Paper>
+              </Stack>
+            </Grid>
+
+            {/* MAIN CONTENT – mobile below filters, desktop left */}
+            <Grid item xs={12} md={8} order={{ xs: 2, md: 1 }}>
+              <Stack spacing={4}>
+                {/* HEADER */}
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  justifyContent="space-between"
+                  alignItems={{ xs: 'center', sm: 'center' }}
+                >
+                  <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: 26, md: 32 } }}>
+                    Latest Articles
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: subtleText }}>
+                    {totalResults === 0
+                      ? 'No posts match your filters yet.'
+                      : `Showing ${startIndex}${endIndex !== startIndex ? `-${endIndex}` : ''} of ${totalResults} articles.`}
+                  </Typography>
+                </Stack>
+
+                {/* ACTIVE FILTER BOXES */}
+                {hasFilters && (
+                  <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                    {!hasAllSelected &&
+                      selectedCategories.map((category) => (
+                        <Box
+                          key={category}
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            px: 2,
+                            py: 1,
+                            borderRadius: 0.5,
+                            border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                            background: !isDark
+                              ? alpha('#ddddddff', 0.9)
+                              : alpha('#0000007c', 0.9),
+                            color: alpha(accentColor, 0.9),
+                            fontWeight: 600,
+                            letterSpacing: 1,
+                            textTransform: 'uppercase',
+                            fontSize: 11,
+                            lineHeight: 1.3,
+                            width: 'fit-content',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => handleCategoryChange(category)}
+                          title={`Remove ${category} filter`}
+                        >
+                          <Box
+                            component="span"
+                            sx={{
+                              background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent'
+                            }}
+                          >
+                            Category: {category}
+                          </Box>
+                        </Box>
+                      ))}
+
+                    {queryParam.trim().length > 0 && (
                       <Box
-                        key={category}
                         sx={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -259,8 +390,7 @@ const BlogListPage = () => {
                           width: 'fit-content',
                           cursor: 'pointer'
                         }}
-                        onClick={() => handleCategoryChange(category)}
-                        title={`Remove ${category} filter`}
+                        onClick={clearSearch}
                       >
                         <Box
                           component="span"
@@ -270,171 +400,96 @@ const BlogListPage = () => {
                             WebkitTextFillColor: 'transparent'
                           }}
                         >
-                          Category: {category}
+                          Search: {queryParam.trim()}
                         </Box>
                       </Box>
-                    ))}
+                    )}
+                  </Stack>
+                )}
 
-                  {queryParam.trim().length > 0 && (
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        px: 2,
-                        py: 1,
-                        borderRadius: 0.5,
-                        border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                        background: !isDark
-                          ? alpha('#ddddddff', 0.9)
-                          : alpha('#0000007c', 0.9),
-                        color: alpha(accentColor, 0.9),
-                        fontWeight: 600,
-                        letterSpacing: 1,
-                        textTransform: 'uppercase',
-                        fontSize: 11,
-                        lineHeight: 1.3,
-                        width: 'fit-content',
-                        cursor: 'pointer'
-                      }}
-                      onClick={clearSearch}
-                    >
-                      <Box
-                        component="span"
-                        sx={{
-                          background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent'
-                        }}
-                      >
-                        Search: "{queryParam.trim()}"
-                      </Box>
-                    </Box>
-                  )}
-                </Stack>
-              )}
+            
+                {paginatedPosts.length > 0 ? (
+                <Box my={10}><ServicesBlog /></Box>
 
-              {/* POSTS GRID */}
-              {paginatedPosts.length > 0 ? (
-                <Grid container spacing={4}>
-                  {paginatedPosts.map((post) => (
-                    <Grid item xs={12} sm={6} key={post.slug}>
-                      <BlogPreviewCard post={post} />
-                    </Grid>
-                  ))}
-                </Grid>
-              ) : (
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: { xs: 4, md: 6 },
-                    textAlign: 'center',
-                    borderRadius: 0.5,
-                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.9)
-                  }}
-                >
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-                    Nothing to see here yet
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: subtleText }}>
-                    Try clearing your filters or exploring another category to find more expert insights from our team.
-                  </Typography>
-                </Paper>
-              )}
-
-              {/* PAGINATION */}
-              {paginatedPosts.length > 0 && (
-                <Stack alignItems="center">
-                  <Pagination
-                    count={totalPages}
-                    page={currentPage}
-                    onChange={handlePageChange}
-                    color="primary"
-                    shape="rounded"
-                  />
-                </Stack>
-              )}
-            </Stack>
-          </Grid>
-
-          {/* SIDEBAR */}
-          <Grid item xs={12} md={4}>
-            <Stack spacing={2}>
-              {/* SEARCH BOX */}
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: { xs: 3, md: 4 },
-                  borderRadius: 0.5,
-                  backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.92)
-                }}
-              >
-                <Stack spacing={2.5}>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    Search
-                  </Typography>
-                  <TextField
-                    value={searchValue}
-                    onChange={handleSearchChange}
-                    placeholder="Search articles..."
-                    fullWidth
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchRoundedIcon fontSize="small" />
-                        </InputAdornment>
-                      )
+                ) : (
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      p: { xs: 4, md: 6 },
+                      textAlign: 'center',
+                      borderRadius: 0.5,
+                      backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.9)
                     }}
-                  />
-                </Stack>
-              </Paper>
+                  >
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+                      Nothing to see here yet
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: subtleText }}>
+                      Try clearing your filters or exploring another category to find more expert insights from our team.
+                    </Typography>
+                  </Paper>
+                )}
 
-              {/* CATEGORIES */}
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: { xs: 3, md: 4 },
-                  borderRadius: 0.5,
-                  backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.92)
-                }}
-              >
-                <Stack spacing={2.5}>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    Categories
-                  </Typography>
-                  <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {categories.map((item) => {
-                      const label = item === 'all' ? 'All Topics' : item;
-                      const isSelected = hasAllSelected ? item === 'all' : selectedCategories.includes(item);
-                      const count = categoryCounts[item] ?? 0;
-
-                      return (
-                        <ListItemButton
-                          key={item}
-                          onClick={() => handleCategoryChange(item)}
-                          selected={isSelected}
+                {/* PAGINATION – custom UI */}
+                {paginatedPosts.length > 0 && (
+                  <Stack alignItems="center" sx={{ mt: { xs: 4, md: 6 } }}>
+                    <Pagination
+                      count={totalPages}
+                      page={currentPage}
+                      onChange={handlePageChange}
+                      shape="rounded"
+                      variant="text"
+                      renderItem={(item) => (
+                        <PaginationItem
+                          {...item}
                           sx={{
-                            borderRadius: 0.5,
-                            transition: 'all 0.2s ease',
-                            '&.Mui-selected': {
-                              backgroundColor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.12)
+                            minWidth: 40,
+                            height: 40,
+                            borderRadius: 1,
+                            mx: 0.5,
+                            fontWeight: 600,
+                            fontSize: 14,
+                            boxShadow: item.selected
+                              ? '0 0 0 1px rgba(255,255,255,0.25), 0 18px 35px rgba(0,0,0,0.6)'
+                              : '0 10px 20px rgba(0,0,0,0.45)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            backgroundImage: item.selected
+                              ? 'linear-gradient(135deg, #9333ea 0%, #ec4899 50%, #f97316 100%)'
+                              : 'none',
+                            backgroundColor: item.selected
+                              ? 'transparent'
+                              : alpha('#000000', isDark ? 0.7 : 0.9),
+                            color: '#ffffff',
+                            '&:hover': {
+                              backgroundImage: item.selected
+                                ? 'linear-gradient(135deg, #a855f7 0%, #f472b6 50%, #fb923c 100%)'
+                                : 'none',
+                              backgroundColor: item.selected
+                                ? 'transparent'
+                                : alpha('#000000', isDark ? 0.85 : 0.95)
+                            },
+                            '&.Mui-disabled': {
+                              opacity: 0.4,
+                              boxShadow: 'none'
                             }
                           }}
-                        >
-                          <ListItemText primary={label} />
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {count}
-                          </Typography>
-                        </ListItemButton>
-                      );
-                    })}
-                  </List>
-                </Stack>
-              </Paper>
-            </Stack>
+                        />
+                      )}
+                      sx={{
+                        '& .MuiPagination-ul': {
+                          m: 0
+                        }
+                      }}
+                    />
+                  </Stack>
+                )}
+              </Stack>
+            </Grid>
           </Grid>
-        </Grid>
-      </Container>
-    </Box>
+        </Box>
+
+      </Container >
+    </Box >
   );
 };
 
