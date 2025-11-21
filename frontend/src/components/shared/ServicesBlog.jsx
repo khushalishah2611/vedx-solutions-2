@@ -1,29 +1,27 @@
+import PropTypes from 'prop-types';
 import { Box, Button, Grid, Stack, Typography } from '@mui/material';
 import { blogPosts } from '../../data/blogs.js';
 import BlogPreviewCard from './BlogPreviewCard.jsx';
 import { Link as RouterLink } from 'react-router-dom';
 
-const ServicesBlog = () => {
+const ServicesBlog = ({ showHeading = true }) => {
   return (
     <Box component="section">
-      <Stack
-       
-        alignItems="center"
-        justifyContent="center"
-        sx={{ mb: 8 }}
-      >
-        <Typography
-          variant="h3"
-          sx={{
-            fontSize: { xs: 32, md: 42 },
-            fontWeight: 700,
-            textAlign: "center",
-            width: "100%"
-          }}
-        >
-          Latest Blogs
-        </Typography>
-      </Stack>
+      {showHeading && (
+        <Stack alignItems="center" justifyContent="center" sx={{ mb: 8 }}>
+          <Typography
+            variant="h3"
+            sx={{
+              fontSize: { xs: 32, md: 42 },
+              fontWeight: 700,
+              textAlign: "center",
+              width: "100%"
+            }}
+          >
+            Latest Blogs
+          </Typography>
+        </Stack>
+      )}
 
       <Grid container spacing={2}>
         {blogPosts.slice(0, 4).map((post) => (
@@ -39,6 +37,10 @@ const ServicesBlog = () => {
       </Grid>
     </Box>
   );
+};
+
+ServicesBlog.propTypes = {
+  showHeading: PropTypes.bool
 };
 
 export default ServicesBlog;

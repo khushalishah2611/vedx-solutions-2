@@ -61,7 +61,9 @@ const HomePage = () => {
         <Box my={10}> <ServicesContact /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}><ServicesBlog /></Box>
+        <Box my={10}>
+          <ServicesBlog showHeading />
+        </Box>
       </Container>
     </Box>
   );

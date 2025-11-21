@@ -409,8 +409,9 @@ const BlogListPage = () => {
 
             
                 {paginatedPosts.length > 0 ? (
-                <Box my={10}><ServicesBlog /></Box>
-
+                  <Box my={10}>
+                    <ServicesBlog showHeading={false} />
+                  </Box>
                 ) : (
                   <Paper
                     variant="outlined"
