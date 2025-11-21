@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   Box,
   Button,
-  Chip,
   Container,
   Dialog,
   DialogActions,
@@ -10,6 +9,7 @@ import {
   DialogTitle,
   FormHelperText,
   Grid,
+  IconButton,
   MenuItem,
   Paper,
   Stack,
@@ -19,6 +19,7 @@ import {
   useTheme,
 } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PropTypes from 'prop-types';
 
 const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
@@ -111,12 +112,16 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
 
   const handleApplicationSubmit = (event) => {
     event.preventDefault();
+
     if (!applicationForm.name.trim() || !applicationForm.email.trim()) return;
+
+    // TODO: integrate with your submit API / handler here
+
     closeApplicationDialog();
   };
 
   return (
-    <Container id="open-roles"  >
+    <Container id="open-roles">
       {/* Header */}
       <Stack
         spacing={3}
@@ -128,7 +133,8 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
           Does your skill fit the job post?
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 640 }}>
-          We're always on the lookout for passionate innovators. Choose the role that aligns with your strengths and let's build impactful products together.
+          We&apos;re always on the lookout for passionate innovators. Choose the role that aligns
+          with your strengths and let&apos;s build impactful products together.
         </Typography>
       </Stack>
 
@@ -171,14 +177,20 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
                       ? '0 8px 24px rgba(0,0,0,0.35)'
                       : '0 8px 24px rgba(0,0,0,0.12)',
                     gap: 2.5,
-                    border: `1px solid ${alpha(isDark ? "#67e8f9" : theme.palette.primary.main, isDark ? 0.5 : 0.25)}`,
+                    border: `1px solid ${alpha(
+                      isDark ? '#67e8f9' : theme.palette.primary.main,
+                      isDark ? 0.5 : 0.25
+                    )}`,
                     bgcolor: alpha(theme.palette.background.paper, isDark ? 0.4 : 0.7),
                     outline: 'none',
-                    transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
+                    transition:
+                      'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
                     '&:hover, &:focus-visible': {
                       transform: 'translateY(-3px)',
-                      borderColor: alpha(isDark ? "#67e8f9" : theme.palette.primary.main, 0.4),
-
+                      borderColor: alpha(
+                        isDark ? '#67e8f9' : theme.palette.primary.main,
+                        0.4
+                      ),
                     },
                   }}
                 >
@@ -193,12 +205,12 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
                           transition: 'color 0.3s ease, background-image 0.3s ease',
                           '&:hover': {
                             color: 'transparent',
-                            backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                            backgroundImage:
+                              'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                             WebkitBackgroundClip: 'text',
                             backgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                           },
-
                         }}
                       >
                         {role.title}
@@ -216,19 +228,24 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
                     spacing={2}
                     sx={{ color: 'text.secondary', fontWeight: 600, flexWrap: 'wrap' }}
                   >
-                    {!!role?.experience && <Typography variant="caption">{role.experience}</Typography>}
-                    {!!role?.positions && <Typography variant="caption">{role.positions}</Typography>}
+                    {!!role?.experience && (
+                      <Typography variant="caption">{role.experience}</Typography>
+                    )}
+                    {!!role?.positions && (
+                      <Typography variant="caption">{role.positions}</Typography>
+                    )}
                     {!!role?.type && <Typography variant="caption">{role.type}</Typography>}
-                    {!!role?.location && <Typography variant="caption">{role.location}</Typography>}
+                    {!!role?.location && (
+                      <Typography variant="caption">{role.location}</Typography>
+                    )}
                   </Stack>
 
                   <Box
                     sx={{
                       mt: 'auto',
-
                       display: 'flex',
-                      justifyContent: 'start',
-                      alignItems: 'start',
+                      justifyContent: 'flex-start',
+                      alignItems: 'flex-start',
                     }}
                   >
                     <Button
@@ -246,14 +263,19 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
                         fontWeight: 600,
                         px: 2,
                         '&:hover': {
-                          background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                          background:
+                            'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
                         },
                         '&:disabled': {
                           opacity: 0.6,
                           cursor: 'not-allowed',
                         },
                       }}
-                      aria-label={href ? `Apply for ${role?.title || 'this role'}` : 'Apply link unavailable'}
+                      aria-label={
+                        href
+                          ? `Apply for ${role?.title || 'this role'}`
+                          : 'Apply link unavailable'
+                      }
                     >
                       Apply Now
                     </Button>
@@ -265,6 +287,7 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
         </Grid>
       )}
 
+      {/* Application dialog */}
       <Dialog
         open={applicationDialogOpen}
         onClose={closeApplicationDialog}
@@ -272,36 +295,46 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 2,
-            border: `1px solid ${alpha(theme.palette.primary.main, isDark ? 0.4 : 0.2)}`,
-            boxShadow: isDark
-              ? '0 12px 40px rgba(0,0,0,0.45)'
-              : '0 12px 40px rgba(0,0,0,0.12)',
-            bgcolor: alpha(theme.palette.background.paper, isDark ? 0.9 : 0.98),
+            borderRadius: 1,
           },
         }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Stack spacing={1} alignItems="flex-start">
-            <Typography variant="h6" fontWeight={700}>
-              New applicant
-            </Typography>
-            {selectedRole?.title && (
-              <Chip
-                label={`Applying for: ${selectedRole.title}`}
-                color="primary"
-                size="small"
-                variant="outlined"
-              />
-            )}
+        <DialogTitle sx={{ px: { xs: 3, sm: 4 }, pb: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack spacing={0.5}>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                New applicant
+              </Typography>
+              {selectedRole?.title && (
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Applying for: {selectedRole.title}
+                </Typography>
+              )}
+            </Stack>
+            <IconButton
+              onClick={closeApplicationDialog}
+              aria-label="Close application dialog"
+              size="small"
+            >
+              <CloseRoundedIcon />
+            </IconButton>
           </Stack>
         </DialogTitle>
+
         <DialogContent dividers>
-          <Stack spacing={2} mt={1} component="form" onSubmit={handleApplicationSubmit}>
+          <Stack
+            spacing={2}
+            mt={1}
+            component="form"
+            id="application-form"
+            onSubmit={handleApplicationSubmit}
+          >
             <TextField
               label="Full name"
               value={applicationForm.name}
-              onChange={(event) => handleApplicationFormChange('name', event.target.value)}
+              onChange={(event) =>
+                handleApplicationFormChange('name', event.target.value)
+              }
               fullWidth
               required
             />
@@ -309,28 +342,36 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
               label="Email"
               type="email"
               value={applicationForm.email}
-              onChange={(event) => handleApplicationFormChange('email', event.target.value)}
+              onChange={(event) =>
+                handleApplicationFormChange('email', event.target.value)
+              }
               fullWidth
               required
             />
             <TextField
               label="Contact number"
               value={applicationForm.contact}
-              onChange={(event) => handleApplicationFormChange('contact', event.target.value)}
+              onChange={(event) =>
+                handleApplicationFormChange('contact', event.target.value)
+              }
               fullWidth
             />
             <TextField
               label="Experience"
               placeholder="e.g. 2 years"
               value={applicationForm.experience}
-              onChange={(event) => handleApplicationFormChange('experience', event.target.value)}
+              onChange={(event) =>
+                handleApplicationFormChange('experience', event.target.value)
+              }
               fullWidth
             />
             <TextField
               select
               label="Employment type"
               value={applicationForm.employmentType}
-              onChange={(event) => handleApplicationFormChange('employmentType', event.target.value)}
+              onChange={(event) =>
+                handleApplicationFormChange('employmentType', event.target.value)
+              }
               fullWidth
             >
               {employmentTypes.map((type) => (
@@ -343,9 +384,19 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
             <Stack spacing={0.5}>
               <Button component="label" variant="outlined">
                 {applicationForm.resumeFile ? 'Change resume (PDF)' : 'Upload resume (PDF)'}
-                <input type="file" hidden accept="application/pdf" onChange={handleResumeFileChange} />
+                <input
+                  type="file"
+                  hidden
+                  accept="application/pdf"
+                  onChange={handleResumeFileChange}
+                />
               </Button>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ color: 'text.secondary' }}
+              >
                 <Typography variant="body2">
                   {applicationForm.resumeFile
                     ? `Selected: ${applicationForm.resumeFile.name}`
@@ -364,7 +415,9 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
               label="Notes"
               placeholder="Add a quick summary or decision notes"
               value={applicationForm.notes}
-              onChange={(event) => handleApplicationFormChange('notes', event.target.value)}
+              onChange={(event) =>
+                handleApplicationFormChange('notes', event.target.value)
+              }
               fullWidth
               multiline
               minRows={3}
@@ -372,12 +425,30 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
+
+        <DialogActions sx={{ px: { xs: 3, sm: 4 }, py: 2 }}>
           <Button onClick={closeApplicationDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleApplicationSubmit} variant="contained">
-            Submit application
+          <Button
+            form="application-form"
+            type="submit"
+            variant="contained"
+            size="large"
+            sx={{
+              background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+              color: '#fff',
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: { xs: 5, md: 6 },
+              py: { xs: 1.5, md: 1.75 },
+              '&:hover': {
+                background: 'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
+              },
+            }}
+          >
+            Submit Now
           </Button>
         </DialogActions>
       </Dialog>
