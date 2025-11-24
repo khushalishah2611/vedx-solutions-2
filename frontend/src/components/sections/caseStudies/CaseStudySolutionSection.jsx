@@ -41,7 +41,7 @@ const CaseStudySolutionSection = ({ caseStudy, animate }) => {
               'We launched quickly, iterated with user feedback, and kept performance tight across every platform.'}
           </Typography>
 
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap justifyContent={{ xs: 'center', md: 'flex-start' }}>
+          <Stack direction="row" spacing={1} flexWrap="row" useFlexGap justifyContent={{ xs: 'center', md: 'flex-start' }}>
             {(caseStudy.advancedContent || []).slice(0, 4).map((module, index) => (
               <CaseStudySectionLabel
                 key={module.title}

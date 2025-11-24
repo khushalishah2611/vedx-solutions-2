@@ -54,18 +54,12 @@ const CaseStudyApproachSection = ({ caseStudy, animate }) => {
               p: 0,
               overflow: 'hidden',
               borderRadius: 0.5,
-              background: alpha(accentColor, isDark ? 0.12 : 0.09),
+
               minHeight: { xs: 240, md: 280 },
               display: 'flex',
-              border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
+
               transition: 'border-color 220ms ease, box-shadow 0.25s ease',
-              boxShadow: '0 0 0 rgba(0,0,0,0)',
-              '&:hover': {
-                borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                boxShadow: isDark
-                  ? '0 18px 30px rgba(0,0,0,0.7)'
-                  : '0 18px 32px rgba(15,23,42,0.15)',
-              },
+
             }}
           >
             <Box
