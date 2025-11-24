@@ -645,7 +645,7 @@ const CaseStudyDetailPage = () => {
 
         {/* ---------------------- Technology Stack ---------------------- */}
         <Box my={10}>
-          <Stack spacing={3}>
+          <Stack spacing={3} alignItems="center" textAlign="center">
             <Box
               sx={{
                 display: 'inline-flex',
@@ -664,7 +664,7 @@ const CaseStudyDetailPage = () => {
                 fontSize: 11,
                 lineHeight: 1.3,
                 width: 'fit-content',
-                mx: { xs: 'auto', md: 0 },
+                mx: 'auto',
                 opacity: animate ? 1 : 0,
                 transform: animate ? 'translateY(0)' : 'translateY(10px)',
                 transition: 'all 420ms ease 60ms',
@@ -734,6 +734,74 @@ const CaseStudyDetailPage = () => {
                 </Grid>
               ))}
             </Grid>
+
+            {(caseStudy.advancedContent || []).length ? (
+              <Grid container spacing={{ xs: 2.5, md: 3 }}>
+                {(caseStudy.advancedContent || []).map((module, index) => (
+                  <Grid item xs={12} sm={6} md={4} key={module.title}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        height: '100%',
+                        p: { xs: 2, md: 2.8 },
+                        borderRadius: 1,
+                        textAlign: 'left',
+                        background: isDark
+                          ? `linear-gradient(140deg, ${alpha('#0b1120', 0.92)}, ${alpha(
+                              accentColor,
+                              0.14
+                            )})`
+                          : `linear-gradient(140deg, ${alpha('#f8fafc', 0.96)}, ${alpha(
+                              accentColor,
+                              0.12
+                            )})`,
+                        border: `1px solid ${alpha(accentColor, 0.38)}`,
+                        boxShadow: isDark
+                          ? '0 16px 30px rgba(0,0,0,0.55)'
+                          : '0 14px 26px rgba(15,23,42,0.14)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1.2,
+                        opacity: animate ? 1 : 0,
+                        transform: animate ? 'translateY(0)' : 'translateY(14px)',
+                        transition: `border-color 220ms ease, transform 0.25s ease, box-shadow 0.25s ease, opacity 0.46s ease ${
+                          180 + index * 80
+                        }ms`,
+                        '&:hover': {
+                          transform: 'translateY(-6px)',
+                          borderColor: alpha(accentColor, isDark ? 0.9 : 0.85),
+                          boxShadow: isDark
+                            ? '0 18px 36px rgba(0,0,0,0.65)'
+                            : '0 16px 30px rgba(15,23,42,0.18)',
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          textTransform: 'uppercase',
+                          letterSpacing: 1,
+                          fontWeight: 800,
+                          color: alpha(accentColor, isDark ? 0.95 : 0.8),
+                        }}
+                      >
+                        {module.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: 'text.secondary',
+                          lineHeight: 1.8,
+                          flexGrow: 1,
+                        }}
+                      >
+                        {module.description}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : null}
           </Stack>
         </Box>
 
@@ -883,6 +951,18 @@ const CaseStudyDetailPage = () => {
                 }}
               >
                 Bringing the experience to life
+              </Typography>
+
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'text.secondary',
+                  maxWidth: 640,
+                  lineHeight: 1.7,
+                }}
+              >
+                Every case study surfaces immersive visuals with subtle motion so the story and UI details stay front
+                and center.
               </Typography>
 
               <Grid container spacing={{ xs: 3, md: 4 }}>
