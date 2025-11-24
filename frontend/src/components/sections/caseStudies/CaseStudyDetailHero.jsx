@@ -59,10 +59,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
         alignItems: 'center',
         pb: { xs: 12, md: 14 },
         pt: { xs: 14, md: 18 },
-        borderBottom: `1px solid ${alpha(
-          theme.palette.divider,
-          isDark ? 0.5 : 0.25
-        )}`,
+     
       }}
     >
       <Container
