@@ -799,6 +799,123 @@ const CaseStudyDetailPage = () => {
           ) : null}
         </Box>
 
+        {/* ---------------------- Application Screenshots ---------------------- */}
+        {caseStudy.screenshots?.length ? (
+          <Box my={10}>
+            <Stack spacing={3}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  px: 2,
+                  py: 1,
+                  borderRadius: 0.5,
+                  border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                  background: !isDark
+                    ? alpha('#ddddddff', 0.9)
+                    : alpha('#0000007c', 0.9),
+                  color: alpha(accentColor, 0.9),
+                  fontWeight: 600,
+                  letterSpacing: 1,
+                  textTransform: 'uppercase',
+                  fontSize: 11,
+                  lineHeight: 1.3,
+                  width: 'fit-content',
+                  mx: { xs: 'auto', md: 0 },
+                  opacity: animate ? 1 : 0,
+                  transform: animate ? 'translateY(0)' : 'translateY(10px)',
+                  transition: 'all 420ms ease 60ms',
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  Application Screenshots
+                </Box>
+              </Box>
+
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 800,
+                  opacity: animate ? 1 : 0,
+                  transform: animate ? 'translateY(0)' : 'translateY(14px)',
+                  transition: 'all 480ms ease 130ms',
+                }}
+              >
+                Bringing the experience to life
+              </Typography>
+
+              <Grid container spacing={{ xs: 3, md: 4 }}>
+                {caseStudy.screenshots.map((shot, index) => {
+                  const slideDistance = index % 2 === 0 ? '-22px' : '22px';
+                  return (
+                    <Grid item xs={12} md={6} key={shot.src}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          height: '100%',
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                          border: `1px solid ${alpha(accentColor, 0.35)}`,
+                          background: isDark
+                            ? alpha('#0b1120', 0.75)
+                            : alpha(accentColor, 0.08),
+                          boxShadow: isDark
+                            ? '0 18px 32px rgba(0,0,0,0.65)'
+                            : '0 18px 32px rgba(15,23,42,0.14)',
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={shot.src}
+                          alt={shot.alt}
+                          loading="lazy"
+                          sx={{
+                            width: '100%',
+                            height: 260,
+                            objectFit: 'cover',
+                            display: 'block',
+                            opacity: animate ? 1 : 0,
+                            transform: animate
+                              ? 'translateX(0)'
+                              : `translateX(${slideDistance})`,
+                            transition: `all 560ms ease ${160 + index * 70}ms`,
+                          }}
+                        />
+
+                        <Stack spacing={1.2} sx={{ p: { xs: 2, md: 2.5 } }}>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{
+                              fontWeight: 800,
+                              color: isDark ? '#e2e8f0' : '#0f172a',
+                              letterSpacing: 0.2,
+                            }}
+                          >
+                            {shot.alt}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ color: 'text.secondary', lineHeight: 1.8 }}
+                          >
+                            {shot.caption}
+                          </Typography>
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </Stack>
+          </Box>
+        ) : null}
+
         <Divider sx={{ borderColor: dividerColor }} />
 
         {/* ---------------------- Related Case Studies ---------------------- */}

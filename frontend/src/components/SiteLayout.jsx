@@ -5,6 +5,7 @@ import FooterSection from './shared/FooterSection.jsx';
 import NavigationBar from './shared/NavigationBar.jsx';
 import ContactDialog from './shared/ContactDialog.jsx';
 import ContactDialogContext from '../contexts/ContactDialogContext.jsx';
+import ScrollToTopButton from './shared/ScrollToTopButton.jsx';
 
 const SiteLayout = () => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
@@ -35,6 +36,7 @@ const SiteLayout = () => {
         <Box component="main" sx={{ flexGrow: 1 }}>
           <Outlet />
         </Box>
+        <ScrollToTopButton />
         <FooterSection />
         <ContactDialog open={isContactDialogOpen} onClose={closeDialog} />
       </Box>
