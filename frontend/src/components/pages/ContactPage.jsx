@@ -69,7 +69,7 @@ const ContactPage = () => {
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           filter: isDark ? 'brightness(0.9)' : 'brightness(0.85)',
-          minHeight: { xs: '70vh', md: '80vh' },
+         minHeight: { xs: "60vh", md: "70vh" },
           display: 'flex',
           alignItems: 'center',
           pb: { xs: 10, md: 14 },

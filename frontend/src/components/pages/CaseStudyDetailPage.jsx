@@ -58,87 +58,111 @@ const CaseStudyDetailPage = () => {
       <PageSectionsContainer>
         <Stack spacing={{ xs: 5, md: 8 }}>
           {/* ---------------------- Project Overview ---------------------- */}
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 3, md: 4 },
-              borderRadius: 1,
-              position: 'relative',
-              overflow: 'hidden',
-              background: isDark
-                ? alpha(accentColor, 0.12)
-                : alpha(accentColor, 0.08),
-              border: `1px solid ${alpha(accentColor, 0.35)}`,
-            }}
-          >
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                background: `radial-gradient(circle at 20% 30%, ${alpha(
-                  accentColor,
-                  0.18
-                )} 0, transparent 38%), radial-gradient(circle at 80% 70%, ${alpha(
-                  accentColor,
-                  0.14
-                )} 0, transparent 40%)`,
-                pointerEvents: 'none',
-              }}
-            />
+        <PageSectionsContainer>
+        <Stack spacing={{ xs: 5, md: 8 }}>
 
-            <Stack spacing={2} sx={{ position: 'relative' }}>
-              <Chip
-                label="Project Overview"
+          {/* ---------------------- Project Overview (Updated layout) ---------------------- */}
+          <Grid container spacing={4} alignItems="center">
+
+            {/* Left Side Image */}
+            <Grid item xs={12} md={5}>
+              <Paper
+                elevation={0}
                 sx={{
-                  width: 'fit-content',
-                  fontWeight: 700,
-                  letterSpacing: 0.5,
-                  bgcolor: isDark ? alpha('#ffffff', 0.08) : '#ffffff',
-                  color: isDark ? '#ffffff' : theme.palette.text.primary,
-                  borderRadius: 999,
-                  px: 1.5,
-                }}
-              />
-
-              <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                Inspire more {caseStudy.category?.toLowerCase() || 'growth'}
-              </Typography>
-
-              <Typography
-                variant="body1"
-                sx={{
-                  color: 'text.secondary',
-                  lineHeight: 1.9,
-                  maxWidth: 900,
+                  overflow: 'hidden',
+                  borderRadius: 2,
+                  border: `1px solid ${alpha(accentColor, 0.35)}`,
+                  background: alpha(accentColor, isDark ? 0.12 : 0.08),
                 }}
               >
-                {caseStudy.excerpt}
-              </Typography>
-
-              {caseStudy.tagline ? (
-                <Chip
-                  icon={<BoltRoundedIcon fontSize="small" />}
-                  label={caseStudy.tagline}
+                <Box
+                  component="img"
+                  src={caseStudy.heroImage}
+                  alt="overview image"
+                  loading="lazy"
                   sx={{
-                    alignSelf: { xs: 'stretch', sm: 'flex-start' },
-                    bgcolor: isDark
-                      ? alpha('#0ea5e9', 0.18)
-                      : alpha('#0ea5e9', 0.12),
-                    color: isDark ? '#e0f2fe' : '#0f172a',
-                    borderRadius: 999,
-                    py: 1.2,
-                    px: 1.8,
-                    fontWeight: 700,
-                    letterSpacing: 0.4,
-                    '& .MuiChip-icon': {
-                      color: isDark ? '#e0f2fe' : '#0284c7',
-                    },
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    opacity: animate ? 1 : 0,
+                    transform: animate ? 'scale(1)' : 'scale(1.04)',
+                    transition: 'all 700ms ease',
                   }}
                 />
-              ) : null}
-            </Stack>
-          </Paper>
+              </Paper>
+            </Grid>
 
+            {/* Right Side Content */}
+            <Grid item xs={12} md={7}>
+              <Stack spacing={2}>
+                <Chip
+                  label="Project Overview"
+                  sx={{
+                    width: 'fit-content',
+                    fontWeight: 700,
+                    letterSpacing: 0.5,
+                    bgcolor: isDark ? alpha('#ffffff', 0.08) : '#ffffff',
+                    color: isDark ? '#ffffff' : theme.palette.text.primary,
+                    borderRadius: 999,
+                    px: 1.5,
+                    opacity: animate ? 1 : 0,
+                    transform: animate ? 'translateY(0)' : 'translateY(12px)',
+                    transition: 'all 500ms ease',
+                  }}
+                />
+
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 800,
+                    opacity: animate ? 1 : 0,
+                    transform: animate ? 'translateY(0)' : 'translateY(12px)',
+                    transition: 'all 500ms ease 120ms',
+                  }}
+                >
+                  Inspire more {caseStudy.category?.toLowerCase() || 'growth'}
+                </Typography>
+
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: 'text.secondary',
+                    lineHeight: 1.9,
+                    maxWidth: 900,
+                    opacity: animate ? 1 : 0,
+                    transform: animate ? 'translateY(0)' : 'translateY(12px)',
+                    transition: 'all 500ms ease 220ms',
+                  }}
+                >
+                  {caseStudy.excerpt}
+                </Typography>
+
+                {caseStudy.tagline && (
+                  <Chip
+                    icon={<BoltRoundedIcon fontSize="small" />}
+                    label={caseStudy.tagline}
+                    sx={{
+                      alignSelf: { xs: 'stretch', sm: 'flex-start' },
+                      bgcolor: isDark ? alpha('#0ea5e9', 0.18) : alpha('#0ea5e9', 0.12),
+                      color: isDark ? '#e0f2fe' : '#0f172a',
+                      borderRadius: 999,
+                      py: 1.2,
+                      px: 1.8,
+                      fontWeight: 700,
+                      letterSpacing: 0.4,
+                      opacity: animate ? 1 : 0,
+                      transform: animate ? 'translateY(0)' : 'translateY(12px)',
+                      transition: 'all 500ms ease 320ms',
+                    }}
+                  />
+                )}
+              </Stack>
+            </Grid>
+          </Grid>
+
+      
+        </Stack>
+      </PageSectionsContainer>
           <Divider sx={{ borderColor: dividerColor }} />
 
           {/* ---------------------- Our Approach ---------------------- */}

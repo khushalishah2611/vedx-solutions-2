@@ -38,7 +38,7 @@ const AboutHeroSection = ({ hero, onCtaClick }) => {
         filter: isDark ? 'brightness(0.9)' : 'brightness(0.8)',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: { xs: '70vh', md: '80vh' },
+      minHeight: { xs: "60vh", md: "70vh" },
         display: 'flex',
         alignItems: 'center',
         pb: { xs: 12, md: 14 },
