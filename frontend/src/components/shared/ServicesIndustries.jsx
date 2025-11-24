@@ -4,7 +4,6 @@ import { industriesServed } from '../../data/servicesPage.js';
 const ServicesIndustries = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.6);
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 

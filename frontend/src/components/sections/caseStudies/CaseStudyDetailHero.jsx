@@ -59,7 +59,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
         alignItems: 'center',
         pb: { xs: 12, md: 14 },
         pt: { xs: 14, md: 18 },
-     
+
       }}
     >
       <Container
@@ -221,7 +221,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
               >
                 {heroTitle}
               </Typography>
-              
+
               <Typography
                 variant="body1"
                 sx={{ color: subtleText, maxWidth: 540, lineHeight: 1.7 }}
@@ -255,7 +255,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 </Button>
               )}
 
-          
+
             </Stack>
           </Grid>
         </Grid>
