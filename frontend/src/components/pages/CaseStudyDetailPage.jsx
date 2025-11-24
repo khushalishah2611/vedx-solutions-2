@@ -764,7 +764,7 @@ const CaseStudyDetailPage = () => {
                 border: `1px solid ${alpha(accentColor, 0.45)}`,
               }}
             >
-              <Stack spacing={2.5}>
+              <Stack spacing={2.5} alignItems="center" textAlign="center">
                 <Typography
                   variant="h5"
                   sx={{
@@ -818,8 +818,23 @@ const CaseStudyDetailPage = () => {
 
         {/* ---------------------- Application Screenshots ---------------------- */}
         {caseStudy.screenshots?.length ? (
-          <Box my={10}>
-            <Stack spacing={3}>
+          <Box
+            my={10}
+            sx={{
+              '@keyframes glowPulse': {
+                '0%': { boxShadow: isDark
+                  ? '0 18px 32px rgba(0,0,0,0.65)'
+                  : '0 18px 32px rgba(15,23,42,0.14)' },
+                '50%': { boxShadow: isDark
+                  ? '0 24px 36px rgba(0,0,0,0.75)'
+                  : '0 24px 38px rgba(15,23,42,0.2)' },
+                '100%': { boxShadow: isDark
+                  ? '0 18px 32px rgba(0,0,0,0.65)'
+                  : '0 18px 32px rgba(15,23,42,0.14)' },
+              },
+            }}
+          >
+            <Stack spacing={3} alignItems="center" textAlign="center">
               <Box
                 sx={{
                   display: 'inline-flex',
@@ -838,10 +853,12 @@ const CaseStudyDetailPage = () => {
                   fontSize: 11,
                   lineHeight: 1.3,
                   width: 'fit-content',
-                  mx: { xs: 'auto', md: 0 },
                   opacity: animate ? 1 : 0,
                   transform: animate ? 'translateY(0)' : 'translateY(10px)',
                   transition: 'all 420ms ease 60ms',
+                  boxShadow: animate
+                    ? '0 10px 24px rgba(103, 232, 249, 0.18)'
+                    : 'none',
                 }}
               >
                 <Box
@@ -886,6 +903,19 @@ const CaseStudyDetailPage = () => {
                           boxShadow: isDark
                             ? '0 18px 32px rgba(0,0,0,0.65)'
                             : '0 18px 32px rgba(15,23,42,0.14)',
+                          position: 'relative',
+                          isolation: 'isolate',
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            inset: 0,
+                            borderRadius: 1,
+                            border: `1px solid ${alpha(accentColor, 0.35)}`,
+                            opacity: 0.5,
+                            filter: 'blur(0.5px)',
+                            zIndex: -1,
+                            animation: animate ? 'glowPulse 4.8s ease-in-out infinite' : 'none',
+                          },
                         }}
                       >
                         <Box
