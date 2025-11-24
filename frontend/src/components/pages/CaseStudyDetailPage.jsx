@@ -3,7 +3,6 @@ import { Navigate, useParams } from 'react-router-dom';
 import {
   alpha,
   Box,
-  Chip,
   Container,
   Divider,
   Grid,
@@ -12,7 +11,6 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import CaseStudyCard from '../sections/caseStudies/CaseStudyCard.jsx';
 import CaseStudyDetailHero from '../sections/caseStudies/CaseStudyDetailHero.jsx';
 import { caseStudiesBySlug, caseStudiesList } from '../../data/caseStudies.js';
@@ -72,10 +70,19 @@ const CaseStudyDetailPage = () => {
                 sx={{
                   overflow: 'hidden',
                   borderRadius: 0.5,
-
                   background: alpha(accentColor, isDark ? 0.12 : 0.08),
+                  border: `1px solid ${alpha(
+                    theme.palette.divider,
+                    isDark ? 0.5 : 0.22
+                  )}`,
                   transition: 'border-color 220ms ease, box-shadow 0.25s ease',
-
+                  boxShadow: '0 0 0 rgba(0,0,0,0)',
+                  '&:hover': {
+                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
+                    boxShadow: isDark
+                      ? '0 18px 30px rgba(0,0,0,0.7)'
+                      : '0 18px 32px rgba(15,23,42,0.15)',
+                  },
                 }}
               >
                 <Box
@@ -88,9 +95,7 @@ const CaseStudyDetailPage = () => {
                     height: '100%',
                     objectFit: 'cover',
                     opacity: animate ? 1 : 0,
-                    transform: animate
-                      ? 'translateX(0)'
-                      : 'translateX(-24px)', // slide in from left
+                    transform: animate ? 'translateX(0)' : 'translateX(-24px)',
                     transition: 'all 700ms ease',
                   }}
                 />
@@ -306,10 +311,18 @@ const CaseStudyDetailPage = () => {
                   background: alpha(accentColor, isDark ? 0.12 : 0.09),
                   minHeight: { xs: 240, md: 280 },
                   display: 'flex',
-
+                  border: `1px solid ${alpha(
+                    theme.palette.divider,
+                    isDark ? 0.5 : 0.22
+                  )}`,
                   transition: 'border-color 220ms ease, box-shadow 0.25s ease',
                   boxShadow: '0 0 0 rgba(0,0,0,0)',
-
+                  '&:hover': {
+                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
+                    boxShadow: isDark
+                      ? '0 18px 30px rgba(0,0,0,0.7)'
+                      : '0 18px 32px rgba(15,23,42,0.15)',
+                  },
                 }}
               >
                 <Box
@@ -322,9 +335,7 @@ const CaseStudyDetailPage = () => {
                     objectFit: 'cover',
                     mixBlendMode: isDark ? 'screen' : 'normal',
                     opacity: animate ? 1 : 0,
-                    transform: animate
-                      ? 'translateX(0)'
-                      : 'translateX(24px)',
+                    transform: animate ? 'translateX(0)' : 'translateX(24px)',
                     transition: 'all 650ms ease 140ms',
                   }}
                 />
@@ -340,7 +351,6 @@ const CaseStudyDetailPage = () => {
             spacing={{ xs: 2.5, md: 3 }}
             justifyContent="center"
             textAlign="center"
-
           >
             {caseStudy.coreFeatures?.slice(0, 4).map((feature, index) => (
               <Grid item xs={12} sm={6} md={3} key={feature.title}>
@@ -348,9 +358,12 @@ const CaseStudyDetailPage = () => {
                   elevation={0}
                   sx={{
                     height: '100%',
-                    p: "10px",
+                    p: '10px',
                     borderRadius: 0.5,
-                    border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
+                    border: `1px solid ${alpha(
+                      theme.palette.divider,
+                      isDark ? 0.5 : 0.22
+                    )}`,
                     bgcolor: isDark ? alpha('#0b1120', 0.8) : '#f7fafe',
                     display: 'flex',
                     alignItems: 'center',
@@ -362,9 +375,7 @@ const CaseStudyDetailPage = () => {
                       'border-color 220ms ease, transform 0.25s ease, box-shadow 0.25s ease, opacity 0.45s ease',
                     boxShadow: '0 0 0 rgba(0,0,0,0)',
                     opacity: animate ? 1 : 0,
-                    transform: animate
-                      ? 'translateY(0)'
-                      : 'translateY(18px)',
+                    transform: animate ? 'translateY(0)' : 'translateY(18px)',
                     transitionDelay: `${150 + index * 80}ms`,
                     '&:hover': {
                       transform: 'translateY(-6px)',
@@ -375,21 +386,26 @@ const CaseStudyDetailPage = () => {
                     },
                   }}
                 >
-                  <Typography variant="subtitle1" sx={{
-                    color: theme.palette.text.primary,
-                    fontWeight: 700,
-                    lineHeight: 1.3,
-                    textDecoration: 'none',
-                    cursor: 'pointer',
-                    transition: 'color 0.3s ease, background-image 0.3s ease',
-                    '&:hover': {
-                      color: 'transparent',
-                      backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                      WebkitBackgroundClip: 'text',
-                      backgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                    },
-                  }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      color: theme.palette.text.primary,
+                      fontWeight: 700,
+                      lineHeight: 1.3,
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      transition:
+                        'color 0.3s ease, background-image 0.3s ease',
+                      '&:hover': {
+                        color: 'transparent',
+                        backgroundImage:
+                          'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                        WebkitBackgroundClip: 'text',
+                        backgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      },
+                    }}
+                  >
                     {feature.title}
                   </Typography>
                 </Paper>
@@ -462,9 +478,12 @@ const CaseStudyDetailPage = () => {
                     elevation={0}
                     sx={{
                       p: { xs: 2.5, md: 3 },
-                      borderRadius: 1,
+                      borderRadius: 0.5,
                       height: '100%',
-                      border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
+                      border: `1px solid ${alpha(
+                        theme.palette.divider,
+                        isDark ? 0.5 : 0.22
+                      )}`,
                       bgcolor: isDark ? alpha('#0b1120', 0.8) : '#f8fafc',
                       display: 'flex',
                       gap: 1.5,
@@ -509,10 +528,12 @@ const CaseStudyDetailPage = () => {
                         lineHeight: 1.3,
                         textDecoration: 'none',
                         cursor: 'pointer',
-                        transition: 'color 0.3s ease, background-image 0.3s ease',
+                        transition:
+                          'color 0.3s ease, background-image 0.3s ease',
                         '&:hover': {
                           color: 'transparent',
-                          backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          backgroundImage:
+                            'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                           WebkitBackgroundClip: 'text',
                           backgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
@@ -536,7 +557,7 @@ const CaseStudyDetailPage = () => {
             elevation={0}
             sx={{
               p: { xs: 3, md: 4 },
-              borderRadius: 1,
+              borderRadius: 0.5,
               border: `1px solid ${alpha(accentColor, 0.4)}`,
               bgcolor: isDark ? alpha('#0b1120', 0.9) : '#f1f5f9',
               opacity: animate ? 1 : 0,
@@ -606,36 +627,49 @@ const CaseStudyDetailPage = () => {
 
               {/* Advanced content chips */}
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {(caseStudy.advancedContent || []).slice(0, 4).map((module, index) => (
-                  <Chip
-                    key={module.title}
-                    icon={<CheckCircleRoundedIcon fontSize="small" />}
-                    label={module.title}
-                    sx={{
-                      bgcolor: isDark
-                        ? alpha('#22c55e', 0.14)
-                        : alpha('#22c55e', 0.14),
-                      color: isDark ? '#bbf7d0' : '#166534',
-                      borderRadius: 999,
-                      fontWeight: 600,
-                      border: `1px solid ${alpha(accentColor, 0.4)}`,
-                      transition:
-                        'border-color 220ms ease, transform 0.25s ease, box-shadow 0.25s ease, opacity 0.46s ease',
-                      opacity: animate ? 1 : 0,
-                      transform: animate
-                        ? 'translateY(0)'
-                        : 'translateY(12px)',
-                      transitionDelay: `${160 + index * 70}ms`,
-                      '&:hover': {
-                        borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                        boxShadow: isDark
-                          ? '0 10px 18px rgba(0,0,0,0.6)'
-                          : '0 10px 20px rgba(15,23,42,0.18)',
-                        transform: 'translateY(-4px)',
-                      },
-                    }}
-                  />
-                ))}
+                {(caseStudy.advancedContent || [])
+                  .slice(0, 4)
+                  .map((module, index) => (
+                    <Box
+                      key={module.title}
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        px: 2,
+                        py: 1,
+                        borderRadius: 0.5,
+                        border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                        background: !isDark
+                          ? alpha('#ddddddff', 0.9)
+                          : alpha('#0000007c', 0.9),
+                        color: alpha(accentColor, 0.9),
+                        fontWeight: 600,
+                        letterSpacing: 1,
+                        textTransform: 'uppercase',
+                        fontSize: 11,
+                        lineHeight: 1.3,
+                        width: 'fit-content',
+                        mx: { xs: 'auto', md: 0 },
+                        opacity: animate ? 1 : 0,
+                        transform: animate
+                          ? 'translateY(0)'
+                          : 'translateY(10px)',
+                        transition: `all 420ms ease ${60 + index * 60}ms`,
+                      }}
+                    >
+                      <Box
+                        component="span"
+                        sx={{
+                          background:
+                            'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        }}
+                      >
+                        {module.title}
+                      </Box>
+                    </Box>
+                  ))}
               </Stack>
             </Stack>
           </Paper>
@@ -701,107 +735,64 @@ const CaseStudyDetailPage = () => {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: { xs: 2.5, md: 3 },
                       height: '100%',
-                      borderRadius: 1,
-                      border: `1px solid ${alpha(accentColor, 0.35)}`,
+                      borderRadius: 0.5,
+                      p: 2.5,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      bgcolor: isDark ? alpha('#0b1120', 0.8) : '#ffffff',
-                      color: isDark ? '#e2e8f0' : '#0f172a',
                       textAlign: 'center',
-                      fontWeight: 700,
-                      letterSpacing: 0.4,
+                      backgroundColor: alpha(
+                        theme.palette.background.paper,
+                        isDark ? 0.75 : 0.98
+                      ),
+                      border: `1px solid ${alpha(
+                        theme.palette.divider,
+                        isDark ? 0.4 : 0.5
+                      )}`,
                       transition:
-                        'border-color 220ms ease, transform 0.25s ease, box-shadow 0.25s ease, opacity 0.45s ease',
-                      '&:hover': {
-                        transform: 'translateY(-6px)',
-                        borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                        boxShadow: isDark
-                          ? '0 18px 30px rgba(0,0,0,0.7)'
-                          : '0 18px 32px rgba(15,23,42,0.15)',
-                      },
+                        'transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, opacity 0.45s ease',
+                      boxShadow: isDark
+                        ? '0 20px 35px rgba(15,23,42,0.35)'
+                        : '0 20px 35px rgba(15,23,42,0.08)',
                       opacity: animate ? 1 : 0,
                       transform: animate
                         ? 'translateY(0)'
                         : 'translateY(18px)',
                       transitionDelay: `${150 + index * 80}ms`,
+                      '&:hover': {
+                        transform: 'translateY(-6px)',
+                        borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
+                        boxShadow: isDark
+                          ? '0 24px 40px rgba(15,23,42,0.6)'
+                          : '0 24px 40px rgba(15,23,42,0.14)',
+                      },
                     }}
                   >
-                    {tech}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 600,
+                        textAlign: 'center',
+                        wordBreak: 'break-word',
+                        transition:
+                          'color 0.3s ease, background-image 0.3s ease',
+                        '&:hover': {
+                          color: 'transparent',
+                          backgroundImage:
+                            'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
+                          WebkitBackgroundClip: 'text',
+                          backgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        },
+                      }}
+                    >
+                      {tech}
+                    </Typography>
                   </Paper>
                 </Grid>
               ))}
             </Grid>
-
-            {(caseStudy.advancedContent || []).length ? (
-              <Grid container spacing={{ xs: 2.5, md: 3 }}>
-                {(caseStudy.advancedContent || []).map((module, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={module.title}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        height: '100%',
-                        p: { xs: 2, md: 2.8 },
-                        borderRadius: 1,
-                        textAlign: 'left',
-                        background: isDark
-                          ? `linear-gradient(140deg, ${alpha('#0b1120', 0.92)}, ${alpha(
-                              accentColor,
-                              0.14
-                            )})`
-                          : `linear-gradient(140deg, ${alpha('#f8fafc', 0.96)}, ${alpha(
-                              accentColor,
-                              0.12
-                            )})`,
-                        border: `1px solid ${alpha(accentColor, 0.38)}`,
-                        boxShadow: isDark
-                          ? '0 16px 30px rgba(0,0,0,0.55)'
-                          : '0 14px 26px rgba(15,23,42,0.14)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 1.2,
-                        opacity: animate ? 1 : 0,
-                        transform: animate ? 'translateY(0)' : 'translateY(14px)',
-                        transition: `border-color 220ms ease, transform 0.25s ease, box-shadow 0.25s ease, opacity 0.46s ease ${
-                          180 + index * 80
-                        }ms`,
-                        '&:hover': {
-                          transform: 'translateY(-6px)',
-                          borderColor: alpha(accentColor, isDark ? 0.9 : 0.85),
-                          boxShadow: isDark
-                            ? '0 18px 36px rgba(0,0,0,0.65)'
-                            : '0 16px 30px rgba(15,23,42,0.18)',
-                        },
-                      }}
-                    >
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          textTransform: 'uppercase',
-                          letterSpacing: 1,
-                          fontWeight: 800,
-                          color: alpha(accentColor, isDark ? 0.95 : 0.8),
-                        }}
-                      >
-                        {module.title}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: 'text.secondary',
-                          lineHeight: 1.8,
-                          flexGrow: 1,
-                        }}
-                      >
-                        {module.description}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            ) : null}
           </Stack>
         </Box>
 
@@ -815,16 +806,16 @@ const CaseStudyDetailPage = () => {
               sx={{
                 mt: { xs: 5, md: 7 },
                 p: { xs: 3, md: 4 },
-                borderRadius: 1,
+                borderRadius: 0.5,
                 background: isDark
                   ? `linear-gradient(135deg, ${alpha(
-                    '#0b1120',
-                    0.95
-                  )}, ${alpha('#0ea5e9', 0.16)})`
+                      '#0b1120',
+                      0.95
+                    )}, ${alpha('#0ea5e9', 0.16)})`
                   : `linear-gradient(135deg, ${alpha(
-                    '#0f172a',
-                    0.92
-                  )}, ${alpha(accentColor, 0.28)})`,
+                      '#0f172a',
+                      0.92
+                    )}, ${alpha(accentColor, 0.28)})`,
                 color: '#e2e8f0',
                 opacity: animate ? 1 : 0,
                 transform: animate ? 'translateY(0)' : 'translateY(18px)',
@@ -851,30 +842,52 @@ const CaseStudyDetailPage = () => {
                       <Paper
                         elevation={0}
                         sx={{
-                          p: 1.2,
+                          p: 1.5,
                           borderRadius: 0.75,
                           bgcolor: alpha('#0b1120', 0.4),
-                          border: `1px solid ${alpha('#ffffff', 0.12)}`,
-                          color: '#e2e8f0',
-                          textAlign: 'center',
-                          fontWeight: 700,
-                          letterSpacing: 0.4,
+                          border: `1px solid ${alpha('#ffffff', 0.18)}`,
                           opacity: animate ? 1 : 0,
                           transform: animate
                             ? 'translateY(0)'
                             : 'translateY(14px)',
-                          transition: `border-color 220ms ease, transform 0.25s ease, box-shadow 0.25s ease, opacity 0.46s ease ${190 + index * 60
-                            }ms`,
+                          transition:
+                            'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease',
+                          transitionDelay: `${190 + index * 60}ms`,
+                          boxShadow: '0 0 0 rgba(0,0,0,0)',
                           '&:hover': {
-                            borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
+                            transform: 'translateY(-4px)',
+                            borderColor: alpha(
+                              accentColor,
+                              isDark ? 0.9 : 0.8
+                            ),
                             boxShadow: isDark
                               ? '0 16px 26px rgba(0,0,0,0.7)'
                               : '0 14px 26px rgba(15,23,42,0.2)',
-                            transform: 'translateY(-4px)',
                           },
                         }}
                       >
-                        {badge}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: theme.palette.text.primary,
+                            fontWeight: 700,
+                            lineHeight: 1.3,
+                            textDecoration: 'none',
+                            cursor: 'pointer',
+                            transition:
+                              'color 0.3s ease, background-image 0.3s ease',
+                            '&:hover': {
+                              color: 'transparent',
+                              backgroundImage:
+                                'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                              WebkitBackgroundClip: 'text',
+                              backgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                            },
+                          }}
+                        >
+                          {badge}
+                        </Typography>
                       </Paper>
                     </Grid>
                   ))}
@@ -890,19 +903,25 @@ const CaseStudyDetailPage = () => {
             my={10}
             sx={{
               '@keyframes glowPulse': {
-                '0%': { boxShadow: isDark
-                  ? '0 18px 32px rgba(0,0,0,0.65)'
-                  : '0 18px 32px rgba(15,23,42,0.14)' },
-                '50%': { boxShadow: isDark
-                  ? '0 24px 36px rgba(0,0,0,0.75)'
-                  : '0 24px 38px rgba(15,23,42,0.2)' },
-                '100%': { boxShadow: isDark
-                  ? '0 18px 32px rgba(0,0,0,0.65)'
-                  : '0 18px 32px rgba(15,23,42,0.14)' },
+                '0%': {
+                  boxShadow: isDark
+                    ? '0 18px 32px rgba(0,0,0,0.65)'
+                    : '0 18px 32px rgba(15,23,42,0.14)',
+                },
+                '50%': {
+                  boxShadow: isDark
+                    ? '0 24px 36px rgba(0,0,0,0.75)'
+                    : '0 24px 38px rgba(15,23,42,0.2)',
+                },
+                '100%': {
+                  boxShadow: isDark
+                    ? '0 18px 32px rgba(0,0,0,0.65)'
+                    : '0 18px 32px rgba(15,23,42,0.14)',
+                },
               },
             }}
           >
-            <Stack spacing={3} alignItems="center" textAlign="center">
+            <Stack spacing={2} alignItems="center" textAlign="center">
               <Box
                 sx={{
                   display: 'inline-flex',
@@ -922,17 +941,17 @@ const CaseStudyDetailPage = () => {
                   lineHeight: 1.3,
                   width: 'fit-content',
                   opacity: animate ? 1 : 0,
-                  transform: animate ? 'translateY(0)' : 'translateY(10px)',
+                  transform: animate
+                    ? 'translateY(0)'
+                    : 'translateY(10px)',
                   transition: 'all 420ms ease 60ms',
-                  boxShadow: animate
-                    ? '0 10px 24px rgba(103, 232, 249, 0.18)'
-                    : 'none',
                 }}
               >
                 <Box
                   component="span"
                   sx={{
-                    background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                    background:
+                      'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   }}
@@ -961,11 +980,11 @@ const CaseStudyDetailPage = () => {
                   lineHeight: 1.7,
                 }}
               >
-                Every case study surfaces immersive visuals with subtle motion so the story and UI details stay front
-                and center.
+                Every case study surfaces immersive visuals with subtle motion so
+                the story and UI details stay front and center.
               </Typography>
 
-              <Grid container spacing={{ xs: 3, md: 4 }}>
+              <Grid container spacing={2}>
                 {caseStudy.screenshots.map((shot, index) => {
                   const slideDistance = index % 2 === 0 ? '-22px' : '22px';
                   return (
@@ -974,7 +993,7 @@ const CaseStudyDetailPage = () => {
                         elevation={0}
                         sx={{
                           height: '100%',
-                          borderRadius: 1,
+                          borderRadius: 0.5,
                           overflow: 'hidden',
                           border: `1px solid ${alpha(accentColor, 0.35)}`,
                           background: isDark
@@ -989,12 +1008,14 @@ const CaseStudyDetailPage = () => {
                             content: '""',
                             position: 'absolute',
                             inset: 0,
-                            borderRadius: 1,
+                            borderRadius: 0.5,
                             border: `1px solid ${alpha(accentColor, 0.35)}`,
                             opacity: 0.5,
                             filter: 'blur(0.5px)',
                             zIndex: -1,
-                            animation: animate ? 'glowPulse 4.8s ease-in-out infinite' : 'none',
+                            animation: animate
+                              ? 'glowPulse 4.8s ease-in-out infinite'
+                              : 'none',
                           },
                         }}
                       >
@@ -1012,7 +1033,9 @@ const CaseStudyDetailPage = () => {
                             transform: animate
                               ? 'translateX(0)'
                               : `translateX(${slideDistance})`,
-                            transition: `all 560ms ease ${160 + index * 70}ms`,
+                            transition: `all 560ms ease ${
+                              160 + index * 70
+                            }ms`,
                           }}
                         />
 
