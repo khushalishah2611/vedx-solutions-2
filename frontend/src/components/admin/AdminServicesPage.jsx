@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Autocomplete,
   Box,
   Button,
   Card,
@@ -121,12 +122,16 @@ const initialServices = [
 const initialTechnologies = [
   {
     id: 'frontend-tech',
+    category: 'Full Stack Development',
+    subcategory: 'Frontend',
     title: 'Frontend',
     image: imageLibrary[2].value,
     items: ['React', 'Angular', 'Vue', 'Next.js', 'TypeScript'],
   },
   {
     id: 'backend-tech',
+    category: 'Full Stack Development',
+    subcategory: 'Backend',
     title: 'Backend',
     image: imageLibrary[3].value,
     items: ['Node.js', 'Django', 'Laravel', 'Golang', 'PostgreSQL'],
@@ -154,18 +159,152 @@ const initialHireDevelopers = {
     'Shape squads with the exact capabilities you need—from product discovery to release engineering—without long ramp-up times.',
   heroImage: imageLibrary[2].value,
   services: [
-    { id: 'android-team', title: 'Android team', description: 'Compose-first Android engineers ready for feature pods.' },
-    { id: 'ios-team', title: 'iOS team', description: 'Swift and SwiftUI experts with App Store release experience.' },
-    { id: 'full-stack-team', title: 'Full stack team', description: 'API, web, and DevOps engineers aligned to your roadmap.' }
+    {
+      id: 'android-team',
+      category: 'Mobile App Development',
+      subcategory: 'Android',
+      title: 'Android team',
+      description: 'Compose-first Android engineers ready for feature pods.',
+      image: imageLibrary[0].value,
+    },
+    {
+      id: 'ios-team',
+      category: 'Mobile App Development',
+      subcategory: 'iOS',
+      title: 'iOS team',
+      description: 'Swift and SwiftUI experts with App Store release experience.',
+      image: imageLibrary[1].value,
+    },
+    {
+      id: 'full-stack-team',
+      category: 'Full Stack Development',
+      subcategory: 'Backend',
+      title: 'Full stack team',
+      description: 'API, web, and DevOps engineers aligned to your roadmap.',
+      image: imageLibrary[2].value,
+    },
   ]
 };
 
-  const emptyServiceForm = {
-    id: '',
-    category: '',
-    subcategories: [],
-    bannerTitle: '',
-    bannerSubtitle: '',
+const initialProcess = [
+  {
+    id: 'process-1',
+    category: 'Full Stack Development',
+    subcategory: 'Frontend',
+    title: 'Discovery and planning',
+    description: 'Align goals, scope, and delivery milestones with stakeholder workshops.',
+    image: imageLibrary[3].value,
+  },
+  {
+    id: 'process-2',
+    category: 'Mobile App Development',
+    subcategory: 'Android',
+    title: 'Release and measurement',
+    description: 'Ship builds, monitor analytics, and optimise through iterative releases.',
+    image: imageLibrary[0].value,
+  },
+];
+
+const initialWhyVedx = {
+  heroTitle: 'Why choose VedX Solutions',
+  heroDescription: 'Pair proven delivery methods with industry focus and transparent engagement.',
+  heroImage: imageLibrary[1].value,
+  reasons: [
+    {
+      id: 'why-vedx-1',
+      title: 'Outcome obsessed',
+      description: 'Every engagement is mapped to measurable business impact with proactive reporting.',
+      image: imageLibrary[2].value,
+    },
+    {
+      id: 'why-vedx-2',
+      title: 'Specialists per domain',
+      description: 'Category and sub-category owners ensure the right SMEs guide delivery.',
+      image: imageLibrary[0].value,
+    },
+  ],
+};
+
+const initialOurServices = {
+  sliderTitle: 'Our Services',
+  sliderDescription: 'Showcase priority services with visuals, subtitles, and taxonomy tags.',
+  services: [
+    {
+      id: 'os-1',
+      title: 'Cloud native engineering',
+      subtitle: 'Modernise delivery with resilient architectures.',
+      image: imageLibrary[1].value,
+    },
+    {
+      id: 'os-2',
+      title: 'Data and AI accelerators',
+      subtitle: 'Operationalise analytics with governed workflows.',
+      image: imageLibrary[2].value,
+    },
+  ],
+};
+
+const initialIndustries = {
+  title: 'Industries we serve',
+  description: 'Tailored solutions for digital-first leaders across sectors.',
+  items: [
+    {
+      id: 'ind-1',
+      title: 'Fintech',
+      description: 'Regulatory-ready delivery with robust security practices.',
+      image: imageLibrary[3].value,
+    },
+    {
+      id: 'ind-2',
+      title: 'Healthtech',
+      description: 'Compliant experiences with patient-first design.',
+      image: imageLibrary[0].value,
+    },
+  ],
+};
+
+const initialTechSolutions = {
+  title: 'Tech solutions for all business types',
+  description: 'Reusable solution kits that scale with growth and compliance needs.',
+  solutions: [
+    {
+      id: 'ts-1',
+      title: 'SMB accelerators',
+      description: 'Launch quickly with curated starter kits and managed services.',
+    },
+    {
+      id: 'ts-2',
+      title: 'Enterprise modernization',
+      description: 'Refactor, cloud migrate, and govern change with confidence.',
+    },
+  ],
+};
+
+const initialExpertise = {
+  title: 'Ways to choose our expertise',
+  description: 'Pick the collaboration model and focus area that best fits your roadmap.',
+  items: [
+    {
+      id: 'exp-1',
+      title: 'Dedicated pods',
+      description: 'Long-running pods aligned to a business unit with steady velocity.',
+      image: imageLibrary[1].value,
+    },
+    {
+      id: 'exp-2',
+      title: 'Outcome squads',
+      description: 'Cross-functional teams focused on a single measurable outcome.',
+      image: imageLibrary[0].value,
+    },
+  ],
+};
+
+const emptyServiceForm = {
+  id: '',
+  category: '',
+  subcategories: [],
+  bannerTitle: '',
+  bannerSubtitle: '',
   bannerImage: imageLibrary[0].value,
   createdAt: new Date().toISOString().split('T')[0],
   totalServices: 0,
@@ -177,9 +316,11 @@ const initialHireDevelopers = {
 
 const emptyTechnologyForm = {
   id: '',
+  category: '',
+  subcategory: '',
   title: '',
   image: imageLibrary[0].value,
-  items: []
+  items: [],
 };
 
 const emptyBenefitForm = {
@@ -191,8 +332,65 @@ const emptyBenefitForm = {
 
 const emptyHireServiceForm = {
   id: '',
+  category: '',
+  subcategory: '',
   title: '',
-  description: ''
+  description: '',
+  image: imageLibrary[0].value,
+};
+
+const emptyProcessForm = {
+  id: '',
+  category: '',
+  subcategory: '',
+  title: '',
+  description: '',
+  image: imageLibrary[0].value,
+};
+
+const emptyWhyVedxHero = {
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imageLibrary[1].value,
+};
+
+const emptyWhyVedxForm = {
+  id: '',
+  title: '',
+  description: '',
+  image: imageLibrary[0].value,
+};
+
+const emptyOurServiceForm = {
+  id: '',
+  title: '',
+  subtitle: '',
+  image: imageLibrary[2].value,
+};
+
+const emptyIndustryForm = {
+  id: '',
+  title: '',
+  description: '',
+  image: imageLibrary[3].value,
+};
+
+const emptyTechSolutionForm = {
+  id: '',
+  title: '',
+  description: '',
+};
+
+const emptyExpertiseHero = {
+  title: '',
+  description: '',
+};
+
+const emptyExpertiseForm = {
+  id: '',
+  title: '',
+  description: '',
+  image: imageLibrary[2].value,
 };
 
 const initialWhyChoose = {
@@ -342,7 +540,6 @@ const AdminServicesPage = () => {
   const [serviceForm, setServiceForm] = useState(emptyServiceForm);
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [viewService, setViewService] = useState(null);
-  const [subcategoryDraft, setSubcategoryDraft] = useState({ name: '' });
   const [faqDraft, setFaqDraft] = useState({ question: '', answer: '' });
 
   const [technologies, setTechnologies] = useState(initialTechnologies);
@@ -375,14 +572,66 @@ const AdminServicesPage = () => {
   const [activeWhyService, setActiveWhyService] = useState(null);
   const [whyServiceToDelete, setWhyServiceToDelete] = useState(null);
 
+  const [processList, setProcessList] = useState(initialProcess);
+  const [processDialogOpen, setProcessDialogOpen] = useState(false);
+  const [processDialogMode, setProcessDialogMode] = useState('create');
+  const [processForm, setProcessForm] = useState(emptyProcessForm);
+  const [activeProcess, setActiveProcess] = useState(null);
+  const [processToDelete, setProcessToDelete] = useState(null);
+
+  const [whyVedx, setWhyVedx] = useState(initialWhyVedx);
+  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState(initialWhyVedx);
+  const [whyVedxDialogOpen, setWhyVedxDialogOpen] = useState(false);
+  const [whyVedxDialogMode, setWhyVedxDialogMode] = useState('create');
+  const [whyVedxForm, setWhyVedxForm] = useState(emptyWhyVedxForm);
+  const [activeWhyVedx, setActiveWhyVedx] = useState(null);
+  const [whyVedxToDelete, setWhyVedxToDelete] = useState(null);
+
+  const [ourServices, setOurServices] = useState(initialOurServices);
+  const [ourServiceDialogOpen, setOurServiceDialogOpen] = useState(false);
+  const [ourServiceDialogMode, setOurServiceDialogMode] = useState('create');
+  const [ourServiceForm, setOurServiceForm] = useState(emptyOurServiceForm);
+  const [activeOurService, setActiveOurService] = useState(null);
+  const [ourServiceToDelete, setOurServiceToDelete] = useState(null);
+
+  const [industries, setIndustries] = useState(initialIndustries);
+  const [industryDialogOpen, setIndustryDialogOpen] = useState(false);
+  const [industryDialogMode, setIndustryDialogMode] = useState('create');
+  const [industryForm, setIndustryForm] = useState(emptyIndustryForm);
+  const [activeIndustry, setActiveIndustry] = useState(null);
+  const [industryToDelete, setIndustryToDelete] = useState(null);
+
+  const [techSolutions, setTechSolutions] = useState(initialTechSolutions);
+  const [techSolutionDialogOpen, setTechSolutionDialogOpen] = useState(false);
+  const [techSolutionDialogMode, setTechSolutionDialogMode] = useState('create');
+  const [techSolutionForm, setTechSolutionForm] = useState(emptyTechSolutionForm);
+  const [activeTechSolution, setActiveTechSolution] = useState(null);
+  const [techSolutionToDelete, setTechSolutionToDelete] = useState(null);
+
+  const [expertise, setExpertise] = useState(initialExpertise);
+  const [expertiseHeroForm, setExpertiseHeroForm] = useState(initialExpertise);
+  const [expertiseDialogOpen, setExpertiseDialogOpen] = useState(false);
+  const [expertiseDialogMode, setExpertiseDialogMode] = useState('create');
+  const [expertiseForm, setExpertiseForm] = useState(emptyExpertiseForm);
+  const [activeExpertise, setActiveExpertise] = useState(null);
+  const [expertiseToDelete, setExpertiseToDelete] = useState(null);
+
   const rowsPerPage = 5;
   const [serviceDateFilter, setServiceDateFilter] = useState('all');
   const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
+  const [serviceCategoryFilter, setServiceCategoryFilter] = useState('');
+  const [serviceSubcategoryFilter, setServiceSubcategoryFilter] = useState('');
   const [servicePage, setServicePage] = useState(1);
   const [technologyPage, setTechnologyPage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
   const [hireServicePage, setHireServicePage] = useState(1);
+  const [processPage, setProcessPage] = useState(1);
+  const [whyVedxPage, setWhyVedxPage] = useState(1);
+  const [ourServicePage, setOurServicePage] = useState(1);
+  const [industryPage, setIndustryPage] = useState(1);
+  const [techSolutionPage, setTechSolutionPage] = useState(1);
+  const [expertisePage, setExpertisePage] = useState(1);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
@@ -390,25 +639,15 @@ const AdminServicesPage = () => {
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
   const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
+  const resetProcessForm = () => setProcessForm(emptyProcessForm);
+  const resetWhyVedxForm = () => setWhyVedxForm(emptyWhyVedxForm);
+  const resetOurServiceForm = () => setOurServiceForm(emptyOurServiceForm);
+  const resetIndustryForm = () => setIndustryForm(emptyIndustryForm);
+  const resetTechSolutionForm = () => setTechSolutionForm(emptyTechSolutionForm);
+  const resetExpertiseForm = () => setExpertiseForm(emptyExpertiseForm);
 
   const handleServiceFormChange = (field, value) => {
     setServiceForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const addSubcategory = () => {
-    if (!subcategoryDraft.name.trim()) return;
-    setServiceForm((prev) => ({
-      ...prev,
-      subcategories: [...prev.subcategories, { ...subcategoryDraft }],
-    }));
-    setSubcategoryDraft({ name: '' });
-  };
-
-  const removeSubcategory = (name) => {
-    setServiceForm((prev) => ({
-      ...prev,
-      subcategories: prev.subcategories.filter((item) => item.name !== name),
-    }));
   };
 
   const addFaq = () => {
@@ -446,6 +685,18 @@ const AdminServicesPage = () => {
     setTimeout(() => setHeroSaved(false), 3000);
   };
 
+  const handleProcessChange = (field, value) => {
+    setProcessForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleWhyVedxHeroChange = (field, value) => {
+    setWhyVedxHeroForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleExpertiseHeroChange = (field, value) => {
+    setExpertiseHeroForm((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleWhyHeroChange = (field, value) => {
     setWhyHeroForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -463,8 +714,22 @@ const AdminServicesPage = () => {
   };
 
   const filteredServices = useMemo(
-    () => services.filter((service) => matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange)),
-    [services, serviceDateFilter, serviceDateRange]
+    () =>
+      services.filter((service) => {
+        const matchesCategory = serviceCategoryFilter
+          ? service.category === serviceCategoryFilter
+          : true;
+        const matchesSubcategory = serviceSubcategoryFilter
+          ? service.subcategories.some((subcategory) => subcategory.name === serviceSubcategoryFilter)
+          : true;
+
+        return (
+          matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange) &&
+          matchesCategory &&
+          matchesSubcategory
+        );
+      }),
+    [serviceCategoryFilter, serviceDateFilter, serviceDateRange, serviceSubcategoryFilter, services]
   );
 
   const pagedServices = useMemo(() => {
@@ -474,7 +739,19 @@ const AdminServicesPage = () => {
 
   useEffect(() => {
     setServicePage(1);
-  }, [serviceDateFilter, serviceDateRange.start, serviceDateRange.end]);
+  }, [serviceCategoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, serviceSubcategoryFilter]);
+
+  useEffect(() => {
+    if (!serviceCategoryFilter) {
+      setServiceSubcategoryFilter('');
+      return;
+    }
+
+    const allowed = subcategoryLookup.get(serviceCategoryFilter) || [];
+    if (serviceSubcategoryFilter && !allowed.includes(serviceSubcategoryFilter)) {
+      setServiceSubcategoryFilter('');
+    }
+  }, [serviceCategoryFilter, serviceSubcategoryFilter, subcategoryLookup]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredServices.length / rowsPerPage));
@@ -587,7 +864,7 @@ const AdminServicesPage = () => {
 
   const handleTechnologySubmit = (event) => {
     event?.preventDefault();
-    if (!technologyForm.title.trim()) return;
+    if (!technologyForm.title.trim() || !technologyForm.category.trim() || !technologyForm.image) return;
 
     if (technologyDialogMode === 'edit' && activeTechnology) {
       setTechnologies((prev) =>
@@ -720,7 +997,7 @@ const AdminServicesPage = () => {
 
   const handleHireServiceSubmit = (event) => {
     event?.preventDefault();
-    if (!hireServiceForm.title.trim()) return;
+    if (!hireServiceForm.title.trim() || !hireServiceForm.category.trim() || !hireServiceForm.image) return;
 
     if (hireServiceDialogMode === 'edit' && activeHireService) {
       setHireContent((prev) => ({
@@ -748,6 +1025,303 @@ const AdminServicesPage = () => {
     closeHireServiceDeleteDialog();
   };
 
+  const openProcessCreateDialog = () => {
+    resetProcessForm();
+    setProcessDialogMode('create');
+    setActiveProcess(null);
+    setProcessDialogOpen(true);
+  };
+
+  const openProcessEditDialog = (item) => {
+    setProcessDialogMode('edit');
+    setActiveProcess(item);
+    setProcessForm({ ...item });
+    setProcessDialogOpen(true);
+  };
+
+  const closeProcessDialog = () => {
+    setProcessDialogOpen(false);
+    setActiveProcess(null);
+  };
+
+  const handleProcessSubmit = (event) => {
+    event?.preventDefault();
+    if (!processForm.title.trim() || !processForm.category.trim() || !processForm.image) return;
+
+    if (processDialogMode === 'edit' && activeProcess) {
+      setProcessList((prev) => prev.map((item) => (item.id === activeProcess.id ? { ...processForm } : item)));
+    } else {
+      const newItem = { ...processForm, id: `process-${Date.now()}` };
+      setProcessList((prev) => [newItem, ...prev]);
+    }
+
+    closeProcessDialog();
+  };
+
+  const openProcessDeleteDialog = (item) => setProcessToDelete(item);
+  const closeProcessDeleteDialog = () => setProcessToDelete(null);
+  const handleConfirmDeleteProcess = () => {
+    if (!processToDelete) return;
+    setProcessList((prev) => prev.filter((item) => item.id !== processToDelete.id));
+    closeProcessDeleteDialog();
+  };
+
+  const handleWhyVedxHeroSave = (event) => {
+    event?.preventDefault();
+    setWhyVedx((prev) => ({
+      ...prev,
+      heroTitle: whyVedxHeroForm.heroTitle,
+      heroDescription: whyVedxHeroForm.heroDescription,
+      heroImage: whyVedxHeroForm.heroImage,
+    }));
+  };
+
+  const openWhyVedxCreateDialog = () => {
+    resetWhyVedxForm();
+    setWhyVedxDialogMode('create');
+    setActiveWhyVedx(null);
+    setWhyVedxDialogOpen(true);
+  };
+
+  const openWhyVedxEditDialog = (item) => {
+    setWhyVedxDialogMode('edit');
+    setActiveWhyVedx(item);
+    setWhyVedxForm({ ...item });
+    setWhyVedxDialogOpen(true);
+  };
+
+  const closeWhyVedxDialog = () => {
+    setWhyVedxDialogOpen(false);
+    setActiveWhyVedx(null);
+  };
+
+  const handleWhyVedxSubmit = (event) => {
+    event?.preventDefault();
+    if (!whyVedxForm.title.trim() || !whyVedxForm.image) return;
+
+    if (whyVedxDialogMode === 'edit' && activeWhyVedx) {
+      setWhyVedx((prev) => ({
+        ...prev,
+        reasons: prev.reasons.map((item) => (item.id === activeWhyVedx.id ? { ...whyVedxForm } : item)),
+      }));
+    } else {
+      const newItem = { ...whyVedxForm, id: `why-vedx-${Date.now()}` };
+      setWhyVedx((prev) => ({ ...prev, reasons: [newItem, ...prev.reasons] }));
+    }
+
+    closeWhyVedxDialog();
+  };
+
+  const openWhyVedxDeleteDialog = (item) => setWhyVedxToDelete(item);
+  const closeWhyVedxDeleteDialog = () => setWhyVedxToDelete(null);
+  const handleConfirmDeleteWhyVedx = () => {
+    if (!whyVedxToDelete) return;
+    setWhyVedx((prev) => ({
+      ...prev,
+      reasons: prev.reasons.filter((item) => item.id !== whyVedxToDelete.id),
+    }));
+    closeWhyVedxDeleteDialog();
+  };
+
+  const openOurServiceCreateDialog = () => {
+    resetOurServiceForm();
+    setOurServiceDialogMode('create');
+    setActiveOurService(null);
+    setOurServiceDialogOpen(true);
+  };
+
+  const openOurServiceEditDialog = (item) => {
+    setOurServiceDialogMode('edit');
+    setActiveOurService(item);
+    setOurServiceForm({ ...item });
+    setOurServiceDialogOpen(true);
+  };
+
+  const closeOurServiceDialog = () => {
+    setOurServiceDialogOpen(false);
+    setActiveOurService(null);
+  };
+
+  const handleOurServiceSubmit = (event) => {
+    event?.preventDefault();
+    if (!ourServiceForm.title.trim() || !ourServiceForm.image) return;
+
+    if (ourServiceDialogMode === 'edit' && activeOurService) {
+      setOurServices((prev) => ({
+        ...prev,
+        services: prev.services.map((item) => (item.id === activeOurService.id ? { ...ourServiceForm } : item)),
+      }));
+    } else {
+      const newItem = { ...ourServiceForm, id: `our-service-${Date.now()}` };
+      setOurServices((prev) => ({ ...prev, services: [newItem, ...prev.services] }));
+    }
+
+    closeOurServiceDialog();
+  };
+
+  const openOurServiceDeleteDialog = (item) => setOurServiceToDelete(item);
+  const closeOurServiceDeleteDialog = () => setOurServiceToDelete(null);
+  const handleConfirmDeleteOurService = () => {
+    if (!ourServiceToDelete) return;
+    setOurServices((prev) => ({
+      ...prev,
+      services: prev.services.filter((item) => item.id !== ourServiceToDelete.id),
+    }));
+    closeOurServiceDeleteDialog();
+  };
+
+  const openIndustryCreateDialog = () => {
+    resetIndustryForm();
+    setIndustryDialogMode('create');
+    setActiveIndustry(null);
+    setIndustryDialogOpen(true);
+  };
+
+  const openIndustryEditDialog = (item) => {
+    setIndustryDialogMode('edit');
+    setActiveIndustry(item);
+    setIndustryForm({ ...item });
+    setIndustryDialogOpen(true);
+  };
+
+  const closeIndustryDialog = () => {
+    setIndustryDialogOpen(false);
+    setActiveIndustry(null);
+  };
+
+  const handleIndustrySubmit = (event) => {
+    event?.preventDefault();
+    if (!industryForm.title.trim() || !industryForm.image) return;
+
+    if (industryDialogMode === 'edit' && activeIndustry) {
+      setIndustries((prev) => ({
+        ...prev,
+        items: prev.items.map((item) => (item.id === activeIndustry.id ? { ...industryForm } : item)),
+      }));
+    } else {
+      const newItem = { ...industryForm, id: `industry-${Date.now()}` };
+      setIndustries((prev) => ({ ...prev, items: [newItem, ...prev.items] }));
+    }
+
+    closeIndustryDialog();
+  };
+
+  const openIndustryDeleteDialog = (item) => setIndustryToDelete(item);
+  const closeIndustryDeleteDialog = () => setIndustryToDelete(null);
+  const handleConfirmDeleteIndustry = () => {
+    if (!industryToDelete) return;
+    setIndustries((prev) => ({
+      ...prev,
+      items: prev.items.filter((item) => item.id !== industryToDelete.id),
+    }));
+    closeIndustryDeleteDialog();
+  };
+
+  const handleTechSolutionSubmit = (event) => {
+    event?.preventDefault();
+    if (!techSolutionForm.title.trim()) return;
+
+    if (techSolutionDialogMode === 'edit' && activeTechSolution) {
+      setTechSolutions((prev) => ({
+        ...prev,
+        solutions: prev.solutions.map((item) =>
+          item.id === activeTechSolution.id ? { ...techSolutionForm } : item
+        ),
+      }));
+    } else {
+      const newItem = { ...techSolutionForm, id: `tech-solution-${Date.now()}` };
+      setTechSolutions((prev) => ({ ...prev, solutions: [newItem, ...prev.solutions] }));
+    }
+
+    closeTechSolutionDialog();
+  };
+
+  const openTechSolutionCreateDialog = () => {
+    resetTechSolutionForm();
+    setTechSolutionDialogMode('create');
+    setActiveTechSolution(null);
+    setTechSolutionDialogOpen(true);
+  };
+
+  const openTechSolutionEditDialog = (item) => {
+    setTechSolutionDialogMode('edit');
+    setActiveTechSolution(item);
+    setTechSolutionForm({ ...item });
+    setTechSolutionDialogOpen(true);
+  };
+
+  const closeTechSolutionDialog = () => {
+    setTechSolutionDialogOpen(false);
+    setActiveTechSolution(null);
+  };
+
+  const openTechSolutionDeleteDialog = (item) => setTechSolutionToDelete(item);
+  const closeTechSolutionDeleteDialog = () => setTechSolutionToDelete(null);
+  const handleConfirmDeleteTechSolution = () => {
+    if (!techSolutionToDelete) return;
+    setTechSolutions((prev) => ({
+      ...prev,
+      solutions: prev.solutions.filter((item) => item.id !== techSolutionToDelete.id),
+    }));
+    closeTechSolutionDeleteDialog();
+  };
+
+  const handleExpertiseHeroSave = (event) => {
+    event?.preventDefault();
+    setExpertise((prev) => ({
+      ...prev,
+      title: expertiseHeroForm.title,
+      description: expertiseHeroForm.description,
+    }));
+  };
+
+  const openExpertiseCreateDialog = () => {
+    resetExpertiseForm();
+    setExpertiseDialogMode('create');
+    setActiveExpertise(null);
+    setExpertiseDialogOpen(true);
+  };
+
+  const openExpertiseEditDialog = (item) => {
+    setExpertiseDialogMode('edit');
+    setActiveExpertise(item);
+    setExpertiseForm({ ...item });
+    setExpertiseDialogOpen(true);
+  };
+
+  const closeExpertiseDialog = () => {
+    setExpertiseDialogOpen(false);
+    setActiveExpertise(null);
+  };
+
+  const handleExpertiseSubmit = (event) => {
+    event?.preventDefault();
+    if (!expertiseForm.title.trim() || !expertiseForm.image) return;
+
+    if (expertiseDialogMode === 'edit' && activeExpertise) {
+      setExpertise((prev) => ({
+        ...prev,
+        items: prev.items.map((item) => (item.id === activeExpertise.id ? { ...expertiseForm } : item)),
+      }));
+    } else {
+      const newItem = { ...expertiseForm, id: `expertise-${Date.now()}` };
+      setExpertise((prev) => ({ ...prev, items: [newItem, ...prev.items] }));
+    }
+
+    closeExpertiseDialog();
+  };
+
+  const openExpertiseDeleteDialog = (item) => setExpertiseToDelete(item);
+  const closeExpertiseDeleteDialog = () => setExpertiseToDelete(null);
+  const handleConfirmDeleteExpertise = () => {
+    if (!expertiseToDelete) return;
+    setExpertise((prev) => ({
+      ...prev,
+      items: prev.items.filter((item) => item.id !== expertiseToDelete.id),
+    }));
+    closeExpertiseDeleteDialog();
+  };
+
   const formattedTechnologyItems = useMemo(
     () => (technologyForm.items?.length ? technologyForm.items.join(', ') : ''),
     [technologyForm.items]
@@ -761,10 +1335,44 @@ const AdminServicesPage = () => {
     [services]
   );
 
-  const subcategoryOptions = useMemo(() => {
-    const selected = services.find((service) => service.category === whyServiceForm.category);
-    return selected?.subcategories || [];
-  }, [services, whyServiceForm.category]);
+  const subcategoryLookup = useMemo(() => {
+    const lookup = new Map();
+    services.forEach((service) => {
+      lookup.set(
+        service.category,
+        Array.from(new Set(service.subcategories.map((subcategory) => subcategory.name)))
+      );
+    });
+    return lookup;
+  }, [services]);
+
+  const allSubcategoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(services.flatMap((service) => service.subcategories.map((subcategory) => subcategory.name)))
+      ),
+    [services]
+  );
+
+  const serviceFormSubcategoryOptions = useMemo(() => {
+    if (!serviceForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, serviceForm.category, subcategoryLookup]);
+
+  const technologySubcategoryOptions = useMemo(() => {
+    if (!technologyForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(technologyForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, subcategoryLookup, technologyForm.category]);
+
+  const hireSubcategoryOptions = useMemo(() => {
+    if (!hireServiceForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(hireServiceForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, hireServiceForm.category, subcategoryLookup]);
+
+  const whySubcategoryOptions = useMemo(() => {
+    const options = subcategoryLookup.get(whyServiceForm.category) || [];
+    return options.map((option) => ({ name: option }));
+  }, [subcategoryLookup, whyServiceForm.category]);
 
   return (
     <Stack spacing={3}>
@@ -778,6 +1386,12 @@ const AdminServicesPage = () => {
           textColor="primary"
         >
           <Tab value="services" label="Service menu" />
+          <Tab value="process" label="Process" />
+          <Tab value="why-vedx" label="Why choose VedX" />
+          <Tab value="our-services" label="Our services" />
+          <Tab value="industries" label="Industries we serve" />
+          <Tab value="tech-solutions" label="Tech solutions" />
+          <Tab value="expertise" label="Expertise models" />
           <Tab value="why-choose" label="Why choose service" />
           <Tab value="technologies" label="Technologies we support" />
           <Tab value="benefits" label="Benefits" />
@@ -817,6 +1431,41 @@ const AdminServicesPage = () => {
                   </MenuItem>
                 ))}
               </TextField>
+              <Autocomplete
+                sx={{ minWidth: 220 }}
+                freeSolo
+                options={categoryOptions.map((option) => option.label)}
+                value={serviceCategoryFilter}
+                onInputChange={(event, newValue) => setServiceCategoryFilter(newValue || '')}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Category filter"
+                    placeholder="All categories"
+                    helperText="Show services for a specific category"
+                  />
+                )}
+              />
+              <Autocomplete
+                sx={{ minWidth: 220 }}
+                freeSolo
+                options={
+                  serviceCategoryFilter
+                    ? subcategoryLookup.get(serviceCategoryFilter) || []
+                    : allSubcategoryOptions
+                }
+                value={serviceSubcategoryFilter}
+                onInputChange={(event, newValue) => setServiceSubcategoryFilter(newValue || '')}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Sub-category filter"
+                    placeholder="All sub-categories"
+                    helperText="Filter by specific sub-category"
+                  />
+                )}
+                disabled={!serviceCategoryFilter && allSubcategoryOptions.length === 0}
+              />
               {serviceDateFilter === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                   <TextField
@@ -951,6 +1600,667 @@ const AdminServicesPage = () => {
                 onChange={(event, page) => setServicePage(page)}
                 color="primary"
               />
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'process' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Process"
+            subheader="Capture category and sub-category wise delivery steps with visuals."
+            action={
+              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openProcessCreateDialog}>
+                Add process step
+              </Button>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Sub-category</TableCell>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Image</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
+                    <TableRow key={item.id} hover>
+                      <TableCell>{item.category || '-'}</TableCell>
+                      <TableCell>{item.subcategory || '-'}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                      <TableCell>
+                        <Box
+                          component="img"
+                          src={item.image || imagePlaceholder}
+                          alt={`${item.title} visual`}
+                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 240 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {item.description}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Edit">
+                            <IconButton size="small" color="primary" onClick={() => openProcessEditDialog(item)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton size="small" color="error" onClick={() => openProcessDeleteDialog(item)}>
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {processList.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No process steps added yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(processList.length / rowsPerPage))}
+                page={processPage}
+                onChange={(event, page) => setProcessPage(page)}
+                color="primary"
+              />
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'why-vedx' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Why choose VedX Solutions"
+            subheader="Control headline, description, hero image, and proof points."
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <Box component="form" onSubmit={handleWhyVedxHeroSave} sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={8}>
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Title"
+                        value={whyVedxHeroForm.heroTitle}
+                        onChange={(event) => handleWhyVedxHeroChange('heroTitle', event.target.value)}
+                        fullWidth
+                      />
+                      <TextField
+                        label="Description"
+                        value={whyVedxHeroForm.heroDescription}
+                        onChange={(event) => handleWhyVedxHeroChange('heroDescription', event.target.value)}
+                        fullWidth
+                        multiline
+                        minRows={3}
+                      />
+                      <Button type="submit" variant="contained" sx={{ alignSelf: 'flex-start' }}>
+                        Save hero content
+                      </Button>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyVedxHeroForm.heroImage}
+                      onChange={(value) => handleWhyVedxHeroChange('heroImage', value)}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Stack spacing={1}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                  <Box>
+                    <Typography variant="h6">Reasons to choose us</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Add visuals, titles, and descriptions that appear below the hero section.
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={openWhyVedxCreateDialog}
+                    sx={{ mt: { xs: 1, sm: 0 } }}
+                  >
+                    Add reason
+                  </Button>
+                </Stack>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Title</TableCell>
+                        <TableCell>Image</TableCell>
+                        <TableCell>Description</TableCell>
+                        <TableCell align="right">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {whyVedx.reasons
+                        .slice((whyVedxPage - 1) * rowsPerPage, whyVedxPage * rowsPerPage)
+                        .map((item) => (
+                          <TableRow key={item.id} hover>
+                            <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                            <TableCell>
+                              <Box
+                                component="img"
+                                src={item.image || imagePlaceholder}
+                                alt={`${item.title} visual`}
+                                sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                              />
+                            </TableCell>
+                            <TableCell sx={{ maxWidth: 280 }}>
+                              <Typography variant="body2" color="text.secondary" noWrap>
+                                {item.description}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                <Tooltip title="Edit">
+                                  <IconButton size="small" color="primary" onClick={() => openWhyVedxEditDialog(item)}>
+                                    <EditOutlinedIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton size="small" color="error" onClick={() => openWhyVedxDeleteDialog(item)}>
+                                    <DeleteOutlineIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      {whyVedx.reasons.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4}>
+                            <Typography variant="body2" color="text.secondary" align="center">
+                              No reasons added yet.
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Stack mt={2} alignItems="flex-end">
+                  <Pagination
+                    count={Math.max(1, Math.ceil(whyVedx.reasons.length / rowsPerPage))}
+                    page={whyVedxPage}
+                    onChange={(event, page) => setWhyVedxPage(page)}
+                    color="primary"
+                  />
+                </Stack>
+              </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'our-services' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Our services"
+            subheader="Manage slider title/description and the list of showcased services."
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Slider title"
+                    value={ourServices.sliderTitle}
+                    onChange={(event) => setOurServices((prev) => ({ ...prev, sliderTitle: event.target.value }))}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Slider description"
+                    value={ourServices.sliderDescription}
+                    onChange={(event) =>
+                      setOurServices((prev) => ({ ...prev, sliderDescription: event.target.value }))
+                    }
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                <Box>
+                  <Typography variant="h6">Service cards</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Add the services that appear in the carousel with images and subtitles.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={openOurServiceCreateDialog}
+                  sx={{ mt: { xs: 1, sm: 0 } }}
+                >
+                  Add service card
+                </Button>
+              </Stack>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Subtitle</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {ourServices.services
+                      .slice((ourServicePage - 1) * rowsPerPage, ourServicePage * rowsPerPage)
+                      .map((item) => (
+                        <TableRow key={item.id} hover>
+                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                          <TableCell sx={{ maxWidth: 240 }}>
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {item.subtitle}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              component="img"
+                              src={item.image || imagePlaceholder}
+                              alt={`${item.title} visual`}
+                              sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" color="primary" onClick={() => openOurServiceEditDialog(item)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton size="small" color="error" onClick={() => openOurServiceDeleteDialog(item)}>
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {ourServices.services.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <Typography variant="body2" color="text.secondary" align="center">
+                            No service cards configured yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(ourServices.services.length / rowsPerPage))}
+                  page={ourServicePage}
+                  onChange={(event, page) => setOurServicePage(page)}
+                  color="primary"
+                />
+              </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'industries' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Industry we serve"
+            subheader="Set the headline and list of industries with imagery."
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Title"
+                    value={industries.title}
+                    onChange={(event) => setIndustries((prev) => ({ ...prev, title: event.target.value }))}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Description"
+                    value={industries.description}
+                    onChange={(event) => setIndustries((prev) => ({ ...prev, description: event.target.value }))}
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                <Box>
+                  <Typography variant="h6">Industries</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Upload images, set titles, and describe each industry you support.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={openIndustryCreateDialog}
+                  sx={{ mt: { xs: 1, sm: 0 } }}
+                >
+                  Add industry
+                </Button>
+              </Stack>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {industries.items
+                      .slice((industryPage - 1) * rowsPerPage, industryPage * rowsPerPage)
+                      .map((item) => (
+                        <TableRow key={item.id} hover>
+                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                          <TableCell>
+                            <Box
+                              component="img"
+                              src={item.image || imagePlaceholder}
+                              alt={`${item.title} visual`}
+                              sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 260 }}>
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {item.description}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" color="primary" onClick={() => openIndustryEditDialog(item)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton size="small" color="error" onClick={() => openIndustryDeleteDialog(item)}>
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {industries.items.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <Typography variant="body2" color="text.secondary" align="center">
+                            No industries configured yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(industries.items.length / rowsPerPage))}
+                  page={industryPage}
+                  onChange={(event, page) => setIndustryPage(page)}
+                  color="primary"
+                />
+              </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'tech-solutions' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Tech solutions for all business types"
+            subheader="Control heading, copy, and business-type specific solutions."
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Title"
+                    value={techSolutions.title}
+                    onChange={(event) => setTechSolutions((prev) => ({ ...prev, title: event.target.value }))}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Description"
+                    value={techSolutions.description}
+                    onChange={(event) => setTechSolutions((prev) => ({ ...prev, description: event.target.value }))}
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                <Box>
+                  <Typography variant="h6">Business solutions</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Add solution cards for each business type with concise descriptions.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={openTechSolutionCreateDialog}
+                  sx={{ mt: { xs: 1, sm: 0 } }}
+                >
+                  Add solution
+                </Button>
+              </Stack>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {techSolutions.solutions
+                      .slice((techSolutionPage - 1) * rowsPerPage, techSolutionPage * rowsPerPage)
+                      .map((item) => (
+                        <TableRow key={item.id} hover>
+                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                          <TableCell sx={{ maxWidth: 360 }}>
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {item.description}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" color="primary" onClick={() => openTechSolutionEditDialog(item)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton size="small" color="error" onClick={() => openTechSolutionDeleteDialog(item)}>
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {techSolutions.solutions.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3}>
+                          <Typography variant="body2" color="text.secondary" align="center">
+                            No tech solutions yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(techSolutions.solutions.length / rowsPerPage))}
+                  page={techSolutionPage}
+                  onChange={(event, page) => setTechSolutionPage(page)}
+                  color="primary"
+                />
+              </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'expertise' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader title="Ways to choose our expertise" subheader="Control headline, description, and expert cards." />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Title"
+                    value={expertiseHeroForm.title}
+                    onChange={(event) => handleExpertiseHeroChange('title', event.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Description"
+                    value={expertiseHeroForm.description}
+                    onChange={(event) => handleExpertiseHeroChange('description', event.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+              <Button variant="contained" onClick={handleExpertiseHeroSave} sx={{ alignSelf: 'flex-start' }}>
+                Save intro
+              </Button>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                <Box>
+                  <Typography variant="h6">Expertise options</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Add cards with images, titles, and descriptions for each engagement model.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={openExpertiseCreateDialog}
+                  sx={{ mt: { xs: 1, sm: 0 } }}
+                >
+                  Add option
+                </Button>
+              </Stack>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {expertise.items
+                      .slice((expertisePage - 1) * rowsPerPage, expertisePage * rowsPerPage)
+                      .map((item) => (
+                        <TableRow key={item.id} hover>
+                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                          <TableCell>
+                            <Box
+                              component="img"
+                              src={item.image || imagePlaceholder}
+                              alt={`${item.title} visual`}
+                              sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 260 }}>
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {item.description}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" color="primary" onClick={() => openExpertiseEditDialog(item)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton size="small" color="error" onClick={() => openExpertiseDeleteDialog(item)}>
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {expertise.items.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <Typography variant="body2" color="text.secondary" align="center">
+                            No expertise cards configured yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(expertise.items.length / rowsPerPage))}
+                  page={expertisePage}
+                  onChange={(event, page) => setExpertisePage(page)}
+                  color="primary"
+                />
+              </Stack>
             </Stack>
           </CardContent>
         </Card>
@@ -1129,6 +2439,8 @@ const AdminServicesPage = () => {
               <Table size="small">
                 <TableHead>
                   <TableRow>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Sub-category</TableCell>
                     <TableCell>Title</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Items</TableCell>
@@ -1138,6 +2450,8 @@ const AdminServicesPage = () => {
                 <TableBody>
                   {pagedTechnologies.map((tech) => (
                     <TableRow key={tech.id} hover>
+                      <TableCell>{tech.category || '-'}</TableCell>
+                      <TableCell>{tech.subcategory || '-'}</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>{tech.title}</TableCell>
                       <TableCell>
                         <Box
@@ -1176,7 +2490,7 @@ const AdminServicesPage = () => {
                   ))}
                   {technologies.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No technology groups configured yet.
                         </Typography>
@@ -1346,7 +2660,10 @@ const AdminServicesPage = () => {
                 <Table size="small">
                   <TableHead>
                     <TableRow>
+                      <TableCell>Category</TableCell>
+                      <TableCell>Sub-category</TableCell>
                       <TableCell>Title</TableCell>
+                      <TableCell>Image</TableCell>
                       <TableCell>Description</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
@@ -1354,7 +2671,17 @@ const AdminServicesPage = () => {
                   <TableBody>
                     {pagedHireServices.map((service) => (
                       <TableRow key={service.id} hover>
+                        <TableCell>{service.category || '-'}</TableCell>
+                        <TableCell>{service.subcategory || '-'}</TableCell>
                         <TableCell sx={{ fontWeight: 700 }}>{service.title}</TableCell>
+                        <TableCell>
+                          <Box
+                            component="img"
+                            src={service.image || imagePlaceholder}
+                            alt={`${service.title} visual`}
+                            sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                          />
+                        </TableCell>
                         <TableCell sx={{ maxWidth: 320 }}>
                           <Typography variant="body2" color="text.secondary" noWrap>
                             {service.description}
@@ -1386,7 +2713,7 @@ const AdminServicesPage = () => {
                     ))}
                     {hireContent.services.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={3}>
+                        <TableCell colSpan={5}>
                           <Typography variant="body2" color="text.secondary" align="center">
                             No hire developer services configured yet.
                           </Typography>
@@ -1415,48 +2742,43 @@ const AdminServicesPage = () => {
           <Stack spacing={2} component="form" onSubmit={handleServiceSubmit}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Category"
+                <Autocomplete
+                  freeSolo
+                  options={categoryOptions.map((option) => option.label)}
                   value={serviceForm.category}
-                  onChange={(event) => handleServiceFormChange('category', event.target.value)}
-                  fullWidth
-                  required
+                  onInputChange={(event, newValue) =>
+                    handleServiceFormChange('category', newValue || '')
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Category" required helperText="Choose or type a category" />
+                  )}
                 />
               </Grid>
               <Grid item xs={12}>
-                <Stack spacing={1.5}>
-                  <Typography variant="subtitle2">Sub-categories</Typography>
-                  <Grid container spacing={1} alignItems="center">
-                    <Grid item xs={12} sm={5}>
-                      <TextField
-                        label="Name"
-                        value={subcategoryDraft.name}
-                        onChange={(event) => setSubcategoryDraft((prev) => ({ ...prev, name: event.target.value }))}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={2}>
-                      <Button fullWidth variant="outlined" onClick={addSubcategory} startIcon={<AddCircleOutlineIcon />}>
-                        Add
-                      </Button>
-                    </Grid>
-                  </Grid>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                    {serviceForm.subcategories.map((item) => (
-                      <Chip
-                        key={item.name}
-                        label={item.name}
-                        onDelete={() => removeSubcategory(item.name)}
-                        size="small"
-                      />
-                    ))}
-                    {!serviceForm.subcategories.length && (
-                      <Typography variant="body2" color="text.secondary">
-                        Add categories and sub-categories to manage your service list.
-                      </Typography>
-                    )}
-                  </Stack>
-                </Stack>
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={serviceFormSubcategoryOptions}
+                  value={serviceForm.subcategories.map((item) => item.name)}
+                  onChange={(event, newValue) =>
+                    setServiceForm((prev) => ({
+                      ...prev,
+                      subcategories: newValue.map((name) => ({ name })),
+                    }))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Sub-categories"
+                      placeholder="Select or type sub-categories"
+                      helperText={
+                        serviceForm.category
+                          ? 'Linked to the selected service category'
+                          : 'No category selected—showing all known sub-categories'
+                      }
+                    />
+                  )}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -1700,16 +3022,16 @@ const AdminServicesPage = () => {
               value={whyServiceForm.subcategory}
               onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
               fullWidth
-              disabled={!whyServiceForm.category || subcategoryOptions.length === 0}
+              disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
               helperText={
                 !whyServiceForm.category
                   ? 'Select a category first'
-                  : subcategoryOptions.length === 0
+                  : whySubcategoryOptions.length === 0
                   ? 'No sub-categories available for this category'
                   : undefined
               }
             >
-              {subcategoryOptions.map((option) => (
+              {whySubcategoryOptions.map((option) => (
                 <MenuItem key={option.name} value={option.name}>
                   {option.name}
                 </MenuItem>
@@ -1763,6 +3085,42 @@ const AdminServicesPage = () => {
         <DialogTitle>{technologyDialogMode === 'edit' ? 'Edit technology block' : 'Add technology block'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleTechnologySubmit}>
+            <Autocomplete
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={technologyForm.category}
+              onInputChange={(event, newValue) =>
+                setTechnologyForm((prev) => ({
+                  ...prev,
+                  category: newValue || '',
+                  subcategory: newValue === prev.category ? prev.subcategory : '',
+                }))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  required
+                  helperText="Match the service category for this technology block"
+                />
+              )}
+            />
+            <Autocomplete
+              freeSolo
+              options={technologySubcategoryOptions}
+              value={technologyForm.subcategory}
+              onInputChange={(event, newValue) =>
+                handleTechnologyFormChange('subcategory', newValue || '')
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sub-category"
+                  helperText="Keep stacks aligned to category and sub-category"
+                />
+              )}
+              disabled={!technologyForm.category && technologySubcategoryOptions.length === 0}
+            />
             <TextField
               label="Title"
               value={technologyForm.title}
@@ -1843,6 +3201,7 @@ const AdminServicesPage = () => {
               fullWidth
               multiline
               minRows={3}
+              required
             />
           </Stack>
         </DialogContent>
@@ -1873,10 +3232,377 @@ const AdminServicesPage = () => {
         </DialogActions>
       </Dialog>
 
+      <Dialog open={processDialogOpen} onClose={closeProcessDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{processDialogMode === 'edit' ? 'Edit process step' : 'Add process step'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleProcessSubmit}>
+            <Autocomplete
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={processForm.category}
+              onInputChange={(event, newValue) => handleProcessChange('category', newValue || '')}
+              renderInput={(params) => <TextField {...params} label="Category" required />}
+            />
+            <Autocomplete
+              freeSolo
+              options={subcategoryLookup.get(processForm.category) || allSubcategoryOptions}
+              value={processForm.subcategory}
+              onInputChange={(event, newValue) => handleProcessChange('subcategory', newValue || '')}
+              renderInput={(params) => <TextField {...params} label="Sub-category" />}
+              disabled={!processForm.category && allSubcategoryOptions.length === 0}
+            />
+            <TextField
+              label="Title"
+              value={processForm.title}
+              onChange={(event) => handleProcessChange('title', event.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={processForm.description}
+              onChange={(event) => handleProcessChange('description', event.target.value)}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+            <ImageUpload
+              label="Process image"
+              value={processForm.image}
+              onChange={(value) => handleProcessChange('image', value)}
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeProcessDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleProcessSubmit} variant="contained">
+            {processDialogMode === 'edit' ? 'Save changes' : 'Add process step'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(processToDelete)} onClose={closeProcessDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete process step</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{processToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeProcessDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteProcess} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={whyVedxDialogOpen} onClose={closeWhyVedxDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{whyVedxDialogMode === 'edit' ? 'Edit reason' : 'Add reason'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleWhyVedxSubmit}>
+            <TextField
+              label="Title"
+              value={whyVedxForm.title}
+              onChange={(event) => setWhyVedxForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={whyVedxForm.description}
+              onChange={(event) => setWhyVedxForm((prev) => ({ ...prev, description: event.target.value }))}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+            <ImageUpload
+              label="Reason image"
+              value={whyVedxForm.image}
+              onChange={(value) => setWhyVedxForm((prev) => ({ ...prev, image: value }))}
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeWhyVedxDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleWhyVedxSubmit} variant="contained">
+            {whyVedxDialogMode === 'edit' ? 'Save changes' : 'Add reason'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(whyVedxToDelete)} onClose={closeWhyVedxDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete reason</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{whyVedxToDelete?.title}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeWhyVedxDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteWhyVedx} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={ourServiceDialogOpen} onClose={closeOurServiceDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{ourServiceDialogMode === 'edit' ? 'Edit service card' : 'Add service card'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleOurServiceSubmit}>
+            <TextField
+              label="Title"
+              value={ourServiceForm.title}
+              onChange={(event) => setOurServiceForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Subtitle"
+              value={ourServiceForm.subtitle}
+              onChange={(event) => setOurServiceForm((prev) => ({ ...prev, subtitle: event.target.value }))}
+              fullWidth
+            />
+            <ImageUpload
+              label="Service image"
+              value={ourServiceForm.image}
+              onChange={(value) => setOurServiceForm((prev) => ({ ...prev, image: value }))}
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeOurServiceDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleOurServiceSubmit} variant="contained">
+            {ourServiceDialogMode === 'edit' ? 'Save changes' : 'Add service card'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(ourServiceToDelete)} onClose={closeOurServiceDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete service card</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{ourServiceToDelete?.title}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeOurServiceDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteOurService} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={industryDialogOpen} onClose={closeIndustryDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{industryDialogMode === 'edit' ? 'Edit industry' : 'Add industry'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleIndustrySubmit}>
+            <TextField
+              label="Title"
+              value={industryForm.title}
+              onChange={(event) => setIndustryForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={industryForm.description}
+              onChange={(event) => setIndustryForm((prev) => ({ ...prev, description: event.target.value }))}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+            <ImageUpload
+              label="Industry image"
+              value={industryForm.image}
+              onChange={(value) => setIndustryForm((prev) => ({ ...prev, image: value }))}
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeIndustryDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleIndustrySubmit} variant="contained">
+            {industryDialogMode === 'edit' ? 'Save changes' : 'Add industry'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(industryToDelete)} onClose={closeIndustryDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete industry</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{industryToDelete?.title}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeIndustryDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteIndustry} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={techSolutionDialogOpen} onClose={closeTechSolutionDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{techSolutionDialogMode === 'edit' ? 'Edit solution' : 'Add solution'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleTechSolutionSubmit}>
+            <TextField
+              label="Title"
+              value={techSolutionForm.title}
+              onChange={(event) => setTechSolutionForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={techSolutionForm.description}
+              onChange={(event) => setTechSolutionForm((prev) => ({ ...prev, description: event.target.value }))}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeTechSolutionDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleTechSolutionSubmit} variant="contained">
+            {techSolutionDialogMode === 'edit' ? 'Save changes' : 'Add solution'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(techSolutionToDelete)} onClose={closeTechSolutionDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete solution</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{techSolutionToDelete?.title}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeTechSolutionDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteTechSolution} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={expertiseDialogOpen} onClose={closeExpertiseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{expertiseDialogMode === 'edit' ? 'Edit expertise option' : 'Add expertise option'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleExpertiseSubmit}>
+            <TextField
+              label="Title"
+              value={expertiseForm.title}
+              onChange={(event) => setExpertiseForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={expertiseForm.description}
+              onChange={(event) => setExpertiseForm((prev) => ({ ...prev, description: event.target.value }))}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+            <ImageUpload
+              label="Option image"
+              value={expertiseForm.image}
+              onChange={(value) => setExpertiseForm((prev) => ({ ...prev, image: value }))}
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeExpertiseDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleExpertiseSubmit} variant="contained">
+            {expertiseDialogMode === 'edit' ? 'Save changes' : 'Add option'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(expertiseToDelete)} onClose={closeExpertiseDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete expertise option</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{expertiseToDelete?.title}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeExpertiseDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteExpertise} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={hireServiceDialogOpen} onClose={closeHireServiceDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{hireServiceDialogMode === 'edit' ? 'Edit hire service' : 'Add hire service'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleHireServiceSubmit}>
+            <Autocomplete
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={hireServiceForm.category}
+              onInputChange={(event, newValue) =>
+                setHireServiceForm((prev) => ({
+                  ...prev,
+                  category: newValue || '',
+                  subcategory: newValue === prev.category ? prev.subcategory : '',
+                }))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Service category"
+                  required
+                  helperText="Link hire cards to a service category"
+                />
+              )}
+            />
+            <Autocomplete
+              freeSolo
+              options={hireSubcategoryOptions}
+              value={hireServiceForm.subcategory}
+              onInputChange={(event, newValue) =>
+                handleHireServiceFormChange('subcategory', newValue || '')
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sub-category"
+                  helperText="Pick the sub-category for this hire option"
+                />
+              )}
+              disabled={!hireServiceForm.category && hireSubcategoryOptions.length === 0}
+            />
             <TextField
               label="Title"
               value={hireServiceForm.title}
@@ -1891,6 +3617,12 @@ const AdminServicesPage = () => {
               fullWidth
               multiline
               minRows={3}
+            />
+            <ImageUpload
+              label="Service image"
+              value={hireServiceForm.image}
+              onChange={(value) => handleHireServiceFormChange('image', value)}
+              required
             />
           </Stack>
         </DialogContent>

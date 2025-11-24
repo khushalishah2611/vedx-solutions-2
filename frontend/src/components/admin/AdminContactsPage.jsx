@@ -38,6 +38,7 @@ const initialContacts = [
     phone: '+91 90210 12345',
     countryCode: 'IN',
     projectType: 'Web Application',
+    contactType: 'Sales',
     description: 'Needs a responsive MVP to validate the new SaaS idea. Looking for a fast turnaround.',
     status: 'New',
     receivedOn: '2024-07-12',
@@ -52,6 +53,7 @@ const initialContacts = [
     phone: '+91 99887 66554',
     countryCode: 'IN',
     projectType: 'Product Design',
+    contactType: 'Partnership',
     description: 'Interested in collaborating on UI/UX audit and brand refresh for premium clients.',
     status: 'In progress',
     receivedOn: '2024-07-10',
@@ -65,6 +67,7 @@ const initialContacts = [
     phone: '+91 91234 55667',
     countryCode: 'IN',
     projectType: 'Mobile App',
+    contactType: 'Support',
     description: 'Requested an estimate for logistics tracking app with driver onboarding.',
     status: 'Replied',
     receivedOn: '2024-07-08',
@@ -131,6 +134,7 @@ const defaultFilters = {
   name: '',
   email: '',
   phone: '',
+  contactType: 'all',
   status: 'all',
   date: 'all',
   start: '',
@@ -146,6 +150,11 @@ const AdminContactsPage = () => {
 
   const projectTypes = useMemo(
     () => ['Web Application', 'Mobile App', 'Product Design', 'Consulting', 'Other'],
+    []
+  );
+
+  const contactTypes = useMemo(
+    () => ['Sales', 'Support', 'Partnership', 'General enquiry'],
     []
   );
 
@@ -168,9 +177,11 @@ const AdminContactsPage = () => {
         const emailMatch = !appliedFilters.email || matchesQuery(contact.email, appliedFilters.email);
         const phoneMatch =
           !appliedFilters.phone || matchesQuery(`${contact.countryCode} ${contact.phone}`, appliedFilters.phone);
+        const contactTypeMatch =
+          appliedFilters.contactType === 'all' || contact.contactType === appliedFilters.contactType;
         const statusMatch = appliedFilters.status === 'all' || contact.status === appliedFilters.status;
         const dateMatch = matchesDateFilter(contact.receivedOn, appliedFilters.date, appliedFilters);
-        return nameMatch && emailMatch && phoneMatch && statusMatch && dateMatch;
+        return nameMatch && emailMatch && phoneMatch && statusMatch && dateMatch && contactTypeMatch;
       }),
     [contactList, appliedFilters]
   );
@@ -259,6 +270,8 @@ const AdminContactsPage = () => {
     if (appliedFilters.name) chips.push({ key: 'name', label: `Name: ${appliedFilters.name}` });
     if (appliedFilters.email) chips.push({ key: 'email', label: `Email: ${appliedFilters.email}` });
     if (appliedFilters.phone) chips.push({ key: 'phone', label: `Mobile: ${appliedFilters.phone}` });
+    if (appliedFilters.contactType !== 'all')
+      chips.push({ key: 'contactType', label: `Type: ${appliedFilters.contactType}` });
     if (appliedFilters.status !== 'all') chips.push({ key: 'status', label: `Status: ${appliedFilters.status}` });
     if (appliedFilters.date !== 'all') {
       const rangeLabel =
@@ -300,6 +313,20 @@ const AdminContactsPage = () => {
                 onChange={(event) => setFilterDraft((prev) => ({ ...prev, phone: event.target.value }))}
                 fullWidth
               />
+              <TextField
+                select
+                label="Contact type"
+                value={filterDraft.contactType}
+                onChange={(event) => setFilterDraft((prev) => ({ ...prev, contactType: event.target.value }))}
+                sx={{ minWidth: 180 }}
+              >
+                <MenuItem value="all">All types</MenuItem>
+                {contactTypes.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </TextField>
               <TextField
                 select
                 label="Status"
@@ -376,6 +403,7 @@ const AdminContactsPage = () => {
                   <TableRow>
                     <TableCell>Contact</TableCell>
                     <TableCell>Email &amp; Phone</TableCell>
+                    <TableCell>Contact Type</TableCell>
                     <TableCell>Project Type</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell>Received</TableCell>
@@ -403,6 +431,11 @@ const AdminContactsPage = () => {
                             {`${contact.countryCode} · ${contact.phone}`}
                           </Typography>
                         </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.primary" fontWeight={600} noWrap>
+                          {contact.contactType}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="text.primary" fontWeight={500}>
@@ -517,19 +550,34 @@ const AdminContactsPage = () => {
                   onChange={(event) => handleEditChange('phone', event.target.value)}
                 />
               </Stack>
-              <TextField
-                select
-                label="Project type"
-                value={editForm.projectType}
-                onChange={(event) => handleEditChange('projectType', event.target.value)}
-                fullWidth
-              >
-                {projectTypes.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </TextField>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  select
+                  label="Contact type"
+                  value={editForm.contactType}
+                  onChange={(event) => handleEditChange('contactType', event.target.value)}
+                  fullWidth
+                >
+                  {contactTypes.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  label="Project type"
+                  value={editForm.projectType}
+                  onChange={(event) => handleEditChange('projectType', event.target.value)}
+                  fullWidth
+                >
+                  {projectTypes.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
               <TextField
                 label="Description"
                 value={editForm.description}
@@ -628,6 +676,15 @@ const AdminContactsPage = () => {
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
                   {viewingContact.projectType}
+                </Typography>
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Contact type
+                </Typography>
+                <Typography variant="body1" fontWeight={600}>
+                  {viewingContact.contactType}
                 </Typography>
               </Stack>
 

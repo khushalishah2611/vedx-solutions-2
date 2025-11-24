@@ -45,6 +45,15 @@ const normalizeConclusion = (conclusion) => {
   return '';
 };
 
+const deriveStatusFromDate = (blog) => {
+  const publishDate = normalizeDateInput(blog.publishDate);
+  const today = new Date().toISOString().split('T')[0];
+
+  if (blog.status === 'Draft') return 'Draft';
+  if (publishDate > today) return 'Scheduled';
+  return 'Published';
+};
+
 const mapBlogPostsToRows = (posts) =>
   posts.slice(0, 5).map((post) => ({
     id: post.slug,
@@ -53,9 +62,10 @@ const mapBlogPostsToRows = (posts) =>
     publishDate: normalizeDateInput(post.publishedOn),
     description: post.excerpt,
     conclusion: normalizeConclusion(post.conclusion),
+    status: 'Published',
     textColor: '#1f2937',
     isBold: false
-  }));
+  })).map((blog) => ({ ...blog, status: deriveStatusFromDate(blog) }));
 
 const dateFilterOptions = [
   { value: 'all', label: 'All dates' },
@@ -109,7 +119,7 @@ const matchesDateFilter = (value, filter, range) => {
   }
 };
 
-const defaultBlogFilters = { category: 'all', date: 'all', start: '', end: '' };
+const defaultBlogFilters = { category: 'all', status: 'all', date: 'all', start: '', end: '' };
 
 const AdminBlogsPage = () => {
   const categoryOptions = useMemo(
@@ -130,6 +140,7 @@ const AdminBlogsPage = () => {
     publishDate: new Date().toISOString().split('T')[0],
     description: '',
     conclusion: '',
+    status: 'Draft',
     textColor: '#1f2937',
     isBold: false
   });
@@ -144,12 +155,28 @@ const AdminBlogsPage = () => {
   const [filterDraft, setFilterDraft] = useState(defaultBlogFilters);
   const [appliedFilters, setAppliedFilters] = useState(defaultBlogFilters);
 
+  useEffect(() => {
+    const normalizedBlogs = blogList.map((blog) => {
+      const nextStatus = deriveStatusFromDate(blog);
+      if (nextStatus !== blog.status) {
+        return { ...blog, status: nextStatus };
+      }
+      return blog;
+    });
+
+    const hasChanges = normalizedBlogs.some((blog, index) => blog !== blogList[index]);
+    if (hasChanges) {
+      setBlogList(normalizedBlogs);
+    }
+  }, [blogList]);
+
   const filteredBlogs = useMemo(
     () =>
       blogList.filter((blog) => {
         const categoryMatch = appliedFilters.category === 'all' || blog.category === appliedFilters.category;
+        const statusMatch = appliedFilters.status === 'all' || blog.status === appliedFilters.status;
         const dateMatch = matchesDateFilter(blog.publishDate, appliedFilters.date, appliedFilters);
-        return categoryMatch && dateMatch;
+        return categoryMatch && dateMatch && statusMatch;
       }),
     [blogList, appliedFilters]
   );
@@ -179,6 +206,7 @@ const AdminBlogsPage = () => {
       publishDate: new Date().toISOString().split('T')[0],
       description: '',
       conclusion: '',
+      status: 'Draft',
       textColor: '#1f2937',
       isBold: false
     });
@@ -217,6 +245,7 @@ const AdminBlogsPage = () => {
   const activeFilterChips = useMemo(() => {
     const chips = [];
     if (appliedFilters.category !== 'all') chips.push({ key: 'category', label: `Category: ${appliedFilters.category}` });
+    if (appliedFilters.status !== 'all') chips.push({ key: 'status', label: `Status: ${appliedFilters.status}` });
     if (appliedFilters.date !== 'all') {
       const rangeLabel =
         appliedFilters.date === 'custom'
@@ -235,17 +264,19 @@ const AdminBlogsPage = () => {
     event?.preventDefault();
     if (!formState.title.trim() || !formState.description.trim()) return;
 
+    const nextState = { ...formState, status: deriveStatusFromDate(formState) };
+
     if (dialogMode === 'edit' && activeBlog) {
       // update existing draft
       setBlogList((prev) =>
         prev.map((blog) =>
-          blog.id === activeBlog.id ? { ...formState } : blog
+          blog.id === activeBlog.id ? { ...nextState } : blog
         )
       );
     } else {
       // create new draft
       const newEntry = {
-        ...formState,
+        ...nextState,
         id: `${Date.now()}`
       };
       setBlogList((prev) => [newEntry, ...prev]);
@@ -311,6 +342,18 @@ const AdminBlogsPage = () => {
             </TextField>
             <TextField
               select
+              label="Status"
+              value={filterDraft.status}
+              onChange={(event) => setFilterDraft((prev) => ({ ...prev, status: event.target.value }))}
+              sx={{ minWidth: 180 }}
+            >
+              <MenuItem value="all">All statuses</MenuItem>
+              <MenuItem value="Draft">Draft</MenuItem>
+              <MenuItem value="Published">Published</MenuItem>
+              <MenuItem value="Scheduled">Scheduled</MenuItem>
+            </TextField>
+            <TextField
+              select
               label="Publish date"
               value={filterDraft.date}
               onChange={(event) => setFilterDraft((prev) => ({ ...prev, date: event.target.value }))}
@@ -369,8 +412,9 @@ const AdminBlogsPage = () => {
                 <TableRow>
                   <TableCell>Title</TableCell>
                   <TableCell>Category</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell>Publish Date</TableCell>
-
+                  <TableCell>Summary</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -396,9 +440,23 @@ const AdminBlogsPage = () => {
                         variant="outlined"
                       />
                     </TableCell>
-                    <TableCell width="16%">
+                    <TableCell width="14%">
+                      <Chip
+                        label={blog.status}
+                        size="small"
+                        color={blog.status === 'Draft' ? 'default' : 'success'}
+                        variant="outlined"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell width="14%">
                       <Typography variant="body2" color="text.secondary">
                         {blog.publishDate}
+                      </Typography>
+                    </TableCell>
+                    <TableCell width="22%">
+                      <Typography variant="body2" color="text.secondary" noWrap>
+                        {blog.description || 'No summary added yet.'}
                       </Typography>
                     </TableCell>
 
@@ -437,7 +495,7 @@ const AdminBlogsPage = () => {
                 ))}
                 {filteredBlogs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4}>
+                    <TableCell colSpan={6}>
                       <Typography
                         variant="body2"
                         color="text.secondary"
@@ -497,6 +555,7 @@ const AdminBlogsPage = () => {
               onChange={(event) => handleFormChange('publishDate', event.target.value)}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              helperText="Scheduled posts publish automatically on this date"
               sx={{
                 '& input[type="date"]::-webkit-calendar-picker-indicator': {
                   filter: 'invert(1)',
@@ -504,6 +563,17 @@ const AdminBlogsPage = () => {
                 }
               }}
             />
+            <TextField
+              select
+              label="Status"
+              value={formState.status}
+              onChange={(event) => handleFormChange('status', event.target.value)}
+              fullWidth
+            >
+              <MenuItem value="Draft">Draft</MenuItem>
+              <MenuItem value="Published">Published</MenuItem>
+              <MenuItem value="Scheduled">Scheduled</MenuItem>
+            </TextField>
             <TextField
               label="Description"
               placeholder="Write a short description for the blog post"
@@ -556,6 +626,12 @@ const AdminBlogsPage = () => {
                   label={viewBlog.category}
                   size="small"
                   color="primary"
+                  variant="outlined"
+                />
+                <Chip
+                  label={viewBlog.status}
+                  size="small"
+                  color={viewBlog.status === 'Draft' ? 'default' : 'success'}
                   variant="outlined"
                 />
                 <Typography variant="body2" color="text.secondary">

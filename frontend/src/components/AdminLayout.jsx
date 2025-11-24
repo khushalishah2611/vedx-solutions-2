@@ -27,6 +27,8 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
 import DesignServicesOutlinedIcon from '@mui/icons-material/DesignServicesOutlined';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import adminProfile from '../data/adminProfile.js';
@@ -50,6 +52,8 @@ const AdminLayout = () => {
       { label: 'Contacts', icon: <ContactsRoundedIcon />, to: '/admin/contacts' },
       { label: 'Careers', icon: <WorkOutlineOutlinedIcon />, to: '/admin/careers' },
       { label: 'Services', icon: <DesignServicesOutlinedIcon />, to: '/admin/services' },
+      { label: 'Feedbacks', icon: <RateReviewOutlinedIcon />, to: '/admin/feedbacks' },
+      { label: 'Navigation', icon: <CategoryOutlinedIcon />, to: '/admin/navigation' },
       { label: 'Blogs', icon: <ArticleOutlinedIcon />, to: '/admin/blogs' },
       { label: 'Profile', icon: <ManageAccountsRoundedIcon />, to: '/admin/profile' },
       { label: 'Change Password', icon: <LockResetRoundedIcon />, to: '/admin/change-password' }

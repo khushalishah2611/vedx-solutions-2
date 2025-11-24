@@ -13,6 +13,8 @@ import AdminServicesPage from './components/admin/AdminServicesPage.jsx';
 import AdminForgotPasswordPage from './components/admin/AdminForgotPasswordPage.jsx';
 import AdminVerifyOtpPage from './components/admin/AdminVerifyOtpPage.jsx';
 import AdminResetPasswordPage from './components/admin/AdminResetPasswordPage.jsx';
+import AdminNavigationPage from './components/admin/AdminNavigationPage.jsx';
+import AdminFeedbacksPage from './components/admin/AdminFeedbacksPage.jsx';
 import HomePage from './components/pages/HomePage.jsx';
 import ServicesPage from './components/pages/ServicesPage.jsx';
 import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
@@ -43,6 +45,8 @@ const App = () => {
               <Route path="contacts" element={<AdminContactsPage />} />
               <Route path="careers" element={<AdminCareersPage />} />
               <Route path="services" element={<AdminServicesPage />} />
+              <Route path="feedbacks" element={<AdminFeedbacksPage />} />
+              <Route path="navigation" element={<AdminNavigationPage />} />
               <Route path="blogs" element={<AdminBlogsPage />} />
               <Route path="profile" element={<AdminProfilePage />} />
               <Route path="change-password" element={<AdminChangePasswordPage />} />
