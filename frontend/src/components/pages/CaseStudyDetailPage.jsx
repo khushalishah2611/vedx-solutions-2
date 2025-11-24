@@ -45,6 +45,12 @@ const CaseStudyDetailPage = () => {
     [slug]
   );
 
+  // Application screenshots – max 5, in a responsive grid
+  const screenshotsToShow = useMemo(
+    () => (caseStudy?.screenshots || []).slice(0, 5),
+    [caseStudy]
+  );
+
   if (!caseStudy) {
     return <Navigate to="/casestudy" replace />;
   }
@@ -416,143 +422,8 @@ const CaseStudyDetailPage = () => {
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        {/* ---------------------- Challenges Section ---------------------- */}
-        <Box my={10}>
-          <Stack spacing={2.5} alignItems="center" textAlign="center">
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                px: 2,
-                py: 1,
-                borderRadius: 0.5,
-                border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                background: !isDark
-                  ? alpha('#ddddddff', 0.9)
-                  : alpha('#0000007c', 0.9),
-                color: alpha(accentColor, 0.9),
-                fontWeight: 600,
-                letterSpacing: 1,
-                textTransform: 'uppercase',
-                fontSize: 11,
-                lineHeight: 1.3,
-                width: 'fit-content',
-                mx: { xs: 'auto', md: 0 },
-                opacity: animate ? 1 : 0,
-                transform: animate ? 'translateY(0)' : 'translateY(10px)',
-                transition: 'all 420ms ease 60ms',
-              }}
-            >
-              <Box
-                component="span"
-                sx={{
-                  background:
-                    'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
-              >
-                Our Challenges
-              </Box>
-            </Box>
-
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 800,
-                maxWidth: 820,
-                color: 'text.primary',
-                opacity: animate ? 1 : 0,
-                transform: animate ? 'translateY(0)' : 'translateY(16px)',
-                transition: 'all 480ms ease 130ms',
-              }}
-            >
-              Lack of time and knowledge in half-developed systems? We turned
-              obstacles into momentum.
-            </Typography>
-
-            <Grid container spacing={{ xs: 2, md: 2.5 }}>
-              {caseStudy.challenges?.map((challenge, index) => (
-                <Grid item xs={12} md={6} key={challenge}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: { xs: 2.5, md: 3 },
-                      borderRadius: 0.5,
-                      height: '100%',
-                      border: `1px solid ${alpha(
-                        theme.palette.divider,
-                        isDark ? 0.5 : 0.22
-                      )}`,
-                      bgcolor: isDark ? alpha('#0b1120', 0.8) : '#f8fafc',
-                      display: 'flex',
-                      gap: 1.5,
-                      alignItems: 'flex-start',
-                      transition:
-                        'border-color 220ms ease, transform 0.25s ease, box-shadow 0.25s ease, opacity 0.45s ease',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                        boxShadow: isDark
-                          ? '0 14px 26px rgba(0,0,0,0.7)'
-                          : '0 12px 24px rgba(15,23,42,0.14)',
-                      },
-                      opacity: animate ? 1 : 0,
-                      transform: animate
-                        ? 'translateY(0)'
-                        : 'translateY(18px)',
-                      transitionDelay: `${160 + index * 80}ms`,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: '50%',
-                        bgcolor: alpha(accentColor, 0.22),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: isDark ? '#e2e8f0' : '#0f172a',
-                        flexShrink: 0,
-                        fontWeight: 800,
-                      }}
-                    >
-                      !
-                    </Box>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: theme.palette.text.primary,
-                        fontWeight: 700,
-                        lineHeight: 1.3,
-                        textDecoration: 'none',
-                        cursor: 'pointer',
-                        transition:
-                          'color 0.3s ease, background-image 0.3s ease',
-                        '&:hover': {
-                          color: 'transparent',
-                          backgroundImage:
-                            'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                          WebkitBackgroundClip: 'text',
-                          backgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                        },
-                      }}
-                    >
-                      {challenge}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </Stack>
-        </Box>
-
-        <Divider sx={{ borderColor: dividerColor }} />
-
         {/* ---------------------- Solution Highlight ---------------------- */}
-        <Box my={10}>
+        <Box my={{ xs: 6, md: 10 }}>
           <Paper
             elevation={0}
             sx={{
@@ -572,7 +443,12 @@ const CaseStudyDetailPage = () => {
               },
             }}
           >
-            <Stack spacing={2}>
+            <Stack
+              spacing={2.5}
+              alignItems={{ xs: 'center', md: 'flex-start' }}
+              textAlign={{ xs: 'center', md: 'left' }}
+            >
+              {/* Label */}
               <Box
                 sx={{
                   display: 'inline-flex',
@@ -593,9 +469,7 @@ const CaseStudyDetailPage = () => {
                   width: 'fit-content',
                   mx: { xs: 'auto', md: 0 },
                   opacity: animate ? 1 : 0,
-                  transform: animate
-                    ? 'translateY(0)'
-                    : 'translateY(10px)',
+                  transform: animate ? 'translateY(0)' : 'translateY(10px)',
                   transition: 'all 420ms ease 60ms',
                 }}
               >
@@ -612,21 +486,39 @@ const CaseStudyDetailPage = () => {
                 </Box>
               </Box>
 
-              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              {/* Title */}
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 800,
+                  maxWidth: 720,
+                }}
+              >
                 {caseStudy.journeyHighlight?.title ||
                   'A journey that moves fast and stays reliable'}
               </Typography>
 
+              {/* Description */}
               <Typography
                 variant="body1"
-                sx={{ color: 'text.secondary', lineHeight: 1.9 }}
+                sx={{
+                  color: 'text.secondary',
+                  lineHeight: 1.9,
+                  maxWidth: 800,
+                }}
               >
                 {caseStudy.journeyHighlight?.description ||
                   'We launched quickly, iterated with user feedback, and kept performance tight across every platform.'}
               </Typography>
 
               {/* Advanced content chips */}
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                useFlexGap
+                justifyContent={{ xs: 'center', md: 'flex-start' }}
+              >
                 {(caseStudy.advancedContent || [])
                   .slice(0, 4)
                   .map((module, index) => (
@@ -795,15 +687,15 @@ const CaseStudyDetailPage = () => {
                           variant="body2"
                           sx={{
                             fontWeight: 600,
-                          textAlign: 'center',
-                          wordBreak: 'break-word',
-                          transition:
-                            'color 0.3s ease, background-image 0.3s ease',
-                          '&:hover': {
-                            color: 'transparent',
-                            backgroundImage:
-                              'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
-                            WebkitBackgroundClip: 'text',
+                            textAlign: 'center',
+                            wordBreak: 'break-word',
+                            transition:
+                              'color 0.3s ease, background-image 0.3s ease',
+                            '&:hover': {
+                              color: 'transparent',
+                              backgroundImage:
+                                'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
+                              WebkitBackgroundClip: 'text',
                               backgroundClip: 'text',
                               WebkitTextFillColor: 'transparent',
                             },
@@ -921,8 +813,10 @@ const CaseStudyDetailPage = () => {
           ) : null}
         </Box>
 
+        <Divider sx={{ borderColor: dividerColor }} />
+
         {/* ---------------------- Application Screenshots ---------------------- */}
-        {caseStudy.screenshots?.length ? (
+        {screenshotsToShow.length ? (
           <Box
             my={10}
             sx={{
@@ -1009,10 +903,16 @@ const CaseStudyDetailPage = () => {
               </Typography>
 
               <Grid container spacing={2}>
-                {caseStudy.screenshots.map((shot, index) => {
+                {screenshotsToShow.map((shot, index) => {
                   const slideDistance = index % 2 === 0 ? '-22px' : '22px';
                   return (
-                    <Grid item xs={12} md={6} key={shot.src}>
+                    <Grid
+                      item
+                      xs={12}
+                      sm={6}
+                      md={4}
+                      key={shot.src}
+                    >
                       <Paper
                         elevation={0}
                         sx={{
@@ -1050,7 +950,7 @@ const CaseStudyDetailPage = () => {
                           loading="lazy"
                           sx={{
                             width: '100%',
-                            height: 260,
+                            height: { xs: 220, sm: 240, md: 260 },
                             objectFit: 'cover',
                             display: 'block',
                             opacity: animate ? 1 : 0,
@@ -1095,7 +995,7 @@ const CaseStudyDetailPage = () => {
         {/* ---------------------- Related Case Studies ---------------------- */}
         <Box my={10}>
           {relatedCaseStudies.length ? (
-            <Stack spacing={2.5} sx={{ mt: { xs: 5, md: 7 } }}>
+            <Stack spacing={3} sx={{ mt: { xs: 5, md: 7 } }}>
               <Typography
                 variant="h4"
                 sx={{ fontWeight: 800, textAlign: 'center' }}
