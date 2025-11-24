@@ -713,6 +713,33 @@ const AdminServicesPage = () => {
     }));
   };
 
+  const categoryOptions = useMemo(
+    () => Array.from(new Set(services.map((service) => service.category))).map((category) => ({
+      value: category,
+      label: category,
+    })),
+    [services]
+  );
+
+  const subcategoryLookup = useMemo(() => {
+    const lookup = new Map();
+    services.forEach((service) => {
+      lookup.set(
+        service.category,
+        Array.from(new Set(service.subcategories.map((subcategory) => subcategory.name)))
+      );
+    });
+    return lookup;
+  }, [services]);
+
+  const allSubcategoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(services.flatMap((service) => service.subcategories.map((subcategory) => subcategory.name)))
+      ),
+    [services]
+  );
+
   const filteredServices = useMemo(
     () =>
       services.filter((service) => {
@@ -1325,33 +1352,6 @@ const AdminServicesPage = () => {
   const formattedTechnologyItems = useMemo(
     () => (technologyForm.items?.length ? technologyForm.items.join(', ') : ''),
     [technologyForm.items]
-  );
-
-  const categoryOptions = useMemo(
-    () => Array.from(new Set(services.map((service) => service.category))).map((category) => ({
-      value: category,
-      label: category,
-    })),
-    [services]
-  );
-
-  const subcategoryLookup = useMemo(() => {
-    const lookup = new Map();
-    services.forEach((service) => {
-      lookup.set(
-        service.category,
-        Array.from(new Set(service.subcategories.map((subcategory) => subcategory.name)))
-      );
-    });
-    return lookup;
-  }, [services]);
-
-  const allSubcategoryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(services.flatMap((service) => service.subcategories.map((subcategory) => subcategory.name)))
-      ),
-    [services]
   );
 
   const serviceFormSubcategoryOptions = useMemo(() => {
