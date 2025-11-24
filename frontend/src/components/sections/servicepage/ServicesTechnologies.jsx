@@ -69,7 +69,7 @@ const ServicesTechnologies = () => {
           allowScrollButtonsMobile
           centered={false}
           sx={{
-            borderRadius: 0.75,
+            borderRadius: 0.5,
             bgcolor: alpha(
               theme.palette.background.paper,
               isDark ? 0.35 : 0.8
@@ -89,7 +89,7 @@ const ServicesTechnologies = () => {
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
-                borderRadius: 0.75,
+                borderRadius: 0.5,
                 minHeight: 44,
                 px: { xs: 1.5, md: 2.5 },
                 fontSize: { xs: 13, md: 14 },
@@ -125,7 +125,7 @@ const ServicesTechnologies = () => {
               elevation={0}
               sx={{
                 height: '100%',
-                borderRadius: 1.25,
+                borderRadius: 0.5,
                 p: 2.5,
                 display: 'flex',
                 flexDirection: 'column',

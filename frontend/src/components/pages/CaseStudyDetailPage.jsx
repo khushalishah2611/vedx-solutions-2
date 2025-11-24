@@ -72,16 +72,10 @@ const CaseStudyDetailPage = () => {
                 sx={{
                   overflow: 'hidden',
                   borderRadius: 0.5,
-                  border: `1px solid ${alpha(accentColor, 0.3)}`,
+
                   background: alpha(accentColor, isDark ? 0.12 : 0.08),
                   transition: 'border-color 220ms ease, box-shadow 0.25s ease',
-                  boxShadow: '0 0 0 rgba(0,0,0,0)',
-                  '&:hover': {
-                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                    boxShadow: isDark
-                      ? '0 18px 30px rgba(0,0,0,0.7)'
-                      : '0 18px 32px rgba(15,23,42,0.15)',
-                  },
+
                 }}
               >
                 <Box
@@ -312,15 +306,10 @@ const CaseStudyDetailPage = () => {
                   background: alpha(accentColor, isDark ? 0.12 : 0.09),
                   minHeight: { xs: 240, md: 280 },
                   display: 'flex',
-                  border: `1px solid ${alpha(accentColor, 0.3)}`,
+
                   transition: 'border-color 220ms ease, box-shadow 0.25s ease',
                   boxShadow: '0 0 0 rgba(0,0,0,0)',
-                  '&:hover': {
-                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                    boxShadow: isDark
-                      ? '0 18px 30px rgba(0,0,0,0.7)'
-                      : '0 18px 32px rgba(15,23,42,0.15)',
-                  },
+
                 }}
               >
                 <Box
@@ -335,7 +324,7 @@ const CaseStudyDetailPage = () => {
                     opacity: animate ? 1 : 0,
                     transform: animate
                       ? 'translateX(0)'
-                      : 'translateX(24px)', // slide in from right
+                      : 'translateX(24px)',
                     transition: 'all 650ms ease 140ms',
                   }}
                 />
@@ -351,7 +340,7 @@ const CaseStudyDetailPage = () => {
             spacing={{ xs: 2.5, md: 3 }}
             justifyContent="center"
             textAlign="center"
-            sx={{ mt: { xs: 4, md: 5 } }}
+
           >
             {caseStudy.coreFeatures?.slice(0, 4).map((feature, index) => (
               <Grid item xs={12} sm={6} md={3} key={feature.title}>
@@ -359,9 +348,9 @@ const CaseStudyDetailPage = () => {
                   elevation={0}
                   sx={{
                     height: '100%',
-                    p: { xs: 2.5, md: 3 },
-                    borderRadius: 1,
-                    border: `1px solid ${alpha(accentColor, 0.4)}`,
+                    p: "10px",
+                    borderRadius: 0.5,
+                    border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
                     bgcolor: isDark ? alpha('#0b1120', 0.8) : '#f7fafe',
                     display: 'flex',
                     alignItems: 'center',
@@ -386,7 +375,21 @@ const CaseStudyDetailPage = () => {
                     },
                   }}
                 >
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  <Typography variant="subtitle1" sx={{
+                    color: theme.palette.text.primary,
+                    fontWeight: 700,
+                    lineHeight: 1.3,
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'color 0.3s ease, background-image 0.3s ease',
+                    '&:hover': {
+                      color: 'transparent',
+                      backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    },
+                  }}>
                     {feature.title}
                   </Typography>
                 </Paper>
@@ -461,7 +464,7 @@ const CaseStudyDetailPage = () => {
                       p: { xs: 2.5, md: 3 },
                       borderRadius: 1,
                       height: '100%',
-                      border: `1px solid ${alpha(accentColor, 0.35)}`,
+                      border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
                       bgcolor: isDark ? alpha('#0b1120', 0.8) : '#f8fafc',
                       display: 'flex',
                       gap: 1.5,
@@ -484,8 +487,8 @@ const CaseStudyDetailPage = () => {
                   >
                     <Box
                       sx={{
-                        width: 40,
-                        height: 40,
+                        width: 30,
+                        height: 30,
                         borderRadius: '50%',
                         bgcolor: alpha(accentColor, 0.22),
                         display: 'flex',
@@ -500,7 +503,21 @@ const CaseStudyDetailPage = () => {
                     </Box>
                     <Typography
                       variant="body1"
-                      sx={{ color: 'text.secondary', lineHeight: 1.8 }}
+                      sx={{
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        lineHeight: 1.3,
+                        textDecoration: 'none',
+                        cursor: 'pointer',
+                        transition: 'color 0.3s ease, background-image 0.3s ease',
+                        '&:hover': {
+                          color: 'transparent',
+                          backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          WebkitBackgroundClip: 'text',
+                          backgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        },
+                      }}
                     >
                       {challenge}
                     </Typography>
