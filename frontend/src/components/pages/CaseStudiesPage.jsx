@@ -1,4 +1,4 @@
-import { alpha, Box, Container, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Box, Container, Grid, Stack, Typography } from '@mui/material';
 import CaseStudiesHero from '../sections/caseStudies/CaseStudiesHero.jsx';
 import CaseStudyCard from '../sections/caseStudies/CaseStudyCard.jsx';
 
@@ -15,12 +15,9 @@ const CaseStudiesPage = () => {
           px: { xs: 3, md: 20 },
           py: { xs: 6, md: 10 },
         }}
-      > <Box my={5}>
-          <Stack
-
-            textAlign="center"
-            alignItems="center"
-          >
+      >
+        <Box my={5}>
+          <Stack textAlign="center" alignItems="center" spacing={1.5}>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>
               Featured Client Success Stories
             </Typography>
@@ -32,21 +29,28 @@ const CaseStudiesPage = () => {
                 maxWidth: 720,
               }}
             >
-              Explore how VedX Solutions elevates ambitious brands through thoughtful product strategy,
-              delightful interfaces, and resilient engineering.
+              Explore how VedX Solutions elevates ambitious brands through thoughtful product
+              strategy, delightful interfaces, and resilient engineering.
             </Typography>
           </Stack>
         </Box>
-        <Grid container spacing={{ xs: 3, md: 4 }}>
-          {featuredCaseStudies.map((study) => (
-            <Grid item xs={12} md={4} key={study.slug}>
-              <CaseStudyCard caseStudy={study} />
-            </Grid>
-          ))}
-        </Grid>
 
+        <Box my={10}>
+          <Grid container spacing={2}>
+            {featuredCaseStudies.map((study) => (
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={3}
+                key={study.slug}
+              >
+                <CaseStudyCard caseStudy={study} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       </Container>
-
     </Box>
   );
 };

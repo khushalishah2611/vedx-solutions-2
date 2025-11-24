@@ -1,12 +1,13 @@
+// Lightweight list used on listing/grid views
 export const caseStudiesList = [
   {
     slug: 'papa-johns-pizza-delivery-app',
     title: "Papa John's Pizza Delivery App",
     category: 'Food Delivery Platform',
     summary:
-      'Revamped Papa John\'s ordering experience with location intelligence, driver tracking, and a rewards-led checkout.',
+      "Revamped Papa John's ordering experience with location intelligence, driver tracking, and a rewards-led checkout.",
     heroImage:
-      'https://images.unsplash.com/photo-1606755962773-0e7d12c0d2e8?auto=format&fit=crop&w=1600&q=80',
+      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1600&q=80',
     accentColor: '#FF7849',
     tags: ['Mobile App', 'Logistics', 'Customer Experience'],
   },
@@ -32,7 +33,31 @@ export const caseStudiesList = [
     accentColor: '#3E7CCE',
     tags: ['iOS', 'Android', 'Mindfulness'],
   },
+  {
+    slug: 'finflux-neobank-sme-lending-suite',
+    title: 'FinFlux Neobank – SME Lending Suite',
+    category: 'Fintech & Neobanking',
+    summary:
+      'Reimagined SME lending journeys with instant KYC, cash-flow underwriting, and paperless disbursals for growing businesses.',
+    heroImage:
+      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1600&q=80',
+    accentColor: '#22C55E',
+    tags: ['Fintech', 'Lending', 'Web & Mobile'],
+  },
+  {
+    slug: 'glowly-d2c-beauty-growth-stack',
+    title: 'Glowly – D2C Beauty Growth Stack',
+    category: 'D2C Commerce',
+    summary:
+      'Built a headless commerce stack with personalised product quizzes, subscription flows, and retention analytics for a fast-scaling beauty brand.',
+    heroImage:
+      'https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&fit=crop&w=1600&q=80',
+    accentColor: '#EC4899',
+    tags: ['Headless Commerce', 'Subscriptions', 'Experimentation'],
+  },
 ];
+
+// Detailed objects used on the case-study detail pages
 
 const papaJohnsCaseStudy = {
   slug: 'papa-johns-pizza-delivery-app',
@@ -65,7 +90,7 @@ const papaJohnsCaseStudy = {
     'Operations required precise courier handoffs, automated heat maps for kitchen load, and consistent reliability during peak sports events.',
   ],
   founderHighlight: {
-    name: 'Leadership Team, Papa John\'s',
+    name: "Leadership Team, Papa John's",
     message:
       '“VedX compressed our release cycle from months to sprints while keeping the brand’s hospitality alive in every interaction.”',
   },
@@ -418,10 +443,179 @@ const artOfLivingCaseStudy = {
   technologyStack: ['Android', 'iOS', 'Swift', 'Xcode', 'Heroku'],
 };
 
+// New detailed case study – FinFlux Neobank
+
+const finfluxNeobankCaseStudy = {
+  slug: 'finflux-neobank-sme-lending-suite',
+  title: 'FinFlux Neobank – SME Lending Suite',
+  category: 'Fintech & Neobanking',
+  tagline: 'Giving small businesses bank-grade credit in a mobile-first world.',
+  heroImage:
+    'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1600&q=80',
+  accentColor: '#22C55E',
+  breadcrumbs: [
+    { label: 'Home', href: '/' },
+    { label: 'Case Studies', href: '/casestudy' },
+    { label: 'FinFlux Neobank – SME Lending Suite' },
+  ],
+  meta: [
+    { label: 'Client', value: 'FinFlux Neobank' },
+    { label: 'Industry', value: 'Fintech' },
+    { label: 'Platforms', value: 'Web, Android, iOS' },
+    { label: 'Services', value: 'UX Strategy, Lending Flows, Data Engineering' },
+  ],
+  excerpt:
+    'FinFlux wanted to compress SME loan approvals from weeks to hours. We built a digital lending suite that combines bank-grade compliance with startup-grade speed.',
+  cta: {
+    label: 'Modernise your fintech product',
+    href: '/contact',
+  },
+  clientRequirements: [
+    'Design an end-to-end lending journey for SMEs with instant eligibility checks and zero branch paperwork.',
+    'Ingest GST, bank statements, and accounting data to compute cash-flow based risk scores in real time.',
+    'Expose APIs for partner marketplaces while keeping compliance, audit, and rate cards under control.',
+  ],
+  founderHighlight: {
+    name: 'Chief Product Officer, FinFlux',
+    message:
+      '“VedX helped us ship a compliant lending stack without feeling like legacy banking software.”',
+  },
+  coreFeatures: [
+    {
+      title: 'Instant Eligibility Wizard',
+      description:
+        'SMEs complete a three-step flow that pulls GST and banking data to show indicative limits within minutes.',
+    },
+    {
+      title: 'Cash-Flow Underwriting',
+      description:
+        'Normalized transaction feeds and smart categorization allow risk teams to underwrite based on business health, not only collateral.',
+    },
+    {
+      title: 'Multi-Product Offers',
+      description:
+        'Term loans, credit lines, and BNPL-style invoices are bundled into a single, comprehensible offer sheet.',
+    },
+    {
+      title: 'Self-Service Documentation',
+      description:
+        'Promoters can upload and e-sign documents from mobile, with reminders nudging them to finish stalled applications.',
+    },
+  ],
+  journeyHighlight: {
+    title: 'From Lead to Disbursal in a Single Dashboard',
+    description:
+      'Relationship managers and credit teams collaborate in one workspace, reducing handoffs and making approvals transparent.',
+  },
+  screenshots: [],
+  advancedContent: [],
+  colors: [
+    { label: 'Neobank Green', value: '#22C55E', usage: 'Primary CTAs and positive financial indicators.' },
+    { label: 'Statement Navy', value: '#0F172A', usage: 'Backgrounds and data visualisations.' },
+  ],
+  typography: {
+    family: 'Inter',
+    description:
+      'System-friendly, fintech-ready type for dense tables and responsive dashboards.',
+  },
+  challenges: [
+    'Mapping heterogeneous data sources (GST, bank feeds, PDFs) into a unified underwriting model.',
+    'Designing flows that felt approachable for first-time borrowers without diluting regulatory disclosures.',
+  ],
+  technologyStack: ['React', 'Node.js', 'NestJS', 'PostgreSQL', 'Kubernetes'],
+};
+
+// New detailed case study – Glowly D2C Beauty
+
+const glowlyBeautyCaseStudy = {
+  slug: 'glowly-d2c-beauty-growth-stack',
+  title: 'Glowly – D2C Beauty Growth Stack',
+  category: 'D2C Commerce',
+  tagline: 'Turning product discovery into a personalised beauty ritual.',
+  heroImage:
+    'https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&fit=crop&w=1600&q=80',
+  accentColor: '#EC4899',
+  breadcrumbs: [
+    { label: 'Home', href: '/' },
+    { label: 'Case Studies', href: '/casestudy' },
+    { label: 'Glowly – D2C Beauty Growth Stack' },
+  ],
+  meta: [
+    { label: 'Client', value: 'Glowly Cosmetics' },
+    { label: 'Industry', value: 'Beauty & Personal Care' },
+    { label: 'Platforms', value: 'Headless Web, iOS, Android' },
+    { label: 'Services', value: 'Headless Commerce, CRO, Analytics' },
+  ],
+  excerpt:
+    'Glowly needed a commerce engine that could keep up with fast launches, seasonal drops, and creator-led campaigns. We shipped a headless stack tuned for experimentation.',
+  cta: {
+    label: 'Scale your D2C brand',
+    href: '/contact',
+  },
+  clientRequirements: [
+    'Reduce page load times during influencer drops while keeping the storytelling elements rich and visual.',
+    'Introduce a quiz-led routine builder that maps skin goals to dynamic bundles and subscription offers.',
+    'Equip growth teams with experimentation tools across pricing, bundles, and landing pages without dev bottlenecks.',
+  ],
+  founderHighlight: {
+    name: 'Founder, Glowly',
+    message:
+      '“Our launch calendars got more aggressive, but the site finally felt calmer and faster for customers.”',
+  },
+  coreFeatures: [
+    {
+      title: 'Skin Profile Quiz',
+      description:
+        'A playful quiz captures skin goals, sensitivities, and routines to generate personalised bundles.',
+    },
+    {
+      title: 'Headless Storefront',
+      description:
+        'Next.js frontends talk to a headless commerce core, keeping PDPs fast even during peak traffic.',
+    },
+    {
+      title: 'Subscriptions & Refills',
+      description:
+        'Smart refill reminders and subscription perks nudge customers to stay consistent with their routines.',
+    },
+    {
+      title: 'Experimentation Console',
+      description:
+        'Growth teams spin up new landing pages, hero experiments, and offer variants without code changes.',
+    },
+  ],
+  journeyHighlight: {
+    title: 'From First Swipe to Lifelong Routine',
+    description:
+      'Customers move from discovery to first order to recurring refills through subtle nudges instead of hard discounts.',
+  },
+  screenshots: [],
+  advancedContent: [],
+  colors: [
+    { label: 'Glow Pink', value: '#EC4899', usage: 'Emotional highlights and key brand moments.' },
+    { label: 'Vanity Ivory', value: '#F9FAFB', usage: 'Soft, editorial backgrounds for product stories.' },
+  ],
+  typography: {
+    family: 'Sora',
+    description:
+      'Editorial yet modern type that keeps long-form product storytelling readable.',
+  },
+  challenges: [
+    'Aligning brand’s visual ambitions with Core Web Vitals for high-volume launch days.',
+    'Designing quiz logic that stayed transparent and trustworthy while still driving AOV up.',
+  ],
+  technologyStack: ['Next.js', 'Shopify Headless / Storefront API', 'Segment', 'Klaviyo'],
+};
+
+// Map for detail pages
+
 export const caseStudiesBySlug = {
   [papaJohnsCaseStudy.slug]: papaJohnsCaseStudy,
   [astralAdhesivesCaseStudy.slug]: astralAdhesivesCaseStudy,
   [artOfLivingCaseStudy.slug]: artOfLivingCaseStudy,
+  [finfluxNeobankCaseStudy.slug]: finfluxNeobankCaseStudy,
+  [glowlyBeautyCaseStudy.slug]: glowlyBeautyCaseStudy,
 };
 
+// You can override later if you want only top 4, but right now it uses all 5
 export const featuredCaseStudies = caseStudiesList;
