@@ -706,11 +706,11 @@ const AdminCareersPage = () => {
           <CardHeader
             title="Applications"
             subheader="Review candidates, update their details, or download their resumes."
-            // action={
-            //   <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
-            //     Add applicant
-            //   </Button>
-            // }
+          // action={
+          //   <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
+          //     Add applicant
+          //   </Button>
+          // }
           />
           <Divider />
           <CardContent>
@@ -1177,7 +1177,7 @@ const AdminCareersPage = () => {
                     px: { xs: 4, md: 5 },
                     py: { xs: 1.25, md: 1.5 },
                     '&:hover': {
-                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
+                      background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                     },
                   }}
                 >

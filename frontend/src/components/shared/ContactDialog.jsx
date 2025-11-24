@@ -114,9 +114,7 @@ const ContactDialog = ({ open, onClose }) => {
               fontWeight: 600,
               px: { xs: 5, md: 6 },
               py: { xs: 1.5, md: 1.75 },
-              '&:hover': {
-                background: 'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
-              },
+            
             }}
           >
             Submit Now

@@ -154,7 +154,7 @@ function FullStackDeveloper({ onContactClick }) {
                   py: { xs: 1.5, md: 1.75 },
                   boxShadow: '0 18px 35px rgba(15,23,42,0.35)',
                   '&:hover': {
-                    background: 'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
+                    background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                     boxShadow: '0 20px 40px rgba(15,23,42,0.4)',
                   },
                 }}

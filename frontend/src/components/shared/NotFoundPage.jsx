@@ -88,10 +88,8 @@ const NotFoundPage = () => {
               to="/"
               startIcon={<ArrowBackRoundedIcon />}
               sx={{
-                background: 'linear-gradient(90deg, #FF5E5E 0%, #A855F7 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)'
-                }
+                background: 'inear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                
               }}
             >
               Back to Home

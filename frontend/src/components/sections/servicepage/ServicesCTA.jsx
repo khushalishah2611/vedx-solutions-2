@@ -75,9 +75,7 @@ const ServicesCTA = ({ onContactClick }) => {
                 px: { xs: 4, md: 6 },
                 py: { xs: 1.5, md: 1.75 },
                 width: { xs: 'auto', md: 'auto' },
-                '&:hover': {
-                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9333EA 100%)',
-                },
+               
               }}
             >
               Contact Us

@@ -61,11 +61,11 @@ const CaseStudyDetailPage = () => {
           py: { xs: 6, md: 10 },
         }}
       >
-        <CaseStudyOverviewSection caseStudy={caseStudy} animate={animate} />
+        <Box my={5}><CaseStudyOverviewSection caseStudy={caseStudy} animate={animate} /></Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <CaseStudyApproachSection caseStudy={caseStudy} animate={animate} />
+        <Box my={10}><CaseStudyApproachSection caseStudy={caseStudy} animate={animate} /></Box>
 
         <Box my={10}>
           <CaseStudyCoreFeaturesSection caseStudy={caseStudy} animate={animate} />
@@ -73,12 +73,12 @@ const CaseStudyDetailPage = () => {
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <CaseStudySolutionSection caseStudy={caseStudy} animate={animate} />
+        <Box my={10}><CaseStudySolutionSection caseStudy={caseStudy} animate={animate} /></Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <CaseStudyTechnologySection caseStudy={caseStudy} animate={animate} />
-
+        <Box my={10}> <CaseStudyTechnologySection caseStudy={caseStudy} animate={animate} />
+        </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
@@ -87,7 +87,7 @@ const CaseStudyDetailPage = () => {
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <CaseStudyScreenshotsSection screenshotsToShow={screenshotsToShow} animate={animate} />
+        <Box my={10}><CaseStudyScreenshotsSection screenshotsToShow={screenshotsToShow} animate={animate} /></Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
 
