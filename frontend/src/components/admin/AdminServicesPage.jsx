@@ -829,7 +829,6 @@ const AdminServicesPage = () => {
     setServiceDialogMode('create');
     setActiveService(null);
     resetServiceForm();
-    setSubcategoryDraft({ name: '' });
     setFaqDraft({ question: '', answer: '' });
     setServiceDialogOpen(true);
   };
@@ -838,7 +837,6 @@ const AdminServicesPage = () => {
     setServiceDialogMode('edit');
     setActiveService(service);
     setServiceForm({ ...service });
-    setSubcategoryDraft({ name: '' });
     setFaqDraft({ question: '', answer: '' });
     setServiceDialogOpen(true);
   };
