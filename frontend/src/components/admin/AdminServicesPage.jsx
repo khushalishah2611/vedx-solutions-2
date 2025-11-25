@@ -193,16 +193,12 @@ const initialHireDevelopers = {
 const initialProcess = [
   {
     id: 'process-1',
-    category: 'Full Stack Development',
-    subcategory: 'Frontend',
     title: 'Discovery and planning',
     description: 'Align goals, scope, and delivery milestones with stakeholder workshops.',
     image: imageLibrary[3].value,
   },
   {
     id: 'process-2',
-    category: 'Mobile App Development',
-    subcategory: 'Android',
     title: 'Release and measurement',
     description: 'Ship builds, monitor analytics, and optimise through iterative releases.',
     image: imageLibrary[0].value,
@@ -346,8 +342,6 @@ const emptyHireServiceForm = {
 
 const emptyProcessForm = {
   id: '',
-  category: '',
-  subcategory: '',
   title: '',
   description: '',
   image: imageLibrary[0].value,
@@ -1078,7 +1072,7 @@ const AdminServicesPage = () => {
 
   const handleProcessSubmit = (event) => {
     event?.preventDefault();
-    if (!processForm.title.trim() || !processForm.category.trim() || !processForm.image) return;
+    if (!processForm.title.trim() || !processForm.image) return;
 
     if (processDialogMode === 'edit' && activeProcess) {
       setProcessList((prev) => prev.map((item) => (item.id === activeProcess.id ? { ...processForm } : item)));
@@ -1607,7 +1601,7 @@ const AdminServicesPage = () => {
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
             title="Process"
-            subheader="Capture category and sub-category wise delivery steps with visuals."
+            subheader="Capture delivery steps with visuals."
             action={
               <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openProcessCreateDialog}>
                 Add process step
@@ -1620,8 +1614,6 @@ const AdminServicesPage = () => {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
                     <TableCell>Title</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Description</TableCell>
@@ -1631,8 +1623,6 @@ const AdminServicesPage = () => {
                 <TableBody>
                   {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
                     <TableRow key={item.id} hover>
-                      <TableCell>{item.category || '-'}</TableCell>
-                      <TableCell>{item.subcategory || '-'}</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                       <TableCell>
                         <Box
@@ -1665,7 +1655,7 @@ const AdminServicesPage = () => {
                   ))}
                   {processList.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No process steps added yet.
                         </Typography>
@@ -3243,21 +3233,6 @@ const AdminServicesPage = () => {
         <DialogTitle>{processDialogMode === 'edit' ? 'Edit process step' : 'Add process step'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleProcessSubmit}>
-            <Autocomplete
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
-              value={processForm.category}
-              onInputChange={(event, newValue) => handleProcessChange('category', newValue || '')}
-              renderInput={(params) => <TextField {...params} label="Category" required />}
-            />
-            <Autocomplete
-              freeSolo
-              options={subcategoryLookup.get(processForm.category) || allSubcategoryOptions}
-              value={processForm.subcategory}
-              onInputChange={(event, newValue) => handleProcessChange('subcategory', newValue || '')}
-              renderInput={(params) => <TextField {...params} label="Sub-category" />}
-              disabled={!processForm.category && allSubcategoryOptions.length === 0}
-            />
             <TextField
               label="Title"
               value={processForm.title}
