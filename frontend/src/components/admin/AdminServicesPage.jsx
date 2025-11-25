@@ -195,12 +195,16 @@ const initialProcess = [
     id: 'process-1',
     title: 'Discovery and planning',
     description: 'Align goals, scope, and delivery milestones with stakeholder workshops.',
+    category: 'Full Stack Development',
+    subcategory: 'Frontend',
     image: imageLibrary[3].value,
   },
   {
     id: 'process-2',
     title: 'Release and measurement',
     description: 'Ship builds, monitor analytics, and optimise through iterative releases.',
+    category: 'Mobile App Development',
+    subcategory: 'Android',
     image: imageLibrary[0].value,
   },
 ];
@@ -208,6 +212,7 @@ const initialProcess = [
 const initialWhyVedx = {
   heroTitle: 'Why choose VedX Solutions',
   heroDescription: 'Pair proven delivery methods with industry focus and transparent engagement.',
+  heroImage: imageLibrary[1].value,
   reasons: [
     {
       id: 'why-vedx-1',
@@ -226,18 +231,17 @@ const initialWhyVedx = {
 
 const initialOurServices = {
   sliderTitle: 'Our Services',
-  sliderDescription: 'Showcase priority services with visuals, subtitles, and taxonomy tags.',
+  sliderDescription: 'Showcase priority services with visuals, titles, and taxonomy tags.',
+  sliderImage: imageLibrary[0].value,
   services: [
     {
       id: 'os-1',
       title: 'Cloud native engineering',
-      subtitle: 'Modernise delivery with resilient architectures.',
       image: imageLibrary[1].value,
     },
     {
       id: 'os-2',
       title: 'Data and AI accelerators',
-      subtitle: 'Operationalise analytics with governed workflows.',
       image: imageLibrary[2].value,
     },
   ],
@@ -344,12 +348,15 @@ const emptyProcessForm = {
   id: '',
   title: '',
   description: '',
+  category: '',
+  subcategory: '',
   image: imageLibrary[0].value,
 };
 
 const emptyWhyVedxHero = {
   heroTitle: '',
   heroDescription: '',
+  heroImage: imageLibrary[0].value,
 };
 
 const emptyWhyVedxForm = {
@@ -362,7 +369,6 @@ const emptyWhyVedxForm = {
 const emptyOurServiceForm = {
   id: '',
   title: '',
-  subtitle: '',
   image: imageLibrary[2].value,
 };
 
@@ -826,6 +832,13 @@ const AdminServicesPage = () => {
     setHireServicePage((prev) => Math.min(prev, maxHireServicePage));
   }, [hireContent.services.length, rowsPerPage]);
 
+  useEffect(() => {
+    const allowed = subcategoryLookup.get(processForm.category) || [];
+    if (processForm.subcategory && !allowed.includes(processForm.subcategory)) {
+      setProcessForm((prev) => ({ ...prev, subcategory: '' }));
+    }
+  }, [processForm.category, processForm.subcategory, subcategoryLookup]);
+
   const openServiceCreateDialog = () => {
     setServiceDialogMode('create');
     setActiveService(null);
@@ -1072,7 +1085,7 @@ const AdminServicesPage = () => {
 
   const handleProcessSubmit = (event) => {
     event?.preventDefault();
-    if (!processForm.title.trim() || !processForm.image) return;
+    if (!processForm.title.trim() || !processForm.image || !processForm.category || !processForm.subcategory) return;
 
     if (processDialogMode === 'edit' && activeProcess) {
       setProcessList((prev) => prev.map((item) => (item.id === activeProcess.id ? { ...processForm } : item)));
@@ -1098,6 +1111,7 @@ const AdminServicesPage = () => {
       ...prev,
       heroTitle: whyVedxHeroForm.heroTitle,
       heroDescription: whyVedxHeroForm.heroDescription,
+      heroImage: whyVedxHeroForm.heroImage,
     }));
   };
 
@@ -1372,6 +1386,11 @@ const AdminServicesPage = () => {
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
 
+  const processSubcategoryOptions = useMemo(() => {
+    if (!processForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(processForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, processForm.category, subcategoryLookup]);
+
   const whySubcategoryOptions = useMemo(() => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
     return options.map((option) => ({ name: option }));
@@ -1389,8 +1408,9 @@ const AdminServicesPage = () => {
           textColor="primary"
         >
           <Tab value="services" label="Service menu" />
-               <Tab value="process" label="Process" />
+          <Tab value="process" label="Process" />
           <Tab value="why-vedx" label="Why choose VedX" />
+          <Tab value="our-services" label="Our services" />
           <Tab value="why-choose" label="Why choose service" />
           <Tab value="technologies" label="Technologies we support" />
           <Tab value="benefits" label="Benefits" />
@@ -1616,6 +1636,8 @@ const AdminServicesPage = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Sub-category</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell align="right">Actions</TableCell>
@@ -1625,6 +1647,8 @@ const AdminServicesPage = () => {
                   {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
                     <TableRow key={item.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                      <TableCell>{item.category || '-'}</TableCell>
+                      <TableCell>{item.subcategory || '-'}</TableCell>
                       <TableCell>
                         <Box
                           component="img"
@@ -1656,7 +1680,7 @@ const AdminServicesPage = () => {
                   ))}
                   {processList.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No process steps added yet.
                         </Typography>
@@ -1689,7 +1713,7 @@ const AdminServicesPage = () => {
             <Stack spacing={3}>
               <Box component="form" onSubmit={handleWhyVedxHeroSave} sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
+                  <Grid item xs={12} md={8}>
                     <Stack spacing={2}>
                       <TextField
                         label="Title"
@@ -1709,6 +1733,14 @@ const AdminServicesPage = () => {
                         Save hero content
                       </Button>
                     </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyVedxHeroForm.heroImage}
+                      onChange={(value) => handleWhyVedxHeroChange('heroImage', value)}
+                      required
+                    />
                   </Grid>
                 </Grid>
               </Box>
@@ -1811,7 +1843,7 @@ const AdminServicesPage = () => {
           <CardContent>
             <Stack spacing={3}>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     label="Slider title"
                     value={ourServices.sliderTitle}
@@ -1819,7 +1851,7 @@ const AdminServicesPage = () => {
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     label="Slider description"
                     value={ourServices.sliderDescription}
@@ -1829,13 +1861,21 @@ const AdminServicesPage = () => {
                     fullWidth
                   />
                 </Grid>
+                <Grid item xs={12} md={4}>
+                  <ImageUpload
+                    label="Slider image"
+                    value={ourServices.sliderImage}
+                    onChange={(value) => setOurServices((prev) => ({ ...prev, sliderImage: value }))}
+                    required
+                  />
+                </Grid>
               </Grid>
 
               <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
                 <Box>
                   <Typography variant="h6">Service cards</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Add the services that appear in the carousel with images and subtitles.
+                    Add the services that appear in the carousel with titles and images.
                   </Typography>
                 </Box>
                 <Button
@@ -1852,7 +1892,6 @@ const AdminServicesPage = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell>Title</TableCell>
-                      <TableCell>Subtitle</TableCell>
                       <TableCell>Image</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
@@ -1863,11 +1902,6 @@ const AdminServicesPage = () => {
                       .map((item) => (
                         <TableRow key={item.id} hover>
                           <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                          <TableCell sx={{ maxWidth: 240 }}>
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {item.subtitle}
-                            </Typography>
-                          </TableCell>
                           <TableCell>
                             <Box
                               component="img"
@@ -1894,7 +1928,7 @@ const AdminServicesPage = () => {
                       ))}
                     {ourServices.services.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4}>
+                        <TableCell colSpan={3}>
                           <Typography variant="body2" color="text.secondary" align="center">
                             No service cards configured yet.
                           </Typography>
@@ -3242,6 +3276,35 @@ const AdminServicesPage = () => {
               fullWidth
               required
             />
+            <Autocomplete
+              options={categoryOptions.map((option) => option.label)}
+              value={processForm.category}
+              onInputChange={(event, newValue) => handleProcessChange('category', newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  placeholder="Select category"
+                  required
+                  helperText="Choose which category this process step belongs to"
+                />
+              )}
+            />
+            <Autocomplete
+              options={processSubcategoryOptions}
+              value={processForm.subcategory}
+              onInputChange={(event, newValue) => handleProcessChange('subcategory', newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sub-category"
+                  placeholder="Select sub-category"
+                  required
+                  helperText="Pick a sub-category linked to the selected category"
+                />
+              )}
+              disabled={!processForm.category && processSubcategoryOptions.length === 0}
+            />
             <TextField
               label="Description"
               value={processForm.description}
@@ -3349,12 +3412,6 @@ const AdminServicesPage = () => {
               onChange={(event) => setOurServiceForm((prev) => ({ ...prev, title: event.target.value }))}
               fullWidth
               required
-            />
-            <TextField
-              label="Subtitle"
-              value={ourServiceForm.subtitle}
-              onChange={(event) => setOurServiceForm((prev) => ({ ...prev, subtitle: event.target.value }))}
-              fullWidth
             />
             <ImageUpload
               label="Service image"
