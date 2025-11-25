@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   Divider,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -313,6 +314,9 @@ const AdminDashboardPage = () => {
   const [editingExpertiseId, setEditingExpertiseId] = useState(null);
   const [expertisePage, setExpertisePage] = useState(1);
 
+  // Our services - slider dialog
+  const [sliderDialogOpen, setSliderDialogOpen] = useState(false);
+
   const [hireCategories, setHireCategories] = useState(initialHireCategories);
   const [hireCategoryForm, setHireCategoryForm] = useState({ title: '', description: '' });
   const [hireCategoryDialogOpen, setHireCategoryDialogOpen] = useState(false);
@@ -513,6 +517,17 @@ const AdminDashboardPage = () => {
       sliderImage: '',
     });
     setEditingSliderId(null);
+    setSliderDialogOpen(true);
+  };
+
+  const closeSliderDialog = () => {
+    setSliderDialogOpen(false);
+    setEditingSliderId(null);
+    setOurServicesHeroForm({
+      sliderTitle: '',
+      sliderDescription: '',
+      sliderImage: '',
+    });
   };
 
   const handleOurServicesHeroSave = (event) => {
@@ -535,6 +550,7 @@ const AdminDashboardPage = () => {
 
     setOurHeaderSaved(true);
     setTimeout(() => setOurHeaderSaved(false), 2000);
+    setSliderDialogOpen(false);
   };
 
   const handleEditOurServiceSlider = (slider) => {
@@ -544,6 +560,7 @@ const AdminDashboardPage = () => {
       sliderImage: slider.sliderImage,
     });
     setEditingSliderId(slider.id);
+    setSliderDialogOpen(true);
   };
 
   const handleDeleteOurServiceSlider = (id) => {
@@ -1426,8 +1443,6 @@ const AdminDashboardPage = () => {
               <Stack spacing={3}>
                 {/* Slider header form */}
                 <Box
-                  component="form"
-                  onSubmit={handleOurServicesHeroSave}
                   sx={{
                     p: 2,
                     border: '1px dashed',
@@ -1435,49 +1450,31 @@ const AdminDashboardPage = () => {
                     borderRadius: 1,
                   }}
                 >
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={4}>
-                      <TextField
-                        label="Slider title"
-                        value={ourServicesHeroForm.sliderTitle}
-                        onChange={(event) =>
-                          handleOurServicesHeroChange('sliderTitle', event.target.value)
-                        }
-                        fullWidth
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <TextField
-                        label="Slider description"
-                        value={ourServicesHeroForm.sliderDescription}
-                        onChange={(event) =>
-                          handleOurServicesHeroChange('sliderDescription', event.target.value)
-                        }
-                        fullWidth
-                        multiline
-                        minRows={2}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <ImageUpload
-                        label="Slider image"
-                        value={ourServicesHeroForm.sliderImage}
-                        onChange={(value) => handleOurServicesHeroChange('sliderImage', value)}
-                        required
-                      />
-                    </Grid>
-                  </Grid>
-                  <Stack direction="row" spacing={2} alignItems="center" mt={2}>
-                    <Button type="submit" variant="contained">
-                      {editingSliderId ? 'Save slider' : 'Add slider'}
-                    </Button>
-                    {ourHeaderSaved && (
-                      <Typography variant="body2" color="success.main">
-                        Saved
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    spacing={1.5}
+                  >
+                    <Box>
+                      <Typography variant="h6">Slider configuration</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Click the button to add or edit slider content in a dialog.
                       </Typography>
-                    )}
+                    </Box>
+                    <Button
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={handleCreateNewSlider}
+                    >
+                      New slider
+                    </Button>
                   </Stack>
+                  {ourHeaderSaved && (
+                    <Typography variant="body2" color="success.main" mt={1.5}>
+                      Saved
+                    </Typography>
+                  )}
                 </Box>
 
                 {/* Slider list */}
@@ -2321,6 +2318,56 @@ const AdminDashboardPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={closeSubcategoryDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Our services slider dialog */}
+      <Dialog open={sliderDialogOpen} onClose={closeSliderDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{editingSliderId ? 'Edit slider' : 'Add slider'}</DialogTitle>
+        <DialogContent dividers>
+          <Box component="form" onSubmit={handleOurServicesHeroSave} sx={{ mt: 1 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Slider title"
+                  value={ourServicesHeroForm.sliderTitle}
+                  onChange={(event) =>
+                    handleOurServicesHeroChange('sliderTitle', event.target.value)
+                  }
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Slider description"
+                  value={ourServicesHeroForm.sliderDescription}
+                  onChange={(event) =>
+                    handleOurServicesHeroChange('sliderDescription', event.target.value)
+                  }
+                  fullWidth
+                  multiline
+                  minRows={2}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <ImageUpload
+                  label="Slider image"
+                  value={ourServicesHeroForm.sliderImage}
+                  onChange={(value) => handleOurServicesHeroChange('sliderImage', value)}
+                  required
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeSliderDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleOurServicesHeroSave} variant="contained">
+            {editingSliderId ? 'Save slider' : 'Add slider'}
+          </Button>
         </DialogActions>
       </Dialog>
 
