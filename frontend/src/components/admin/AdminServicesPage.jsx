@@ -142,19 +142,23 @@ const initialBenefits = [
   {
     id: 'benefit-1',
     title: 'Outcome-first delivery',
+    category: 'Full Stack Development',
+    subcategory: 'Frontend',
     description: 'Every roadmap is mapped to measurable impact and transparent milestones.',
     image: imageLibrary[0].value,
   },
   {
     id: 'benefit-2',
     title: 'Embedded governance',
+    category: 'Mobile App Development',
+    subcategory: 'Android',
     description: 'Security, QA, and documentation are standard across every engagement.',
     image: imageLibrary[1].value,
   }
 ];
 
 const initialHireDevelopers = {
-  title: 'Hire dedicated developers on-demand',
+  title: 'Development services on-demand',
   description:
     'Shape squads with the exact capabilities you need—from product discovery to release engineering—without long ramp-up times.',
   heroImage: imageLibrary[2].value,
@@ -208,7 +212,6 @@ const initialProcess = [
 const initialWhyVedx = {
   heroTitle: 'Why choose VedX Solutions',
   heroDescription: 'Pair proven delivery methods with industry focus and transparent engagement.',
-  heroImage: imageLibrary[1].value,
   reasons: [
     {
       id: 'why-vedx-1',
@@ -326,6 +329,8 @@ const emptyTechnologyForm = {
 const emptyBenefitForm = {
   id: '',
   title: '',
+  category: '',
+  subcategory: '',
   description: '',
   image: imageLibrary[1].value,
 };
@@ -351,7 +356,6 @@ const emptyProcessForm = {
 const emptyWhyVedxHero = {
   heroTitle: '',
   heroDescription: '',
-  heroImage: imageLibrary[1].value,
 };
 
 const emptyWhyVedxForm = {
@@ -490,8 +494,6 @@ const ImageUpload = ({ label, value, onChange, required }) => {
     reader.readAsDataURL(file);
   };
 
-  const previewSrc = value || imagePlaceholder;
-
   return (
     <Stack spacing={1.5}>
       <Typography variant="subtitle2">{label}</Typography>
@@ -503,25 +505,30 @@ const ImageUpload = ({ label, value, onChange, required }) => {
           borderColor: 'divider',
           p: 1,
           backgroundColor: 'background.default',
+          minHeight: 220,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        <Box
-          component="img"
-          src={previewSrc}
-          alt={`${label} preview`}
-          sx={{
-            width: '100%',
-            height: 220,
-            objectFit: 'cover',
-            borderRadius: 1,
-          }}
-        />
+        {value ? (
+          <Box
+            component="img"
+            src={value}
+            alt={`${label} preview`}
+            sx={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: 1,
+            }}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary" textAlign="center" px={2}>
+            Banner preview will appear here once you add a title and choose an image.
+          </Typography>
+        )}
       </Box>
-      {!value && (
-        <Typography variant="caption" color="text.secondary">
-          A default placeholder is shown until you pick an image.
-        </Typography>
-      )}
       <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
         Choose image
         <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
@@ -1097,7 +1104,6 @@ const AdminServicesPage = () => {
       ...prev,
       heroTitle: whyVedxHeroForm.heroTitle,
       heroDescription: whyVedxHeroForm.heroDescription,
-      heroImage: whyVedxHeroForm.heroImage,
     }));
   };
 
@@ -1367,6 +1373,11 @@ const AdminServicesPage = () => {
     return subcategoryLookup.get(hireServiceForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, hireServiceForm.category, subcategoryLookup]);
 
+  const benefitSubcategoryOptions = useMemo(() => {
+    if (!benefitForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
+
   const whySubcategoryOptions = useMemo(() => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
     return options.map((option) => ({ name: option }));
@@ -1384,16 +1395,11 @@ const AdminServicesPage = () => {
           textColor="primary"
         >
           <Tab value="services" label="Service menu" />
-          <Tab value="process" label="Process" />
           <Tab value="why-vedx" label="Why choose VedX" />
-          <Tab value="our-services" label="Our services" />
-          <Tab value="industries" label="Industries we serve" />
-          <Tab value="tech-solutions" label="Tech solutions" />
-          <Tab value="expertise" label="Expertise models" />
           <Tab value="why-choose" label="Why choose service" />
           <Tab value="technologies" label="Technologies we support" />
           <Tab value="benefits" label="Benefits" />
-          <Tab value="hire" label="Hire developers" />
+          <Tab value="hire" label="Development services" />
         </Tabs>
       </Box>
 
@@ -1499,7 +1505,6 @@ const AdminServicesPage = () => {
                     <TableCell>Created</TableCell>
                     <TableCell>FAQs</TableCell>
                     <TableCell>Totals</TableCell>
-                    <TableCell>Description</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -1545,11 +1550,6 @@ const AdminServicesPage = () => {
                           <Typography variant="body2">Clients: {service.totalClients}</Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell sx={{ maxWidth: 240 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {service.description}
-                        </Typography>
-                      </TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                           <Tooltip title="View details">
@@ -1581,7 +1581,7 @@ const AdminServicesPage = () => {
                   ))}
                   {filteredServices.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9}>
+                      <TableCell colSpan={7}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No service categories yet. Click "Add service" to create your first entry.
                         </Typography>
@@ -1691,14 +1691,14 @@ const AdminServicesPage = () => {
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
             title="Why choose VedX Solutions"
-            subheader="Control headline, description, hero image, and proof points."
+            subheader="Control headline, description, and proof points."
           />
           <Divider />
           <CardContent>
             <Stack spacing={3}>
               <Box component="form" onSubmit={handleWhyVedxHeroSave} sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={8}>
+                  <Grid item xs={12}>
                     <Stack spacing={2}>
                       <TextField
                         label="Title"
@@ -1718,13 +1718,6 @@ const AdminServicesPage = () => {
                         Save hero content
                       </Button>
                     </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <ImageUpload
-                      label="Hero image"
-                      value={whyVedxHeroForm.heroImage}
-                      onChange={(value) => handleWhyVedxHeroChange('heroImage', value)}
-                    />
                   </Grid>
                 </Grid>
               </Box>
@@ -2528,6 +2521,8 @@ const AdminServicesPage = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Sub-category</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell align="right">Actions</TableCell>
@@ -2537,6 +2532,8 @@ const AdminServicesPage = () => {
                   {pagedBenefits.map((benefit) => (
                     <TableRow key={benefit.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
+                      <TableCell>{benefit.category || '-'}</TableCell>
+                      <TableCell>{benefit.subcategory || '-'}</TableCell>
                       <TableCell sx={{ maxWidth: 200 }}>
                         <Box
                           component="img"
@@ -2572,7 +2569,7 @@ const AdminServicesPage = () => {
                   ))}
                   {benefits.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No benefits configured yet.
                         </Typography>
@@ -2598,8 +2595,8 @@ const AdminServicesPage = () => {
         <Stack spacing={3}>
           <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
             <CardHeader
-              title="Hire developer hero"
-              subheader="Control the title, description, and hero image used on the hire developer section."
+              title="Development services hero"
+              subheader="Control the title, description, and hero image used on the development services section."
             />
             <Divider />
             <CardContent>
@@ -2640,15 +2637,15 @@ const AdminServicesPage = () => {
 
           <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
             <CardHeader
-              title="Hire developer services"
-              subheader="Manage the service tiles shown within the hire developer menu."
+              title="Development services"
+              subheader="Manage the service tiles shown within the development services menu."
               action={
                 <Button
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={openHireServiceCreateDialog}
                 >
-                  Add hire service
+                  Add service
                 </Button>
               }
             />
@@ -2713,7 +2710,7 @@ const AdminServicesPage = () => {
                       <TableRow>
                         <TableCell colSpan={5}>
                           <Typography variant="body2" color="text.secondary" align="center">
-                            No hire developer services configured yet.
+                            No development services configured yet.
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -2880,16 +2877,6 @@ const AdminServicesPage = () => {
                   </Stack>
                 </Stack>
               </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Description"
-                  value={serviceForm.description}
-                  onChange={(event) => handleServiceFormChange('description', event.target.value)}
-                  fullWidth
-                  multiline
-                  minRows={3}
-                />
-              </Grid>
             </Grid>
           </Stack>
         </DialogContent>
@@ -2962,13 +2949,10 @@ const AdminServicesPage = () => {
                   <Typography variant="body2" color="text.secondary">
                     No FAQs added for this service yet.
                   </Typography>
-                )}
-              </Stack>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                {viewService.description || 'No description yet.'}
-              </Typography>
+              )}
             </Stack>
-          )}
+          </Stack>
+        )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setViewService(null)} color="inherit">
@@ -3185,6 +3169,31 @@ const AdminServicesPage = () => {
               onChange={(event) => handleBenefitFormChange('title', event.target.value)}
               fullWidth
               required
+            />
+            <Autocomplete
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={benefitForm.category}
+              onInputChange={(event, newValue) =>
+                handleBenefitFormChange('category', newValue || '')
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  helperText="Link the benefit to a service category"
+                />
+              )}
+            />
+            <Autocomplete
+              freeSolo
+              options={benefitSubcategoryOptions}
+              value={benefitForm.subcategory}
+              onInputChange={(event, newValue) =>
+                handleBenefitFormChange('subcategory', newValue || '')
+              }
+              renderInput={(params) => <TextField {...params} label="Sub-category" />}
+              disabled={!benefitForm.category && benefitSubcategoryOptions.length === 0}
             />
             <ImageUpload
               label="Image"
