@@ -10,8 +10,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Grid,
   IconButton,
   MenuItem,
+  Pagination,
   Stack,
   Tab,
   Tabs,
@@ -47,6 +49,7 @@ const initialProcess = [
 
 const initialOurServices = {
   sliderTitle: 'Our Services',
+  sliderDescription: 'Showcase priority services with visuals, titles, and taxonomy tags.',
   sliderImage:
     'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1600&q=80',
   services: [
@@ -145,6 +148,61 @@ const initialBanners = [
   },
 ];
 
+const ImageUpload = ({ label, value, onChange, required }) => {
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      onChange(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <Stack spacing={1.5}>
+      <Typography variant="subtitle2">{label}</Typography>
+      <Box
+        sx={{
+          width: '100%',
+          borderRadius: 1,
+          border: '1px dashed',
+          borderColor: 'divider',
+          p: 1,
+          backgroundColor: 'background.default',
+          minHeight: 220,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {value ? (
+          <Box
+            component="img"
+            src={value}
+            alt={`${label} preview`}
+            sx={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: 1,
+            }}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary" textAlign="center" px={2}>
+            Banner preview will appear here once you add a title and choose an image.
+          </Typography>
+        )}
+      </Box>
+      <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
+        Choose image
+        <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
+      </Button>
+    </Stack>
+  );
+};
+
 const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('process');
 
@@ -169,6 +227,7 @@ const AdminDashboardPage = () => {
   const [editingProcessId, setEditingProcessId] = useState(null);
 
   const [ourServices, setOurServices] = useState(initialOurServices);
+  const [ourServicesHeroForm, setOurServicesHeroForm] = useState(initialOurServices);
   const [ourServiceForm, setOurServiceForm] = useState({ title: '', subtitle: '', image: '' });
   const [ourHeaderSaved, setOurHeaderSaved] = useState(false);
 
@@ -352,6 +411,20 @@ const AdminDashboardPage = () => {
       setOurServices((prev) => ({ ...prev, sliderImage: reader.result }));
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleOurServicesHeroChange = (field, value) => {
+    setOurServicesHeroForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleOurServicesHeroSave = (event) => {
+    event?.preventDefault();
+    setOurServices((prev) => ({
+      ...prev,
+      sliderTitle: ourServicesHeroForm.sliderTitle,
+      sliderDescription: ourServicesHeroForm.sliderDescription,
+      sliderImage: ourServicesHeroForm.sliderImage,
+    }));
   };
 
   const handleOurServiceImageChange = (event) => {
