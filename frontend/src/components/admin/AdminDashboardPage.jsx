@@ -148,6 +148,8 @@ const initialBanners = [
   },
 ];
 
+const imagePlaceholder = 'https://via.placeholder.com/120x70?text=Image';
+
 const ImageUpload = ({ label, value, onChange, required }) => {
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -205,6 +207,7 @@ const ImageUpload = ({ label, value, onChange, required }) => {
 
 const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('process');
+  const rowsPerPage = 5;
 
   const fileInputRef = useRef(null);
   const industryFileInputRef = useRef(null);
@@ -229,6 +232,11 @@ const AdminDashboardPage = () => {
   const [ourServices, setOurServices] = useState(initialOurServices);
   const [ourServicesHeroForm, setOurServicesHeroForm] = useState(initialOurServices);
   const [ourServiceForm, setOurServiceForm] = useState({ title: '', subtitle: '', image: '' });
+  const [ourServiceDialogOpen, setOurServiceDialogOpen] = useState(false);
+  const [ourServiceDeleteDialogOpen, setOurServiceDeleteDialogOpen] = useState(false);
+  const [ourServicePendingDelete, setOurServicePendingDelete] = useState(null);
+  const [editingOurServiceId, setEditingOurServiceId] = useState(null);
+  const [ourServicePage, setOurServicePage] = useState(1);
   const [ourHeaderSaved, setOurHeaderSaved] = useState(false);
 
   const [industries, setIndustries] = useState(initialIndustries);
@@ -437,27 +445,88 @@ const AdminDashboardPage = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleOurHeaderSave = () => {
-    setOurServices((prev) => ({ ...prev }));
-    setOurHeaderSaved(true);
-    setTimeout(() => setOurHeaderSaved(false), 2000);
+  const openOurServiceCreateDialog = () => {
+    setOurServiceForm({ title: '', subtitle: '', image: '' });
+    setEditingOurServiceId(null);
+    setOurServiceDialogOpen(true);
+    if (ourServiceFileInputRef.current) {
+      ourServiceFileInputRef.current.value = '';
+    }
   };
 
-  const handleAddOurService = () => {
-    if (!ourServiceForm.title.trim() || !ourServiceForm.image) return;
-    const newItem = { ...ourServiceForm, id: `os-${Date.now()}` };
-    setOurServices((prev) => ({ ...prev, services: [newItem, ...prev.services] }));
+  const openOurServiceEditDialog = (item) => {
+    setOurServiceForm({
+      title: item.title || '',
+      subtitle: item.subtitle || '',
+      image: item.image || '',
+    });
+    setEditingOurServiceId(item.id);
+    setOurServiceDialogOpen(true);
+    if (ourServiceFileInputRef.current) {
+      ourServiceFileInputRef.current.value = '';
+    }
+  };
+
+  const closeOurServiceDialog = () => {
+    setOurServiceDialogOpen(false);
+    setEditingOurServiceId(null);
     setOurServiceForm({ title: '', subtitle: '', image: '' });
     if (ourServiceFileInputRef.current) {
       ourServiceFileInputRef.current.value = '';
     }
   };
 
-  const handleDeleteOurService = (id) => {
-    setOurServices((prev) => ({
-      ...prev,
-      services: prev.services.filter((item) => item.id !== id),
-    }));
+  const handleSaveOurService = () => {
+    if (!ourServiceForm.title.trim() || !ourServiceForm.image) return;
+
+    if (editingOurServiceId) {
+      setOurServices((prev) => ({
+        ...prev,
+        services: prev.services.map((item) =>
+          item.id === editingOurServiceId ? { ...item, ...ourServiceForm } : item
+        ),
+      }));
+    } else {
+      const newItem = { ...ourServiceForm, id: `os-${Date.now()}` };
+      setOurServices((prev) => ({ ...prev, services: [newItem, ...prev.services] }));
+      setOurServicePage(1);
+    }
+
+    closeOurServiceDialog();
+  };
+
+  const openOurServiceDeleteDialog = (item) => {
+    setOurServicePendingDelete(item);
+    setOurServiceDeleteDialogOpen(true);
+  };
+
+  const closeOurServiceDeleteDialog = () => {
+    setOurServicePendingDelete(null);
+    setOurServiceDeleteDialogOpen(false);
+  };
+
+  const handleConfirmDeleteOurService = () => {
+    if (!ourServicePendingDelete) return;
+
+    let nextLength = ourServices.services.length;
+    setOurServices((prev) => {
+      const updatedServices = prev.services.filter((item) => item.id !== ourServicePendingDelete.id);
+      nextLength = updatedServices.length;
+      return { ...prev, services: updatedServices };
+    });
+
+    setOurServicePage((prevPage) => {
+      const totalPages = Math.max(1, Math.ceil(nextLength / rowsPerPage));
+      return Math.min(prevPage, totalPages);
+    });
+
+    closeOurServiceDeleteDialog();
+  };
+
+  const handleOurHeaderSave = () => {
+    setOurServices((prev) => ({ ...prev }));
+    setOurHeaderSaved(true);
+    setTimeout(() => setOurHeaderSaved(false), 2000);
   };
 
   const handleIndustrySave = () => {
@@ -1370,6 +1439,96 @@ const AdminDashboardPage = () => {
         </Card>
       )}
       </Stack>
+
+      <Dialog open={ourServiceDialogOpen} onClose={closeOurServiceDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingOurServiceId ? 'Edit service card' : 'Add service card'}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Service title"
+              required
+              value={ourServiceForm.title}
+              onChange={(event) => setOurServiceForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+            />
+            <TextField
+              label="Subtitle"
+              value={ourServiceForm.subtitle}
+              onChange={(event) => setOurServiceForm((prev) => ({ ...prev, subtitle: event.target.value }))}
+              fullWidth
+              placeholder="Optional supporting copy for the card"
+            />
+            <Box
+              sx={{
+                border: '1px dashed',
+                borderColor: 'divider',
+                borderRadius: 1,
+                minHeight: 160,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'background.default',
+                overflow: 'hidden',
+                cursor: 'pointer',
+              }}
+              onClick={() => ourServiceFileInputRef.current?.click()}
+            >
+              {ourServiceForm.image ? (
+                <Box
+                  component="img"
+                  src={ourServiceForm.image}
+                  alt={ourServiceForm.title || 'Service preview'}
+                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <Typography variant="body2" color="text.secondary" align="center" px={2}>
+                  Banner preview will appear here once you add a title and choose an image.
+                </Typography>
+              )}
+            </Box>
+            <Stack spacing={1}>
+              <Button variant="outlined" onClick={() => ourServiceFileInputRef.current?.click()} fullWidth>
+                Choose image
+              </Button>
+              <Typography variant="caption" color="text.secondary">
+                Select a single image to showcase this service.
+              </Typography>
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                ref={ourServiceFileInputRef}
+                onChange={handleOurServiceImageChange}
+              />
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeOurServiceDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveOurService} variant="contained">
+            {editingOurServiceId ? 'Update service' : 'Add service'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={ourServiceDeleteDialogOpen} onClose={closeOurServiceDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete service card</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{ourServicePendingDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeOurServiceDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteOurService} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={industryDialogOpen} onClose={closeIndustryDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{editingIndustryId ? 'Edit industry' : 'Add industry'}</DialogTitle>
