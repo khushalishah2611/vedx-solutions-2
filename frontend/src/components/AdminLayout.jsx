@@ -53,7 +53,7 @@ const AdminLayout = () => {
       { label: 'Careers', icon: <WorkOutlineOutlinedIcon />, to: '/admin/careers' },
       { label: 'Services', icon: <DesignServicesOutlinedIcon />, to: '/admin/services' },
       { label: 'Feedbacks', icon: <RateReviewOutlinedIcon />, to: '/admin/feedbacks' },
-      { label: 'Navigation', icon: <CategoryOutlinedIcon />, to: '/admin/navigation' },
+      { label: 'MasterData', icon: <CategoryOutlinedIcon />, to: '/admin/navigation' },
       { label: 'Blogs', icon: <ArticleOutlinedIcon />, to: '/admin/blogs' },
       { label: 'Profile', icon: <ManageAccountsRoundedIcon />, to: '/admin/profile' },
       { label: 'Change Password', icon: <LockResetRoundedIcon />, to: '/admin/change-password' }
