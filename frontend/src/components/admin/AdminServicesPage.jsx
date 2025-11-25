@@ -595,6 +595,7 @@ const AdminServicesPage = () => {
   const [whyVedxToDelete, setWhyVedxToDelete] = useState(null);
 
   const [ourServices, setOurServices] = useState(initialOurServices);
+  const [ourServicesHeroForm, setOurServicesHeroForm] = useState(initialOurServices);
   const [ourServiceDialogOpen, setOurServiceDialogOpen] = useState(false);
   const [ourServiceDialogMode, setOurServiceDialogMode] = useState('create');
   const [ourServiceForm, setOurServiceForm] = useState(emptyOurServiceForm);
@@ -698,6 +699,10 @@ const AdminServicesPage = () => {
 
   const handleWhyVedxHeroChange = (field, value) => {
     setWhyVedxHeroForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleOurServicesHeroChange = (field, value) => {
+    setOurServicesHeroForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleExpertiseHeroChange = (field, value) => {
@@ -831,6 +836,15 @@ const AdminServicesPage = () => {
     const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
     setHireServicePage((prev) => Math.min(prev, maxHireServicePage));
   }, [hireContent.services.length, rowsPerPage]);
+
+  useEffect(() => {
+    setOurServicesHeroForm((prev) => ({
+      ...prev,
+      sliderTitle: ourServices.sliderTitle,
+      sliderDescription: ourServices.sliderDescription,
+      sliderImage: ourServices.sliderImage,
+    }));
+  }, [ourServices.sliderDescription, ourServices.sliderImage, ourServices.sliderTitle]);
 
   useEffect(() => {
     const allowed = subcategoryLookup.get(processForm.category) || [];
@@ -1112,6 +1126,16 @@ const AdminServicesPage = () => {
       heroTitle: whyVedxHeroForm.heroTitle,
       heroDescription: whyVedxHeroForm.heroDescription,
       heroImage: whyVedxHeroForm.heroImage,
+    }));
+  };
+
+  const handleOurServicesHeroSave = (event) => {
+    event?.preventDefault();
+    setOurServices((prev) => ({
+      ...prev,
+      sliderTitle: ourServicesHeroForm.sliderTitle,
+      sliderDescription: ourServicesHeroForm.sliderDescription,
+      sliderImage: ourServicesHeroForm.sliderImage,
     }));
   };
 
@@ -1842,34 +1866,44 @@ const AdminServicesPage = () => {
           <Divider />
           <CardContent>
             <Stack spacing={3}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    label="Slider title"
-                    value={ourServices.sliderTitle}
-                    onChange={(event) => setOurServices((prev) => ({ ...prev, sliderTitle: event.target.value }))}
-                    fullWidth
-                  />
+              <Box
+                component="form"
+                onSubmit={handleOurServicesHeroSave}
+                sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}
+              >
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Slider title"
+                      value={ourServicesHeroForm.sliderTitle}
+                      onChange={(event) => handleOurServicesHeroChange('sliderTitle', event.target.value)}
+                      fullWidth
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Slider description"
+                      value={ourServicesHeroForm.sliderDescription}
+                      onChange={(event) => handleOurServicesHeroChange('sliderDescription', event.target.value)}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <ImageUpload
+                      label="Slider image"
+                      value={ourServicesHeroForm.sliderImage}
+                      onChange={(value) => handleOurServicesHeroChange('sliderImage', value)}
+                      required
+                    />
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    label="Slider description"
-                    value={ourServices.sliderDescription}
-                    onChange={(event) =>
-                      setOurServices((prev) => ({ ...prev, sliderDescription: event.target.value }))
-                    }
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <ImageUpload
-                    label="Slider image"
-                    value={ourServices.sliderImage}
-                    onChange={(value) => setOurServices((prev) => ({ ...prev, sliderImage: value }))}
-                    required
-                  />
-                </Grid>
-              </Grid>
+                <Button type="submit" variant="contained" sx={{ mt: 2 }}>
+                  Save slider content
+                </Button>
+              </Box>
 
               <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
                 <Box>
