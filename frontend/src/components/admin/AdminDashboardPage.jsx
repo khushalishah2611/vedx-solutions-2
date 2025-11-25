@@ -369,8 +369,8 @@ const AdminDashboardPage = () => {
         ? bannerForm.images.length
           ? bannerForm.images
           : bannerForm.image
-          ? [bannerForm.image]
-          : []
+            ? [bannerForm.image]
+            : []
         : [];
     setBannerForm((prev) => ({
       ...prev,
@@ -393,12 +393,12 @@ const AdminDashboardPage = () => {
         prev.map((item) =>
           item.id === editingBannerId
             ? {
-                ...item,
-                title: bannerForm.title,
-                image: isHome ? '' : bannerForm.image,
-                images: isHome ? bannerForm.images : [],
-                type: bannerForm.type,
-              }
+              ...item,
+              title: bannerForm.title,
+              image: isHome ? '' : bannerForm.image,
+              images: isHome ? bannerForm.images : [],
+              type: bannerForm.type,
+            }
             : item
         )
       );
@@ -990,10 +990,10 @@ const AdminDashboardPage = () => {
 
         const nextSubcategories = editingHireSubcategoryId
           ? category.subcategories.map((subcategory) =>
-              subcategory.id === editingHireSubcategoryId
-                ? { ...subcategory, title }
-                : subcategory
-            )
+            subcategory.id === editingHireSubcategoryId
+              ? { ...subcategory, title }
+              : subcategory
+          )
           : [{ id: `hire-sub-${Date.now()}`, title }, ...category.subcategories];
 
         return { ...category, subcategories: nextSubcategories };
@@ -1218,8 +1218,8 @@ const AdminDashboardPage = () => {
                     {!bannerForm.type
                       ? 'Select a banner type to enable image selection. Home supports multiple images; other types use a single image.'
                       : bannerForm.type === 'home'
-                      ? 'Home banners allow selecting multiple images for the slider.'
-                      : 'Other banner types accept a single image.'}
+                        ? 'Home banners allow selecting multiple images for the slider.'
+                        : 'Other banner types accept a single image.'}
                   </Typography>
 
                   <Button variant="contained" onClick={handleAddOrUpdateBanner}>
@@ -1441,41 +1441,6 @@ const AdminDashboardPage = () => {
             <Divider />
             <CardContent>
               <Stack spacing={3}>
-                {/* Slider header form */}
-                <Box
-                  sx={{
-                    p: 2,
-                    border: '1px dashed',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                  }}
-                >
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    justifyContent="space-between"
-                    alignItems={{ xs: 'flex-start', sm: 'center' }}
-                    spacing={1.5}
-                  >
-                    <Box>
-                      <Typography variant="h6">Slider configuration</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Click the button to add or edit slider content in a dialog.
-                      </Typography>
-                    </Box>
-                    <Button
-                      variant="contained"
-                      startIcon={<AddCircleOutlineIcon />}
-                      onClick={handleCreateNewSlider}
-                    >
-                      New slider
-                    </Button>
-                  </Stack>
-                  {ourHeaderSaved && (
-                    <Typography variant="body2" color="success.main" mt={1.5}>
-                      Saved
-                    </Typography>
-                  )}
-                </Box>
 
                 {/* Slider list */}
                 <Box>
@@ -1493,10 +1458,9 @@ const AdminDashboardPage = () => {
                     </Box>
 
                     <Button
-                      variant="outlined"
+                      variant="contained"
                       startIcon={<AddCircleOutlineIcon />}
                       onClick={handleCreateNewSlider}
-                      sx={{ mt: { xs: 1, sm: 0 } }}
                     >
                       New slider
                     </Button>
