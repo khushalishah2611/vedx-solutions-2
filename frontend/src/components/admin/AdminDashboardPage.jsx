@@ -31,8 +31,6 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 const initialProcess = [
   {
     id: 'process-1',
-    category: 'Full Stack Development',
-    subcategory: 'Frontend',
     title: 'Discovery and planning',
     description: 'Align goals, scope, and delivery milestones with stakeholder workshops.',
     image:
@@ -40,8 +38,6 @@ const initialProcess = [
   },
   {
     id: 'process-2',
-    category: 'Mobile App Development',
-    subcategory: 'Android',
     title: 'Release and measurement',
     description: 'Ship builds, monitor analytics, and optimise through iterative releases.',
     image:
@@ -51,7 +47,8 @@ const initialProcess = [
 
 const initialOurServices = {
   sliderTitle: 'Our Services',
-  sliderDescription: 'Showcase priority services with visuals, subtitles, and taxonomy tags.',
+  sliderImage:
+    'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1600&q=80',
   services: [
     {
       id: 'os-1',
@@ -155,6 +152,8 @@ const AdminDashboardPage = () => {
   const industryFileInputRef = useRef(null);
   const processFileInputRef = useRef(null);
   const expertiseFileInputRef = useRef(null);
+  const ourSliderFileInputRef = useRef(null);
+  const ourServiceFileInputRef = useRef(null);
 
   const [banners, setBanners] = useState(initialBanners);
   const [bannerForm, setBannerForm] = useState({ title: '', image: '', images: [], type: '' });
@@ -162,8 +161,6 @@ const AdminDashboardPage = () => {
 
   const [processList, setProcessList] = useState(initialProcess);
   const [processForm, setProcessForm] = useState({
-    category: '',
-    subcategory: '',
     title: '',
     description: '',
     image: '',
@@ -296,15 +293,13 @@ const AdminDashboardPage = () => {
   const openProcessDialog = (item = null) => {
     if (item) {
       setProcessForm({
-        category: item.category || '',
-        subcategory: item.subcategory || '',
         title: item.title || '',
         description: item.description || '',
         image: item.image || '',
       });
       setEditingProcessId(item.id);
     } else {
-      setProcessForm({ category: '', subcategory: '', title: '', description: '', image: '' });
+      setProcessForm({ title: '', description: '', image: '' });
       setEditingProcessId(null);
     }
     setProcessDialogOpen(true);
@@ -316,7 +311,7 @@ const AdminDashboardPage = () => {
   const closeProcessDialog = () => {
     setProcessDialogOpen(false);
     setEditingProcessId(null);
-    setProcessForm({ category: '', subcategory: '', title: '', description: '', image: '' });
+    setProcessForm({ title: '', description: '', image: '' });
     if (processFileInputRef.current) {
       processFileInputRef.current.value = '';
     }
@@ -349,6 +344,26 @@ const AdminDashboardPage = () => {
     setProcessList((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const handleOurSliderImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setOurServices((prev) => ({ ...prev, sliderImage: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleOurServiceImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setOurServiceForm((prev) => ({ ...prev, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleOurHeaderSave = () => {
     setOurServices((prev) => ({ ...prev }));
     setOurHeaderSaved(true);
@@ -356,10 +371,13 @@ const AdminDashboardPage = () => {
   };
 
   const handleAddOurService = () => {
-    if (!ourServiceForm.title.trim()) return;
+    if (!ourServiceForm.title.trim() || !ourServiceForm.image) return;
     const newItem = { ...ourServiceForm, id: `os-${Date.now()}` };
     setOurServices((prev) => ({ ...prev, services: [newItem, ...prev.services] }));
     setOurServiceForm({ title: '', subtitle: '', image: '' });
+    if (ourServiceFileInputRef.current) {
+      ourServiceFileInputRef.current.value = '';
+    }
   };
 
   const handleDeleteOurService = (id) => {
@@ -781,15 +799,12 @@ const AdminDashboardPage = () => {
 
       {activeTab === 'process' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Process"
-            subheader="Capture category and sub-category wise delivery steps."
-          />
+            <CardHeader title="Process" subheader="Capture key delivery steps." />
           <Divider />
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="subtitle1" color="text.secondary">
-                Add and edit process steps by category and sub-category.
+                Add and edit process steps with titles, descriptions, and preview imagery.
               </Typography>
               <Button
                 variant="contained"
@@ -803,8 +818,6 @@ const AdminDashboardPage = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>Image</TableCell>
-                  <TableCell>Category</TableCell>
-                  <TableCell>Sub-category</TableCell>
                   <TableCell>Title</TableCell>
                   <TableCell>Description</TableCell>
                   <TableCell align="right">Actions</TableCell>
@@ -827,8 +840,6 @@ const AdminDashboardPage = () => {
                         </Typography>
                       )}
                     </TableCell>
-                    <TableCell>{item.category || '-'}</TableCell>
-                    <TableCell>{item.subcategory || '-'}</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                     <TableCell sx={{ maxWidth: 320 }}>
                       <Typography variant="body2" color="text.secondary" noWrap>
@@ -853,7 +864,7 @@ const AdminDashboardPage = () => {
                 ))}
                 {!processList.length && (
                   <TableRow>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={4}>
                       <Typography variant="body2" color="text.secondary" align="center">
                         No process steps configured yet.
                       </Typography>
@@ -874,6 +885,13 @@ const AdminDashboardPage = () => {
           />
           <Divider />
           <CardContent>
+            <input
+              ref={ourSliderFileInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleOurSliderImageChange}
+            />
             <Stack spacing={2} mb={3} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'flex-end' }}>
               <TextField
                 label="Slider title"
@@ -881,21 +899,60 @@ const AdminDashboardPage = () => {
                 onChange={(event) => setOurServices((prev) => ({ ...prev, sliderTitle: event.target.value }))}
                 fullWidth
               />
-              <TextField
-                label="Slider description"
-                value={ourServices.sliderDescription}
-                onChange={(event) => setOurServices((prev) => ({ ...prev, sliderDescription: event.target.value }))}
-                fullWidth
-              />
-              <Button variant="contained" onClick={handleOurHeaderSave}>
-                Save header
-              </Button>
-              {ourHeaderSaved && (
-                <Typography variant="body2" color="success.main">
-                  Saved
+              <Stack spacing={1} sx={{ minWidth: { md: 320 } }}>
+                <Box
+                  sx={{
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    minHeight: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: 'background.default',
+                    overflow: 'hidden',
+                  }}
+                  onClick={() => ourSliderFileInputRef.current?.click()}
+                >
+                  {ourServices.sliderImage ? (
+                    <Box
+                      component="img"
+                      src={ourServices.sliderImage}
+                      alt={ourServices.sliderTitle || 'Slider preview'}
+                      sx={{ width: '100%', height: 140, objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" align="center" px={2}>
+                      Banner preview will appear here once you add a title and choose an image.
+                    </Typography>
+                  )}
+                </Box>
+                <Button variant="outlined" onClick={() => ourSliderFileInputRef.current?.click()} fullWidth>
+                  Choose image
+                </Button>
+                <Typography variant="caption" color="text.secondary">
+                  Select a slider banner image to pair with the title above.
                 </Typography>
-              )}
+              </Stack>
+              <Stack spacing={1} alignItems="flex-start">
+                <Button variant="contained" onClick={handleOurHeaderSave}>
+                  Save header
+                </Button>
+                {ourHeaderSaved && (
+                  <Typography variant="body2" color="success.main">
+                    Saved
+                  </Typography>
+                )}
+              </Stack>
             </Stack>
+
+            <input
+              ref={ourServiceFileInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleOurServiceImageChange}
+            />
 
             <Stack spacing={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'flex-end' }}>
               <TextField
@@ -910,12 +967,41 @@ const AdminDashboardPage = () => {
                 onChange={(event) => setOurServiceForm((prev) => ({ ...prev, subtitle: event.target.value }))}
                 fullWidth
               />
-              <TextField
-                label="Image URL"
-                value={ourServiceForm.image}
-                onChange={(event) => setOurServiceForm((prev) => ({ ...prev, image: event.target.value }))}
-                fullWidth
-              />
+              <Stack spacing={1} sx={{ minWidth: { md: 260 } }}>
+                <Box
+                  sx={{
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    minHeight: 80,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: 'background.default',
+                    overflow: 'hidden',
+                  }}
+                  onClick={() => ourServiceFileInputRef.current?.click()}
+                >
+                  {ourServiceForm.image ? (
+                    <Box
+                      component="img"
+                      src={ourServiceForm.image}
+                      alt={ourServiceForm.title || 'Service preview'}
+                      sx={{ width: '100%', height: 100, objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" align="center" px={2}>
+                      Banner preview will appear here once you add a title and choose an image.
+                    </Typography>
+                  )}
+                </Box>
+                <Button variant="outlined" onClick={() => ourServiceFileInputRef.current?.click()} fullWidth>
+                  Choose image
+                </Button>
+                <Typography variant="caption" color="text.secondary">
+                  Upload a service card image to accompany the title and subtitle.
+                </Typography>
+              </Stack>
               <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleAddOurService}>
                 Add card
               </Button>
@@ -940,9 +1026,18 @@ const AdminDashboardPage = () => {
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ maxWidth: 260 }}>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {item.image || '-'}
-                      </Typography>
+                      {item.image ? (
+                        <Box
+                          component="img"
+                          src={item.image}
+                          alt={`${item.title} visual`}
+                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No image
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell align="right">
                       <Tooltip title="Delete">
@@ -1447,18 +1542,6 @@ const AdminDashboardPage = () => {
         <DialogTitle>{editingProcessId ? 'Edit process step' : 'Add process step'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
-            <TextField
-              label="Category"
-              value={processForm.category}
-              onChange={(event) => setProcessForm((prev) => ({ ...prev, category: event.target.value }))}
-              fullWidth
-            />
-            <TextField
-              label="Sub-category"
-              value={processForm.subcategory}
-              onChange={(event) => setProcessForm((prev) => ({ ...prev, subcategory: event.target.value }))}
-              fullWidth
-            />
             <TextField
               label="Title"
               required
