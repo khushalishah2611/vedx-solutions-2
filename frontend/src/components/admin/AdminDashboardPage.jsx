@@ -30,6 +30,7 @@ import {
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
 const initialProcess = [
   {
@@ -130,6 +131,29 @@ const initialExpertise = {
   ],
 };
 
+const initialHireCategories = [
+  {
+    id: 'hire-cat-1',
+    title: 'Mobile app developers',
+    description: 'Build native and cross-platform mobile experiences.',
+    subcategories: [
+      { id: 'hire-sub-1', title: 'Android developers' },
+      { id: 'hire-sub-2', title: 'iOS developers' },
+      { id: 'hire-sub-3', title: 'React Native developers' },
+    ],
+  },
+  {
+    id: 'hire-cat-2',
+    title: 'Web app developers',
+    description: 'Ship performant web applications with modern stacks.',
+    subcategories: [
+      { id: 'hire-sub-4', title: 'Full stack engineers' },
+      { id: 'hire-sub-5', title: 'Frontend specialists' },
+      { id: 'hire-sub-6', title: 'Backend specialists' },
+    ],
+  },
+];
+
 const initialBanners = [
   {
     id: 'banner-1',
@@ -219,7 +243,6 @@ const AdminDashboardPage = () => {
   const [bannerPage, setBannerPage] = useState(1);
 
   const [processList, setProcessList] = useState(initialProcess);
-  theUS
   const [processForm, setProcessForm] = useState({
     title: '',
     description: '',
@@ -289,6 +312,18 @@ const AdminDashboardPage = () => {
   const [expertiseDialogOpen, setExpertiseDialogOpen] = useState(false);
   const [editingExpertiseId, setEditingExpertiseId] = useState(null);
   const [expertisePage, setExpertisePage] = useState(1);
+
+  const [hireCategories, setHireCategories] = useState(initialHireCategories);
+  const [hireCategoryForm, setHireCategoryForm] = useState({ title: '', description: '' });
+  const [hireCategoryDialogOpen, setHireCategoryDialogOpen] = useState(false);
+  const [editingHireCategoryId, setEditingHireCategoryId] = useState(null);
+  const [hireCategoryPage, setHireCategoryPage] = useState(1);
+  const [subcategoryDialogOpen, setSubcategoryDialogOpen] = useState(false);
+  const [activeHireCategoryId, setActiveHireCategoryId] = useState(null);
+  const [hireSubcategoryForm, setHireSubcategoryForm] = useState({ title: '' });
+  const [editingHireSubcategoryId, setEditingHireSubcategoryId] = useState(null);
+  const [hireCategoryError, setHireCategoryError] = useState('');
+  const [hireSubcategoryError, setHireSubcategoryError] = useState('');
 
   // selected slider for service dialog preview
   const selectedSliderForServiceDialog =
@@ -815,6 +850,167 @@ const AdminDashboardPage = () => {
   };
 
   // ─────────────────────────────────────
+  // Hire developers - category + sub-category handlers
+  // ─────────────────────────────────────
+  const openHireCategoryDialog = (item = null) => {
+    setHireCategoryError('');
+    if (item) {
+      setHireCategoryForm({ title: item.title || '', description: item.description || '' });
+      setEditingHireCategoryId(item.id);
+    } else {
+      setHireCategoryForm({ title: '', description: '' });
+      setEditingHireCategoryId(null);
+    }
+    setHireCategoryDialogOpen(true);
+  };
+
+  const closeHireCategoryDialog = () => {
+    setHireCategoryDialogOpen(false);
+    setEditingHireCategoryId(null);
+    setHireCategoryForm({ title: '', description: '' });
+    setHireCategoryError('');
+  };
+
+  const handleSaveHireCategory = () => {
+    const title = hireCategoryForm.title.trim();
+    if (!title) {
+      setHireCategoryError('Title is required');
+      return;
+    }
+
+    const duplicate = hireCategories.some(
+      (category) =>
+        category.title.trim().toLowerCase() === title.toLowerCase() &&
+        category.id !== editingHireCategoryId
+    );
+
+    if (duplicate) {
+      setHireCategoryError('A category with this title already exists');
+      return;
+    }
+
+    setHireCategoryError('');
+
+    if (editingHireCategoryId) {
+      setHireCategories((prev) =>
+        prev.map((category) =>
+          category.id === editingHireCategoryId
+            ? { ...category, ...hireCategoryForm, title }
+            : category
+        )
+      );
+    } else {
+      const newCategory = {
+        id: `hire-cat-${Date.now()}`,
+        title,
+        description: hireCategoryForm.description,
+        subcategories: [],
+      };
+      setHireCategories((prev) => [newCategory, ...prev]);
+      setHireCategoryPage(1);
+    }
+
+    closeHireCategoryDialog();
+  };
+
+  const handleDeleteHireCategory = (id) => {
+    setHireCategories((prev) => {
+      const updated = prev.filter((category) => category.id !== id);
+      setHireCategoryPage((prevPage) => {
+        const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+        return Math.min(prevPage, totalPages);
+      });
+      return updated;
+    });
+
+    if (activeHireCategoryId === id) {
+      closeSubcategoryDialog();
+    }
+  };
+
+  const openSubcategoryDialog = (category) => {
+    setActiveHireCategoryId(category.id);
+    setHireSubcategoryForm({ title: '' });
+    setEditingHireSubcategoryId(null);
+    setHireSubcategoryError('');
+    setSubcategoryDialogOpen(true);
+  };
+
+  const closeSubcategoryDialog = () => {
+    setSubcategoryDialogOpen(false);
+    setActiveHireCategoryId(null);
+    setHireSubcategoryForm({ title: '' });
+    setEditingHireSubcategoryId(null);
+    setHireSubcategoryError('');
+  };
+
+  const handleSaveHireSubcategory = () => {
+    if (!activeHireCategoryId) return;
+
+    const title = hireSubcategoryForm.title.trim();
+    if (!title) {
+      setHireSubcategoryError('Title is required');
+      return;
+    }
+
+    const activeCategory = hireCategories.find((category) => category.id === activeHireCategoryId);
+    const duplicate = activeCategory?.subcategories.some(
+      (subcategory) =>
+        subcategory.title.trim().toLowerCase() === title.toLowerCase() &&
+        subcategory.id !== editingHireSubcategoryId
+    );
+
+    if (duplicate) {
+      setHireSubcategoryError('This sub-category already exists for the category');
+      return;
+    }
+
+    setHireSubcategoryError('');
+
+    setHireCategories((prev) =>
+      prev.map((category) => {
+        if (category.id !== activeHireCategoryId) return category;
+
+        const nextSubcategories = editingHireSubcategoryId
+          ? category.subcategories.map((subcategory) =>
+              subcategory.id === editingHireSubcategoryId
+                ? { ...subcategory, title }
+                : subcategory
+            )
+          : [{ id: `hire-sub-${Date.now()}`, title }, ...category.subcategories];
+
+        return { ...category, subcategories: nextSubcategories };
+      })
+    );
+
+    setHireSubcategoryForm({ title: '' });
+    setEditingHireSubcategoryId(null);
+  };
+
+  const handleEditHireSubcategory = (subcategory) => {
+    setHireSubcategoryForm({ title: subcategory.title });
+    setEditingHireSubcategoryId(subcategory.id);
+    setHireSubcategoryError('');
+  };
+
+  const handleDeleteHireSubcategory = (id) => {
+    setHireCategories((prev) =>
+      prev.map((category) => {
+        if (category.id !== activeHireCategoryId) return category;
+        return {
+          ...category,
+          subcategories: category.subcategories.filter((subcategory) => subcategory.id !== id),
+        };
+      })
+    );
+
+    if (editingHireSubcategoryId === id) {
+      setHireSubcategoryForm({ title: '' });
+      setEditingHireSubcategoryId(null);
+    }
+  };
+
+  // ─────────────────────────────────────
   // Pagination slices
   // ─────────────────────────────────────
   const paginatedBanners = banners.slice(
@@ -845,6 +1041,12 @@ const AdminDashboardPage = () => {
     (ourServicesSliderPage - 1) * rowsPerPage,
     ourServicesSliderPage * rowsPerPage
   );
+  const paginatedHireCategories = hireCategories.slice(
+    (hireCategoryPage - 1) * rowsPerPage,
+    hireCategoryPage * rowsPerPage
+  );
+  const activeHireCategory =
+    hireCategories.find((category) => category.id === activeHireCategoryId) || null;
 
   return (
     <>
@@ -880,6 +1082,7 @@ const AdminDashboardPage = () => {
             <Tab value="industries" label="Industries we serve" />
             <Tab value="tech-solutions" label="Tech solutions" />
             <Tab value="expertise" label="Expertise models" />
+            <Tab value="hire" label="Hire developers" />
           </Tabs>
         </Box>
 
@@ -1897,7 +2100,229 @@ const AdminDashboardPage = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* HIRE DEVELOPERS TAB */}
+        {activeTab === 'hire' && (
+          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+            <CardHeader
+              title="Hire developers"
+              subheader="Manage category and sub-category master data for hire developer cards."
+              action={
+                <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={() => openHireCategoryDialog()}>
+                  Add category
+                </Button>
+              }
+            />
+            <Divider />
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" mb={2}>
+                Keep hire developer content organised and avoid duplicates by maintaining a clear
+                category → sub-category structure.
+              </Typography>
+
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Sub-categories</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedHireCategories.map((category) => (
+                    <TableRow key={category.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{category.title}</TableCell>
+                      <TableCell sx={{ maxWidth: 360 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {category.description || '-'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 360 }}>
+                        {category.subcategories.length ? (
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                            {category.subcategories.map((subcategory) => (
+                              <Chip key={subcategory.id} label={subcategory.title} size="small" />
+                            ))}
+                          </Stack>
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            No sub-categories yet
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Manage sub-categories">
+                            <IconButton size="small" onClick={() => openSubcategoryDialog(category)}>
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => openHireCategoryDialog(category)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              color="error"
+                              size="small"
+                              onClick={() => handleDeleteHireCategory(category.id)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!hireCategories.length && (
+                    <TableRow>
+                      <TableCell colSpan={4}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No hire categories configured yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(hireCategories.length / rowsPerPage))}
+                  page={hireCategoryPage}
+                  onChange={(event, page) => setHireCategoryPage(page)}
+                  color="primary"
+                  size="small"
+                />
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
       </Stack>
+
+      {/* Hire category dialog */}
+      <Dialog open={hireCategoryDialogOpen} onClose={closeHireCategoryDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingHireCategoryId ? 'Edit hire category' : 'Add hire category'}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Category title"
+              required
+              value={hireCategoryForm.title}
+              onChange={(event) =>
+                setHireCategoryForm((prev) => ({ ...prev, title: event.target.value }))
+              }
+              error={Boolean(hireCategoryError)}
+              helperText={hireCategoryError || 'Create master categories for hire developer options.'}
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              value={hireCategoryForm.description}
+              onChange={(event) =>
+                setHireCategoryForm((prev) => ({ ...prev, description: event.target.value }))
+              }
+              fullWidth
+              multiline
+              minRows={3}
+              placeholder="Optional description for the category"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeHireCategoryDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveHireCategory} variant="contained">
+            {editingHireCategoryId ? 'Update category' : 'Add category'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Hire sub-category dialog */}
+      <Dialog open={subcategoryDialogOpen} onClose={closeSubcategoryDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Manage sub-categories
+          {activeHireCategory ? ` for "${activeHireCategory.title}"` : ''}
+        </DialogTitle>
+        <DialogContent dividers>
+          {activeHireCategory ? (
+            <Stack spacing={2} mt={1}>
+              <TextField
+                label="Sub-category title"
+                required
+                value={hireSubcategoryForm.title}
+                onChange={(event) =>
+                  setHireSubcategoryForm((prev) => ({ ...prev, title: event.target.value }))
+                }
+                error={Boolean(hireSubcategoryError)}
+                helperText={
+                  hireSubcategoryError || 'Add the individual specialisations offered under this category.'
+                }
+                fullWidth
+              />
+
+              <Stack direction="row" justifyContent="flex-end">
+                <Button variant="contained" onClick={handleSaveHireSubcategory}>
+                  {editingHireSubcategoryId ? 'Update sub-category' : 'Add sub-category'}
+                </Button>
+              </Stack>
+
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {activeHireCategory.subcategories.map((subcategory) => (
+                    <TableRow key={subcategory.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{subcategory.title}</TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => handleEditHireSubcategory(subcategory)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              color="error"
+                              size="small"
+                              onClick={() => handleDeleteHireSubcategory(subcategory.id)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!activeHireCategory.subcategories.length && (
+                    <TableRow>
+                      <TableCell colSpan={2}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No sub-categories yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Stack>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Select a hire category to manage its sub-categories.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeSubcategoryDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Our services dialog - now includes slider dropdown + image-wise picker */}
       <Dialog
