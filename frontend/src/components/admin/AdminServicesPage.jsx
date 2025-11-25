@@ -1389,6 +1389,7 @@ const AdminServicesPage = () => {
           textColor="primary"
         >
           <Tab value="services" label="Service menu" />
+               <Tab value="process" label="Process" />
           <Tab value="why-vedx" label="Why choose VedX" />
           <Tab value="why-choose" label="Why choose service" />
           <Tab value="technologies" label="Technologies we support" />
@@ -1915,6 +1916,7 @@ const AdminServicesPage = () => {
           </CardContent>
         </Card>
       )}
+
 
       {activeTab === 'industries' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
