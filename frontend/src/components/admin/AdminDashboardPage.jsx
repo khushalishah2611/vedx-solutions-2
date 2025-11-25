@@ -881,184 +881,126 @@ const AdminDashboardPage = () => {
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
             title="Our services"
-            subheader="Control slider headline and cards for the homepage module."
+            subheader="Manage slider title/description and the list of showcased services."
           />
           <Divider />
           <CardContent>
-            <input
-              ref={ourSliderFileInputRef}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={handleOurSliderImageChange}
-            />
-            <Stack spacing={2} mb={3} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'flex-end' }}>
-              <TextField
-                label="Slider title"
-                value={ourServices.sliderTitle}
-                onChange={(event) => setOurServices((prev) => ({ ...prev, sliderTitle: event.target.value }))}
-                fullWidth
-              />
-              <Stack spacing={1} sx={{ minWidth: { md: 320 } }}>
-                <Box
-                  sx={{
-                    border: '1px dashed',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    minHeight: 100,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: 'background.default',
-                    overflow: 'hidden',
-                  }}
-                  onClick={() => ourSliderFileInputRef.current?.click()}
-                >
-                  {ourServices.sliderImage ? (
-                    <Box
-                      component="img"
-                      src={ourServices.sliderImage}
-                      alt={ourServices.sliderTitle || 'Slider preview'}
-                      sx={{ width: '100%', height: 140, objectFit: 'cover' }}
+            <Stack spacing={3}>
+              <Box
+                component="form"
+                onSubmit={handleOurServicesHeroSave}
+                sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}
+              >
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Slider title"
+                      value={ourServicesHeroForm.sliderTitle}
+                      onChange={(event) => handleOurServicesHeroChange('sliderTitle', event.target.value)}
+                      fullWidth
+                      required
                     />
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" align="center" px={2}>
-                      Banner preview will appear here once you add a title and choose an image.
-                    </Typography>
-                  )}
-                </Box>
-                <Button variant="outlined" onClick={() => ourSliderFileInputRef.current?.click()} fullWidth>
-                  Choose image
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Slider description"
+                      value={ourServicesHeroForm.sliderDescription}
+                      onChange={(event) => handleOurServicesHeroChange('sliderDescription', event.target.value)}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <ImageUpload
+                      label="Slider image"
+                      value={ourServicesHeroForm.sliderImage}
+                      onChange={(value) => handleOurServicesHeroChange('sliderImage', value)}
+                      required
+                    />
+                  </Grid>
+                </Grid>
+                <Button type="submit" variant="contained" sx={{ mt: 2 }}>
+                  Save slider content
                 </Button>
-                <Typography variant="caption" color="text.secondary">
-                  Select a slider banner image to pair with the title above.
-                </Typography>
-              </Stack>
-              <Stack spacing={1} alignItems="flex-start">
-                <Button variant="contained" onClick={handleOurHeaderSave}>
-                  Save header
-                </Button>
-                {ourHeaderSaved && (
-                  <Typography variant="body2" color="success.main">
-                    Saved
+              </Box>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                <Box>
+                  <Typography variant="h6">Service cards</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Add the services that appear in the carousel with titles and images.
                   </Typography>
-                )}
-              </Stack>
-            </Stack>
-
-            <input
-              ref={ourServiceFileInputRef}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={handleOurServiceImageChange}
-            />
-
-            <Stack spacing={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'flex-end' }}>
-              <TextField
-                label="Service title"
-                value={ourServiceForm.title}
-                onChange={(event) => setOurServiceForm((prev) => ({ ...prev, title: event.target.value }))}
-                fullWidth
-              />
-              <TextField
-                label="Subtitle"
-                value={ourServiceForm.subtitle}
-                onChange={(event) => setOurServiceForm((prev) => ({ ...prev, subtitle: event.target.value }))}
-                fullWidth
-              />
-              <Stack spacing={1} sx={{ minWidth: { md: 260 } }}>
-                <Box
-                  sx={{
-                    border: '1px dashed',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    minHeight: 80,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: 'background.default',
-                    overflow: 'hidden',
-                  }}
-                  onClick={() => ourServiceFileInputRef.current?.click()}
-                >
-                  {ourServiceForm.image ? (
-                    <Box
-                      component="img"
-                      src={ourServiceForm.image}
-                      alt={ourServiceForm.title || 'Service preview'}
-                      sx={{ width: '100%', height: 100, objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" align="center" px={2}>
-                      Banner preview will appear here once you add a title and choose an image.
-                    </Typography>
-                  )}
                 </Box>
-                <Button variant="outlined" onClick={() => ourServiceFileInputRef.current?.click()} fullWidth>
-                  Choose image
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={openOurServiceCreateDialog}
+                  sx={{ mt: { xs: 1, sm: 0 } }}
+                >
+                  Add service card
                 </Button>
-                <Typography variant="caption" color="text.secondary">
-                  Upload a service card image to accompany the title and subtitle.
-                </Typography>
               </Stack>
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleAddOurService}>
-                Add card
-              </Button>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {ourServices.services
+                      .slice((ourServicePage - 1) * rowsPerPage, ourServicePage * rowsPerPage)
+                      .map((item) => (
+                        <TableRow key={item.id} hover>
+                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                          <TableCell>
+                            <Box
+                              component="img"
+                              src={item.image || imagePlaceholder}
+                              alt={`${item.title} visual`}
+                              sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" color="primary" onClick={() => openOurServiceEditDialog(item)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton size="small" color="error" onClick={() => openOurServiceDeleteDialog(item)}>
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {ourServices.services.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3}>
+                          <Typography variant="body2" color="text.secondary" align="center">
+                            No service cards configured yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(ourServices.services.length / rowsPerPage))}
+                  page={ourServicePage}
+                  onChange={(event, page) => setOurServicePage(page)}
+                  color="primary"
+                />
+              </Stack>
             </Stack>
-
-            <Table size="small" sx={{ mt: 2 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Subtitle</TableCell>
-                  <TableCell>Image</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {ourServices.services.map((item) => (
-                  <TableRow key={item.id} hover>
-                    <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                    <TableCell sx={{ maxWidth: 280 }}>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {item.subtitle}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ maxWidth: 260 }}>
-                      {item.image ? (
-                        <Box
-                          component="img"
-                          src={item.image}
-                          alt={`${item.title} visual`}
-                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}
-                        />
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No image
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Delete">
-                        <IconButton color="error" size="small" onClick={() => handleDeleteOurService(item.id)}>
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {!ourServices.services.length && (
-                  <TableRow>
-                    <TableCell colSpan={4}>
-                      <Typography variant="body2" color="text.secondary" align="center">
-                        No service cards configured yet.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
           </CardContent>
         </Card>
       )}

@@ -1434,7 +1434,6 @@ const AdminServicesPage = () => {
           <Tab value="services" label="Service menu" />
           <Tab value="process" label="Process" />
           <Tab value="why-vedx" label="Why choose VedX" />
-          <Tab value="our-services" label="Our services" />
           <Tab value="why-choose" label="Why choose service" />
           <Tab value="technologies" label="Technologies we support" />
           <Tab value="benefits" label="Benefits" />
@@ -1857,134 +1856,7 @@ const AdminServicesPage = () => {
         </Card>
       )}
 
-      {activeTab === 'our-services' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Our services"
-            subheader="Manage slider title/description and the list of showcased services."
-          />
-          <Divider />
-          <CardContent>
-            <Stack spacing={3}>
-              <Box
-                component="form"
-                onSubmit={handleOurServicesHeroSave}
-                sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}
-              >
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      label="Slider title"
-                      value={ourServicesHeroForm.sliderTitle}
-                      onChange={(event) => handleOurServicesHeroChange('sliderTitle', event.target.value)}
-                      fullWidth
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      label="Slider description"
-                      value={ourServicesHeroForm.sliderDescription}
-                      onChange={(event) => handleOurServicesHeroChange('sliderDescription', event.target.value)}
-                      fullWidth
-                      multiline
-                      minRows={2}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <ImageUpload
-                      label="Slider image"
-                      value={ourServicesHeroForm.sliderImage}
-                      onChange={(value) => handleOurServicesHeroChange('sliderImage', value)}
-                      required
-                    />
-                  </Grid>
-                </Grid>
-                <Button type="submit" variant="contained" sx={{ mt: 2 }}>
-                  Save slider content
-                </Button>
-              </Box>
-
-              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                <Box>
-                  <Typography variant="h6">Service cards</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Add the services that appear in the carousel with titles and images.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={openOurServiceCreateDialog}
-                  sx={{ mt: { xs: 1, sm: 0 } }}
-                >
-                  Add service card
-                </Button>
-              </Stack>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {ourServices.services
-                      .slice((ourServicePage - 1) * rowsPerPage, ourServicePage * rowsPerPage)
-                      .map((item) => (
-                        <TableRow key={item.id} hover>
-                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                          <TableCell>
-                            <Box
-                              component="img"
-                              src={item.image || imagePlaceholder}
-                              alt={`${item.title} visual`}
-                              sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                            />
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <Tooltip title="Edit">
-                                <IconButton size="small" color="primary" onClick={() => openOurServiceEditDialog(item)}>
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton size="small" color="error" onClick={() => openOurServiceDeleteDialog(item)}>
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    {ourServices.services.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={3}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No service cards configured yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Stack mt={2} alignItems="flex-end">
-                <Pagination
-                  count={Math.max(1, Math.ceil(ourServices.services.length / rowsPerPage))}
-                  page={ourServicePage}
-                  onChange={(event, page) => setOurServicePage(page)}
-                  color="primary"
-                />
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-
+     
 
       {activeTab === 'industries' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
