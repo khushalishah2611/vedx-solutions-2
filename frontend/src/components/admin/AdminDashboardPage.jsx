@@ -35,6 +35,8 @@ const initialProcess = [
     subcategory: 'Frontend',
     title: 'Discovery and planning',
     description: 'Align goals, scope, and delivery milestones with stakeholder workshops.',
+    image:
+      'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=800&q=60',
   },
   {
     id: 'process-2',
@@ -42,6 +44,8 @@ const initialProcess = [
     subcategory: 'Android',
     title: 'Release and measurement',
     description: 'Ship builds, monitor analytics, and optimise through iterative releases.',
+    image:
+      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=60',
   },
 ];
 
@@ -112,11 +116,15 @@ const initialExpertise = {
       id: 'exp-1',
       title: 'Dedicated pods',
       description: 'Long-running pods aligned to a business unit with steady velocity.',
+      image:
+        'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=800&q=60',
     },
     {
       id: 'exp-2',
       title: 'Outcome squads',
       description: 'Cross-functional teams focused on a single measurable outcome.',
+      image:
+        'https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&w=800&q=60',
     },
   ],
 };
@@ -145,6 +153,8 @@ const AdminDashboardPage = () => {
 
   const fileInputRef = useRef(null);
   const industryFileInputRef = useRef(null);
+  const processFileInputRef = useRef(null);
+  const expertiseFileInputRef = useRef(null);
 
   const [banners, setBanners] = useState(initialBanners);
   const [bannerForm, setBannerForm] = useState({ title: '', image: '', images: [], type: '' });
@@ -156,6 +166,7 @@ const AdminDashboardPage = () => {
     subcategory: '',
     title: '',
     description: '',
+    image: '',
   });
   const [processDialogOpen, setProcessDialogOpen] = useState(false);
   const [editingProcessId, setEditingProcessId] = useState(null);
@@ -177,8 +188,10 @@ const AdminDashboardPage = () => {
   const [editingTechSolutionId, setEditingTechSolutionId] = useState(null);
 
   const [expertise, setExpertise] = useState(initialExpertise);
-  const [expertiseForm, setExpertiseForm] = useState({ title: '', description: '' });
+  const [expertiseForm, setExpertiseForm] = useState({ title: '', description: '', image: '' });
   const [expertiseSaved, setExpertiseSaved] = useState(false);
+  const [expertiseDialogOpen, setExpertiseDialogOpen] = useState(false);
+  const [editingExpertiseId, setEditingExpertiseId] = useState(null);
 
   const handleBannerImageChange = (event) => {
     const files = Array.from(event.target.files || []);
@@ -287,23 +300,38 @@ const AdminDashboardPage = () => {
         subcategory: item.subcategory || '',
         title: item.title || '',
         description: item.description || '',
+        image: item.image || '',
       });
       setEditingProcessId(item.id);
     } else {
-      setProcessForm({ category: '', subcategory: '', title: '', description: '' });
+      setProcessForm({ category: '', subcategory: '', title: '', description: '', image: '' });
       setEditingProcessId(null);
     }
     setProcessDialogOpen(true);
+    if (processFileInputRef.current) {
+      processFileInputRef.current.value = '';
+    }
   };
 
   const closeProcessDialog = () => {
     setProcessDialogOpen(false);
     setEditingProcessId(null);
-    setProcessForm({ category: '', subcategory: '', title: '', description: '' });
+    setProcessForm({ category: '', subcategory: '', title: '', description: '', image: '' });
+    if (processFileInputRef.current) {
+      processFileInputRef.current.value = '';
+    }
+  };
+
+  const handleProcessImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setProcessForm((prev) => ({ ...prev, image: reader.result }));
+    reader.readAsDataURL(file);
   };
 
   const handleProcessSave = () => {
-    if (!processForm.title.trim()) return;
+    if (!processForm.title.trim() || !processForm.image) return;
 
     if (editingProcessId) {
       setProcessList((prev) =>
@@ -463,15 +491,64 @@ const AdminDashboardPage = () => {
     setTimeout(() => setExpertiseSaved(false), 2000);
   };
 
-  const handleAddExpertise = () => {
-    if (!expertiseForm.title.trim()) return;
-    const newItem = { ...expertiseForm, id: `exp-${Date.now()}` };
-    setExpertise((prev) => ({ ...prev, items: [newItem, ...prev.items] }));
-    setExpertiseForm({ title: '', description: '' });
+  const openExpertiseDialog = (item = null) => {
+    if (item) {
+      setExpertiseForm({
+        title: item.title || '',
+        description: item.description || '',
+        image: item.image || '',
+      });
+      setEditingExpertiseId(item.id);
+    } else {
+      setExpertiseForm({ title: '', description: '', image: '' });
+      setEditingExpertiseId(null);
+    }
+    setExpertiseDialogOpen(true);
+    if (expertiseFileInputRef.current) {
+      expertiseFileInputRef.current.value = '';
+    }
+  };
+
+  const closeExpertiseDialog = () => {
+    setExpertiseDialogOpen(false);
+    setEditingExpertiseId(null);
+    setExpertiseForm({ title: '', description: '', image: '' });
+    if (expertiseFileInputRef.current) {
+      expertiseFileInputRef.current.value = '';
+    }
+  };
+
+  const handleExpertiseImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setExpertiseForm((prev) => ({ ...prev, image: reader.result }));
+    reader.readAsDataURL(file);
+  };
+
+  const handleExpertiseSubmit = () => {
+    if (!expertiseForm.title.trim() || !expertiseForm.image) return;
+
+    if (editingExpertiseId) {
+      setExpertise((prev) => ({
+        ...prev,
+        items: prev.items.map((item) =>
+          item.id === editingExpertiseId ? { ...item, ...expertiseForm } : item
+        ),
+      }));
+    } else {
+      const newItem = { ...expertiseForm, id: `exp-${Date.now()}` };
+      setExpertise((prev) => ({ ...prev, items: [newItem, ...prev.items] }));
+    }
+
+    closeExpertiseDialog();
   };
 
   const handleDeleteExpertise = (id) => {
     setExpertise((prev) => ({ ...prev, items: prev.items.filter((item) => item.id !== id) }));
+    if (editingExpertiseId === id) {
+      closeExpertiseDialog();
+    }
   };
 
   return (
@@ -725,6 +802,7 @@ const AdminDashboardPage = () => {
             <Table size="small">
               <TableHead>
                 <TableRow>
+                  <TableCell>Image</TableCell>
                   <TableCell>Category</TableCell>
                   <TableCell>Sub-category</TableCell>
                   <TableCell>Title</TableCell>
@@ -735,6 +813,20 @@ const AdminDashboardPage = () => {
               <TableBody>
                 {processList.map((item) => (
                   <TableRow key={item.id} hover>
+                    <TableCell width={120}>
+                      {item.image ? (
+                        <Box
+                          component="img"
+                          src={item.image}
+                          alt={item.title || 'Process preview'}
+                          sx={{ width: 88, height: 56, objectFit: 'cover', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}
+                        />
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          No image
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell>{item.category || '-'}</TableCell>
                     <TableCell>{item.subcategory || '-'}</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
@@ -761,7 +853,7 @@ const AdminDashboardPage = () => {
                 ))}
                 {!processList.length && (
                   <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                       <Typography variant="body2" color="text.secondary" align="center">
                         No process steps configured yet.
                       </Typography>
@@ -1094,27 +1186,23 @@ const AdminDashboardPage = () => {
               )}
             </Stack>
 
-            <Stack spacing={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'flex-end' }}>
-              <TextField
-                label="Option title"
-                value={expertiseForm.title}
-                onChange={(event) => setExpertiseForm((prev) => ({ ...prev, title: event.target.value }))}
-                fullWidth
-              />
-              <TextField
-                label="Description"
-                value={expertiseForm.description}
-                onChange={(event) => setExpertiseForm((prev) => ({ ...prev, description: event.target.value }))}
-                fullWidth
-              />
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleAddExpertise}>
-                Add option
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+              <Typography variant="subtitle1" color="text.secondary">
+                Add industry-style expertise options with title, description, and imagery.
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={() => openExpertiseDialog()}
+              >
+                Add industry
               </Button>
             </Stack>
 
             <Table size="small" sx={{ mt: 2 }}>
               <TableHead>
                 <TableRow>
+                  <TableCell>Image</TableCell>
                   <TableCell>Title</TableCell>
                   <TableCell>Description</TableCell>
                   <TableCell align="right">Actions</TableCell>
@@ -1123,6 +1211,20 @@ const AdminDashboardPage = () => {
               <TableBody>
                 {expertise.items.map((item) => (
                   <TableRow key={item.id} hover>
+                    <TableCell width={120}>
+                      {item.image ? (
+                        <Box
+                          component="img"
+                          src={item.image}
+                          alt={item.title || 'Expertise preview'}
+                          sx={{ width: 88, height: 56, objectFit: 'cover', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}
+                        />
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          No image
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                     <TableCell sx={{ maxWidth: 360 }}>
                       <Typography variant="body2" color="text.secondary" noWrap>
@@ -1130,6 +1232,11 @@ const AdminDashboardPage = () => {
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
+                      <Tooltip title="Edit">
+                        <IconButton size="small" onClick={() => openExpertiseDialog(item)}>
+                          <EditOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Delete">
                         <IconButton color="error" size="small" onClick={() => handleDeleteExpertise(item.id)}>
                           <DeleteOutlineIcon fontSize="small" />
@@ -1140,7 +1247,7 @@ const AdminDashboardPage = () => {
                 ))}
                 {!expertise.items.length && (
                   <TableRow>
-                    <TableCell colSpan={3}>
+                    <TableCell colSpan={4}>
                       <Typography variant="body2" color="text.secondary" align="center">
                         No expertise options configured yet.
                       </Typography>
@@ -1261,6 +1368,81 @@ const AdminDashboardPage = () => {
         </DialogActions>
       </Dialog>
 
+      <Dialog open={expertiseDialogOpen} onClose={closeExpertiseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingExpertiseId ? 'Edit industry' : 'Add industry'}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Title"
+              required
+              value={expertiseForm.title}
+              onChange={(event) => setExpertiseForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              value={expertiseForm.description}
+              onChange={(event) => setExpertiseForm((prev) => ({ ...prev, description: event.target.value }))}
+              fullWidth
+              multiline
+              minRows={3}
+              placeholder="Add optional details for the expertise option"
+            />
+            <Box
+              sx={{
+                border: '1px dashed',
+                borderColor: 'divider',
+                borderRadius: 1,
+                minHeight: 140,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'background.default',
+                overflow: 'hidden',
+                cursor: 'pointer',
+              }}
+              onClick={() => expertiseFileInputRef.current?.click()}
+            >
+              {expertiseForm.image ? (
+                <Box
+                  component="img"
+                  src={expertiseForm.image}
+                  alt={expertiseForm.title || 'Expertise preview'}
+                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <Typography variant="body2" color="text.secondary" align="center" px={2}>
+                  Banner preview will appear here once you add a title and choose an image.
+                </Typography>
+              )}
+            </Box>
+            <Stack spacing={1}>
+              <Button variant="outlined" onClick={() => expertiseFileInputRef.current?.click()} fullWidth>
+                Choose image
+              </Button>
+              <Typography variant="caption" color="text.secondary">
+                Select a single image to highlight this expertise option.
+              </Typography>
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                ref={expertiseFileInputRef}
+                onChange={handleExpertiseImageChange}
+              />
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeExpertiseDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleExpertiseSubmit} variant="contained">
+            {editingExpertiseId ? 'Update industry' : 'Add industry'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={processDialogOpen} onClose={closeProcessDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{editingProcessId ? 'Edit process step' : 'Add process step'}</DialogTitle>
         <DialogContent>
@@ -1293,6 +1475,49 @@ const AdminDashboardPage = () => {
               minRows={3}
               placeholder="Add optional details for the process step"
             />
+            <Box
+              sx={{
+                border: '1px dashed',
+                borderColor: 'divider',
+                borderRadius: 1,
+                minHeight: 140,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'background.default',
+                overflow: 'hidden',
+                cursor: 'pointer',
+              }}
+              onClick={() => processFileInputRef.current?.click()}
+            >
+              {processForm.image ? (
+                <Box
+                  component="img"
+                  src={processForm.image}
+                  alt={processForm.title || 'Process preview'}
+                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <Typography variant="body2" color="text.secondary" align="center" px={2}>
+                  Banner preview will appear here once you add a title and choose an image.
+                </Typography>
+              )}
+            </Box>
+            <Stack spacing={1}>
+              <Button variant="outlined" onClick={() => processFileInputRef.current?.click()} fullWidth>
+                Choose image
+              </Button>
+              <Typography variant="caption" color="text.secondary">
+                Select a relevant image to accompany this process step.
+              </Typography>
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                ref={processFileInputRef}
+                onChange={handleProcessImageChange}
+              />
+            </Stack>
           </Stack>
         </DialogContent>
         <DialogActions>
