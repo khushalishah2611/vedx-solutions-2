@@ -3300,7 +3300,9 @@ const AdminHiredeveloperPage = () => {
                   helperText="Add the inclusions for this pricing plan"
                   fullWidth
                 />
-                <Button
+               
+              </Stack>
+               <Button
                   variant="outlined"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={addHirePricingService}
@@ -3308,7 +3310,6 @@ const AdminHiredeveloperPage = () => {
                 >
                   Add service
                 </Button>
-              </Stack>
               <Stack spacing={1} useFlexGap>
                 {hirePricingForm.services?.length ? (
                   hirePricingForm.services.map((service) => (
