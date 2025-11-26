@@ -338,9 +338,7 @@ async function seedHireCatalog() {
   }
 }
 
-async function seedFeedbacks() {
-  await prisma.clientFeedback.createMany({ data: feedbacks, skipDuplicates: true });
-}
+
 
 async function seedAdmin() {
   await prisma.adminUser.upsert({
@@ -363,7 +361,6 @@ async function main() {
   await seedBlogs();
   await seedCareers();
   await seedHireCatalog();
-  await seedFeedbacks();
 }
 
 main()
