@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import { sendOtpEmail } from './utils/email.js';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -50,29 +51,47 @@ const parseBearerToken = (authorizationHeader) => {
   return token;
 };
 
-const sendOtpEmail = async (email, otp) => {
-  // Placeholder for future SMTP integration
-  const subject = 'VEDX Admin Password Reset Code';
-  const body = [
-    `Hello,`,
-    '',
-    'We received a request to reset the password for your VEDX admin account.',
-    `Your one-time password (OTP) is: ${otp}`,
-    '',
-    'This code expires in 10 minutes. If you did not request this, please ignore this email.',
-    '',
-    'Thanks,',
-    'VEDX Security Team',
-  ].join('\n');
-
-  console.log(`Sending password reset OTP email:\nTo: ${email}\nSubject: ${subject}\n\n${body}`);
-};
-
 const invalidateExistingOtps = (email) =>
   prisma.otpVerification.updateMany({
     where: { email, purpose: OtpPurpose.PASSWORD_RESET, consumedAt: null },
     data: { consumedAt: new Date() },
   });
+
+const findActiveSession = async (token) => {
+  if (!token) return null;
+
+  const session = await prisma.adminSession.findUnique({
+    where: { token },
+    include: { admin: true },
+  });
+
+  if (!session) return null;
+
+  if (session.expiresAt <= new Date()) {
+    await prisma.adminSession.delete({ where: { token } });
+    return null;
+  }
+
+  if (session.admin.status !== 'ACTIVE') return null;
+
+  return session;
+};
+
+const getAuthenticatedAdmin = async (req) => {
+  const token = parseBearerToken(req.headers.authorization);
+
+  if (!token) {
+    return { status: 401, message: 'Session token missing.' };
+  }
+
+  const session = await findActiveSession(token);
+
+  if (!session) {
+    return { status: 401, message: 'Invalid or expired session.' };
+  }
+
+  return { admin: session.admin, session, status: 200 };
+};
 
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
@@ -107,7 +126,11 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       },
     });
 
-    await sendOtpEmail(normalizedEmail, otp);
+    const emailSent = await sendOtpEmail(normalizedEmail, otp);
+
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Unable to send the OTP email right now.' });
+    }
 
     return res.json({ message: 'OTP sent to the registered email address.' });
   } catch (error) {
@@ -145,7 +168,11 @@ app.post('/api/auth/resend-otp', async (req, res) => {
       },
     });
 
-    await sendOtpEmail(normalizedEmail, otp);
+    const emailSent = await sendOtpEmail(normalizedEmail, otp);
+
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Unable to send the OTP email right now.' });
+    }
 
     return res.json({ message: 'A new OTP has been sent to the registered email address.' });
   } catch (error) {
@@ -290,30 +317,100 @@ app.post('/api/admin/login', async (req, res) => {
   }
 });
 
-app.get('/api/admin/session', async (req, res) => {
+app.post('/api/admin/change-password', async (req, res) => {
   try {
-    const token = parseBearerToken(req.headers.authorization);
+    const { admin, session, status, message } = await getAuthenticatedAdmin(req);
 
-    if (!token) {
-      return res.status(401).json({ message: 'Session token missing.' });
+    if (!admin) {
+      return res.status(status).json({ message });
     }
 
-    const session = await prisma.adminSession.findUnique({
-      where: { token },
-      include: { admin: true },
+    const { currentPassword, newPassword } = req.body ?? {};
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new passwords are required.' });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return res
+        .status(400)
+        .json({ message: 'Password must be at least 8 characters and include letters and numbers.' });
+    }
+
+    if (hashPassword(currentPassword) !== admin.passwordHash) {
+      return res.status(400).json({ message: 'Current password is incorrect.' });
+    }
+
+    if (hashPassword(newPassword) === admin.passwordHash) {
+      return res.status(400).json({ message: 'Choose a password that differs from your current one.' });
+    }
+
+    await prisma.adminUser.update({
+      where: { id: admin.id },
+      data: { passwordHash: hashPassword(newPassword) },
     });
 
-    if (!session) {
-      return res.status(401).json({ message: 'Session not found.' });
+    await prisma.adminSession.deleteMany({
+      where: {
+        adminId: admin.id,
+        NOT: { token: session.token },
+      },
+    });
+
+    return res.json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Change password failed', error);
+    return res.status(500).json({ message: 'Unable to change password right now.' });
+  }
+});
+
+app.put('/api/admin/profile', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
     }
 
-    if (session.expiresAt <= new Date()) {
-      await prisma.adminSession.delete({ where: { token } });
-      return res.status(401).json({ message: 'Session expired.' });
+    const { firstName, lastName, email } = req.body ?? {};
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'A valid email address is required.' });
     }
 
-    if (session.admin.status !== 'ACTIVE') {
-      return res.status(403).json({ message: 'Account is inactive.' });
+    const normalizedEmail = email.trim().toLowerCase();
+    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+
+    if (!fullName) {
+      return res.status(400).json({ message: 'First name or last name is required.' });
+    }
+
+    const existingWithEmail = await prisma.adminUser.findFirst({
+      where: { email: normalizedEmail, NOT: { id: admin.id } },
+    });
+
+    if (existingWithEmail) {
+      return res.status(409).json({ message: 'Email is already in use by another account.' });
+    }
+
+    const updatedAdmin = await prisma.adminUser.update({
+      where: { id: admin.id },
+      data: { email: normalizedEmail, name: fullName },
+    });
+
+    return res.json({ admin: buildAdminResponse(updatedAdmin), message: 'Profile updated successfully.' });
+  } catch (error) {
+    console.error('Profile update failed', error);
+    return res.status(500).json({ message: 'Unable to update profile right now.' });
+  }
+});
+
+app.get('/api/admin/session', async (req, res) => {
+  try {
+    const { admin, session, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
     }
 
     return res.json({

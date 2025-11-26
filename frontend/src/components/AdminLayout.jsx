@@ -2,10 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Avatar,
   Box,
+  Button,
   CssBaseline,
   Divider,
   Drawer,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
   List,
   ListItem,
   ListItemButton,
@@ -42,6 +48,7 @@ const AdminLayout = () => {
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [profile, setProfile] = useState(() => getStoredAdminProfile());
 
   useEffect(() => {
@@ -63,10 +70,17 @@ const AdminLayout = () => {
     setMobileOpen((prev) => !prev);
   };
 
+  const handleCloseLogoutDialog = () => {
+    if (!loggingOut) {
+      setLogoutDialogOpen(false);
+    }
+  };
+
   const handleLogout = async () => {
     if (loggingOut) return;
 
     setLoggingOut(true);
+    setLogoutDialogOpen(false);
 
     const token = localStorage.getItem('adminToken');
 
@@ -153,7 +167,7 @@ const AdminLayout = () => {
       <List>
         <ListItem disablePadding>
           <ListItemButton
-            onClick={handleLogout}
+            onClick={() => setLogoutDialogOpen(true)}
             disabled={loggingOut}
           >
             <ListItemIcon>
@@ -220,6 +234,22 @@ const AdminLayout = () => {
       <Box component="main" sx={{ flexGrow: 1, p: { xs: 3, md: 4 }, mt: 8, bgcolor: 'background.default' }}>
         <Outlet />
       </Box>
+      <Dialog open={logoutDialogOpen} onClose={handleCloseLogoutDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirm logout</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to log out from the admin panel?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseLogoutDialog} disabled={loggingOut}>
+            Cancel
+          </Button>
+          <Button onClick={handleLogout} variant="contained" color="error" disabled={loggingOut}>
+            {loggingOut ? 'Logging out...' : 'Logout'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
