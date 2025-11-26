@@ -127,6 +127,7 @@ const AdminLayout = () => {
       { label: 'Contacts', icon: <ContactsRoundedIcon />, to: '/admin/contacts' },
       { label: 'Careers', icon: <WorkOutlineOutlinedIcon />, to: '/admin/careers' },
       { label: 'Services', icon: <DesignServicesOutlinedIcon />, to: '/admin/services' },
+      { label: 'hiredeveloper', icon: <DesignServicesOutlinedIcon />, to: '/admin/hiredeveloper' },
       { label: 'Feedbacks', icon: <RateReviewOutlinedIcon />, to: '/admin/feedbacks' },
       { label: 'MasterData', icon: <CategoryOutlinedIcon />, to: '/admin/navigation' },
       { label: 'Blogs', icon: <ArticleOutlinedIcon />, to: '/admin/blogs' },
@@ -218,7 +219,7 @@ const AdminLayout = () => {
               <Typography variant="subtitle2" fontWeight={600}>
                 {profile.email}
               </Typography>
-           
+
             </Box>
             <Avatar sx={{ bgcolor: 'primary.main' }}>{profile.initials}</Avatar>
           </Stack>
