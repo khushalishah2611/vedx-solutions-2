@@ -42,8 +42,44 @@ const AdminLayout = () => {
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const handleDrawerToggle = () => {
     setMobileOpen((prev) => !prev);
+  };
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+
+    const token = localStorage.getItem('adminToken');
+
+    try {
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : undefined,
+      });
+    } catch (error) {
+      console.error('Logout failed', error);
+    } finally {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminSessionExpiry');
+      sessionStorage.removeItem('adminResetEmail');
+      sessionStorage.removeItem('adminResetOtp');
+
+      navigate('/admin', { replace: true });
+
+      if (!isMdUp) {
+        setMobileOpen(false);
+      }
+
+      setLoggingOut(false);
+    }
   };
 
   const menuItems = useMemo(
@@ -101,9 +137,8 @@ const AdminLayout = () => {
       <List>
         <ListItem disablePadding>
           <ListItemButton
-            onClick={() => {
-              navigate('/admin');
-            }}
+            onClick={handleLogout}
+            disabled={loggingOut}
           >
             <ListItemIcon>
               <LogoutRoundedIcon color="error" />

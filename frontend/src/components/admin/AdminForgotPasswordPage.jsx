@@ -1,9 +1,70 @@
+import { useState } from 'react';
 import { Box, Button, Container, Paper, Stack, TextField, Typography } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 const AdminForgotPasswordPage = () => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [serverMessage, setServerMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validate = () => {
+    if (!email.trim()) {
+      setError('Enter your registered email address.');
+      return false;
+    }
+
+    const looksLikeEmail = /.+@.+\..+/.test(email.trim());
+
+    if (!looksLikeEmail) {
+      setError('Provide a valid email address.');
+      return false;
+    }
+
+    setError('');
+    return true;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!validate()) return;
+
+    setIsSubmitting(true);
+    setServerMessage('');
+
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setServerMessage(payload?.message || 'Unable to send verification code.');
+        return;
+      }
+
+      sessionStorage.setItem('adminResetEmail', email.trim());
+      sessionStorage.removeItem('adminResetOtp');
+      setServerMessage('Verification code sent to your email.');
+      navigate('/admin/verify-otp');
+    } catch (submitError) {
+      console.error('Failed to start reset', submitError);
+      setServerMessage('Unable to send verification code right now.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Box
+      component="form"
+      onSubmit={handleSubmit}
+      noValidate
       sx={{
         minHeight: '100vh',
         display: 'flex',
@@ -25,9 +86,24 @@ const AdminForgotPasswordPage = () => {
                 Enter the email address linked with your administrator account. We will send a verification code to reset your password.
               </Typography>
             </Stack>
-            <TextField label="Registered email" type="email" fullWidth required />
-            <Button variant="contained" size="large" component={RouterLink} to="/admin/verify-otp">
-              Send verification code
+            <TextField
+              label="Registered email"
+              type="email"
+              fullWidth
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              error={Boolean(error)}
+              helperText={error}
+              autoComplete="username"
+            />
+            {serverMessage ? (
+              <Typography variant="body2" color="primary">
+                {serverMessage}
+              </Typography>
+            ) : null}
+            <Button variant="contained" size="large" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Sending...' : 'Send verification code'}
             </Button>
             <Button component={RouterLink} to="/admin" color="secondary">
               Back to login

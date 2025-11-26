@@ -3,7 +3,7 @@ const adminProfile = {
   lastName: 'Patel',
   username: 'vedx-admin',
   role: 'System Administrator',
-  email: 'admin@vedxsolution.com',
+  email: 'khushalishah2611@gmail.com',
   phone: '+91 98765 43210'
 };
 
