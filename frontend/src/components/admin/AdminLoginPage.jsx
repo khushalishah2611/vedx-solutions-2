@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,20 +14,59 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 const AdminLoginPage = () => {
   const navigate = useNavigate();
 
-  const [formValues, setFormValues] = useState({ identifier: '', password: '' });
-  const [errors, setErrors] = useState({ identifier: '', password: '' });
+  const [formValues, setFormValues] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [serverError, setServerError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) return;
+
+    let cancelled = false;
+
+    const verifySession = async () => {
+      try {
+        const response = await fetch('/api/admin/session', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminSessionExpiry');
+          return;
+        }
+
+        const payload = await response.json();
+
+        if (!cancelled && payload?.valid) {
+          navigate('/admin/dashboard', { replace: true });
+        }
+      } catch (error) {
+        console.error('Failed to validate session', error);
+      }
+    };
+
+    verifySession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const validate = () => {
-    const nextErrors = { identifier: '', password: '' };
+    const nextErrors = { email: '', password: '' };
 
-    if (!formValues.identifier.trim()) {
-      nextErrors.identifier = 'Enter your email address or mobile number to continue.';
+    if (!formValues.email.trim()) {
+      nextErrors.email = 'Enter your email address to continue.';
     } else {
-      const looksLikeEmail = /.+@.+\..+/.test(formValues.identifier);
-      const looksLikePhone = /^\+?\d{7,15}$/.test(formValues.identifier);
+      const looksLikeEmail = /.+@.+\..+/.test(formValues.email);
 
-      if (!looksLikeEmail && !looksLikePhone) {
-        nextErrors.identifier = 'Use a valid email address or phone number.';
+      if (!looksLikeEmail) {
+        nextErrors.email = 'Use a valid email address.';
       }
     }
 
@@ -41,11 +80,39 @@ const AdminLoginPage = () => {
     return Object.values(nextErrors).every((message) => !message);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (validate()) {
+    if (!validate()) return;
+
+    setServerError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formValues.email.trim(),
+          password: formValues.password,
+        }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setServerError(payload?.message || 'Unable to log in. Please try again.');
+        return;
+      }
+
+      localStorage.setItem('adminToken', payload.token);
+      localStorage.setItem('adminSessionExpiry', payload.expiresAt);
       navigate('/admin/dashboard');
+    } catch (error) {
+      console.error('Login failed', error);
+      setServerError('Unable to log in right now. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -72,21 +139,19 @@ const AdminLoginPage = () => {
               </Typography>
               <Typography variant="h4">Access your control panel</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                Sign in with your registered email address or mobile number to manage the Vedx Solutions platform.
+                Sign in with your registered email address to manage the Vedx Solutions platform.
               </Typography>
             </Stack>
             <Stack spacing={2}>
               <TextField
-                label="Email or mobile number"
-                placeholder="name@company.com / 9XXXXXXXXX"
+                label="Email address"
+                placeholder="name@company.com"
                 fullWidth
                 required
-                value={formValues.identifier}
-                onChange={(event) =>
-                  setFormValues((current) => ({ ...current, identifier: event.target.value }))
-                }
-                error={Boolean(errors.identifier)}
-                helperText={errors.identifier}
+                value={formValues.email}
+                onChange={(event) => setFormValues((current) => ({ ...current, email: event.target.value }))}
+                error={Boolean(errors.email)}
+                helperText={errors.email}
                 autoComplete="username"
               />
               <TextField
@@ -111,8 +176,13 @@ const AdminLoginPage = () => {
                 Forgot password
               </Link>
             </Stack>
-            <Button variant="contained" size="large" fullWidth type="submit">
-              Log in
+            {serverError ? (
+              <Typography variant="body2" color="error">
+                {serverError}
+              </Typography>
+            ) : null}
+            <Button variant="contained" size="large" fullWidth type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Log in'}
             </Button>
             <Button component={RouterLink} to="/" color="secondary">
               Back to website
