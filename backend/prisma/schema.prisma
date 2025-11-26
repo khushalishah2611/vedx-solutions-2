@@ -78,8 +78,10 @@ model PageSeo {
   ogImage         String?
   canonicalUrl    String?
   noIndex         Boolean          @default(false)
-  navigationId    Int?
+
+  navigationId    Int?             @unique   // 🔧 makes this a proper 1-to-1 relation
   navigation      NavigationItem?  @relation(fields: [navigationId], references: [id])
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 }
@@ -121,18 +123,18 @@ model BlogPost {
 }
 
 model CareerOpening {
-  id              Int            @id @default(autoincrement())
-  title           String
-  slug            String         @unique
-  location        String
-  department      String
-  employmentType  EmploymentType @default(FULL_TIME)
-  description     String?        @db.Text
-  requirements    Json?
-  isRemoteFriendly Boolean       @default(true)
-  isOpen          Boolean        @default(true)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id               Int            @id @default(autoincrement())
+  title            String
+  slug             String         @unique
+  location         String
+  department       String
+  employmentType   EmploymentType @default(FULL_TIME)
+  description      String?        @db.Text
+  requirements     Json?
+  isRemoteFriendly Boolean        @default(true)
+  isOpen           Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model ContactMessage {
@@ -166,10 +168,10 @@ model HireCategory {
 }
 
 model HireRole {
-  id           Int          @id @default(autoincrement())
-  title        String
-  slug         String       @unique
-  description  String?
-  hireCategory HireCategory @relation(fields: [hireCategoryId], references: [id])
+  id             Int          @id @default(autoincrement())
+  title          String
+  slug           String       @unique
+  description    String?
+  hireCategory   HireCategory @relation(fields: [hireCategoryId], references: [id])
   hireCategoryId Int
 }
