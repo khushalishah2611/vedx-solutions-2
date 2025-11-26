@@ -75,8 +75,8 @@ const AdminLayout = () => {
         method: 'POST',
         headers: token
           ? {
-              Authorization: `Bearer ${token}`,
-            }
+            Authorization: `Bearer ${token}`,
+          }
           : undefined,
       });
     } catch (error) {
@@ -117,11 +117,11 @@ const AdminLayout = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar sx={{ px: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center">
-        
+
           <Box>
-          
+
             <Typography variant="h6" color="text.secondary">
-              @{profile.username}
+              @{profile.fullName}
             </Typography>
 
           </Box>
@@ -188,19 +188,14 @@ const AdminLayout = () => {
                 {mobileOpen ? <CloseRoundedIcon /> : <MenuRoundedIcon />}
               </IconButton>
             )}
-            
+
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
             <Box textAlign="right">
               <Typography variant="subtitle2" fontWeight={600}>
-                {profile.fullName}
+                {profile.email}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Email: {profile.email}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Mobile: {profile.phone}
-              </Typography>
+           
             </Box>
             <Avatar sx={{ bgcolor: 'primary.main' }}>{profile.initials}</Avatar>
           </Stack>

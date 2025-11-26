@@ -1,10 +1,9 @@
 export const defaultAdminProfile = {
-  firstName: 'Priya',
-  lastName: 'Patel',
-  username: 'vedx-admin',
-  role: 'System Administrator',
-  email: 'khushalishah2611@gmail.com',
-  phone: '+91 98765 43210',
+  firstName: '',
+  lastName: '',
+  username: '',
+  role: '',
+  email: '',
 };
 
 const deriveProfile = (rawProfile = {}) => {

@@ -31,7 +31,7 @@ import {
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+
 
 const initialProcess = [
   {
@@ -319,15 +319,12 @@ const AdminDashboardPage = () => {
 
   const [hireCategories, setHireCategories] = useState(initialHireCategories);
   const [hireCategoryForm, setHireCategoryForm] = useState({ title: '', description: '' });
-  const [hireCategoryDialogOpen, setHireCategoryDialogOpen] = useState(false);
   const [editingHireCategoryId, setEditingHireCategoryId] = useState(null);
   const [hireCategoryPage, setHireCategoryPage] = useState(1);
-  const [subcategoryDialogOpen, setSubcategoryDialogOpen] = useState(false);
   const [activeHireCategoryId, setActiveHireCategoryId] = useState(null);
   const [hireSubcategoryForm, setHireSubcategoryForm] = useState({ title: '' });
   const [editingHireSubcategoryId, setEditingHireSubcategoryId] = useState(null);
-  const [hireCategoryError, setHireCategoryError] = useState('');
-  const [hireSubcategoryError, setHireSubcategoryError] = useState('');
+
 
   // selected slider for service dialog preview
   const selectedSliderForServiceDialog =

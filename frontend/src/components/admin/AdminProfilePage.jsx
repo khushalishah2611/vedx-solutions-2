@@ -27,12 +27,7 @@ const AdminProfilePage = () => {
             <Grid item xs={12} md={6}>
               <TextField label="Email address" type="email" fullWidth defaultValue={adminProfile.email} />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField label="Mobile number" type="tel" fullWidth defaultValue={adminProfile.phone} />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField label="Job title" fullWidth defaultValue={adminProfile.role} />
-            </Grid>
+
           </Grid>
 
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
