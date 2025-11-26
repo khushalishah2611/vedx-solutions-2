@@ -28,6 +28,10 @@ enum PublishStatus {
   PUBLISHED
 }
 
+enum OtpPurpose {
+  PASSWORD_RESET
+}
+
 enum EmploymentType {
   FULL_TIME
   PART_TIME
@@ -174,4 +178,18 @@ model HireRole {
   description    String?
   hireCategory   HireCategory @relation(fields: [hireCategoryId], references: [id])
   hireCategoryId Int
+}
+
+model OtpVerification {
+  id          Int        @id @default(autoincrement())
+  email       String
+  codeHash    String
+  purpose     OtpPurpose
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  consumedAt  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([email, purpose])
 }

@@ -8,11 +8,30 @@ const port = process.env.PORT || 5000;
 
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+
+const OtpPurpose = {
+  PASSWORD_RESET: 'PASSWORD_RESET',
+};
 
 app.use(cors());
 app.use(express.json());
 
 const hashPassword = (value) => crypto.createHash('sha256').update(value).digest('hex');
+const hashOtp = (value) => crypto.createHash('sha256').update(value).digest('hex');
+
+const isValidEmail = (email) =>
+  typeof email === 'string' &&
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
+  email.trim().length <= 255;
+
+const isStrongPassword = (password) =>
+  typeof password === 'string' &&
+  password.length >= 8 &&
+  /[A-Za-z]/.test(password) &&
+  /[0-9]/.test(password);
+
+const generateOtpCode = () => String(Math.floor(100000 + Math.random() * 900000));
 
 const buildAdminResponse = (admin) => ({
   id: admin.id,
@@ -30,6 +49,193 @@ const parseBearerToken = (authorizationHeader) => {
 
   return token;
 };
+
+const sendOtpEmail = async (email, otp) => {
+  // Placeholder for future SMTP integration
+  console.log(`Sending password reset OTP to ${email}: ${otp}`);
+};
+
+const invalidateExistingOtps = (email) =>
+  prisma.otpVerification.updateMany({
+    where: { email, purpose: OtpPurpose.PASSWORD_RESET, consumedAt: null },
+    data: { consumedAt: new Date() },
+  });
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body ?? {};
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'A valid email address is required.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Account not found for the provided email.' });
+    }
+
+    if (admin.status !== 'ACTIVE') {
+      return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+    }
+
+    await invalidateExistingOtps(normalizedEmail);
+
+    const otp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+
+    await prisma.otpVerification.create({
+      data: {
+        email: normalizedEmail,
+        codeHash: hashOtp(otp),
+        purpose: OtpPurpose.PASSWORD_RESET,
+        expiresAt,
+      },
+    });
+
+    await sendOtpEmail(normalizedEmail, otp);
+
+    return res.json({ message: 'OTP sent to the registered email address.' });
+  } catch (error) {
+    console.error('Forgot password request failed', error);
+    return res.status(500).json({ message: 'Unable to start password reset right now.' });
+  }
+});
+
+app.post('/api/auth/resend-otp', async (req, res) => {
+  try {
+    const { email } = req.body ?? {};
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'A valid email address is required.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Account not found for the provided email.' });
+    }
+
+    await invalidateExistingOtps(normalizedEmail);
+
+    const otp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+
+    await prisma.otpVerification.create({
+      data: {
+        email: normalizedEmail,
+        codeHash: hashOtp(otp),
+        purpose: OtpPurpose.PASSWORD_RESET,
+        expiresAt,
+      },
+    });
+
+    await sendOtpEmail(normalizedEmail, otp);
+
+    return res.json({ message: 'A new OTP has been sent to the registered email address.' });
+  } catch (error) {
+    console.error('Resend OTP failed', error);
+    return res.status(500).json({ message: 'Unable to resend OTP right now.' });
+  }
+});
+
+app.post('/api/auth/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body ?? {};
+
+    if (!isValidEmail(email) || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const otpHash = hashOtp(String(otp));
+    const now = new Date();
+
+    const record = await prisma.otpVerification.findFirst({
+      where: {
+        email: normalizedEmail,
+        purpose: OtpPurpose.PASSWORD_RESET,
+        codeHash: otpHash,
+        consumedAt: null,
+        expiresAt: { gt: now },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!record) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    await prisma.otpVerification.update({
+      where: { id: record.id },
+      data: { verifiedAt: now },
+    });
+
+    return res.json({ message: 'OTP verified successfully.' });
+  } catch (error) {
+    console.error('OTP verification failed', error);
+    return res.status(500).json({ message: 'Unable to verify OTP right now.' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body ?? {};
+
+    if (!isValidEmail(email) || !otp || !newPassword) {
+      return res.status(400).json({ message: 'Email, OTP, and new password are required.' });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters and include letters and numbers.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Account not found for the provided email.' });
+    }
+
+    const otpHash = hashOtp(String(otp));
+    const now = new Date();
+
+    const otpRecord = await prisma.otpVerification.findFirst({
+      where: {
+        email: normalizedEmail,
+        purpose: OtpPurpose.PASSWORD_RESET,
+        codeHash: otpHash,
+        consumedAt: null,
+        expiresAt: { gt: now },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    if (!otpRecord.verifiedAt) {
+      return res.status(400).json({ message: 'OTP must be verified before resetting the password.' });
+    }
+
+    await prisma.$transaction([
+      prisma.adminUser.update({
+        where: { email: normalizedEmail },
+        data: { passwordHash: hashPassword(newPassword) },
+      }),
+      prisma.adminSession.deleteMany({ where: { adminId: admin.id } }),
+      prisma.otpVerification.update({ where: { id: otpRecord.id }, data: { consumedAt: now } }),
+    ]);
+
+    return res.json({ message: 'Password reset successfully.' });
+  } catch (error) {
+    console.error('Password reset failed', error);
+    return res.status(500).json({ message: 'Unable to reset password right now.' });
+  }
+});
 
 app.post('/api/admin/login', async (req, res) => {
   try {
