@@ -349,7 +349,7 @@ async function seedAdmin() {
     create: {
       email: 'admin@vedx.com',
       name: 'VEDX Super Admin',
-      passwordHash: hashPassword('changeme'),
+      passwordHash: hashPassword('Admin@123'),
       role: 'SUPER_ADMIN',
     },
   });
