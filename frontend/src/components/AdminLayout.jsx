@@ -66,6 +66,15 @@ const AdminLayout = () => {
     return () => window.removeEventListener('storage', syncProfile);
   }, []);
 
+  useEffect(() => {
+    const handleProfileUpdate = (event) => {
+      setProfile(event.detail || getStoredAdminProfile());
+    };
+
+    window.addEventListener('adminProfileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('adminProfileUpdated', handleProfileUpdate);
+  }, []);
+
   const handleDrawerToggle = () => {
     setMobileOpen((prev) => !prev);
   };

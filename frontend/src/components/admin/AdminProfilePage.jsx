@@ -1,21 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, CardContent, Grid, Stack, TextField, Typography } from '@mui/material';
 import { getStoredAdminProfile, setStoredAdminProfile } from '../../data/adminProfile.js';
 
 const AdminProfilePage = () => {
-  const [formValues, setFormValues] = useState(() => {
-    const adminProfile = getStoredAdminProfile();
-    return {
-      firstName: adminProfile.firstName || '',
-      lastName: adminProfile.lastName || '',
-      email: adminProfile.email || '',
-    };
-  });
+  const storedProfile = useMemo(() => getStoredAdminProfile(), []);
+  const [formValues, setFormValues] = useState(() => ({
+    firstName: storedProfile.firstName || '',
+    lastName: storedProfile.lastName || '',
+    email: storedProfile.email || '',
+  }));
 
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '' });
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [serverError, setServerError] = useState('');
+
+  useEffect(() => {
+    const syncProfile = (event) => {
+      const nextProfile = event.detail || getStoredAdminProfile();
+      setFormValues({
+        firstName: nextProfile.firstName || '',
+        lastName: nextProfile.lastName || '',
+        email: nextProfile.email || '',
+      });
+    };
+
+    window.addEventListener('adminProfileUpdated', syncProfile);
+    return () => window.removeEventListener('adminProfileUpdated', syncProfile);
+  }, []);
 
   const validate = () => {
     const nextErrors = { firstName: '', lastName: '', email: '' };

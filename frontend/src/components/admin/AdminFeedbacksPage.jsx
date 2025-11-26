@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -28,25 +28,6 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-
-const initialFeedbacks = [
-  {
-    id: 'fb-1',
-    name: 'Priya Desai',
-    title: 'Great onboarding',
-    rating: 5,
-    description: 'The team guided us through the entire onboarding and delivered ahead of schedule.',
-    submittedAt: '2024-07-14',
-  },
-  {
-    id: 'fb-2',
-    name: 'Kunal Shah',
-    title: 'Clear communication',
-    rating: 4,
-    description: 'Daily updates and transparent timelines made execution easy to follow.',
-    submittedAt: '2024-07-11',
-  },
-];
 
 const emptyFeedbackForm = {
   id: '',
@@ -93,12 +74,17 @@ const matchesDateFilter = (value, filter) => {
 };
 
 const AdminFeedbacksPage = () => {
-  const [feedbacks, setFeedbacks] = useState(initialFeedbacks);
+  const [feedbacks, setFeedbacks] = useState([]);
   const [viewingFeedback, setViewingFeedback] = useState(null);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [feedbackDialogMode, setFeedbackDialogMode] = useState('create');
   const [feedbackForm, setFeedbackForm] = useState(emptyFeedbackForm);
   const [feedbackToDelete, setFeedbackToDelete] = useState(null);
+  const [feedbackDialogError, setFeedbackDialogError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [savingFeedback, setSavingFeedback] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   const [nameFilter, setNameFilter] = useState('');
   const [titleFilter, setTitleFilter] = useState('');
@@ -107,21 +93,25 @@ const AdminFeedbacksPage = () => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 6;
 
-  const resetFeedbackForm = () => setFeedbackForm(emptyFeedbackForm);
+  const resetFeedbackForm = () =>
+    setFeedbackForm({ ...emptyFeedbackForm, submittedAt: new Date().toISOString().split('T')[0] });
 
   const openFeedbackCreateDialog = () => {
     resetFeedbackForm();
     setFeedbackDialogMode('create');
+    setFeedbackDialogError('');
     setFeedbackDialogOpen(true);
   };
 
   const openFeedbackEditDialog = (feedback) => {
     setFeedbackDialogMode('edit');
     setFeedbackForm({ ...feedback });
+    setFeedbackDialogError('');
     setFeedbackDialogOpen(true);
   };
 
   const closeFeedbackDialog = () => {
+    setFeedbackDialogError('');
     setFeedbackDialogOpen(false);
   };
 
@@ -129,26 +119,162 @@ const AdminFeedbacksPage = () => {
     setFeedbackForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFeedbackSubmit = (event) => {
-    event?.preventDefault();
-    if (!feedbackForm.name.trim() || !feedbackForm.title.trim() || !feedbackForm.description.trim()) return;
+  const normalizeFeedbackFromApi = (feedback) => ({
+    id: feedback.id,
+    name: feedback.name || feedback.client || '',
+    title: feedback.title || feedback.highlight || '',
+    rating: feedback.rating ?? '',
+    description: feedback.description || feedback.quote || '',
+    submittedAt:
+      feedback.submittedAt ||
+      (feedback.createdAt ? String(feedback.createdAt).split('T')[0] : new Date().toISOString().split('T')[0]),
+  });
 
-    if (feedbackDialogMode === 'edit') {
-      setFeedbacks((prev) => prev.map((item) => (item.id === feedbackForm.id ? { ...feedbackForm } : item)));
-    } else {
-      const newFeedback = { ...feedbackForm, id: `fb-${Date.now()}` };
-      setFeedbacks((prev) => [newFeedback, ...prev]);
+  const loadFeedbacks = async () => {
+    setLoading(true);
+    setServerError('');
+
+    try {
+      const token = localStorage.getItem('adminToken');
+
+      if (!token) {
+        throw new Error('Your session expired. Please log in again.');
+      }
+
+      const response = await fetch('/api/admin/feedbacks', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to load feedbacks.');
+      }
+
+      setFeedbacks((payload.feedbacks || []).map(normalizeFeedbackFromApi));
+    } catch (error) {
+      console.error('Load feedbacks failed', error);
+      setServerError(error?.message || 'Unable to load feedbacks right now.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadFeedbacks();
+  }, []);
+
+  const handleFeedbackSubmit = async (event) => {
+    event?.preventDefault();
+    setFeedbackDialogError('');
+
+    const trimmedName = feedbackForm.name.trim();
+    const trimmedTitle = feedbackForm.title.trim();
+    const trimmedDescription = feedbackForm.description.trim();
+    const ratingValue = Number(feedbackForm.rating);
+
+    if (!trimmedName || !trimmedTitle || !trimmedDescription) {
+      setFeedbackDialogError('Name, title, and description are required.');
+      return;
     }
 
-    closeFeedbackDialog();
+    if (!Number.isInteger(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+      setFeedbackDialogError('Rating must be a whole number between 1 and 5.');
+      return;
+    }
+
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      setFeedbackDialogError('Your session expired. Please log in again.');
+      return;
+    }
+
+    setSavingFeedback(true);
+
+    try {
+      const response = await fetch(
+        feedbackDialogMode === 'edit'
+          ? `/api/admin/feedbacks/${feedbackForm.id}`
+          : '/api/admin/feedbacks',
+        {
+          method: feedbackDialogMode === 'edit' ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: trimmedName,
+            title: trimmedTitle,
+            description: trimmedDescription,
+            rating: ratingValue,
+            submittedAt: feedbackForm.submittedAt,
+          }),
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to save feedback.');
+      }
+
+      const updatedFeedback = normalizeFeedbackFromApi(payload.feedback);
+
+      setFeedbacks((prev) =>
+        feedbackDialogMode === 'edit'
+          ? prev.map((item) => (item.id === updatedFeedback.id ? updatedFeedback : item))
+          : [updatedFeedback, ...prev]
+      );
+
+      closeFeedbackDialog();
+    } catch (error) {
+      console.error('Save feedback failed', error);
+      setFeedbackDialogError(error?.message || 'Unable to save feedback right now.');
+    } finally {
+      setSavingFeedback(false);
+    }
   };
 
   const openDeleteDialog = (feedback) => setFeedbackToDelete(feedback);
   const closeDeleteDialog = () => setFeedbackToDelete(null);
-  const confirmDelete = () => {
+
+  const confirmDelete = async () => {
     if (!feedbackToDelete) return;
-    setFeedbacks((prev) => prev.filter((item) => item.id !== feedbackToDelete.id));
-    closeDeleteDialog();
+
+    setDeleting(true);
+    setServerError('');
+
+    try {
+      const token = localStorage.getItem('adminToken');
+
+      if (!token) {
+        throw new Error('Your session expired. Please log in again.');
+      }
+
+      const response = await fetch(`/api/admin/feedbacks/${feedbackToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to delete feedback.');
+      }
+
+      setFeedbacks((prev) => prev.filter((item) => item.id !== feedbackToDelete.id));
+      closeDeleteDialog();
+    } catch (error) {
+      console.error('Delete feedback failed', error);
+      setServerError(error?.message || 'Unable to delete feedback right now.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const filteredFeedbacks = useMemo(() => {
@@ -183,6 +309,12 @@ const AdminFeedbacksPage = () => {
         />
         <Divider />
         <CardContent>
+          {serverError ? (
+            <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+              {serverError}
+            </Typography>
+          ) : null}
+
           <Stack spacing={2} mb={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ md: 'flex-end' }}>
             <TextField
               label="Name filter"
@@ -238,33 +370,48 @@ const AdminFeedbacksPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {pagedFeedbacks.map((feedback) => (
-                  <TableRow key={feedback.id} hover>
-                    <TableCell>{feedback.name}</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>{feedback.title}</TableCell>
-                    <TableCell>{feedback.rating}</TableCell>
-                    <TableCell sx={{ maxWidth: 340 }}>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {feedback.description}
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        Loading feedbacks...
                       </Typography>
                     </TableCell>
-                    <TableCell>{feedback.submittedAt}</TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <IconButton size="small" color="primary" onClick={() => setViewingFeedback(feedback)}>
-                          <VisibilityOutlinedIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" color="primary" onClick={() => openFeedbackEditDialog(feedback)}>
-                          <EditOutlinedIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" color="error" onClick={() => openDeleteDialog(feedback)}>
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
                   </TableRow>
-                ))}
-                {filteredFeedbacks.length === 0 && (
+                ) : (
+                  pagedFeedbacks.map((feedback) => (
+                    <TableRow key={feedback.id} hover>
+                      <TableCell>{feedback.name}</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>{feedback.title}</TableCell>
+                      <TableCell>{feedback.rating}</TableCell>
+                      <TableCell sx={{ maxWidth: 340 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {feedback.description}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{feedback.submittedAt}</TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <IconButton size="small" color="primary" onClick={() => setViewingFeedback(feedback)}>
+                            <VisibilityOutlinedIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" color="primary" onClick={() => openFeedbackEditDialog(feedback)}>
+                            <EditOutlinedIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => openDeleteDialog(feedback)}
+                            disabled={deleting}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+                {!loading && filteredFeedbacks.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6}>
                       <Typography variant="body2" color="text.secondary" align="center">
@@ -347,9 +494,18 @@ const AdminFeedbacksPage = () => {
               minRows={3}
               required
             />
+            {feedbackDialogError ? (
+              <Typography variant="body2" color="error">
+                {feedbackDialogError}
+              </Typography>
+            ) : null}
             <Box>
-              <Button type="submit" variant="contained">
-                {feedbackDialogMode === 'edit' ? 'Save changes' : 'Create feedback'}
+              <Button type="submit" variant="contained" disabled={savingFeedback}>
+                {savingFeedback
+                  ? 'Saving...'
+                  : feedbackDialogMode === 'edit'
+                    ? 'Save changes'
+                    : 'Create feedback'}
               </Button>
             </Box>
           </Stack>
@@ -382,9 +538,11 @@ const AdminFeedbacksPage = () => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeDeleteDialog}>Cancel</Button>
-          <Button color="error" onClick={confirmDelete}>
-            Delete
+          <Button onClick={closeDeleteDialog} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button color="error" onClick={confirmDelete} disabled={deleting}>
+            {deleting ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

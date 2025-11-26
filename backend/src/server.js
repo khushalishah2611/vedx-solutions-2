@@ -42,6 +42,19 @@ const buildAdminResponse = (admin) => ({
   status: admin.status,
 });
 
+const isValidRating = (value) => Number.isInteger(value) && value >= 1 && value <= 5;
+
+const formatFeedbackResponse = (feedback) => ({
+  id: feedback.id,
+  name: feedback.client,
+  title: feedback.highlight ?? '',
+  description: feedback.quote ?? '',
+  rating: feedback.rating ?? null,
+  submittedAt: feedback.createdAt?.toISOString().split('T')[0],
+  createdAt: feedback.createdAt,
+  updatedAt: feedback.updatedAt,
+});
+
 const parseBearerToken = (authorizationHeader) => {
   if (!authorizationHeader) return null;
   const [scheme, token] = authorizationHeader.split(' ');
@@ -438,6 +451,145 @@ app.post('/api/admin/logout', async (req, res) => {
   } catch (error) {
     console.error('Logout failed', error);
     return res.status(500).json({ message: 'Unable to logout right now.' });
+  }
+});
+
+app.get('/api/admin/feedbacks', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const feedbacks = await prisma.clientFeedback.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ feedbacks: feedbacks.map(formatFeedbackResponse) });
+  } catch (error) {
+    console.error('Feedback list failed', error);
+    return res.status(500).json({ message: 'Unable to load feedbacks right now.' });
+  }
+});
+
+app.post('/api/admin/feedbacks', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const { name, title, description, rating, submittedAt } = req.body ?? {};
+
+    const normalizedName = name?.trim();
+    const normalizedTitle = title?.trim();
+    const normalizedDescription = description?.trim();
+    const parsedRating = Number(rating);
+    const submittedDate = submittedAt ? new Date(submittedAt) : null;
+    const hasValidDate = submittedDate && !Number.isNaN(submittedDate.getTime());
+
+    if (!normalizedName || !normalizedTitle || !normalizedDescription) {
+      return res.status(400).json({ message: 'Name, title, and description are required.' });
+    }
+
+    if (!isValidRating(parsedRating)) {
+      return res.status(400).json({ message: 'Rating must be a whole number between 1 and 5.' });
+    }
+
+    const feedback = await prisma.clientFeedback.create({
+      data: {
+        client: normalizedName,
+        highlight: normalizedTitle,
+        quote: normalizedDescription,
+        rating: parsedRating,
+        createdAt: hasValidDate ? submittedDate : undefined,
+      },
+    });
+
+    return res.status(201).json({ feedback: formatFeedbackResponse(feedback), message: 'Feedback created.' });
+  } catch (error) {
+    console.error('Feedback creation failed', error);
+    return res.status(500).json({ message: 'Unable to create feedback right now.' });
+  }
+});
+
+app.put('/api/admin/feedbacks/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const feedbackId = Number(req.params.id);
+
+    if (!Number.isInteger(feedbackId)) {
+      return res.status(400).json({ message: 'A valid feedback id is required.' });
+    }
+
+    const { name, title, description, rating, submittedAt } = req.body ?? {};
+
+    const normalizedName = name?.trim();
+    const normalizedTitle = title?.trim();
+    const normalizedDescription = description?.trim();
+    const parsedRating = Number(rating);
+    const submittedDate = submittedAt ? new Date(submittedAt) : null;
+    const hasValidDate = submittedDate && !Number.isNaN(submittedDate.getTime());
+
+    if (!normalizedName || !normalizedTitle || !normalizedDescription) {
+      return res.status(400).json({ message: 'Name, title, and description are required.' });
+    }
+
+    if (!isValidRating(parsedRating)) {
+      return res.status(400).json({ message: 'Rating must be a whole number between 1 and 5.' });
+    }
+
+    const existing = await prisma.clientFeedback.findUnique({ where: { id: feedbackId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Feedback not found.' });
+    }
+
+    const updated = await prisma.clientFeedback.update({
+      where: { id: feedbackId },
+      data: {
+        client: normalizedName,
+        highlight: normalizedTitle,
+        quote: normalizedDescription,
+        rating: parsedRating,
+        createdAt: hasValidDate ? submittedDate : existing.createdAt,
+      },
+    });
+
+    return res.json({ feedback: formatFeedbackResponse(updated), message: 'Feedback updated.' });
+  } catch (error) {
+    console.error('Feedback update failed', error);
+    return res.status(500).json({ message: 'Unable to update feedback right now.' });
+  }
+});
+
+app.delete('/api/admin/feedbacks/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const feedbackId = Number(req.params.id);
+
+    if (!Number.isInteger(feedbackId)) {
+      return res.status(400).json({ message: 'A valid feedback id is required.' });
+    }
+
+    await prisma.clientFeedback.delete({ where: { id: feedbackId } });
+
+    return res.json({ message: 'Feedback deleted.' });
+  } catch (error) {
+    console.error('Feedback delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete feedback right now.' });
   }
 });
 

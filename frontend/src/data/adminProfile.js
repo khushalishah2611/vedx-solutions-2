@@ -55,6 +55,11 @@ export const setStoredAdminProfile = (profile) => {
 
   try {
     localStorage.setItem('adminProfile', JSON.stringify(profile));
+
+    if (typeof window !== 'undefined') {
+      const derivedProfile = deriveProfile(profile);
+      window.dispatchEvent(new CustomEvent('adminProfileUpdated', { detail: derivedProfile }));
+    }
   } catch (error) {
     console.error('Failed to persist admin profile', error);
   }
