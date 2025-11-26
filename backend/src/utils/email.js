@@ -57,12 +57,13 @@ const waitForResponse = (socket) =>
     socket.once('timeout', onTimeout);
   });
 
-const sendCommand = async (socket, command, expectedCode) => {
+const sendCommand = async (socket, command, expectedCode, maskCommand) => {
   socket.write(`${command}\r\n`);
   const response = await waitForResponse(socket);
 
   if (!response.startsWith(String(expectedCode))) {
-    throw new Error(`Unexpected SMTP response for ${command}: ${response.trim()}`);
+    const safeCommand = maskCommand || command;
+    throw new Error(`Unexpected SMTP response for ${safeCommand}: ${response.trim()}`);
   }
 
   return response;
@@ -99,8 +100,18 @@ const sendMail = async ({ from = EMAIL_FROM, to, subject, html, text }) => {
     await waitForResponse(socket); // 220 greeting
     await sendCommand(socket, `EHLO ${EHLO_DOMAIN}`, 250);
     await sendCommand(socket, 'AUTH LOGIN', 334);
-    await sendCommand(socket, Buffer.from(EMAIL_USER).toString('base64'), 334);
-    await sendCommand(socket, Buffer.from(EMAIL_PASS).toString('base64'), 235);
+    await sendCommand(
+      socket,
+      Buffer.from(EMAIL_USER).toString('base64'),
+      334,
+      'AUTH LOGIN <username>'
+    );
+    await sendCommand(
+      socket,
+      Buffer.from(EMAIL_PASS).toString('base64'),
+      235,
+      'AUTH LOGIN <password>'
+    );
     await sendCommand(socket, `MAIL FROM:<${from}>`, 250);
     await sendCommand(socket, `RCPT TO:<${to}>`, 250);
     await sendCommand(socket, 'DATA', 354);
@@ -113,6 +124,14 @@ const sendMail = async ({ from = EMAIL_FROM, to, subject, html, text }) => {
     }
 
     await sendCommand(socket, 'QUIT', 221);
+  } catch (error) {
+    if (error.message.includes('AUTH LOGIN') && error.message.includes('535')) {
+      throw new Error(
+        `${error.message} (authentication failed – verify EMAIL_USER/EMAIL_PASS or use an app-specific password)`
+      );
+    }
+
+    throw error;
   } finally {
     socket.end();
   }
