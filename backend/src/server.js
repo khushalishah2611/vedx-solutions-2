@@ -1,10 +1,112 @@
+import crypto from 'node:crypto';
 import express from 'express';
 import cors from 'cors';
+import { PrismaClient } from '@prisma/client';
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+const prisma = new PrismaClient();
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 app.use(cors());
+app.use(express.json());
+
+const hashPassword = (value) => crypto.createHash('sha256').update(value).digest('hex');
+
+const buildAdminResponse = (admin) => ({
+  id: admin.id,
+  email: admin.email,
+  name: admin.name,
+  role: admin.role,
+  status: admin.status,
+});
+
+const parseBearerToken = (authorizationHeader) => {
+  if (!authorizationHeader) return null;
+  const [scheme, token] = authorizationHeader.split(' ');
+
+  if (scheme?.toLowerCase() !== 'bearer' || !token) return null;
+
+  return token;
+};
+
+app.post('/api/admin/login', async (req, res) => {
+  try {
+    const { email, password } = req.body ?? {};
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' });
+    }
+
+    const admin = await prisma.adminUser.findUnique({ where: { email } });
+
+    if (!admin || admin.status !== 'ACTIVE') {
+      return res.status(401).json({ message: 'Invalid credentials or inactive account.' });
+    }
+
+    if (hashPassword(password) !== admin.passwordHash) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
+
+    const token = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+
+    const session = await prisma.adminSession.create({
+      data: {
+        token,
+        adminId: admin.id,
+        expiresAt,
+      },
+    });
+
+    return res.json({
+      token: session.token,
+      expiresAt: session.expiresAt,
+      admin: buildAdminResponse(admin),
+    });
+  } catch (error) {
+    console.error('Login failed', error);
+    return res.status(500).json({ message: 'Unable to process login right now.' });
+  }
+});
+
+app.get('/api/admin/session', async (req, res) => {
+  try {
+    const token = parseBearerToken(req.headers.authorization);
+
+    if (!token) {
+      return res.status(401).json({ message: 'Session token missing.' });
+    }
+
+    const session = await prisma.adminSession.findUnique({
+      where: { token },
+      include: { admin: true },
+    });
+
+    if (!session) {
+      return res.status(401).json({ message: 'Session not found.' });
+    }
+
+    if (session.expiresAt <= new Date()) {
+      await prisma.adminSession.delete({ where: { token } });
+      return res.status(401).json({ message: 'Session expired.' });
+    }
+
+    if (session.admin.status !== 'ACTIVE') {
+      return res.status(403).json({ message: 'Account is inactive.' });
+    }
+
+    return res.json({
+      valid: true,
+      expiresAt: session.expiresAt,
+      admin: buildAdminResponse(session.admin),
+    });
+  } catch (error) {
+    console.error('Session check failed', error);
+    return res.status(500).json({ message: 'Unable to validate session right now.' });
+  }
+});
 
 const hero = {
   title: 'Unlock Your Business Potential',
