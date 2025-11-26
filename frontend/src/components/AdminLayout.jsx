@@ -127,7 +127,7 @@ const AdminLayout = () => {
       { label: 'Contacts', icon: <ContactsRoundedIcon />, to: '/admin/contacts' },
       { label: 'Careers', icon: <WorkOutlineOutlinedIcon />, to: '/admin/careers' },
       { label: 'Services', icon: <DesignServicesOutlinedIcon />, to: '/admin/services' },
-      { label: 'hiredeveloper', icon: <DesignServicesOutlinedIcon />, to: '/admin/hiredeveloper' },
+      { label: 'Hire Developers', icon: <DesignServicesOutlinedIcon />, to: '/admin/hiredeveloper' },
       { label: 'Feedbacks', icon: <RateReviewOutlinedIcon />, to: '/admin/feedbacks' },
       { label: 'MasterData', icon: <CategoryOutlinedIcon />, to: '/admin/navigation' },
       { label: 'Blogs', icon: <ArticleOutlinedIcon />, to: '/admin/blogs' },

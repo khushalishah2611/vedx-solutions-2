@@ -10,6 +10,7 @@ import AdminChangePasswordPage from './components/admin/AdminChangePasswordPage.
 import AdminBlogsPage from './components/admin/AdminBlogsPage.jsx';
 import AdminCareersPage from './components/admin/AdminCareersPage.jsx';
 import AdminServicesPage from './components/admin/AdminServicesPage.jsx';
+import AdminHiredeveloperPage from './components/admin/AdminHiredeveloperPage.jsx';
 import AdminForgotPasswordPage from './components/admin/AdminForgotPasswordPage.jsx';
 import AdminVerifyOtpPage from './components/admin/AdminVerifyOtpPage.jsx';
 import AdminResetPasswordPage from './components/admin/AdminResetPasswordPage.jsx';
@@ -45,6 +46,7 @@ const App = () => {
               <Route path="contacts" element={<AdminContactsPage />} />
               <Route path="careers" element={<AdminCareersPage />} />
               <Route path="services" element={<AdminServicesPage />} />
+              <Route path="hiredeveloper" element={<AdminHiredeveloperPage />} />
               <Route path="feedbacks" element={<AdminFeedbacksPage />} />
               <Route path="navigation" element={<AdminNavigationPage />} />
               <Route path="blogs" element={<AdminBlogsPage />} />

@@ -624,7 +624,6 @@ const AdminHiredeveloperPage = () => {
   const [hirePricingHeroForm, setHirePricingHeroForm] = useState({
     heroTitle: initialHirePricing.heroTitle,
     heroDescription: initialHirePricing.heroDescription,
-    heroImage: initialHirePricing.heroImage,
   });
   const [hirePricingHeroSaved, setHirePricingHeroSaved] = useState(false);
   const [hirePricingDialogOpen, setHirePricingDialogOpen] = useState(false);
@@ -632,6 +631,8 @@ const AdminHiredeveloperPage = () => {
   const [hirePricingForm, setHirePricingForm] = useState(emptyHirePricingForm);
   const [activeHirePricingPlan, setActiveHirePricingPlan] = useState(null);
   const [hirePricingToDelete, setHirePricingToDelete] = useState(null);
+  const [newHirePricingService, setNewHirePricingService] = useState('');
+  const [hirePricingServiceToDelete, setHirePricingServiceToDelete] = useState(null);
 
   const [hireContent, setHireContent] = useState(initialHireDevelopers);
   const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
@@ -772,10 +773,37 @@ const AdminHiredeveloperPage = () => {
       ...prev,
       heroTitle: hirePricingHeroForm.heroTitle,
       heroDescription: hirePricingHeroForm.heroDescription,
-      heroImage: hirePricingHeroForm.heroImage,
     }));
     setHirePricingHeroSaved(true);
     setTimeout(() => setHirePricingHeroSaved(false), 2500);
+  };
+
+  const addHirePricingService = () => {
+    const trimmedService = newHirePricingService.trim();
+    if (!trimmedService) return;
+
+    setHirePricingForm((prev) => ({
+      ...prev,
+      services: [...(prev.services || []), trimmedService],
+    }));
+    setNewHirePricingService('');
+  };
+
+  const openHirePricingServiceDeleteDialog = (service) => {
+    setHirePricingServiceToDelete(service);
+  };
+
+  const closeHirePricingServiceDeleteDialog = () => {
+    setHirePricingServiceToDelete(null);
+  };
+
+  const handleConfirmDeleteHirePricingService = () => {
+    if (!hirePricingServiceToDelete) return;
+    setHirePricingForm((prev) => ({
+      ...prev,
+      services: (prev.services || []).filter((service) => service !== hirePricingServiceToDelete),
+    }));
+    closeHirePricingServiceDeleteDialog();
   };
 
   const handleHeroSave = () => {
@@ -957,6 +985,7 @@ const AdminHiredeveloperPage = () => {
     setHirePricingDialogMode('create');
     setActiveHirePricingPlan(null);
     resetHirePricingForm();
+    setNewHirePricingService('');
     setHirePricingDialogOpen(true);
   };
 
@@ -964,6 +993,7 @@ const AdminHiredeveloperPage = () => {
     setHirePricingDialogMode('edit');
     setActiveHirePricingPlan(plan);
     setHirePricingForm({ ...plan });
+    setNewHirePricingService('');
     setHirePricingDialogOpen(true);
   };
 
@@ -1537,11 +1567,6 @@ const AdminHiredeveloperPage = () => {
   const formattedTechnologyItems = useMemo(
     () => (technologyForm.items?.length ? technologyForm.items.join(', ') : ''),
     [technologyForm.items]
-  );
-
-  const formattedHirePricingServices = useMemo(
-    () => (hirePricingForm.services?.length ? hirePricingForm.services.join(', ') : ''),
-    [hirePricingForm.services]
   );
 
   const serviceFormSubcategoryOptions = useMemo(() => {
@@ -2706,12 +2731,6 @@ const AdminHiredeveloperPage = () => {
                   multiline
                   minRows={3}
                 />
-                <ImageUpload
-                  label="Hero image"
-                  value={hirePricingHeroForm.heroImage}
-                  onChange={(value) => handleHirePricingHeroChange('heroImage', value)}
-                  required
-                />
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <Button variant="contained" onClick={handleHirePricingHeroSave}>
                     Save hero
@@ -3240,21 +3259,42 @@ const AdminHiredeveloperPage = () => {
               multiline
               minRows={3}
             />
-            <TextField
-              label="Services (comma separated)"
-              value={formattedHirePricingServices}
-              onChange={(event) =>
-                handleHirePricingFormChange(
-                  'services',
-                  event.target.value
-                    .split(',')
-                    .map((item) => item.trim())
-                    .filter(Boolean)
-                )
-              }
-              helperText="Add the inclusions for this pricing plan"
-              fullWidth
-            />
+            <Stack spacing={1}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
+                <TextField
+                  label="Service title"
+                  value={newHirePricingService}
+                  onChange={(event) => setNewHirePricingService(event.target.value)}
+                  helperText="Add the inclusions for this pricing plan"
+                  fullWidth
+                />
+                <Button
+                  variant="outlined"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={addHirePricingService}
+                  sx={{ mt: { xs: 0, sm: '4px' } }}
+                >
+                  Add service
+                </Button>
+              </Stack>
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                {hirePricingForm.services?.length ? (
+                  hirePricingForm.services.map((service) => (
+                    <Chip
+                      key={service}
+                      label={service}
+                      onDelete={() => openHirePricingServiceDeleteDialog(service)}
+                      deleteIcon={<DeleteOutlineIcon />}
+                      variant="outlined"
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No services added yet.
+                  </Typography>
+                )}
+              </Stack>
+            </Stack>
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -3263,6 +3303,28 @@ const AdminHiredeveloperPage = () => {
           </Button>
           <Button onClick={handleHirePricingSubmit} variant="contained">
             {hirePricingDialogMode === 'edit' ? 'Save changes' : 'Add hire pricing'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(hirePricingServiceToDelete)}
+        onClose={closeHirePricingServiceDeleteDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Remove service</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to remove "{hirePricingServiceToDelete}" from this plan?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeHirePricingServiceDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteHirePricingService} color="error" variant="contained">
+            Remove
           </Button>
         </DialogActions>
       </Dialog>
