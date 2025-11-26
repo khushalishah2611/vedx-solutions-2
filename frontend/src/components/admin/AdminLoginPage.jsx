@@ -10,6 +10,7 @@ import {
   Typography
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { setStoredAdminProfile } from '../../data/adminProfile.js';
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
@@ -37,12 +38,16 @@ const AdminLoginPage = () => {
         if (!response.ok) {
           localStorage.removeItem('adminToken');
           localStorage.removeItem('adminSessionExpiry');
+          localStorage.removeItem('adminProfile');
           return;
         }
 
         const payload = await response.json();
 
         if (!cancelled && payload?.valid) {
+          if (payload.admin) {
+            setStoredAdminProfile(payload.admin);
+          }
           navigate('/admin/dashboard', { replace: true });
         }
       } catch (error) {
@@ -107,6 +112,9 @@ const AdminLoginPage = () => {
 
       localStorage.setItem('adminToken', payload.token);
       localStorage.setItem('adminSessionExpiry', payload.expiresAt);
+      if (payload.admin) {
+        setStoredAdminProfile(payload.admin);
+      }
       navigate('/admin/dashboard');
     } catch (error) {
       console.error('Login failed', error);

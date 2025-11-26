@@ -1,7 +1,9 @@
 import { Button, Card, CardContent, Grid, Stack, TextField, Typography } from '@mui/material';
-import adminProfile from '../../data/adminProfile.js';
+import { getStoredAdminProfile } from '../../data/adminProfile.js';
 
 const AdminProfilePage = () => {
+  const adminProfile = getStoredAdminProfile();
+
   return (
     <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
       <CardContent>
@@ -14,7 +16,8 @@ const AdminProfilePage = () => {
               Update the profile details used across the admin panel and notification emails.
             </Typography>
           </div>
-         
+
+          <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <TextField label="First name" fullWidth defaultValue={adminProfile.firstName} />
             </Grid>
@@ -30,7 +33,8 @@ const AdminProfilePage = () => {
             <Grid item xs={12}>
               <TextField label="Job title" fullWidth defaultValue={adminProfile.role} />
             </Grid>
-          
+          </Grid>
+
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
             <Button variant="outlined">Cancel</Button>
             <Button variant="contained">Save changes</Button>

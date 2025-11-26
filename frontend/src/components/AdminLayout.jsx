@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Avatar,
   Box,
@@ -31,7 +31,7 @@ import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import adminProfile from '../data/adminProfile.js';
+import { getStoredAdminProfile } from '../data/adminProfile.js';
 
 const drawerWidth = 280;
 
@@ -41,8 +41,23 @@ const AdminLayout = () => {
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const [loggingOut, setLoggingOut] = useState(false);
+  const [profile, setProfile] = useState(() => getStoredAdminProfile());
+
+  useEffect(() => {
+    setProfile(getStoredAdminProfile());
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const syncProfile = (event) => {
+      if (event.key === 'adminProfile') {
+        setProfile(getStoredAdminProfile());
+      }
+    };
+
+    window.addEventListener('storage', syncProfile);
+    return () => window.removeEventListener('storage', syncProfile);
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen((prev) => !prev);
@@ -69,6 +84,7 @@ const AdminLayout = () => {
     } finally {
       localStorage.removeItem('adminToken');
       localStorage.removeItem('adminSessionExpiry');
+      localStorage.removeItem('adminProfile');
       sessionStorage.removeItem('adminResetEmail');
       sessionStorage.removeItem('adminResetOtp');
 
@@ -105,7 +121,7 @@ const AdminLayout = () => {
           <Box>
           
             <Typography variant="h6" color="text.secondary">
-              @{adminProfile.username}
+              @{profile.username}
             </Typography>
 
           </Box>
@@ -177,16 +193,16 @@ const AdminLayout = () => {
           <Stack direction="row" spacing={2} alignItems="center">
             <Box textAlign="right">
               <Typography variant="subtitle2" fontWeight={600}>
-                {adminProfile.fullName}
+                {profile.fullName}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Email: {adminProfile.email}
+                Email: {profile.email}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Mobile: {adminProfile.phone}
+                Mobile: {profile.phone}
               </Typography>
             </Box>
-            <Avatar sx={{ bgcolor: 'primary.main' }}>{adminProfile.initials}</Avatar>
+            <Avatar sx={{ bgcolor: 'primary.main' }}>{profile.initials}</Avatar>
           </Stack>
         </Toolbar>
       </AppBar>
