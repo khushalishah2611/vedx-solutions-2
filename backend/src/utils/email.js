@@ -1,157 +1,73 @@
-import tls from 'node:tls';
+import nodemailer from 'nodemailer';
 
 const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
-const EMAIL_PORT = Number(process.env.EMAIL_PORT || 465);
+const EMAIL_PORT = process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : 465;
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
+const EMAIL_LOGO_BASE64 = process.env.EMAIL_LOGO_BASE64;
 
-const sanitizeEhloDomain = (domain) => {
-  if (!domain) return null;
+const isConfigured = Boolean(EMAIL_USER && EMAIL_PASS && EMAIL_FROM);
 
-  try {
-    if (domain.includes('://')) {
-      const parsed = new URL(domain);
-      return parsed.hostname || null;
+const logoAttachment = EMAIL_LOGO_BASE64
+  ? [
+      {
+        filename: 'logo.webp',
+        content: EMAIL_LOGO_BASE64.split('base64,').pop(),
+        encoding: 'base64',
+        cid: 'logo',
+      },
+    ]
+  : [];
+
+const mailer = nodemailer.createTransport({
+  host: EMAIL_HOST,
+  port: EMAIL_PORT,
+  secure: EMAIL_PORT === 465,
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_PASS,
+  },
+});
+
+export const mailTransporter = {
+  async sendMail({ from = EMAIL_FROM, to, subject, html, text }) {
+    if (!isConfigured) {
+      throw new Error('Email credentials are not fully configured');
     }
 
-    // Strip any port that might be present (e.g., "example.com:5000").
-    return domain.split(':')[0];
-  } catch (error) {
-    console.warn('Invalid EMAIL_EHLO_DOMAIN provided, falling back to default domain.', error);
-    return null;
-  }
-};
-
-const EHLO_DOMAIN =
-  sanitizeEhloDomain(process.env.EMAIL_EHLO_DOMAIN) ||
-  (EMAIL_FROM ? sanitizeEhloDomain(EMAIL_FROM.split('@')[1]) : null) ||
-  sanitizeEhloDomain(EMAIL_HOST) ||
-  'localhost';
-
-const waitForResponse = (socket) =>
-  new Promise((resolve, reject) => {
-    const cleanup = () => {
-      socket.off('data', onData);
-      socket.off('error', onError);
-      socket.off('timeout', onTimeout);
-    };
-
-    const onData = (chunk) => {
-      cleanup();
-      resolve(chunk.toString());
-    };
-
-    const onError = (error) => {
-      cleanup();
-      reject(error);
-    };
-
-    const onTimeout = () => {
-      cleanup();
-      reject(new Error('SMTP connection timed out'));
-    };
-
-    socket.once('data', onData);
-    socket.once('error', onError);
-    socket.once('timeout', onTimeout);
-  });
-
-const sendCommand = async (socket, command, expectedCode, maskCommand) => {
-  socket.write(`${command}\r\n`);
-  const response = await waitForResponse(socket);
-
-  if (!response.startsWith(String(expectedCode))) {
-    const safeCommand = maskCommand || command;
-    throw new Error(`Unexpected SMTP response for ${safeCommand}: ${response.trim()}`);
-  }
-
-  return response;
-};
-
-const buildEmailHeaders = ({ from, to, subject }) =>
-  [
-    `Subject: ${subject}`,
-    `From: ${from}`,
-    `To: ${to}`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/html; charset=UTF-8',
-    '',
-  ].join('\r\n');
-
-const sendMail = async ({ from = EMAIL_FROM, to, subject, html, text }) => {
-  if (!EMAIL_USER || !EMAIL_PASS || !from) {
-    throw new Error('Email credentials are not fully configured');
-  }
-
-  if (!to) {
-    throw new Error('Recipient email address is required');
-  }
-
-  const socket = tls.connect({
-    host: EMAIL_HOST,
-    port: EMAIL_PORT,
-    rejectUnauthorized: true,
-  });
-
-  socket.setTimeout(10000);
-
-  try {
-    await waitForResponse(socket); // 220 greeting
-    await sendCommand(socket, `EHLO ${EHLO_DOMAIN}`, 250);
-    await sendCommand(socket, 'AUTH LOGIN', 334);
-    await sendCommand(
-      socket,
-      Buffer.from(EMAIL_USER).toString('base64'),
-      334,
-      'AUTH LOGIN <username>'
-    );
-    await sendCommand(
-      socket,
-      Buffer.from(EMAIL_PASS).toString('base64'),
-      235,
-      'AUTH LOGIN <password>'
-    );
-    await sendCommand(socket, `MAIL FROM:<${from}>`, 250);
-    await sendCommand(socket, `RCPT TO:<${to}>`, 250);
-    await sendCommand(socket, 'DATA', 354);
-
-    socket.write(`${buildEmailHeaders({ from, to, subject })}${html || text || ''}\r\n.\r\n`);
-    const dataResponse = await waitForResponse(socket);
-
-    if (!dataResponse.startsWith('250')) {
-      throw new Error(`SMTP data was rejected: ${dataResponse.trim()}`);
+    if (!to) {
+      throw new Error('Recipient email address is required');
     }
 
-    await sendCommand(socket, 'QUIT', 221);
-  } catch (error) {
-    if (error.message.includes('AUTH LOGIN') && error.message.includes('535')) {
-      throw new Error(
-        `${error.message} (authentication failed – verify EMAIL_USER/EMAIL_PASS or use an app-specific password)`
-      );
-    }
-
-    throw error;
-  } finally {
-    socket.end();
-  }
+    return mailer.sendMail({
+      from,
+      to,
+      subject,
+      html,
+      text,
+      attachments: logoAttachment,
+    });
+  },
 };
 
-export const mailTransporter = { sendMail };
-export const isEmailConfigured = Boolean(EMAIL_USER && EMAIL_PASS && EMAIL_FROM);
+export const isEmailConfigured = isConfigured;
 
 export const sendOtpEmail = async (email, otp) => {
-  const subject = 'VEDX Admin Password Reset Code';
+  const subject = 'Your OTP Verification Code';
 
   const htmlBody = `
-    <p>Hello,</p>
-    <p>We received a request to reset your VEDX admin password.</p>
-    <p><strong>Your OTP code is: ${otp}</strong></p>
-    <p>This code expires in <strong>10 minutes</strong>.</p>
-    <p>If you did not request this, please ignore this email.</p>
-    <br/>
-    <p>Thanks,<br/>VEDX Security Team</p>
-  `;
+        <div>
+          <p>Dear Valued Customer,</p>
+          <p>Great to see you aboard! Let's quickly verify your email to get you started.</p>
+          <p>One Time Password (OTP): <strong>${otp}</strong></p>
+          <p>Remember, this code is valid only for the next 10 minutes.</p>
+          <p>We can't wait for you to explore all the amazing features we have to offer! If you have any questions or need further assistance, please do not hesitate to contact us.</p>
+          <p>Thank you and have a great day!</p>
+          <p>VEDX Security Team</p>
+          ${logoAttachment.length ? '<img src="cid:logo" style="width: 100%; height: auto; border-radius: 10px;"/>' : ''}
+        </div>
+      `;
 
   if (!isEmailConfigured) {
     console.warn('Email credentials are not configured. Skipping OTP email send.');
@@ -169,7 +85,7 @@ export const sendOtpEmail = async (email, otp) => {
     console.log(`OTP email sent to ${email}`);
     return true;
   } catch (err) {
-    console.error('Failed to send OTP email:', err);
+    console.error('Failed to send OTP email:', err.message || err);
     return false;
   }
 };
