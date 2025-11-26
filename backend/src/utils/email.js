@@ -5,7 +5,29 @@ const EMAIL_PORT = Number(process.env.EMAIL_PORT || 465);
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER;
-const EHLO_DOMAIN = process.env.EMAIL_EHLO_DOMAIN || 'vedx.local';
+
+const sanitizeEhloDomain = (domain) => {
+  if (!domain) return null;
+
+  try {
+    if (domain.includes('://')) {
+      const parsed = new URL(domain);
+      return parsed.hostname || null;
+    }
+
+    // Strip any port that might be present (e.g., "example.com:5000").
+    return domain.split(':')[0];
+  } catch (error) {
+    console.warn('Invalid EMAIL_EHLO_DOMAIN provided, falling back to default domain.', error);
+    return null;
+  }
+};
+
+const EHLO_DOMAIN =
+  sanitizeEhloDomain(process.env.EMAIL_EHLO_DOMAIN) ||
+  (EMAIL_FROM ? sanitizeEhloDomain(EMAIL_FROM.split('@')[1]) : null) ||
+  sanitizeEhloDomain(EMAIL_HOST) ||
+  'localhost';
 
 const waitForResponse = (socket) =>
   new Promise((resolve, reject) => {
