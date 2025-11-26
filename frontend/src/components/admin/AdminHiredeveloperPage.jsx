@@ -632,6 +632,8 @@ const AdminHiredeveloperPage = () => {
   const [activeHirePricingPlan, setActiveHirePricingPlan] = useState(null);
   const [hirePricingToDelete, setHirePricingToDelete] = useState(null);
   const [newHirePricingService, setNewHirePricingService] = useState('');
+  const [hirePricingServiceToEdit, setHirePricingServiceToEdit] = useState(null);
+  const [hirePricingServiceEditValue, setHirePricingServiceEditValue] = useState('');
   const [hirePricingServiceToDelete, setHirePricingServiceToDelete] = useState(null);
 
   const [hireContent, setHireContent] = useState(initialHireDevelopers);
@@ -787,6 +789,30 @@ const AdminHiredeveloperPage = () => {
       services: [...(prev.services || []), trimmedService],
     }));
     setNewHirePricingService('');
+  };
+
+  const openHirePricingServiceEditDialog = (service) => {
+    setHirePricingServiceToEdit(service);
+    setHirePricingServiceEditValue(service);
+  };
+
+  const closeHirePricingServiceEditDialog = () => {
+    setHirePricingServiceToEdit(null);
+    setHirePricingServiceEditValue('');
+  };
+
+  const handleConfirmEditHirePricingService = () => {
+    const trimmedService = hirePricingServiceEditValue.trim();
+    if (!hirePricingServiceToEdit || !trimmedService) return;
+
+    setHirePricingForm((prev) => ({
+      ...prev,
+      services: (prev.services || []).map((service) =>
+        service === hirePricingServiceToEdit ? trimmedService : service
+      ),
+    }));
+
+    closeHirePricingServiceEditDialog();
   };
 
   const openHirePricingServiceDeleteDialog = (service) => {
@@ -986,6 +1012,8 @@ const AdminHiredeveloperPage = () => {
     setActiveHirePricingPlan(null);
     resetHirePricingForm();
     setNewHirePricingService('');
+    setHirePricingServiceToEdit(null);
+    setHirePricingServiceEditValue('');
     setHirePricingDialogOpen(true);
   };
 
@@ -994,12 +1022,16 @@ const AdminHiredeveloperPage = () => {
     setActiveHirePricingPlan(plan);
     setHirePricingForm({ ...plan });
     setNewHirePricingService('');
+    setHirePricingServiceToEdit(null);
+    setHirePricingServiceEditValue('');
     setHirePricingDialogOpen(true);
   };
 
   const closeHirePricingDialog = () => {
     setHirePricingDialogOpen(false);
     setActiveHirePricingPlan(null);
+    setHirePricingServiceToEdit(null);
+    setHirePricingServiceEditValue('');
   };
 
   const handleHirePricingSubmit = (event) => {
@@ -3277,16 +3309,30 @@ const AdminHiredeveloperPage = () => {
                   Add service
                 </Button>
               </Stack>
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+              <Stack spacing={1} useFlexGap>
                 {hirePricingForm.services?.length ? (
                   hirePricingForm.services.map((service) => (
-                    <Chip
-                      key={service}
-                      label={service}
-                      onDelete={() => openHirePricingServiceDeleteDialog(service)}
-                      deleteIcon={<DeleteOutlineIcon />}
-                      variant="outlined"
-                    />
+                    <Stack key={service} direction="row" spacing={1} alignItems="center">
+                      <Chip label={service} variant="outlined" />
+                      <Tooltip title="Edit">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => openHirePricingServiceEditDialog(service)}
+                        >
+                          <EditOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => openHirePricingServiceDeleteDialog(service)}
+                        >
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
                   ))
                 ) : (
                   <Typography variant="body2" color="text.secondary">
@@ -3325,6 +3371,32 @@ const AdminHiredeveloperPage = () => {
           </Button>
           <Button onClick={handleConfirmDeleteHirePricingService} color="error" variant="contained">
             Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(hirePricingServiceToEdit)}
+        onClose={closeHirePricingServiceEditDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Edit service</DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            label="Service title"
+            value={hirePricingServiceEditValue}
+            onChange={(event) => setHirePricingServiceEditValue(event.target.value)}
+            fullWidth
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeHirePricingServiceEditDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmEditHirePricingService} variant="contained">
+            Save
           </Button>
         </DialogActions>
       </Dialog>
