@@ -190,6 +190,54 @@ const initialHireDevelopers = {
   ]
 };
 
+const initialHirePricing = {
+  heroTitle: 'Predictable pricing for hiring developers',
+  heroDescription:
+    'Pick the engagement model that matches your roadmap. Every plan includes governance, QA, and product stewardship.',
+  heroImage: imageLibrary[3].value,
+  plans: [
+    {
+      id: 'pricing-monthly',
+      title: 'Monthly cost',
+      subtitle: 'Flexible monthly billing with continuous delivery',
+      description: 'Best for startups aligning new initiatives with adaptable velocity and on-demand support.',
+      price: '$2,400*',
+      services: [
+        'Best for startups running new initiatives',
+        '2–3 engineers per pod with QA support',
+        'Product Manager included for prioritization',
+        'Sprint planning, demos, and retros each week',
+      ],
+    },
+    {
+      id: 'pricing-half-yearly',
+      title: 'Half yearly',
+      subtitle: 'Discounted commitment with predictable velocity',
+      description: 'Ideal for scaling product teams with stable squads and time-zone aligned delivery.',
+      price: '$13,500',
+      services: [
+        'Agile product squads with design support',
+        '4+ years of experience per engineer',
+        'Time zone overlap coverage',
+        '960 hours over 6 months',
+      ],
+    },
+    {
+      id: 'pricing-annual',
+      title: 'Annual retainers',
+      subtitle: 'Strategic partnership for enterprise-grade delivery',
+      description: 'For companies needing architecture, security, and release management baked into every sprint.',
+      price: '$24,000',
+      services: [
+        'Enterprise-ready frameworks and automation',
+        'Dedicated QA automation and documentation',
+        'Architecture reviews and observability setup',
+        '1920 hours / 12 months',
+      ],
+    },
+  ],
+};
+
 const initialProcess = [
   {
     id: 'process-1',
@@ -333,6 +381,15 @@ const emptyBenefitForm = {
   subcategory: '',
   description: '',
   image: imageLibrary[1].value,
+};
+
+const emptyHirePricingForm = {
+  id: '',
+  title: '',
+  subtitle: '',
+  description: '',
+  price: '',
+  services: [],
 };
 
 const emptyHireServiceForm = {
@@ -537,7 +594,7 @@ const ImageUpload = ({ label, value, onChange, required }) => {
   );
 };
 
-const AdminHiredeveloper = () => {
+const AdminHiredeveloperPage = () => {
   const [activeTab, setActiveTab] = useState('services');
 
   const [services, setServices] = useState(initialServices);
@@ -562,6 +619,19 @@ const AdminHiredeveloper = () => {
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
   const [activeBenefit, setActiveBenefit] = useState(null);
   const [benefitToDelete, setBenefitToDelete] = useState(null);
+
+  const [hirePricing, setHirePricing] = useState(initialHirePricing);
+  const [hirePricingHeroForm, setHirePricingHeroForm] = useState({
+    heroTitle: initialHirePricing.heroTitle,
+    heroDescription: initialHirePricing.heroDescription,
+    heroImage: initialHirePricing.heroImage,
+  });
+  const [hirePricingHeroSaved, setHirePricingHeroSaved] = useState(false);
+  const [hirePricingDialogOpen, setHirePricingDialogOpen] = useState(false);
+  const [hirePricingDialogMode, setHirePricingDialogMode] = useState('create');
+  const [hirePricingForm, setHirePricingForm] = useState(emptyHirePricingForm);
+  const [activeHirePricingPlan, setActiveHirePricingPlan] = useState(null);
+  const [hirePricingToDelete, setHirePricingToDelete] = useState(null);
 
   const [hireContent, setHireContent] = useState(initialHireDevelopers);
   const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
@@ -633,6 +703,7 @@ const AdminHiredeveloper = () => {
   const [technologyPage, setTechnologyPage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
+  const [hirePricingPage, setHirePricingPage] = useState(1);
   const [hireServicePage, setHireServicePage] = useState(1);
   const [processPage, setProcessPage] = useState(1);
   const [whyVedxPage, setWhyVedxPage] = useState(1);
@@ -644,6 +715,7 @@ const AdminHiredeveloper = () => {
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
   const resetTechnologyForm = () => setTechnologyForm(emptyTechnologyForm);
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
+  const resetHirePricingForm = () => setHirePricingForm(emptyHirePricingForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
   const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
@@ -678,6 +750,14 @@ const AdminHiredeveloper = () => {
     setBenefitForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleHirePricingHeroChange = (field, value) => {
+    setHirePricingHeroForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleHirePricingFormChange = (field, value) => {
+    setHirePricingForm((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleHireServiceFormChange = (field, value) => {
     setHireServiceForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -685,6 +765,17 @@ const AdminHiredeveloper = () => {
   const handleHireContentChange = (field, value) => {
     setHeroSaved(false);
     setHireContent((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleHirePricingHeroSave = () => {
+    setHirePricing((prev) => ({
+      ...prev,
+      heroTitle: hirePricingHeroForm.heroTitle,
+      heroDescription: hirePricingHeroForm.heroDescription,
+      heroImage: hirePricingHeroForm.heroImage,
+    }));
+    setHirePricingHeroSaved(true);
+    setTimeout(() => setHirePricingHeroSaved(false), 2500);
   };
 
   const handleHeroSave = () => {
@@ -811,6 +902,11 @@ const AdminHiredeveloper = () => {
     return whyChoose.services.slice(start, start + rowsPerPage);
   }, [whyChoose.services, rowsPerPage, whyServicePage]);
 
+  const pagedHirePricingPlans = useMemo(() => {
+    const start = (hirePricingPage - 1) * rowsPerPage;
+    return hirePricing.plans.slice(start, start + rowsPerPage);
+  }, [hirePricing.plans, rowsPerPage, hirePricingPage]);
+
   const pagedHireServices = useMemo(() => {
     const start = (hireServicePage - 1) * rowsPerPage;
     return hireContent.services.slice(start, start + rowsPerPage);
@@ -832,6 +928,11 @@ const AdminHiredeveloper = () => {
   }, [whyChoose.services.length, rowsPerPage]);
 
   useEffect(() => {
+    const maxHirePricingPage = Math.max(1, Math.ceil(hirePricing.plans.length / rowsPerPage));
+    setHirePricingPage((prev) => Math.min(prev, maxHirePricingPage));
+  }, [hirePricing.plans.length, rowsPerPage]);
+
+  useEffect(() => {
     const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
     setHireServicePage((prev) => Math.min(prev, maxHireServicePage));
   }, [hireContent.services.length, rowsPerPage]);
@@ -851,6 +952,55 @@ const AdminHiredeveloper = () => {
       setProcessForm((prev) => ({ ...prev, subcategory: '' }));
     }
   }, [processForm.category, processForm.subcategory, subcategoryLookup]);
+
+  const openHirePricingCreateDialog = () => {
+    setHirePricingDialogMode('create');
+    setActiveHirePricingPlan(null);
+    resetHirePricingForm();
+    setHirePricingDialogOpen(true);
+  };
+
+  const openHirePricingEditDialog = (plan) => {
+    setHirePricingDialogMode('edit');
+    setActiveHirePricingPlan(plan);
+    setHirePricingForm({ ...plan });
+    setHirePricingDialogOpen(true);
+  };
+
+  const closeHirePricingDialog = () => {
+    setHirePricingDialogOpen(false);
+    setActiveHirePricingPlan(null);
+  };
+
+  const handleHirePricingSubmit = (event) => {
+    event?.preventDefault();
+    if (!hirePricingForm.title.trim() || !hirePricingForm.price.trim()) return;
+
+    if (hirePricingDialogMode === 'edit' && activeHirePricingPlan) {
+      setHirePricing((prev) => ({
+        ...prev,
+        plans: prev.plans.map((plan) =>
+          plan.id === activeHirePricingPlan.id ? { ...hirePricingForm } : plan
+        ),
+      }));
+    } else {
+      const newPlan = { ...hirePricingForm, id: `hire-pricing-${Date.now()}` };
+      setHirePricing((prev) => ({ ...prev, plans: [newPlan, ...prev.plans] }));
+    }
+
+    closeHirePricingDialog();
+  };
+
+  const openHirePricingDeleteDialog = (plan) => setHirePricingToDelete(plan);
+  const closeHirePricingDeleteDialog = () => setHirePricingToDelete(null);
+  const handleConfirmDeleteHirePricing = () => {
+    if (!hirePricingToDelete) return;
+    setHirePricing((prev) => ({
+      ...prev,
+      plans: prev.plans.filter((plan) => plan.id !== hirePricingToDelete.id),
+    }));
+    closeHirePricingDeleteDialog();
+  };
 
   const openServiceCreateDialog = () => {
     setServiceDialogMode('create');
@@ -1389,6 +1539,11 @@ const AdminHiredeveloper = () => {
     [technologyForm.items]
   );
 
+  const formattedHirePricingServices = useMemo(
+    () => (hirePricingForm.services?.length ? hirePricingForm.services.join(', ') : ''),
+    [hirePricingForm.services]
+  );
+
   const serviceFormSubcategoryOptions = useMemo(() => {
     if (!serviceForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
@@ -1436,6 +1591,7 @@ const AdminHiredeveloper = () => {
           <Tab value="why-choose" label="Why choose service" />
           <Tab value="technologies" label="Technologies we support" />
           <Tab value="benefits" label="Benefits" />
+          <Tab value="hire-pricing" label="Hire pricing" />
           <Tab value="hire" label="Development services" />
         </Tabs>
       </Box>
@@ -2522,6 +2678,149 @@ const AdminHiredeveloper = () => {
         </Card>
       )}
 
+      {activeTab === 'hire-pricing' && (
+        <Stack spacing={3}>
+          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+            <CardHeader
+              title="Hire pricing hero"
+              subheader="Update the headline, overview, and image shown on the hire pricing section."
+            />
+            <Divider />
+            <CardContent>
+              <Stack spacing={2}>
+                <TextField
+                  label="Title"
+                  value={hirePricingHeroForm.heroTitle}
+                  onChange={(event) =>
+                    handleHirePricingHeroChange('heroTitle', event.target.value)
+                  }
+                  fullWidth
+                />
+                <TextField
+                  label="Description"
+                  value={hirePricingHeroForm.heroDescription}
+                  onChange={(event) =>
+                    handleHirePricingHeroChange('heroDescription', event.target.value)
+                  }
+                  fullWidth
+                  multiline
+                  minRows={3}
+                />
+                <ImageUpload
+                  label="Hero image"
+                  value={hirePricingHeroForm.heroImage}
+                  onChange={(value) => handleHirePricingHeroChange('heroImage', value)}
+                  required
+                />
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Button variant="contained" onClick={handleHirePricingHeroSave}>
+                    Save hero
+                  </Button>
+                  {hirePricingHeroSaved && (
+                    <Typography variant="body2" color="success.main">
+                      Saved
+                    </Typography>
+                  )}
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+            <CardHeader
+              title="Hire pricing plans"
+              subheader="Create, update, and delete hire pricing packages with their inclusions."
+              action={
+                <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openHirePricingCreateDialog}>
+                  Add hire pricing
+                </Button>
+              }
+            />
+            <Divider />
+            <CardContent>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Subtitle</TableCell>
+                      <TableCell>Price</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Services</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {pagedHirePricingPlans.map((plan) => (
+                      <TableRow key={plan.id} hover>
+                        <TableCell sx={{ fontWeight: 700 }}>{plan.title}</TableCell>
+                        <TableCell>{plan.subtitle || '-'}</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>{plan.price}</TableCell>
+                        <TableCell sx={{ maxWidth: 280 }}>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {plan.description}
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 360 }}>
+                          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                            {plan.services?.length ? (
+                              plan.services.map((service) => <Chip key={service} label={service} size="small" />)
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                No services listed
+                              </Typography>
+                            )}
+                          </Stack>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Tooltip title="Edit">
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                onClick={() => openHirePricingEditDialog(plan)}
+                              >
+                                <EditOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => openHirePricingDeleteDialog(plan)}
+                              >
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {hirePricing.plans.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <Typography variant="body2" color="text.secondary" align="center">
+                            No hire pricing plans configured yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(hirePricing.plans.length / rowsPerPage))}
+                  page={hirePricingPage}
+                  onChange={(event, page) => setHirePricingPage(page)}
+                  color="primary"
+                />
+              </Stack>
+            </CardContent>
+          </Card>
+        </Stack>
+      )}
+
       {activeTab === 'hire' && (
         <Stack spacing={3}>
           <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -2904,6 +3203,82 @@ const AdminHiredeveloper = () => {
             Cancel
           </Button>
           <Button onClick={handleConfirmDeleteService} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={hirePricingDialogOpen} onClose={closeHirePricingDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{hirePricingDialogMode === 'edit' ? 'Edit hire pricing' : 'Add hire pricing'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleHirePricingSubmit}>
+            <TextField
+              label="Title"
+              value={hirePricingForm.title}
+              onChange={(event) => handleHirePricingFormChange('title', event.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Subtitle"
+              value={hirePricingForm.subtitle}
+              onChange={(event) => handleHirePricingFormChange('subtitle', event.target.value)}
+              fullWidth
+            />
+            <TextField
+              label="Price"
+              value={hirePricingForm.price}
+              onChange={(event) => handleHirePricingFormChange('price', event.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              value={hirePricingForm.description}
+              onChange={(event) => handleHirePricingFormChange('description', event.target.value)}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+            <TextField
+              label="Services (comma separated)"
+              value={formattedHirePricingServices}
+              onChange={(event) =>
+                handleHirePricingFormChange(
+                  'services',
+                  event.target.value
+                    .split(',')
+                    .map((item) => item.trim())
+                    .filter(Boolean)
+                )
+              }
+              helperText="Add the inclusions for this pricing plan"
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeHirePricingDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleHirePricingSubmit} variant="contained">
+            {hirePricingDialogMode === 'edit' ? 'Save changes' : 'Add hire pricing'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(hirePricingToDelete)} onClose={closeHirePricingDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete hire pricing</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{hirePricingToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeHirePricingDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteHirePricing} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>
@@ -3602,4 +3977,4 @@ const AdminHiredeveloper = () => {
   );
 };
 
-export default AdminHiredeveloper;
+export default AdminHiredeveloperPage;
