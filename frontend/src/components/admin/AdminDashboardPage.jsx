@@ -230,7 +230,7 @@ const ImageUpload = ({ label, value, onChange, required }) => {
 };
 
 const AdminDashboardPage = () => {
-  const [activeTab, setActiveTab] = useState('process');
+  const [activeTab, setActiveTab] = useState('banner');
   const rowsPerPage = 5;
 
   const fileInputRef = useRef(null);
