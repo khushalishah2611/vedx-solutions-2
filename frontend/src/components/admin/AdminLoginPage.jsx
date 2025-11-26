@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Box,
   Button,
@@ -8,11 +9,51 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 const AdminLoginPage = () => {
+  const navigate = useNavigate();
+
+  const [formValues, setFormValues] = useState({ identifier: '', password: '' });
+  const [errors, setErrors] = useState({ identifier: '', password: '' });
+
+  const validate = () => {
+    const nextErrors = { identifier: '', password: '' };
+
+    if (!formValues.identifier.trim()) {
+      nextErrors.identifier = 'Enter your email address or mobile number to continue.';
+    } else {
+      const looksLikeEmail = /.+@.+\..+/.test(formValues.identifier);
+      const looksLikePhone = /^\+?\d{7,15}$/.test(formValues.identifier);
+
+      if (!looksLikeEmail && !looksLikePhone) {
+        nextErrors.identifier = 'Use a valid email address or phone number.';
+      }
+    }
+
+    if (!formValues.password) {
+      nextErrors.password = 'Password is required.';
+    } else if (formValues.password.length < 8) {
+      nextErrors.password = 'Password should be at least 8 characters.';
+    }
+
+    setErrors(nextErrors);
+    return Object.values(nextErrors).every((message) => !message);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (validate()) {
+      navigate('/admin/dashboard');
+    }
+  };
+
   return (
     <Box
+      component="form"
+      onSubmit={handleSubmit}
+      noValidate
       sx={{
         minHeight: '100vh',
         display: 'flex',
@@ -40,8 +81,27 @@ const AdminLoginPage = () => {
                 placeholder="name@company.com / 9XXXXXXXXX"
                 fullWidth
                 required
+                value={formValues.identifier}
+                onChange={(event) =>
+                  setFormValues((current) => ({ ...current, identifier: event.target.value }))
+                }
+                error={Boolean(errors.identifier)}
+                helperText={errors.identifier}
+                autoComplete="username"
               />
-              <TextField label="Password" type="password" fullWidth required />
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                required
+                value={formValues.password}
+                onChange={(event) =>
+                  setFormValues((current) => ({ ...current, password: event.target.value }))
+                }
+                error={Boolean(errors.password)}
+                helperText={errors.password}
+                autoComplete="current-password"
+              />
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
               <Typography variant="body2" color="text.secondary">
@@ -51,13 +111,7 @@ const AdminLoginPage = () => {
                 Forgot password
               </Link>
             </Stack>
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              component={RouterLink}
-              to="/admin/dashboard"
-            >
+            <Button variant="contained" size="large" fullWidth type="submit">
               Log in
             </Button>
             <Button component={RouterLink} to="/" color="secondary">
