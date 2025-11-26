@@ -344,10 +344,10 @@ async function seedFeedbacks() {
 
 async function seedAdmin() {
   await prisma.adminUser.upsert({
-    where: { email: 'admin@vedx.com' },
+    where: { email: 'khushalishah2611@gmail.com' },
     update: {},
     create: {
-      email: 'admin@vedx.com',
+      email: 'khushalishah2611@gmail.com',
       name: 'VEDX Super Admin',
       passwordHash: hashPassword('Admin@123'),
       role: 'SUPER_ADMIN',

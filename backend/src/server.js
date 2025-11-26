@@ -52,7 +52,20 @@ const parseBearerToken = (authorizationHeader) => {
 
 const sendOtpEmail = async (email, otp) => {
   // Placeholder for future SMTP integration
-  console.log(`Sending password reset OTP to ${email}: ${otp}`);
+  const subject = 'VEDX Admin Password Reset Code';
+  const body = [
+    `Hello,`,
+    '',
+    'We received a request to reset the password for your VEDX admin account.',
+    `Your one-time password (OTP) is: ${otp}`,
+    '',
+    'This code expires in 10 minutes. If you did not request this, please ignore this email.',
+    '',
+    'Thanks,',
+    'VEDX Security Team',
+  ].join('\n');
+
+  console.log(`Sending password reset OTP email:\nTo: ${email}\nSubject: ${subject}\n\n${body}`);
 };
 
 const invalidateExistingOtps = (email) =>
@@ -311,6 +324,23 @@ app.get('/api/admin/session', async (req, res) => {
   } catch (error) {
     console.error('Session check failed', error);
     return res.status(500).json({ message: 'Unable to validate session right now.' });
+  }
+});
+
+app.post('/api/admin/logout', async (req, res) => {
+  try {
+    const token = parseBearerToken(req.headers.authorization);
+
+    if (!token) {
+      return res.status(200).json({ message: 'Logged out.' });
+    }
+
+    await prisma.adminSession.deleteMany({ where: { token } });
+
+    return res.json({ message: 'Logged out.' });
+  } catch (error) {
+    console.error('Logout failed', error);
+    return res.status(500).json({ message: 'Unable to logout right now.' });
   }
 });
 
