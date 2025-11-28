@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import {
   AppBar,
   Box,
   Button,
   ButtonBase,
   Collapse,
-  Container,
   Divider,
   Drawer,
   IconButton,
   List,
   ListItemButton,
   ListItemText,
+  MenuItem,
+  MenuList,
   Popover,
   Stack,
   Toolbar,
@@ -28,46 +29,194 @@ import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRigh
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import { megaMenuContent, navigationLinks } from '../../data/content.js';
+import { ColorModeContext } from '../../contexts/ColorModeContext.jsx';
+import { Link as RouterLink } from 'react-router-dom';
+import { createAnchorHref } from '../../utils/formatters.js';
+import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
+
+const aboutMenuItems = [
+  { label: 'About Us', to: '/about' },
+  { label: 'Careers', to: '/careers' }
+];
 
 const NavigationBar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { mode } = useContext(ColorModeContext);
+  const { openDialog: openContactDialog } = useContactDialog();
+
   const [open, setOpen] = useState(false);
-  const createDefaultExpanded = () => ({ services: false, hireDevelopers: false });
+
+  const createDefaultExpanded = () => ({
+    services: false,
+    hireDevelopers: false,
+    about: false
+  });
+
+  const createDefaultCategoryExpanded = () =>
+    Object.keys(megaMenuContent).reduce((acc, key) => {
+      acc[key] = {};
+      return acc;
+    }, {});
+
   const [expandedMenus, setExpandedMenus] = useState(createDefaultExpanded);
+  const [expandedCategories, setExpandedCategories] = useState(
+    createDefaultCategoryExpanded
+  );
   const [serviceAnchor, setServiceAnchor] = useState(null);
   const [hireAnchor, setHireAnchor] = useState(null);
+  const [aboutAnchor, setAboutAnchor] = useState(null);
   const [activeServiceIndex, setActiveServiceIndex] = useState(0);
   const [activeHireIndex, setActiveHireIndex] = useState(0);
+
+  const gradientTextHover = {
+    color: 'transparent',
+    backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    WebkitTextFillColor: 'transparent'
+  };
+
+  const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
+
+  const desktopLinkSx = {
+    fontWeight: 600,
+    letterSpacing: 0.4,
+    opacity: 0.92,
+    px: 1.5,
+    py: 1,
+    color: 'inherit',
+    borderRadius: 1.5,
+    transition: 'color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease',
+    '&:hover': {
+      ...gradientTextHover,
+      backgroundColor: alpha(
+        theme.palette.text.primary,
+        mode === 'dark' ? 0.08 : 0.05
+      ),
+      opacity: 1
+    },
+    '&:focus-visible': {
+      outline: '2px solid',
+      outlineColor: alpha(highlightColor, 0.5),
+      outlineOffset: 2
+    }
+  };
+
+  const resetDrawerState = () => {
+    setExpandedMenus(createDefaultExpanded());
+    setExpandedCategories(createDefaultCategoryExpanded());
+    setServiceAnchor(null);
+    setHireAnchor(null);
+    setAboutAnchor(null);
+  };
 
   const toggleDrawer = (state) => () => {
     setOpen(state);
     if (!state) {
-      setExpandedMenus(createDefaultExpanded());
+      resetDrawerState();
     }
+  };
+
+  const handleDrawerClose = () => {
+    setOpen(false);
+    resetDrawerState();
   };
 
   const handleServiceEnter = (event) => {
     if (isMobile) return;
     setHireAnchor(null);
+    setAboutAnchor(null);
     setServiceAnchor(event.currentTarget);
   };
 
   const handleHireEnter = (event) => {
     if (isMobile) return;
     setServiceAnchor(null);
+    setAboutAnchor(null);
     setHireAnchor(event.currentTarget);
+  };
+
+  const handleAboutEnter = (event) => {
+    if (isMobile) return;
+    setServiceAnchor(null);
+    setHireAnchor(null);
+    setAboutAnchor(event.currentTarget);
   };
 
   const handleServiceClose = () => setServiceAnchor(null);
   const handleHireClose = () => setHireAnchor(null);
+  const handleAboutClose = () => setAboutAnchor(null);
 
   const toggleDrawerMenu = (key) => () =>
     setExpandedMenus((prev) => ({ ...prev, [key]: !prev[key] }));
 
+  const toggleCategoryExpansion = (menuKey, categoryLabel) => (event) => {
+    event?.stopPropagation();
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [menuKey]: {
+        ...(prev[menuKey] ?? {}),
+        [categoryLabel]: !prev[menuKey]?.[categoryLabel]
+      }
+    }));
+  };
+
+  const getLinkProps = (href) => {
+    if (!href) return {};
+    return href.startsWith('/')
+      ? { component: RouterLink, to: href }
+      : { component: 'a', href, target: '_blank', rel: 'noopener noreferrer' };
+  };
+
   const renderMegaMenu = (anchorEl, handleClose, config, activeIndex, setActiveIndex) => {
+    if (!config) return null;
+
     const openPopover = Boolean(anchorEl);
     const activeCategory = config.categories[activeIndex] ?? config.categories[0];
+
+    const activeCategoryHref =
+      activeCategory?.href ??
+      (activeCategory?.label
+        ? `/services${createAnchorHref(activeCategory.label)}`
+        : undefined);
+
+    const activeCategoryLinkProps = activeCategoryHref
+      ? activeCategoryHref.startsWith('/')
+        ? { component: RouterLink, to: activeCategoryHref }
+        : {
+            component: 'a',
+            href: activeCategoryHref,
+            target: '_blank',
+            rel: 'noopener noreferrer'
+          }
+      : {};
+
+    const surfaceColor = alpha(
+      theme.palette.background.paper,
+      mode === 'dark' ? 0.95 : 0.98
+    );
+    const dividerColor = alpha(
+      theme.palette.divider,
+      mode === 'dark' ? 0.5 : 0.8
+    );
+    const overlayGradient =
+      mode === 'dark'
+        ? `linear-gradient(160deg, ${alpha('#0f172a', 0.82)} 0%, ${alpha(
+            '#0f172a',
+            0.6
+          )} 45%, ${alpha('#0f172a', 0.94)} 100%)`
+        : `linear-gradient(160deg, ${alpha(
+            theme.palette.background.default,
+            0.92
+          )} 0%, ${alpha(
+            theme.palette.background.default,
+            0.85
+          )} 45%, ${alpha(theme.palette.background.paper, 0.96)} 100%)`;
+    const descriptorColor =
+      mode === 'dark'
+        ? 'rgba(255,255,255,0.75)'
+        : alpha(theme.palette.text.secondary, 0.9);
 
     return (
       <Popover
@@ -85,40 +234,72 @@ const NavigationBar = () => {
               px: 0,
               py: 0,
               borderRadius: 0,
-              backgroundColor: alpha('#000'),
-              minWidth: { xs: 0, md: 500 }
+              backgroundColor: surfaceColor,
+              border: `1px solid ${dividerColor}`,
+              minWidth: { xs: 0, md: 500 },
+              overflow: 'hidden'
             }
           }
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+          {/* LEFT COLUMN – CATEGORIES LIST */}
           <Box sx={{ p: { xs: 3, md: 4 }, width: { xs: '100%', md: 340 } }}>
-         
             <Stack spacing={2}>
               {config.categories.map((category, index) => {
                 const active = index === activeIndex;
+                const categoryHref = category.href;
+                const isRouteLink = categoryHref?.startsWith('/') ?? false;
+                const linkProps = categoryHref
+                  ? isRouteLink
+                    ? { component: RouterLink, to: categoryHref }
+                    : {
+                        component: 'a',
+                        href: categoryHref,
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                      }
+                  : {};
                 return (
                   <ButtonBase
                     key={category.label}
+                    {...linkProps}
                     onMouseEnter={() => setActiveIndex(index)}
                     onFocus={() => setActiveIndex(index)}
+                    onClick={handleClose}
                     sx={{
                       width: '100%',
                       textAlign: 'left',
-                     
                       alignItems: 'flex-start',
                       display: 'flex',
                       gap: 1.5,
                       justifyContent: 'space-between',
-                     
-                      color: 'inherit'
+                      color: 'inherit',
+                      borderRadius: 1,
+                      px: 1,
+                      textDecoration: 'none',
+                      transition: 'all 0.25s ease',
+                      '&:hover .mega-category-title, &:focus-visible .mega-category-title':
+                        gradientTextHover,
+                      '& .mega-category-title': {
+                        transition: 'color 0.3s ease, background-image 0.3s ease',
+                        ...(active ? gradientTextHover : {})
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: alpha(highlightColor, 0.45),
+                        outlineOffset: 3
+                      }
                     }}
                   >
                     <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      <Typography
+                        variant="subtitle1"
+                        className="mega-category-title"
+                        sx={{ fontWeight: 600 }}
+                      >
                         {category.label}
                       </Typography>
-                   
                     </Box>
                     <KeyboardArrowRightRoundedIcon sx={{ opacity: active ? 1 : 0.4 }} />
                   </ButtonBase>
@@ -126,11 +307,18 @@ const NavigationBar = () => {
               })}
             </Stack>
           </Box>
+
+          {/* DIVIDER */}
           <Divider
             orientation="vertical"
             flexItem
-            sx={{ borderColor: 'rgba(255, 255, 255, 1)', display: { xs: 'none', md: 'block' } }}
+            sx={{
+              borderColor: dividerColor,
+              display: { xs: 'none', md: 'block' }
+            }}
           />
+
+          {/* RIGHT COLUMN – ACTIVE CATEGORY DETAILS */}
           <Box
             sx={{
               position: 'relative',
@@ -146,69 +334,163 @@ const NavigationBar = () => {
               sx={{
                 position: 'absolute',
                 inset: 0,
-              
+                background: overlayGradient
               }}
             />
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-              
-              }}
-            />
-           <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
-  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-    {activeCategory.label}
-  </Typography>
 
-  <Typography
-    variant="body2"
-    sx={{ color: 'rgba(255,255,255,0.75)', maxWidth: 360 }}
-  >
-    {activeCategory.description}
-  </Typography>
+            <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
+              <Typography
+                variant="h6"
+                className="drawer-category-title"
+                {...activeCategoryLinkProps}
+                sx={{
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  cursor: activeCategoryHref ? 'pointer' : 'default',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  '&:hover': gradientTextHover
+                }}
+                onClick={handleClose}
+              >
+                {activeCategory?.label}
+              </Typography>
 
-  <Stack spacing={1.2}>
-    {activeCategory.subItems.map((item) => (
-      <Stack
-        key={item}
-        direction="row"
-        spacing={1.5}
-        alignItems="center"
-        component="a"
-        href="#"
-        sx={{
-          textDecoration: 'none',
-          transition: 'all 0.25s ease',
-          '&:hover': {
-            transform: 'translateX(4px)',
-          },
-        }}
-      >
-        <Box
-          sx={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            bgcolor: '#67e8f9',
-          }}
-        />
-        <Typography
-          variant="body2"
-          sx={{
-            color: 'rgba(255,255,255,0.88)',
-            '&:hover': { color: '#67e8f9' },
-          }}
-        >
-          {item}
-        </Typography>
-      </Stack>
-    ))}
-  </Stack>
-</Stack>
+              {activeCategory?.description && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: descriptorColor,
+                    maxWidth: 360
+                  }}
+                >
+                  {activeCategory.description}
+                </Typography>
+              )}
 
+              <Stack spacing={1.2}>
+                {activeCategory?.subItems?.map((item) => {
+                  const isObject = typeof item === 'object' && item !== null;
+                  const label = isObject ? item.label : item;
+                  const href =
+                    isObject && item.href
+                      ? item.href
+                      : `/services${createAnchorHref(label)}`;
+                  const isRouteLink = href.startsWith('/');
+                  const linkProps = isRouteLink
+                    ? { component: RouterLink, to: href }
+                    : {
+                        component: 'a',
+                        href,
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                      };
+
+                  return (
+                    <Stack
+                      key={label}
+                      direction="row"
+                      spacing={1.5}
+                      alignItems="center"
+                      onClick={handleClose}
+                      sx={{
+                        textDecoration: 'none',
+                        transition: 'all 0.25s ease',
+                        color: 'inherit',
+                        '&:hover': {
+                          transform: 'translateX(4px)'
+                        },
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: alpha(highlightColor, 0.4),
+                          outlineOffset: 4
+                        },
+                        '&:hover .mega-subtitle, &:focus-visible .mega-subtitle':
+                          gradientTextHover,
+                        '& .mega-subtitle': {
+                          transition: 'color 0.3s ease, background-image 0.3s ease'
+                        }
+                      }}
+                      {...linkProps}
+                    >
+                      <Typography
+                        variant="body2"
+                        className="mega-subtitle"
+                        sx={{
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          fontWeight: 600
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                    </Stack>
+                  );
+                })}
+              </Stack>
+            </Stack>
           </Box>
         </Box>
+      </Popover>
+    );
+  };
+
+  const renderAboutMenu = (anchorEl, handleClose) => {
+    const openPopover = Boolean(anchorEl);
+    const borderColor = alpha(theme.palette.divider, 0.22);
+
+    return (
+      <Popover
+        open={openPopover}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        disableRestoreFocus
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        slotProps={{
+          paper: {
+            onMouseLeave: handleClose,
+            sx: {
+              mt: 1.5,
+              px: 0,
+              py: 0.5,
+              borderRadius: 0,
+              minWidth: 200,
+              border: `1px solid ${borderColor}`
+            }
+          }
+        }}
+      >
+        <MenuList sx={{ py: 0 }}>
+          {aboutMenuItems.map((item) => (
+            <MenuItem
+              key={item.label}
+              component={RouterLink}
+              to={item.to}
+              onClick={handleClose}
+              disableRipple
+              sx={{
+                fontWeight: 600,
+                letterSpacing: 0.4,
+                mx: 1,
+                my: 0.5,
+                px: 2.5,
+                py: 1.1,
+                borderRadius: 0.5,
+                color: theme.palette.text.primary,
+                backgroundColor: 'transparent !important',
+                '&:hover': {
+                  ...gradientTextHover,
+                  backgroundColor: 'transparent !important',
+                  transform: 'translateX(4px)'
+                }
+              }}
+            >
+              {item.label}
+            </MenuItem>
+          ))}
+        </MenuList>
       </Popover>
     );
   };
@@ -219,34 +501,51 @@ const NavigationBar = () => {
       elevation={0}
       color="transparent"
       sx={{
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        backgroundColor: alpha('#050912', 0.72),
+        px: { xs: 2.5, md: 10 },
+        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+        backgroundColor: alpha(
+          theme.palette.background.paper,
+          mode === 'dark' ? 0.85 : 0.9
+        ),
         backdropFilter: 'blur(20px)'
       }}
     >
-      <Container>
-        <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
-
+      <Toolbar
+        disableGutters
+        sx={{
+          alignItems: 'center',
+          gap: 3,
+          minHeight: 80
+        }}
+      >
+        {/* LEFT: LOGO */}
+        <ButtonBase
+          component={RouterLink}
+          to="/"
+          sx={{ borderRadius: 1.5, display: 'inline-flex' }}
+        >
           <Box
             component="img"
             src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
             alt="VedX Solutions logo"
-            sx={{ height: 50, width: 'auto', }}
+            sx={{ height: 50, width: 'auto', display: 'block' }}
           />
+        </ButtonBase>
 
-
-          {!isMobile && (
-            <Stack direction="row" spacing={1} alignItems="center">
-              {navigationLinks.map((item) => {
-                if (item.menu) {
-                  const isServiceMenu = item.menu === 'services';
-                  const isOpen = isServiceMenu ? Boolean(serviceAnchor) : Boolean(hireAnchor);
-
+        {/* RIGHT: DESKTOP NAV */}
+        {!isMobile && (
+          <Stack direction="row" spacing={2.5} alignItems="center" sx={{ ml: 'auto' }}>
+            {navigationLinks.map((item) => {
+              if (item.menu) {
+                if (item.menu === 'about') {
+                  const isOpen = Boolean(aboutAnchor);
                   return (
                     <Box key={item.label}>
                       <Button
                         color="inherit"
-                        sx={{ fontWeight: 500, letterSpacing: 0.5, opacity: 0.9 }}
+                        component={RouterLink}
+                        to={item.path ?? '/about'}
+                        sx={desktopLinkSx}
                         endIcon={
                           <KeyboardArrowDownRoundedIcon
                             sx={{
@@ -255,8 +554,8 @@ const NavigationBar = () => {
                             }}
                           />
                         }
-                        onMouseEnter={isServiceMenu ? handleServiceEnter : handleHireEnter}
-                        onClick={isServiceMenu ? handleServiceEnter : handleHireEnter}
+                        onMouseEnter={handleAboutEnter}
+                        onFocus={handleAboutEnter}
                       >
                         {item.label}
                       </Button>
@@ -264,53 +563,124 @@ const NavigationBar = () => {
                   );
                 }
 
+                const buttonProps = item.path
+                  ? { component: RouterLink, to: item.path }
+                  : {};
+                const menuKey = item.menu;
+                const menuConfig = {
+                  services: { anchor: serviceAnchor, handleEnter: handleServiceEnter },
+                  hireDevelopers: { anchor: hireAnchor, handleEnter: handleHireEnter }
+                }[menuKey];
+
+                if (!menuConfig) return null;
+
+                const isOpen = Boolean(menuConfig.anchor);
+
                 return (
-                  <Button
-                    key={item.label}
-                    href={item.href}
-                    color="inherit"
-                    sx={{ fontWeight: 500, letterSpacing: 0.5, opacity: 0.88 }}
-                  >
-                    {item.label}
-                  </Button>
+                  <Box key={item.label}>
+                    <Button
+                      color="inherit"
+                      sx={desktopLinkSx}
+                      endIcon={
+                        <KeyboardArrowDownRoundedIcon
+                          sx={{
+                            transition: 'transform 0.2s ease',
+                            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                          }}
+                        />
+                      }
+                      onMouseEnter={menuConfig.handleEnter}
+                      onFocus={menuConfig.handleEnter}
+                      onClick={!item.path ? menuConfig.handleEnter : undefined}
+                      {...buttonProps}
+                    >
+                      {item.label}
+                    </Button>
+                  </Box>
                 );
-              })}
-              <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.12)' }} />
+              }
 
-              <Button variant="contained" color="secondary" href="#contact">
-                Hire Now
-              </Button>
-            </Stack>
-          )}
+              return (
+                <Button
+                  key={item.label}
+                  component={RouterLink}
+                  to={item.path}
+                  color="inherit"
+                  sx={desktopLinkSx}
+                >
+                  {item.label}
+                </Button>
+              );
+            })}
 
-          {isMobile && (
-            <IconButton onClick={toggleDrawer(true)} color="inherit">
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ borderColor: theme.palette.divider }}
+            />
+
+            <Button
+              variant="contained"
+              size="large"
+              onClick={openContactDialog}
+              startIcon={<PhoneInTalkRoundedIcon />}
+              sx={{
+                background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                color: '#fff',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                }
+              }}
+            >
+              Hire Now
+            </Button>
+          </Stack>
+        )}
+
+        {/* MOBILE RIGHT ICON */}
+        {isMobile && (
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 'auto' }}>
+            <IconButton
+              onClick={toggleDrawer(true)}
+              color="inherit"
+              aria-label="Open navigation menu"
+            >
               <MenuRoundedIcon />
             </IconButton>
-          )}
-        </Toolbar>
-      </Container>
+          </Stack>
+        )}
+      </Toolbar>
 
+      {/* === MOBILE DRAWER === */}
       <Drawer
         anchor="right"
         open={open}
-        onClose={toggleDrawer(false)}
+        onClose={handleDrawerClose}
         PaperProps={{
           sx: {
-            backgroundColor: '#050912',
-            color: 'common.white'
+            backgroundColor: theme.palette.background.default,
+            color: theme.palette.text.primary
           }
         }}
       >
-        <Box sx={{ width: "auto", display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Box
+          sx={{
+            width: { xs: '100vw', sm: 360 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}
+        >
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            sx={{ width: '100%', }}
+            sx={{ width: '100%' }}
           >
-          
-            <Box sx={{ textAlign: 'left', px: 1, py: 1 ,m:2}}>
+            <Box sx={{ textAlign: 'left', px: 2, py: 1 }}>
               <Box
                 component="img"
                 src="https://vedxsolution.com/wp-content/uploads/2024/04/logo-white.png"
@@ -318,17 +688,50 @@ const NavigationBar = () => {
                 sx={{ height: 50, width: 'auto' }}
               />
             </Box>
-           
-             <Box sx={{ textAlign: 'left', px: 1, py: 1 ,m:2}}>
-            <IconButton onClick={toggleDrawer(false)} color="inherit">
-              <CloseRoundedIcon />
-            </IconButton>
-            </Box>
+
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ pr: 1 }}>
+              <IconButton
+                onClick={handleDrawerClose}
+                color="inherit"
+                aria-label="Close navigation menu"
+              >
+                <CloseRoundedIcon />
+              </IconButton>
+            </Stack>
           </Stack>
-          <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+
+          <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.6) }} />
+
           <List sx={{ flexGrow: 1 }}>
             {navigationLinks.map((item) => {
               if (item.menu) {
+                if (item.menu === 'about') {
+                  return (
+                    <Box key={item.label}>
+                      {aboutMenuItems.map((link) => (
+                        <ListItemButton
+                          key={link.label}
+                          component={RouterLink}
+                          to={link.to}
+                          onClick={handleDrawerClose}
+                          sx={{
+                            '&:hover .MuiListItemText-primary': gradientTextHover,
+                            '& .MuiListItemText-primary': {
+                              fontWeight: 600,
+                              letterSpacing: 0.2
+                            }
+                          }}
+                        >
+                          <ListItemText primary={link.label} />
+                        </ListItemButton>
+                      ))}
+                      <Divider
+                        sx={{ borderColor: alpha(theme.palette.divider, 0.4) }}
+                      />
+                    </Box>
+                  );
+                }
+
                 const isExpanded = expandedMenus[item.menu];
                 const config = megaMenuContent[item.menu];
 
@@ -338,45 +741,243 @@ const NavigationBar = () => {
                       <ListItemText primary={item.label} />
                       {isExpanded ? <ExpandLessRoundedIcon /> : <ExpandMoreRoundedIcon />}
                     </ListItemButton>
+
                     <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                       <List disablePadding>
-                        {config.categories.map((category) => (
-                          <ListItemButton key={category.label} sx={{ pl: 4 }}>
-                            <ListItemText
-                              primary={category.label}
-                              secondary={category.subItems.slice(0, 3).join(' • ')}
-                              primaryTypographyProps={{ sx: { fontWeight: 600 } }}
-                              secondaryTypographyProps={{
-                                sx: { color: 'rgba(255,255,255,0.55)', mt: 0.5, fontSize: 12 }
-                              }}
-                            />
-                          </ListItemButton>
-                        ))}
+                        {item.path && (
+                          <Divider
+                            sx={{
+                              borderColor: alpha(theme.palette.divider, 0.4)
+                            }}
+                          />
+                        )}
+
+                        {config.categories.map((category) => {
+                          const categoryHref =
+                            category.href ??
+                            `/services${createAnchorHref(category.label)}`;
+                          const categoryLinkProps = getLinkProps(categoryHref);
+                          const hasCategoryLink = Boolean(categoryHref);
+                          const categoryClickHandler = hasCategoryLink
+                            ? handleDrawerClose
+                            : undefined;
+                          const isCategoryExpanded =
+                            expandedCategories[item.menu]?.[category.label] ?? false;
+
+                          return (
+                            <Box key={category.label} sx={{ px: 2, py: 0.5 }}>
+                              <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={1}
+                                sx={{
+                                  pl: 2,
+                                  pr: 1,
+                                  py: 1.5,
+                                  borderRadius: 1.5,
+                                  transition: 'background-color 0.3s ease'
+                                }}
+                              >
+                                <Box
+                                  {...categoryLinkProps}
+                                  onClick={categoryClickHandler}
+                                  sx={{
+                                    flexGrow: 1,
+                                    textDecoration: 'none',
+                                    color: 'inherit',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 0.5,
+                                    pr: 2,
+                                    cursor: hasCategoryLink ? 'pointer' : 'default',
+                                    '&:hover .drawer-category-title': gradientTextHover,
+                                    '&:focus-visible': {
+                                      outline: '2px solid',
+                                      outlineColor: alpha(highlightColor, 0.5),
+                                      outlineOffset: 4
+                                    }
+                                  }}
+                                >
+                                  <Typography
+                                    variant="subtitle2"
+                                    className="drawer-category-title"
+                                    sx={{ fontWeight: 600 }}
+                                  >
+                                    {category.label}
+                                  </Typography>
+                                  {category.description && (
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        color: alpha(
+                                          theme.palette.text.secondary,
+                                          0.9
+                                        )
+                                      }}
+                                    >
+                                      {category.description}
+                                    </Typography>
+                                  )}
+                                </Box>
+
+                                <IconButton
+                                  size="small"
+                                  onClick={toggleCategoryExpansion(
+                                    item.menu,
+                                    category.label
+                                  )}
+                                  aria-label={`Toggle ${category.label} sub categories`}
+                                  aria-expanded={isCategoryExpanded}
+                                >
+                                  {isCategoryExpanded ? (
+                                    <ExpandLessRoundedIcon fontSize="small" />
+                                  ) : (
+                                    <ExpandMoreRoundedIcon fontSize="small" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+
+                              <Collapse
+                                in={isCategoryExpanded}
+                                timeout="auto"
+                                unmountOnExit
+                              >
+                                <List disablePadding>
+                                  {category.subItems.map((subItem) => {
+                                    const isObject =
+                                      typeof subItem === 'object' && subItem !== null;
+                                    const label = isObject ? subItem.label : subItem;
+                                    const href =
+                                      isObject && subItem.href
+                                        ? subItem.href
+                                        : `/services${createAnchorHref(label)}`;
+                                    const isRouteLink = href.startsWith('/');
+                                    const linkProps = isRouteLink
+                                      ? { component: RouterLink, to: href }
+                                      : {
+                                          component: 'a',
+                                          href,
+                                          target: '_blank',
+                                          rel: 'noopener noreferrer'
+                                        };
+
+                                    return (
+                                      <Typography
+                                        key={label}
+                                        variant="body2"
+                                        onClick={handleDrawerClose}
+                                        {...linkProps}
+                                        sx={{
+                                          fontWeight: 700,
+                                          px: 2,
+                                          py: 1.2,
+                                          width: '100%',
+                                          display: 'block',
+                                          textDecoration: 'none',
+                                          cursor: 'pointer',
+                                          color: '#fff',
+                                          transition:
+                                            'color 0.3s ease, background-image 0.3s ease',
+                                          '&:hover': {
+                                            color: 'transparent',
+                                            backgroundImage:
+                                              'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                                            WebkitBackgroundClip: 'text',
+                                            backgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent'
+                                          }
+                                        }}
+                                      >
+                                        {label}
+                                      </Typography>
+                                    );
+                                  })}
+                                </List>
+                              </Collapse>
+                            </Box>
+                          );
+                        })}
                       </List>
                     </Collapse>
-                    <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />
+
+                    <Divider
+                      sx={{ borderColor: alpha(theme.palette.divider, 0.4) }}
+                    />
                   </Box>
                 );
               }
 
               return (
-                <ListItemButton key={item.label} component="a" href={item.href} onClick={toggleDrawer(false)}>
+                <ListItemButton
+                  key={item.label}
+                  component={RouterLink}
+                  to={item.path}
+                  onClick={handleDrawerClose}
+                  sx={{
+                    '&:hover .MuiListItemText-primary': gradientTextHover,
+                    '& .MuiListItemText-primary': {
+                      fontWeight: 600,
+                      letterSpacing: 0.2
+                    }
+                  }}
+                >
                   <ListItemText primary={item.label} />
                 </ListItemButton>
               );
             })}
           </List>
-          <Box sx={{ p: 2 }}>
-            <Button fullWidth variant="contained" color="secondary" href="#contact">
+
+          <Box
+            sx={{
+              p: 2,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => {
+                openContactDialog();
+                setOpen(false);
+              }}
+              startIcon={<PhoneInTalkRoundedIcon />}
+              sx={{
+                background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
+                color: '#fff',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 2,
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)'
+                }
+              }}
+            >
               Hire Now
             </Button>
           </Box>
         </Box>
       </Drawer>
 
-      {!isMobile && renderMegaMenu(serviceAnchor, handleServiceClose, megaMenuContent.services, activeServiceIndex, setActiveServiceIndex)}
       {!isMobile &&
-        renderMegaMenu(hireAnchor, handleHireClose, megaMenuContent.hireDevelopers, activeHireIndex, setActiveHireIndex)}
+        renderMegaMenu(
+          serviceAnchor,
+          handleServiceClose,
+          megaMenuContent.services,
+          activeServiceIndex,
+          setActiveServiceIndex
+        )}
+      {!isMobile &&
+        renderMegaMenu(
+          hireAnchor,
+          handleHireClose,
+          megaMenuContent.hireDevelopers,
+          activeHireIndex,
+          setActiveHireIndex
+        )}
+      {!isMobile && renderAboutMenu(aboutAnchor, handleAboutClose)}
     </AppBar>
   );
 };

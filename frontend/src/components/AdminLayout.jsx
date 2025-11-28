@@ -1,54 +1,265 @@
+import { useEffect, useMemo, useState } from 'react';
 import {
+  Avatar,
   Box,
   Button,
-  Container,
-  Paper,
-  Stack,
-  TextField,
-  Typography
+  CssBaseline,
+  Divider,
+  Drawer,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+  AppBar,
+  Stack
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
+import ContactsRoundedIcon from '@mui/icons-material/ContactsRounded';
+import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccountsRounded';
+import LockResetRoundedIcon from '@mui/icons-material/LockResetRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
+import DesignServicesOutlinedIcon from '@mui/icons-material/DesignServicesOutlined';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+import { getStoredAdminProfile } from '../data/adminProfile.js';
+
+const drawerWidth = 280;
 
 const AdminLayout = () => {
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background:
-          'radial-gradient(circle at top, rgba(99,102,241,0.35), rgba(2,6,23,0.95) 55%), linear-gradient(160deg, rgba(2,6,23,1), rgba(15,23,42,1))'
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper sx={{ p: { xs: 4, md: 6 } }}>
-          <Stack spacing={3}>
-            <Stack spacing={1}>
-              <Typography variant="overline" sx={{ letterSpacing: 3, color: 'secondary.main' }}>
-                Admin Console
-              </Typography>
-              <Typography variant="h4">Welcome back</Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                Sign in to access campaign performance dashboards, automation controls, and governance settings.
-              </Typography>
-            </Stack>
-            <Stack spacing={2}>
-              <TextField label="Email" type="email" fullWidth variant="outlined" />
-              <TextField label="Password" type="password" fullWidth variant="outlined" />
-            </Stack>
-            <Button variant="contained" size="large">
-              Log in
-            </Button>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Need to go back to the website?{' '}
-              <Button component={RouterLink} to="/" color="secondary" size="small">
-                Return home
-              </Button>
+  const location = useLocation();
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [profile, setProfile] = useState(() => getStoredAdminProfile());
+
+  useEffect(() => {
+    setProfile(getStoredAdminProfile());
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const syncProfile = (event) => {
+      if (event.key === 'adminProfile') {
+        setProfile(getStoredAdminProfile());
+      }
+    };
+
+    window.addEventListener('storage', syncProfile);
+    return () => window.removeEventListener('storage', syncProfile);
+  }, []);
+
+  useEffect(() => {
+    const handleProfileUpdate = (event) => {
+      setProfile(event.detail || getStoredAdminProfile());
+    };
+
+    window.addEventListener('adminProfileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('adminProfileUpdated', handleProfileUpdate);
+  }, []);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen((prev) => !prev);
+  };
+
+  const handleCloseLogoutDialog = () => {
+    if (!loggingOut) {
+      setLogoutDialogOpen(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+    setLogoutDialogOpen(false);
+
+    const token = localStorage.getItem('adminToken');
+
+    try {
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+        headers: token
+          ? {
+            Authorization: `Bearer ${token}`,
+          }
+          : undefined,
+      });
+    } catch (error) {
+      console.error('Logout failed', error);
+    } finally {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminSessionExpiry');
+      localStorage.removeItem('adminProfile');
+      sessionStorage.removeItem('adminResetEmail');
+      sessionStorage.removeItem('adminResetOtp');
+
+      navigate('/admin', { replace: true });
+
+      if (!isMdUp) {
+        setMobileOpen(false);
+      }
+
+      setLoggingOut(false);
+    }
+  };
+
+  const menuItems = useMemo(
+    () => [
+      { label: 'Dashboard', icon: <DashboardRoundedIcon />, to: '/admin/dashboard' },
+      { label: 'Contacts', icon: <ContactsRoundedIcon />, to: '/admin/contacts' },
+      { label: 'Careers', icon: <WorkOutlineOutlinedIcon />, to: '/admin/careers' },
+      { label: 'Services', icon: <DesignServicesOutlinedIcon />, to: '/admin/services' },
+      { label: 'Hire Developers', icon: <DesignServicesOutlinedIcon />, to: '/admin/hiredeveloper' },
+      { label: 'Feedbacks', icon: <RateReviewOutlinedIcon />, to: '/admin/feedbacks' },
+      { label: 'MasterData', icon: <CategoryOutlinedIcon />, to: '/admin/navigation' },
+      { label: 'Blogs', icon: <ArticleOutlinedIcon />, to: '/admin/blogs' },
+      { label: 'Profile', icon: <ManageAccountsRoundedIcon />, to: '/admin/profile' },
+      { label: 'Change Password', icon: <LockResetRoundedIcon />, to: '/admin/change-password' }
+    ],
+    []
+  );
+
+  const drawer = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Toolbar sx={{ px: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+
+          <Box>
+
+            <Typography variant="h6" color="text.secondary">
+              @{profile.fullName}
             </Typography>
+
+          </Box>
+        </Stack>
+      </Toolbar>
+      <Divider />
+      <List sx={{ flexGrow: 1 }}>
+        {menuItems.map((item) => {
+          const selected = location.pathname === item.to;
+          return (
+            <ListItem key={item.label} disablePadding>
+              <ListItemButton
+                selected={selected}
+                onClick={() => {
+                  navigate(item.to);
+                  if (!isMdUp) {
+                    setMobileOpen(false);
+                  }
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
+      <Divider />
+      <List>
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => setLogoutDialogOpen(true)}
+            disabled={loggingOut}
+          >
+            <ListItemIcon>
+              <LogoutRoundedIcon color="error" />
+            </ListItemIcon>
+            <ListItemText primary="Logout" primaryTypographyProps={{ color: 'error.main', fontWeight: 600 }} />
+          </ListItemButton>
+        </ListItem>
+      </List>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <CssBaseline />
+      <AppBar
+        position="fixed"
+        color="default"
+        elevation={0}
+        sx={{
+          ml: { md: `${drawerWidth}px` },
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.paper'
+        }}
+      >
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            {!isMdUp && (
+              <IconButton onClick={handleDrawerToggle} edge="start">
+                {mobileOpen ? <CloseRoundedIcon /> : <MenuRoundedIcon />}
+              </IconButton>
+            )}
+
           </Stack>
-        </Paper>
-      </Container>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box textAlign="right">
+              <Typography variant="subtitle2" fontWeight={600}>
+                {profile.email}
+              </Typography>
+
+            </Box>
+            <Avatar sx={{ bgcolor: 'primary.main' }}>{profile.initials}</Avatar>
+          </Stack>
+        </Toolbar>
+      </AppBar>
+      <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }} aria-label="admin menu">
+        <Drawer
+          variant={isMdUp ? 'permanent' : 'temporary'}
+          open={isMdUp ? true : mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box'
+            }
+          }}
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+      <Box component="main" sx={{ flexGrow: 1, p: { xs: 3, md: 4 }, mt: 8, bgcolor: 'background.default' }}>
+        <Outlet />
+      </Box>
+      <Dialog open={logoutDialogOpen} onClose={handleCloseLogoutDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirm logout</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to log out from the admin panel?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseLogoutDialog} disabled={loggingOut}>
+            Cancel
+          </Button>
+          <Button onClick={handleLogout} variant="contained" color="error" disabled={loggingOut}>
+            {loggingOut ? 'Logging out...' : 'Logout'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

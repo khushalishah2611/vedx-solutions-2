@@ -1,10 +1,597 @@
+import crypto from 'node:crypto';
 import express from 'express';
 import cors from 'cors';
+import { PrismaClient } from '@prisma/client';
+import { sendOtpEmail } from './utils/email.js';
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+const prisma = new PrismaClient();
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+
+const OtpPurpose = {
+  PASSWORD_RESET: 'PASSWORD_RESET',
+};
+
 app.use(cors());
+app.use(express.json());
+
+const hashPassword = (value) => crypto.createHash('sha256').update(value).digest('hex');
+const hashOtp = (value) => crypto.createHash('sha256').update(value).digest('hex');
+
+const isValidEmail = (email) =>
+  typeof email === 'string' &&
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
+  email.trim().length <= 255;
+
+const isStrongPassword = (password) =>
+  typeof password === 'string' &&
+  password.length >= 8 &&
+  /[A-Za-z]/.test(password) &&
+  /[0-9]/.test(password);
+
+const generateOtpCode = () => String(Math.floor(100000 + Math.random() * 900000));
+
+const buildAdminResponse = (admin) => ({
+  id: admin.id,
+  email: admin.email,
+  name: admin.name,
+  role: admin.role,
+  status: admin.status,
+});
+
+const isValidRating = (value) => Number.isInteger(value) && value >= 1 && value <= 5;
+
+const formatFeedbackResponse = (feedback) => ({
+  id: feedback.id,
+  name: feedback.client,
+  title: feedback.highlight ?? '',
+  description: feedback.quote ?? '',
+  rating: feedback.rating ?? null,
+  submittedAt: feedback.createdAt?.toISOString().split('T')[0],
+  createdAt: feedback.createdAt,
+  updatedAt: feedback.updatedAt,
+});
+
+const parseBearerToken = (authorizationHeader) => {
+  if (!authorizationHeader) return null;
+  const [scheme, token] = authorizationHeader.split(' ');
+
+  if (scheme?.toLowerCase() !== 'bearer' || !token) return null;
+
+  return token;
+};
+
+const invalidateExistingOtps = (email) =>
+  prisma.otpVerification.updateMany({
+    where: { email, purpose: OtpPurpose.PASSWORD_RESET, consumedAt: null },
+    data: { consumedAt: new Date() },
+  });
+
+const findActiveSession = async (token) => {
+  if (!token) return null;
+
+  const session = await prisma.adminSession.findUnique({
+    where: { token },
+    include: { admin: true },
+  });
+
+  if (!session) return null;
+
+  if (session.expiresAt <= new Date()) {
+    await prisma.adminSession.delete({ where: { token } });
+    return null;
+  }
+
+  if (session.admin.status !== 'ACTIVE') return null;
+
+  return session;
+};
+
+const getAuthenticatedAdmin = async (req) => {
+  const token = parseBearerToken(req.headers.authorization);
+
+  if (!token) {
+    return { status: 401, message: 'Session token missing.' };
+  }
+
+  const session = await findActiveSession(token);
+
+  if (!session) {
+    return { status: 401, message: 'Invalid or expired session.' };
+  }
+
+  return { admin: session.admin, session, status: 200 };
+};
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body ?? {};
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'A valid email address is required.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Account not found for the provided email.' });
+    }
+
+    if (admin.status !== 'ACTIVE') {
+      return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+    }
+
+    await invalidateExistingOtps(normalizedEmail);
+
+    const otp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+
+    await prisma.otpVerification.create({
+      data: {
+        email: normalizedEmail,
+        codeHash: hashOtp(otp),
+        purpose: OtpPurpose.PASSWORD_RESET,
+        expiresAt,
+      },
+    });
+
+    const emailSent = await sendOtpEmail(normalizedEmail, otp);
+
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Unable to send the OTP email right now.' });
+    }
+
+    return res.json({ message: 'OTP sent to the registered email address.' });
+  } catch (error) {
+    console.error('Forgot password request failed', error);
+    return res.status(500).json({ message: 'Unable to start password reset right now.' });
+  }
+});
+
+app.post('/api/auth/resend-otp', async (req, res) => {
+  try {
+    const { email } = req.body ?? {};
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'A valid email address is required.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Account not found for the provided email.' });
+    }
+
+    await invalidateExistingOtps(normalizedEmail);
+
+    const otp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+
+    await prisma.otpVerification.create({
+      data: {
+        email: normalizedEmail,
+        codeHash: hashOtp(otp),
+        purpose: OtpPurpose.PASSWORD_RESET,
+        expiresAt,
+      },
+    });
+
+    const emailSent = await sendOtpEmail(normalizedEmail, otp);
+
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Unable to send the OTP email right now.' });
+    }
+
+    return res.json({ message: 'A new OTP has been sent to the registered email address.' });
+  } catch (error) {
+    console.error('Resend OTP failed', error);
+    return res.status(500).json({ message: 'Unable to resend OTP right now.' });
+  }
+});
+
+app.post('/api/auth/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body ?? {};
+
+    if (!isValidEmail(email) || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const otpHash = hashOtp(String(otp));
+    const now = new Date();
+
+    const record = await prisma.otpVerification.findFirst({
+      where: {
+        email: normalizedEmail,
+        purpose: OtpPurpose.PASSWORD_RESET,
+        codeHash: otpHash,
+        consumedAt: null,
+        expiresAt: { gt: now },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!record) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    await prisma.otpVerification.update({
+      where: { id: record.id },
+      data: { verifiedAt: now },
+    });
+
+    return res.json({ message: 'OTP verified successfully.' });
+  } catch (error) {
+    console.error('OTP verification failed', error);
+    return res.status(500).json({ message: 'Unable to verify OTP right now.' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body ?? {};
+
+    if (!isValidEmail(email) || !otp || !newPassword) {
+      return res.status(400).json({ message: 'Email, OTP, and new password are required.' });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters and include letters and numbers.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Account not found for the provided email.' });
+    }
+
+    const otpHash = hashOtp(String(otp));
+    const now = new Date();
+
+    const otpRecord = await prisma.otpVerification.findFirst({
+      where: {
+        email: normalizedEmail,
+        purpose: OtpPurpose.PASSWORD_RESET,
+        codeHash: otpHash,
+        consumedAt: null,
+        expiresAt: { gt: now },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    if (!otpRecord.verifiedAt) {
+      return res.status(400).json({ message: 'OTP must be verified before resetting the password.' });
+    }
+
+    await prisma.$transaction([
+      prisma.adminUser.update({
+        where: { email: normalizedEmail },
+        data: { passwordHash: hashPassword(newPassword) },
+      }),
+      prisma.adminSession.deleteMany({ where: { adminId: admin.id } }),
+      prisma.otpVerification.update({ where: { id: otpRecord.id }, data: { consumedAt: now } }),
+    ]);
+
+    return res.json({ message: 'Password reset successfully.' });
+  } catch (error) {
+    console.error('Password reset failed', error);
+    return res.status(500).json({ message: 'Unable to reset password right now.' });
+  }
+});
+
+app.post('/api/admin/login', async (req, res) => {
+  try {
+    const { email, password } = req.body ?? {};
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' });
+    }
+
+    const admin = await prisma.adminUser.findUnique({ where: { email } });
+
+    if (!admin || admin.status !== 'ACTIVE') {
+      return res.status(401).json({ message: 'Invalid credentials or inactive account.' });
+    }
+
+    if (hashPassword(password) !== admin.passwordHash) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
+
+    const token = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+
+    const session = await prisma.adminSession.create({
+      data: {
+        token,
+        adminId: admin.id,
+        expiresAt,
+      },
+    });
+
+    return res.json({
+      token: session.token,
+      expiresAt: session.expiresAt,
+      admin: buildAdminResponse(admin),
+    });
+  } catch (error) {
+    console.error('Login failed', error);
+    return res.status(500).json({ message: 'Unable to process login right now.' });
+  }
+});
+
+app.post('/api/admin/change-password', async (req, res) => {
+  try {
+    const { admin, session, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const { currentPassword, newPassword } = req.body ?? {};
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new passwords are required.' });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return res
+        .status(400)
+        .json({ message: 'Password must be at least 8 characters and include letters and numbers.' });
+    }
+
+    if (hashPassword(currentPassword) !== admin.passwordHash) {
+      return res.status(400).json({ message: 'Current password is incorrect.' });
+    }
+
+    if (hashPassword(newPassword) === admin.passwordHash) {
+      return res.status(400).json({ message: 'Choose a password that differs from your current one.' });
+    }
+
+    await prisma.adminUser.update({
+      where: { id: admin.id },
+      data: { passwordHash: hashPassword(newPassword) },
+    });
+
+    await prisma.adminSession.deleteMany({
+      where: {
+        adminId: admin.id,
+        NOT: { token: session.token },
+      },
+    });
+
+    return res.json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Change password failed', error);
+    return res.status(500).json({ message: 'Unable to change password right now.' });
+  }
+});
+
+app.put('/api/admin/profile', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const { firstName, lastName, email } = req.body ?? {};
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'A valid email address is required.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+
+    if (!fullName) {
+      return res.status(400).json({ message: 'First name or last name is required.' });
+    }
+
+    const existingWithEmail = await prisma.adminUser.findFirst({
+      where: { email: normalizedEmail, NOT: { id: admin.id } },
+    });
+
+    if (existingWithEmail) {
+      return res.status(409).json({ message: 'Email is already in use by another account.' });
+    }
+
+    const updatedAdmin = await prisma.adminUser.update({
+      where: { id: admin.id },
+      data: { email: normalizedEmail, name: fullName },
+    });
+
+    return res.json({ admin: buildAdminResponse(updatedAdmin), message: 'Profile updated successfully.' });
+  } catch (error) {
+    console.error('Profile update failed', error);
+    return res.status(500).json({ message: 'Unable to update profile right now.' });
+  }
+});
+
+app.get('/api/admin/session', async (req, res) => {
+  try {
+    const { admin, session, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    return res.json({
+      valid: true,
+      expiresAt: session.expiresAt,
+      admin: buildAdminResponse(session.admin),
+    });
+  } catch (error) {
+    console.error('Session check failed', error);
+    return res.status(500).json({ message: 'Unable to validate session right now.' });
+  }
+});
+
+app.post('/api/admin/logout', async (req, res) => {
+  try {
+    const token = parseBearerToken(req.headers.authorization);
+
+    if (!token) {
+      return res.status(200).json({ message: 'Logged out.' });
+    }
+
+    await prisma.adminSession.deleteMany({ where: { token } });
+
+    return res.json({ message: 'Logged out.' });
+  } catch (error) {
+    console.error('Logout failed', error);
+    return res.status(500).json({ message: 'Unable to logout right now.' });
+  }
+});
+
+app.get('/api/admin/feedbacks', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const feedbacks = await prisma.clientFeedback.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ feedbacks: feedbacks.map(formatFeedbackResponse) });
+  } catch (error) {
+    console.error('Feedback list failed', error);
+    return res.status(500).json({ message: 'Unable to load feedbacks right now.' });
+  }
+});
+
+app.post('/api/admin/feedbacks', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const { name, title, description, rating, submittedAt } = req.body ?? {};
+
+    const normalizedName = name?.trim();
+    const normalizedTitle = title?.trim();
+    const normalizedDescription = description?.trim();
+    const parsedRating = Number(rating);
+    const submittedDate = submittedAt ? new Date(submittedAt) : null;
+    const hasValidDate = submittedDate && !Number.isNaN(submittedDate.getTime());
+
+    if (!normalizedName || !normalizedTitle || !normalizedDescription) {
+      return res.status(400).json({ message: 'Name, title, and description are required.' });
+    }
+
+    if (!isValidRating(parsedRating)) {
+      return res.status(400).json({ message: 'Rating must be a whole number between 1 and 5.' });
+    }
+
+    const feedback = await prisma.clientFeedback.create({
+      data: {
+        client: normalizedName,
+        highlight: normalizedTitle,
+        quote: normalizedDescription,
+        rating: parsedRating,
+        createdAt: hasValidDate ? submittedDate : undefined,
+      },
+    });
+
+    return res.status(201).json({ feedback: formatFeedbackResponse(feedback), message: 'Feedback created.' });
+  } catch (error) {
+    console.error('Feedback creation failed', error);
+    return res.status(500).json({ message: 'Unable to create feedback right now.' });
+  }
+});
+
+app.put('/api/admin/feedbacks/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const feedbackId = Number(req.params.id);
+
+    if (!Number.isInteger(feedbackId)) {
+      return res.status(400).json({ message: 'A valid feedback id is required.' });
+    }
+
+    const { name, title, description, rating, submittedAt } = req.body ?? {};
+
+    const normalizedName = name?.trim();
+    const normalizedTitle = title?.trim();
+    const normalizedDescription = description?.trim();
+    const parsedRating = Number(rating);
+    const submittedDate = submittedAt ? new Date(submittedAt) : null;
+    const hasValidDate = submittedDate && !Number.isNaN(submittedDate.getTime());
+
+    if (!normalizedName || !normalizedTitle || !normalizedDescription) {
+      return res.status(400).json({ message: 'Name, title, and description are required.' });
+    }
+
+    if (!isValidRating(parsedRating)) {
+      return res.status(400).json({ message: 'Rating must be a whole number between 1 and 5.' });
+    }
+
+    const existing = await prisma.clientFeedback.findUnique({ where: { id: feedbackId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Feedback not found.' });
+    }
+
+    const updated = await prisma.clientFeedback.update({
+      where: { id: feedbackId },
+      data: {
+        client: normalizedName,
+        highlight: normalizedTitle,
+        quote: normalizedDescription,
+        rating: parsedRating,
+        createdAt: hasValidDate ? submittedDate : existing.createdAt,
+      },
+    });
+
+    return res.json({ feedback: formatFeedbackResponse(updated), message: 'Feedback updated.' });
+  } catch (error) {
+    console.error('Feedback update failed', error);
+    return res.status(500).json({ message: 'Unable to update feedback right now.' });
+  }
+});
+
+app.delete('/api/admin/feedbacks/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const feedbackId = Number(req.params.id);
+
+    if (!Number.isInteger(feedbackId)) {
+      return res.status(400).json({ message: 'A valid feedback id is required.' });
+    }
+
+    await prisma.clientFeedback.delete({ where: { id: feedbackId } });
+
+    return res.json({ message: 'Feedback deleted.' });
+  } catch (error) {
+    console.error('Feedback delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete feedback right now.' });
+  }
+});
 
 const hero = {
   title: 'Unlock Your Business Potential',

@@ -1,40 +1,46 @@
-import { Box, Container, Divider, Stack } from '@mui/material';
-import HeroSection from './hero/HeroSection.jsx';
-import AdvantageGrid from './hero/AdvantageGrid.jsx';
-import DifferentiatorPanels from './sections/DifferentiatorPanels.jsx';
-import ReasonsGrid from './sections/ReasonsGrid.jsx';
-import ProductShowcase from './sections/ProductShowcase.jsx';
-import MetricsBar from './sections/MetricsBar.jsx';
-import FAQAccordion from './sections/FAQAccordion.jsx';
-import TestimonialHighlight from './sections/TestimonialHighlight.jsx';
-import ServicesShowcase from './sections/ServicesShowcase.jsx';
-import FooterSection from './sections/FooterSection.jsx';
-import LoadingOverlay from './shared/LoadingOverlay.jsx';
+import { Box } from '@mui/material';
+import { Outlet } from 'react-router-dom';
+import { useCallback, useMemo, useState } from 'react';
+import FooterSection from './shared/FooterSection.jsx';
 import NavigationBar from './shared/NavigationBar.jsx';
+import ContactDialog from './shared/ContactDialog.jsx';
+import ContactDialogContext from '../contexts/ContactDialogContext.jsx';
+import ScrollToTopButton from './shared/ScrollToTopButton.jsx';
 
 const SiteLayout = () => {
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+
+  const openDialog = useCallback(() => setIsContactDialogOpen(true), []);
+  const closeDialog = useCallback(() => setIsContactDialogOpen(false), []);
+
+  const contextValue = useMemo(
+    () => ({
+      openDialog,
+      closeDialog,
+    }),
+    [openDialog, closeDialog]
+  );
+
   return (
-    <Box sx={{ bgcolor: 'background.default' }}>
-      <NavigationBar />
-      <LoadingOverlay />
-      <HeroSection />
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
-        <Stack spacing={{ xs: 4, md: 6 }}>
-          <CreativeAgencySection ></CreativeAgencySection>
-          <ServicesShowcase />
-          <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
-          <AdvantageGrid />
-          <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
-          <DifferentiatorPanels />
-          <MetricsBar />
-          <ReasonsGrid />
-          <ProductShowcase />
-          <TestimonialHighlight />
-          <FAQAccordion />
-        </Stack>
-      </Container>
-      <FooterSection />
-    </Box>
+    <ContactDialogContext.Provider value={contextValue}>
+      <Box
+        sx={{
+          bgcolor: 'background.default',
+          color: 'text.primary',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <NavigationBar />
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          <Outlet />
+        </Box>
+        <ScrollToTopButton />
+        <FooterSection />
+        <ContactDialog open={isContactDialogOpen} onClose={closeDialog} />
+      </Box>
+    </ContactDialogContext.Provider>
   );
 };
 
