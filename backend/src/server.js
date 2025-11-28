@@ -5,8 +5,9 @@ import { PrismaClient } from '@prisma/client';
 import { sendOtpEmail } from './utils/email.js';
 import "dotenv/config";
 import connectDB from './lib/db.js';
+
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -18,6 +19,18 @@ const OtpPurpose = {
 
 app.use(cors());
 app.use(express.json());
+
+// Initialize MongoDB connection
+let mongoClient;
+connectDB()
+  .then(client => {
+    mongoClient = client;
+    console.log('MongoDB client ready for use');
+  })
+  .catch(err => {
+    console.error('Failed to initialize MongoDB:', err);
+    process.exit(1);
+  });
 
 const hashPassword = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const hashOtp = (value) => crypto.createHash('sha256').update(value).digest('hex');
@@ -116,7 +129,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+    const admin = await prisma.adminUser.findFirst({ where: { email: normalizedEmail } });
 
     if (!admin) {
       return res.status(404).json({ message: 'Account not found for the provided email.' });
@@ -162,7 +175,7 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+    const admin = await prisma.adminUser.findFirst({ where: { email: normalizedEmail } });
 
     if (!admin) {
       return res.status(404).json({ message: 'Account not found for the provided email.' });
@@ -247,7 +260,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const admin = await prisma.adminUser.findUnique({ where: { email: normalizedEmail } });
+    const admin = await prisma.adminUser.findFirst({ where: { email: normalizedEmail } });
 
     if (!admin) {
       return res.status(404).json({ message: 'Account not found for the provided email.' });
@@ -277,7 +290,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
     await prisma.$transaction([
       prisma.adminUser.update({
-        where: { email: normalizedEmail },
+        where: { id: admin.id },
         data: { passwordHash: hashPassword(newPassword) },
       }),
       prisma.adminSession.deleteMany({ where: { adminId: admin.id } }),
@@ -291,8 +304,6 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 });
 
-
-
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { email, password } = req.body ?? {};
@@ -301,7 +312,6 @@ app.post('/api/admin/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    // For MongoDB, use findFirst instead of findUnique
     const admin = await prisma.adminUser.findFirst({ where: { email } });
 
     if (!admin || admin.status !== 'ACTIVE') {
@@ -333,7 +343,6 @@ app.post('/api/admin/login', async (req, res) => {
     return res.status(500).json({ message: 'Unable to process login right now.' });
   }
 });
-
 
 app.post('/api/admin/change-password', async (req, res) => {
   try {
@@ -459,6 +468,7 @@ app.post('/api/admin/logout', async (req, res) => {
   }
 });
 
+// Feedback Routes
 app.get('/api/admin/feedbacks', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
@@ -598,6 +608,7 @@ app.delete('/api/admin/feedbacks/:id', async (req, res) => {
   }
 });
 
+// Static content routes
 const hero = {
   title: 'Unlock Your Business Potential',
   subtitle: 'Data-driven marketing campaigns that deliver measurable growth.',
@@ -706,7 +717,6 @@ const faqs = [
   }
 ];
 
-//final
 const testimonials = [
   {
     quote: 'VEDX tripled our inbound opportunities within three months and gave us reporting our board loves.',
@@ -720,43 +730,27 @@ const testimonials = [
   }
 ];
 
-app.get('/api/hero', (_req, res) => {
-  res.json(hero);
-});
+app.get('/api/hero', (_req, res) => res.json(hero));
+app.get('/api/advantages', (_req, res) => res.json(advantages));
+app.get('/api/differentiators', (_req, res) => res.json(differentiators));
+app.get('/api/reasons', (_req, res) => res.json(reasons));
+app.get('/api/products', (_req, res) => res.json(products));
+app.get('/api/metrics', (_req, res) => res.json(metrics));
+app.get('/api/faqs', (_req, res) => res.json(faqs));
+app.get('/api/testimonials', (_req, res) => res.json(testimonials));
+app.get('/', (_req, res) => res.json({ status: 'ok', message: 'VEDX Solutions marketing API' }));
 
-app.get('/api/advantages', (_req, res) => {
-  res.json(advantages);
-});
-
-app.get('/api/differentiators', (_req, res) => {
-  res.json(differentiators);
-});
-
-app.get('/api/reasons', (_req, res) => {
-  res.json(reasons);
-});
-
-app.get('/api/products', (_req, res) => {
-  res.json(products);
-});
-
-app.get('/api/metrics', (_req, res) => {
-  res.json(metrics);
-});
-
-app.get('/api/faqs', (_req, res) => {
-  res.json(faqs);
-});
-
-app.get('/api/testimonials', (_req, res) => {
-  res.json(testimonials);
-});
-
-app.get('/', (_req, res) => {
-  res.json({ status: 'ok', message: 'VEDX Solutions marketing API' });
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await prisma.$disconnect();
+  if (mongoClient) {
+    await mongoClient.close();
+  }
+  process.exit(0);
 });
 
 app.listen(port, () => {
-  console.log(`API server listening on port ${port}`);
-   connectDB();
+  console.log(`✅ API server listening on port ${port}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
