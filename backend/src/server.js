@@ -301,7 +301,8 @@ app.post('/api/admin/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    const admin = await prisma.adminUser.findUnique({ where: { email } });
+    // For MongoDB, use findFirst instead of findUnique
+    const admin = await prisma.adminUser.findFirst({ where: { email } });
 
     if (!admin || admin.status !== 'ACTIVE') {
       return res.status(401).json({ message: 'Invalid credentials or inactive account.' });
@@ -332,6 +333,7 @@ app.post('/api/admin/login', async (req, res) => {
     return res.status(500).json({ message: 'Unable to process login right now.' });
   }
 });
+
 
 app.post('/api/admin/change-password', async (req, res) => {
   try {
