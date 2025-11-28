@@ -1,7 +1,3 @@
-// Prisma schema for VedX Solutions admin platform
-// Configured for MySQL deployments with relational models
-// that map to the admin panel feature set.
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -40,7 +36,7 @@ enum EmploymentType {
 }
 
 model AdminUser {
-  id           Int           @id @default(autoincrement())
+  id           String        @id @map("_id") @default(auto()) @db.ObjectId
   email        String        @unique
   passwordHash String
   name         String
@@ -52,29 +48,29 @@ model AdminUser {
 }
 
 model AdminSession {
-  id        Int       @id @default(autoincrement())
-  token     String    @unique
-  adminId   Int
-  admin     AdminUser @relation(fields: [adminId], references: [id])
+  id        String     @id @map("_id") @default(auto()) @db.ObjectId
+  token     String     @unique
+  adminId   String     @db.ObjectId
+  admin     AdminUser  @relation(fields: [adminId], references: [id])
   expiresAt DateTime
-  createdAt DateTime  @default(now())
+  createdAt DateTime   @default(now())
 }
 
 model NavigationItem {
-  id        Int              @id @default(autoincrement())
+  id        String              @id @map("_id") @default(auto()) @db.ObjectId
   label     String
   path      String
-  slug      String           @unique
-  visible   Boolean          @default(true)
-  order     Int              @default(0)
-  parentId  Int?
-  parent    NavigationItem?  @relation("NavigationHierarchy", fields: [parentId], references: [id])
-  children  NavigationItem[] @relation("NavigationHierarchy")
+  slug      String              @unique
+  visible   Boolean             @default(true)
+  order     Int                 @default(0)
+  parentId  String?             @db.ObjectId
+  parent    NavigationItem?     @relation("NavigationHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  NavigationItem[]    @relation("NavigationHierarchy")
   seo       PageSeo?
 }
 
 model PageSeo {
-  id              Int              @id @default(autoincrement())
+  id              String           @id @map("_id") @default(auto()) @db.ObjectId
   pageKey         String           @unique
   metaTitle       String
   metaDescription String?
@@ -83,15 +79,15 @@ model PageSeo {
   canonicalUrl    String?
   noIndex         Boolean          @default(false)
 
-  navigationId    Int?             @unique   // 🔧 makes this a proper 1-to-1 relation
-  navigation      NavigationItem?  @relation(fields: [navigationId], references: [id])
+  navigationId    String?          @unique @db.ObjectId
+  navigation      NavigationItem?  @relation(fields: [navigationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 }
 
 model ServiceCategory {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @map("_id") @default(auto()) @db.ObjectId
   name        String
   slug        String    @unique
   description String?
@@ -99,24 +95,24 @@ model ServiceCategory {
 }
 
 model Service {
-  id          Int              @id @default(autoincrement())
+  id          String           @id @map("_id") @default(auto()) @db.ObjectId
   title       String
   slug        String           @unique
   summary     String?
   imageUrl    String?
   tags        Json?
-  categoryId  Int?
+  categoryId  String?          @db.ObjectId
   category    ServiceCategory? @relation(fields: [categoryId], references: [id])
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 }
 
 model BlogPost {
-  id           Int           @id @default(autoincrement())
+  id           String        @id @map("_id") @default(auto()) @db.ObjectId
   title        String
   slug         String        @unique
   summary      String?
-  content      String        @db.Text
+  content      String
   coverImage   String?
   author       String?
   status       PublishStatus @default(DRAFT)
@@ -127,13 +123,13 @@ model BlogPost {
 }
 
 model CareerOpening {
-  id               Int            @id @default(autoincrement())
+  id               String         @id @map("_id") @default(auto()) @db.ObjectId
   title            String
   slug             String         @unique
   location         String
   department       String
   employmentType   EmploymentType @default(FULL_TIME)
-  description      String?        @db.Text
+  description      String?
   requirements     Json?
   isRemoteFriendly Boolean        @default(true)
   isOpen           Boolean        @default(true)
@@ -142,46 +138,46 @@ model CareerOpening {
 }
 
 model ContactMessage {
-  id        Int       @id @default(autoincrement())
+  id        String   @id @map("_id") @default(auto()) @db.ObjectId
   name      String
   email     String
   subject   String?
-  message   String     @db.Text
-  status    String     @default("new")
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  message   String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ClientFeedback {
-  id        Int       @id @default(autoincrement())
+  id        String   @id @map("_id") @default(auto()) @db.ObjectId
   client    String
   role      String?
-  quote     String     @db.Text
+  quote     String
   highlight String?
   rating    Int?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model HireCategory {
-  id          Int            @id @default(autoincrement())
+  id          String     @id @map("_id") @default(auto()) @db.ObjectId
   name        String
-  slug        String         @unique
+  slug        String     @unique
   description String?
   roles       HireRole[]
 }
 
 model HireRole {
-  id             Int          @id @default(autoincrement())
+  id             String       @id @map("_id") @default(auto()) @db.ObjectId
   title          String
   slug           String       @unique
   description    String?
   hireCategory   HireCategory @relation(fields: [hireCategoryId], references: [id])
-  hireCategoryId Int
+  hireCategoryId String       @db.ObjectId
 }
 
 model OtpVerification {
-  id          Int        @id @default(autoincrement())
+  id          String     @id @map("_id") @default(auto()) @db.ObjectId
   email       String
   codeHash    String
   purpose     OtpPurpose
