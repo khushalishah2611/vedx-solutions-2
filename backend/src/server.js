@@ -706,6 +706,7 @@ const faqs = [
   }
 ];
 
+//final
 const testimonials = [
   {
     quote: 'VEDX tripled our inbound opportunities within three months and gave us reporting our board loves.',
