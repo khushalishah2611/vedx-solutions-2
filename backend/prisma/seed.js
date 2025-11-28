@@ -121,19 +121,25 @@ async function seedServices() {
   }
 }
 
-// Admin
 async function seedAdmin() {
+  const email = 'khushalishah2611@gmail.com';
+  const password = 'Admin@123';
+
   await prisma.adminUser.upsert({
-    where: { email: 'khushalishah2611@gmail.com' },
+    where: { email },
     update: {},
     create: {
-      email: 'khushalishah2611@gmail.com',
+      email,
       name: 'VEDX Super Admin',
-      passwordHash: hashPassword('Admin@123'),
+      passwordHash: hashPassword(password),
       role: 'SUPER_ADMIN',
+      status: 'ACTIVE',
     },
   });
+
+  console.log('Admin seeded successfully');
 }
+
 
 async function main() {
   await seedAdmin();
