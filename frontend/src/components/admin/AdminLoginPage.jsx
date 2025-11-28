@@ -103,10 +103,13 @@ const AdminLoginPage = () => {
         }),
       });
 
-      const payload = await response.json();
+      const contentType = response.headers.get('content-type');
+      const payload = contentType?.includes('application/json') ? await response.json() : null;
+      const fallbackMessage = !payload ? await response.text() : '';
 
       if (!response.ok) {
-        setServerError(payload?.message || 'Unable to log in. Please try again.');
+        const message = payload?.message || fallbackMessage || `Unable to log in (status ${response.status}).`;
+        setServerError(message);
         return;
       }
 
