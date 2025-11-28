@@ -120,6 +120,7 @@ const getAuthenticatedAdmin = async (req) => {
   return { admin: session.admin, session, status: 200 };
 };
 
+// Auth Routes
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const { email } = req.body ?? {};
