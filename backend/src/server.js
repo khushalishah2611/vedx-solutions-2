@@ -3,9 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { sendOtpEmail } from './utils/email.js';
-
+import "dotenv/config";
+import connectDB from './lib/db.js';
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT;
 
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -289,6 +290,8 @@ app.post('/api/auth/reset-password', async (req, res) => {
     return res.status(500).json({ message: 'Unable to reset password right now.' });
   }
 });
+
+
 
 app.post('/api/admin/login', async (req, res) => {
   try {
@@ -752,4 +755,5 @@ app.get('/', (_req, res) => {
 
 app.listen(port, () => {
   console.log(`API server listening on port ${port}`);
+   connectDB();
 });
