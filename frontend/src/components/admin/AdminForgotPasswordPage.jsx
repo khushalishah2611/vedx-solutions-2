@@ -9,7 +9,7 @@ import {
   Typography
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { API_BASE } from "../../utils/const";
+import { apiUrl } from "../../utils/const";
 
 const AdminForgotPasswordPage = () => {
   const navigate = useNavigate();
@@ -40,11 +40,11 @@ const AdminForgotPasswordPage = () => {
     event.preventDefault();
     if (!validate()) return;
 
-    setServerError('');
+    setServerMessage('');
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+      const response = await fetch(apiUrl('/api/auth/forgot-password'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
@@ -59,8 +59,8 @@ const AdminForgotPasswordPage = () => {
 
       if (!response.ok) {
         const message =
-          payload?.message || fallbackMessage || 'Unable to send verification code.'
-        setServerError(message);
+          payload?.message || fallbackMessage || 'Unable to send verification code.';
+        setServerMessage(message);
         return;
       }
 

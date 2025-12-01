@@ -28,6 +28,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import { apiUrl } from '../../utils/const.js';
 
 const emptyFeedbackForm = {
   id: '',
@@ -141,7 +142,7 @@ const AdminFeedbacksPage = () => {
         throw new Error('Your session expired. Please log in again.');
       }
 
-      const response = await fetch('/api/admin/feedbacks', {
+      const response = await fetch(apiUrl('/api/admin/feedbacks'), {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -197,8 +198,8 @@ const AdminFeedbacksPage = () => {
     try {
       const response = await fetch(
         feedbackDialogMode === 'edit'
-          ? `/api/admin/feedbacks/${feedbackForm.id}`
-          : '/api/admin/feedbacks',
+          ? apiUrl(`/api/admin/feedbacks/${feedbackForm.id}`)
+          : apiUrl('/api/admin/feedbacks'),
         {
           method: feedbackDialogMode === 'edit' ? 'PUT' : 'POST',
           headers: {
@@ -254,7 +255,7 @@ const AdminFeedbacksPage = () => {
         throw new Error('Your session expired. Please log in again.');
       }
 
-      const response = await fetch(`/api/admin/feedbacks/${feedbackToDelete.id}`, {
+      const response = await fetch(apiUrl(`/api/admin/feedbacks/${feedbackToDelete.id}`), {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

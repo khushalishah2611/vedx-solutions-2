@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Container, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { apiUrl } from '../../utils/const.js';
 
 const AdminResetPasswordPage = () => {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ const AdminResetPasswordPage = () => {
     setErrors((current) => ({ ...current, server: '' }));
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await fetch(apiUrl('/api/auth/reset-password'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
