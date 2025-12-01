@@ -33,7 +33,6 @@ connectDB()
   });
 
 const hashPassword = (value) => crypto.createHash('sha256').update(value).digest('hex');
-const hashOtp = (value) => crypto.createHash('sha256').update(value).digest('hex');
 
 const normalizeEmail = (email) => email?.trim().toLowerCase() ?? '';
 
@@ -72,22 +71,22 @@ const normalizeOtpInput = (otp) => {
   return normalized.length === 6 ? normalized : null;
 };
 
-const getNormalizedOtpHash = (otpInput) => {
+const getNormalizedOtp = (otpInput) => {
   const normalizedOtp = normalizeOtpInput(otpInput);
 
-  if (!normalizedOtp) return { normalizedOtp: null, otpHash: null };
+  if (!normalizedOtp) return { normalizedOtp: null };
 
-  return { normalizedOtp, otpHash: hashOtp(normalizedOtp) };
+  return { normalizedOtp };
 };
 
-const findValidOtpRecord = async (email, otpHash) => {
-  if (!email || !otpHash) return null;
+const findValidOtpRecord = async (email, normalizedOtp) => {
+  if (!email || !normalizedOtp) return null;
 
   return prisma.otpVerification.findFirst({
     where: {
       email,
       purpose: OtpPurpose.PASSWORD_RESET,
-      codeHash: otpHash,
+      codeHash: normalizedOtp,
       consumedAt: null,
       expiresAt: { gt: new Date() },
     },
@@ -180,10 +179,10 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     await invalidateExistingOtps(normalizedEmail);
 
     const otp = generateOtpCode();
-    const { normalizedOtp, otpHash } = getNormalizedOtpHash(otp);
+    const { normalizedOtp } = getNormalizedOtp(otp);
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
 
-    if (!normalizedOtp || !otpHash) {
+    if (!normalizedOtp) {
       console.error('Generated OTP was invalid');
       return res.status(500).json({ message: 'Unable to start password reset right now.' });
     }
@@ -191,7 +190,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     await prisma.otpVerification.create({
       data: {
         email: normalizedEmail,
-        codeHash: otpHash,
+        codeHash: normalizedOtp,
         purpose: OtpPurpose.PASSWORD_RESET,
         expiresAt,
       },
@@ -228,10 +227,10 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     await invalidateExistingOtps(normalizedEmail);
 
     const otp = generateOtpCode();
-    const { normalizedOtp, otpHash } = getNormalizedOtpHash(otp);
+    const { normalizedOtp } = getNormalizedOtp(otp);
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
 
-    if (!normalizedOtp || !otpHash) {
+    if (!normalizedOtp) {
       console.error('Generated OTP was invalid');
       return res.status(500).json({ message: 'Unable to resend OTP right now.' });
     }
@@ -239,7 +238,7 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     await prisma.otpVerification.create({
       data: {
         email: normalizedEmail,
-        codeHash: otpHash,
+        codeHash: normalizedOtp,
         purpose: OtpPurpose.PASSWORD_RESET,
         expiresAt,
       },
@@ -261,7 +260,7 @@ app.post('/api/auth/resend-otp', async (req, res) => {
 app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
-    const { normalizedOtp, otpHash } = getNormalizedOtpHash(otp);
+    const { normalizedOtp } = getNormalizedOtp(otp);
 
     if (!isValidEmail(email) || !normalizedOtp) {
       return res.status(400).json({ message: 'Email and a valid 6 digit OTP are required.' });
@@ -269,7 +268,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 
     const normalizedEmail = normalizeEmail(email);
 
-    const record = await findValidOtpRecord(normalizedEmail, otpHash);
+    const record = await findValidOtpRecord(normalizedEmail, normalizedOtp);
 
     if (!record) {
       return res.status(400).json({ message: 'Invalid or expired OTP.' });
@@ -290,7 +289,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body ?? {};
-    const { normalizedOtp, otpHash } = getNormalizedOtpHash(otp);
+    const { normalizedOtp } = getNormalizedOtp(otp);
 
     if (!isValidEmail(email) || !normalizedOtp || !newPassword) {
       return res.status(400).json({ message: 'Email, a valid 6 digit OTP, and new password are required.' });
@@ -307,7 +306,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
       return res.status(404).json({ message: 'Account not found for the provided email.' });
     }
 
-    const otpRecord = await findValidOtpRecord(normalizedEmail, otpHash);
+    const otpRecord = await findValidOtpRecord(normalizedEmail, normalizedOtp);
 
     if (!otpRecord) {
       return res.status(400).json({ message: 'Invalid or expired OTP.' });
