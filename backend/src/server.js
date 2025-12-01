@@ -283,7 +283,6 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
 
-    // Normalize input
     const normalizedEmail = String(email || "").trim().toLowerCase();
     const normalizedOtp = String(otp || "").trim().replace(/\D/g, "");
 
@@ -293,11 +292,11 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       });
     }
 
-    // 🔍 Check OTP in database
+    // Check DB
     const record = await prisma.otpVerification.findFirst({
       where: {
         email: normalizedEmail,
-        code: normalizedOtp,       // MUST MATCH "code" field in DB
+        code: normalizedOtp,
         purpose: "PASSWORD_RESET",
         expiresAt: { gt: new Date() },
         verifiedAt: null
@@ -312,15 +311,13 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       });
     }
 
-    // Update OTP as verified
+    // Mark OTP as verified
     await prisma.otpVerification.update({
       where: { id: record.id },
-      data: {
-        verifiedAt: new Date()
-      }
+      data: { verifiedAt: new Date() }
     });
 
-    return res.json({
+    return res.status(200).json({
       message: "OTP verified successfully."
     });
 
@@ -331,7 +328,6 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     });
   }
 });
-
 
 
 app.post('/api/auth/reset-password', async (req, res) => {
