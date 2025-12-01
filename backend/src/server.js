@@ -58,6 +58,18 @@ const buildAdminResponse = (admin) => ({
 
 const isValidRating = (value) => Number.isInteger(value) && value >= 1 && value <= 5;
 
+const normalizeOtpInput = (otp) => {
+  const digitsOnly = String(otp ?? '').replace(/\D/g, '');
+
+  if (!digitsOnly || digitsOnly.length > 6) {
+    return null;
+  }
+
+  const normalized = digitsOnly.padStart(6, '0');
+
+  return normalized.length === 6 ? normalized : null;
+};
+
 const formatFeedbackResponse = (feedback) => ({
   id: feedback.id,
   name: feedback.client,
@@ -212,13 +224,14 @@ app.post('/api/auth/resend-otp', async (req, res) => {
 app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
+    const normalizedOtp = normalizeOtpInput(otp);
 
-    if (!isValidEmail(email) || !otp) {
-      return res.status(400).json({ message: 'Email and OTP are required.' });
+    if (!isValidEmail(email) || !normalizedOtp) {
+      return res.status(400).json({ message: 'Email and a valid 6 digit OTP are required.' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const otpHash = hashOtp(String(otp));
+    const otpHash = hashOtp(normalizedOtp);
     const now = new Date();
 
     const record = await prisma.otpVerification.findFirst({
@@ -251,9 +264,10 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body ?? {};
+    const normalizedOtp = normalizeOtpInput(otp);
 
-    if (!isValidEmail(email) || !otp || !newPassword) {
-      return res.status(400).json({ message: 'Email, OTP, and new password are required.' });
+    if (!isValidEmail(email) || !normalizedOtp || !newPassword) {
+      return res.status(400).json({ message: 'Email, a valid 6 digit OTP, and new password are required.' });
     }
 
     if (!isStrongPassword(newPassword)) {
@@ -267,7 +281,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
       return res.status(404).json({ message: 'Account not found for the provided email.' });
     }
 
-    const otpHash = hashOtp(String(otp));
+    const otpHash = hashOtp(normalizedOtp);
     const now = new Date();
 
     const otpRecord = await prisma.otpVerification.findFirst({
