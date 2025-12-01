@@ -24,9 +24,6 @@ enum PublishStatus {
   PUBLISHED
 }
 
-enum OtpPurpose {
-  PASSWORD_RESET
-}
 
 enum EmploymentType {
   FULL_TIME
@@ -179,13 +176,11 @@ model HireRole {
 model OtpVerification {
   id          String     @id @map("_id") @default(auto()) @db.ObjectId
   email       String
-  code    String
-  purpose     OtpPurpose
+  code        String
   expiresAt   DateTime
   verifiedAt  DateTime?
-  consumedAt  DateTime?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  @@index([email, purpose])
+  @@index([email])
 }
