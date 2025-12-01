@@ -36,12 +36,12 @@ const AdminForgotPasswordPage = () => {
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
 
+    event.preventDefault();
     if (!validate()) return;
 
+    setServerError('');
     setIsSubmitting(true);
-    setServerMessage('');
 
     try {
       const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
@@ -55,13 +55,16 @@ const AdminForgotPasswordPage = () => {
         ? await response.json()
         : null;
 
+      const fallbackMessage = !payload ? await response.text() : '';
+
       if (!response.ok) {
-        const fallbackMessage = !payload ? await response.text() : '';
-        setServerMessage(
+        const message =
           payload?.message || fallbackMessage || 'Unable to send verification code.'
-        );
+        setServerError(message);
         return;
       }
+
+      // Store session
 
       sessionStorage.setItem('adminResetEmail', email.trim());
       sessionStorage.removeItem('adminResetOtp');
