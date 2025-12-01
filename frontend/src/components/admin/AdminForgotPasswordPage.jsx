@@ -1,10 +1,19 @@
 import { useState } from 'react';
-import { Box, Button, Container, Paper, Stack, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Container,
+  Paper,
+  Stack,
+  TextField,
+  Typography
+} from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { API_BASE } from "../../utils/const"; 
+import { API_BASE } from "../../utils/const";
 
 const AdminForgotPasswordPage = () => {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [serverMessage, setServerMessage] = useState('');
@@ -45,12 +54,11 @@ const AdminForgotPasswordPage = () => {
       try {
         payload = await response.json();
       } catch {
-        // response body empty
         payload = {};
       }
 
       if (!response.ok) {
-        setServerMessage(payload?.message || 'Unable to send verification code.');
+        setServerMessage(payload.message || 'Unable to send verification code.');
         return;
       }
 
@@ -58,9 +66,10 @@ const AdminForgotPasswordPage = () => {
       sessionStorage.removeItem('adminResetOtp');
 
       setServerMessage('Verification code sent to your email.');
+
       navigate('/admin/verify-otp');
-    } catch (submitError) {
-      console.error('Failed to start reset', submitError);
+    } catch (error) {
+      console.error('Failed to start reset', error);
       setServerMessage('Unable to send verification code right now.');
     } finally {
       setIsSubmitting(false);
@@ -90,7 +99,7 @@ const AdminForgotPasswordPage = () => {
               </Typography>
               <Typography variant="h4">Send reset link</Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                Enter the email address linked with your administrator account. We will send a verification code to reset your password.
+                Enter the email linked with your administrator account. We will send a verification code to reset your password.
               </Typography>
             </Stack>
 
@@ -100,14 +109,14 @@ const AdminForgotPasswordPage = () => {
               fullWidth
               required
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               error={Boolean(error)}
               helperText={error}
               autoComplete="username"
             />
 
             {serverMessage && (
-              <Typography variant="body2" color="primary">
+              <Typography variant="body2" color="error">
                 {serverMessage}
               </Typography>
             )}
