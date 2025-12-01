@@ -73,7 +73,6 @@ const AdminVerifyOtpPage = () => {
       console.log("JSON PARSE ERROR =", e);
     }
 
-    console.log("PAYLOAD =", payload);
 
     if (!response.ok) {
       setError(payload?.message || 'OTP verification failed.');
