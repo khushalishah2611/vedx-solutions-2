@@ -12,6 +12,9 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { setStoredAdminProfile } from '../../data/adminProfile.js';
 
+// 🔥 SET YOUR WORKING BACKEND URL HERE
+const API_BASE = "https://vedx-solutions-2-9ij5.vercel.app";
+
 const AdminLoginPage = () => {
   const navigate = useNavigate();
 
@@ -20,19 +23,19 @@ const AdminLoginPage = () => {
   const [serverError, setServerError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ---------------------
+  // CHECK ACTIVE SESSION
+  // ---------------------
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-
     if (!token) return;
 
     let cancelled = false;
 
     const verifySession = async () => {
       try {
-        const response = await fetch('/api/admin/session', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(`${API_BASE}/api/admin/session`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
         });
 
         if (!response.ok) {
@@ -56,23 +59,19 @@ const AdminLoginPage = () => {
     };
 
     verifySession();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => (cancelled = true);
   }, [navigate]);
 
+  // ---------------------
+  // FORM VALIDATION
+  // ---------------------
   const validate = () => {
     const nextErrors = { email: '', password: '' };
 
     if (!formValues.email.trim()) {
       nextErrors.email = 'Enter your email address to continue.';
-    } else {
-      const looksLikeEmail = /.+@.+\..+/.test(formValues.email);
-
-      if (!looksLikeEmail) {
-        nextErrors.email = 'Use a valid email address.';
-      }
+    } else if (!/.+@.+\..+/.test(formValues.email)) {
+      nextErrors.email = 'Use a valid email address.';
     }
 
     if (!formValues.password) {
@@ -82,19 +81,21 @@ const AdminLoginPage = () => {
     }
 
     setErrors(nextErrors);
-    return Object.values(nextErrors).every((message) => !message);
+    return Object.values(nextErrors).every((msg) => !msg);
   };
 
+  // ---------------------
+  // LOGIN SUBMIT HANDLER
+  // ---------------------
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     if (!validate()) return;
 
     setServerError('');
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch(`${API_BASE}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -104,20 +105,29 @@ const AdminLoginPage = () => {
       });
 
       const contentType = response.headers.get('content-type');
-      const payload = contentType?.includes('application/json') ? await response.json() : null;
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : null;
+
       const fallbackMessage = !payload ? await response.text() : '';
 
       if (!response.ok) {
-        const message = payload?.message || fallbackMessage || `Unable to log in (status ${response.status}).`;
+        const message =
+          payload?.message ||
+          fallbackMessage ||
+          `Unable to log in (status ${response.status}).`;
         setServerError(message);
         return;
       }
 
+      // Store session
       localStorage.setItem('adminToken', payload.token);
       localStorage.setItem('adminSessionExpiry', payload.expiresAt);
+
       if (payload.admin) {
         setStoredAdminProfile(payload.admin);
       }
+
       navigate('/admin/dashboard');
     } catch (error) {
       console.error('Login failed', error);
@@ -127,6 +137,9 @@ const AdminLoginPage = () => {
     }
   };
 
+  // ---------------------
+  // UI
+  // ---------------------
   return (
     <Box
       component="form"
@@ -153,6 +166,7 @@ const AdminLoginPage = () => {
                 Sign in with your registered email address to manage the Vedx Solutions platform.
               </Typography>
             </Stack>
+
             <Stack spacing={2}>
               <TextField
                 label="Email address"
@@ -160,11 +174,14 @@ const AdminLoginPage = () => {
                 fullWidth
                 required
                 value={formValues.email}
-                onChange={(event) => setFormValues((current) => ({ ...current, email: event.target.value }))}
+                onChange={(event) =>
+                  setFormValues((current) => ({ ...current, email: event.target.value }))
+                }
                 error={Boolean(errors.email)}
                 helperText={errors.email}
                 autoComplete="username"
               />
+
               <TextField
                 label="Password"
                 type="password"
@@ -179,7 +196,12 @@ const AdminLoginPage = () => {
                 autoComplete="current-password"
               />
             </Stack>
-            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              alignItems={{ xs: 'flex-start', sm: 'center' }}
+              justifyContent="space-between"
+            >
               <Typography variant="body2" color="text.secondary">
                 Need help logging in?
               </Typography>
@@ -187,14 +209,17 @@ const AdminLoginPage = () => {
                 Forgot password
               </Link>
             </Stack>
-            {serverError ? (
+
+            {serverError && (
               <Typography variant="body2" color="error">
                 {serverError}
               </Typography>
-            ) : null}
+            )}
+
             <Button variant="contained" size="large" fullWidth type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Logging in...' : 'Log in'}
             </Button>
+
             <Button component={RouterLink} to="/" color="secondary">
               Back to website
             </Button>
