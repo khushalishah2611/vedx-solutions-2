@@ -152,7 +152,7 @@ const findActiveSession = async (token) => {
   if (!session) return null;
 
   if (session.expiresAt <= new Date()) {
-    await prisma.adminSession.delete({ where: { token } }).catch(() => {});
+    await prisma.adminSession.delete({ where: { token } }).catch(() => { });
     return null;
   }
 
@@ -282,38 +282,52 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
 
+    // Normalize inputs
+    const normalizedEmail = String(email || "").trim().toLowerCase();
     const normalizedOtp = String(otp || "").trim().replace(/\D/g, "");
 
-    if (!isValidEmail(email) || normalizedOtp.length !== 6) {
-      return res.status(400).json({ message: 'Email and a valid 6 digit OTP are required.' });
+    // Validate
+    if (!normalizedEmail || normalizedOtp.length !== 6) {
+      return res.status(400).json({
+        message: 'Email and a valid 6 digit OTP are required.'
+      });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-
+    // Find OTP record
     const record = await prisma.otpVerification.findFirst({
       where: {
         email: normalizedEmail,
-        codeHash: normalizedOtp,
+        code: normalizedOtp,
         purpose: "PASSWORD_RESET",
         expiresAt: { gt: new Date() },
         verifiedAt: null
       }
     });
 
+    console.log("record =", record);
+
+
     if (!record) {
-      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+      return res.status(400).json({
+        message: 'Invalid or expired OTP.'
+      });
     }
 
+    // Mark OTP as verified
     await prisma.otpVerification.update({
-      where: { _id: record._id },   // <-- IMPORTANT FIX FOR MONGO
-      data: { verifiedAt: new Date() },
+      where: { _id: record._id },     // MongoDB requires _id
+      data: { verifiedAt: new Date() }
     });
 
-    return res.json({ message: 'OTP verified successfully.' });
+    return res.json({
+      message: 'OTP verified successfully.'
+    });
 
   } catch (error) {
-    console.error('OTP verification failed', error);
-    return res.status(500).json({ message: 'Unable to verify OTP right now.' });
+    console.error('OTP verification failed:', error);
+    return res.status(500).json({
+      message: 'Unable to verify OTP right now.'
+    });
   }
 });
 
