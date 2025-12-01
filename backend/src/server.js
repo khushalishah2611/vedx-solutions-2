@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { sendOtpEmail } from './utils/email.js';
-import "dotenv/config";
+import 'dotenv/config';
 import connectDB from './lib/db.js';
 
 const app = express();
@@ -20,21 +20,41 @@ const OtpPurpose = {
 app.use(cors());
 app.use(express.json());
 
+/**
+ * Request / Response logger middleware
+ * Logs method, path, params, query, body and final response status.
+ */
+app.use((req, res, next) => {
+  const start = Date.now();
+  console.log(`--> ${req.method} ${req.originalUrl}`);
+  console.log('    params:', req.params);
+  console.log('    query: ', req.query);
+  console.log('    body:  ', req.body);
+
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    console.log(`<-- ${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`);
+  });
+
+  next();
+});
+
 // Initialize MongoDB connection
 let mongoClient;
 connectDB()
-  .then(client => {
+  .then((client) => {
     mongoClient = client;
     console.log('MongoDB client ready for use');
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('Failed to initialize MongoDB:', err);
     process.exit(1);
   });
 
-const hashPassword = (value) => crypto.createHash('sha256').update(value).digest('hex');
+const hashPassword = (value) =>
+  crypto.createHash('sha256').update(String(value ?? '')).digest('hex');
 
-const normalizeEmail = (email) => email?.trim().toLowerCase() ?? '';
+const normalizeEmail = (email) => (email ? String(email).trim().toLowerCase() : '');
 
 const isValidEmail = (email) =>
   typeof email === 'string' &&
@@ -86,7 +106,7 @@ const findValidOtpRecord = async (email, normalizedOtp) => {
     where: {
       email,
       purpose: OtpPurpose.PASSWORD_RESET,
-      codeHash: normalizedOtp,
+      codeHash: normalizedOtp, // you're storing raw OTP (not hashed) as codeHash per your code
       consumedAt: null,
       expiresAt: { gt: new Date() },
     },
@@ -107,10 +127,11 @@ const formatFeedbackResponse = (feedback) => ({
 
 const parseBearerToken = (authorizationHeader) => {
   if (!authorizationHeader) return null;
-  const [scheme, token] = authorizationHeader.split(' ');
-
+  const parts = String(authorizationHeader).split(' ').filter(Boolean);
+  if (parts.length < 2) return null;
+  const scheme = parts[0];
+  const token = parts.slice(1).join(' ');
   if (scheme?.toLowerCase() !== 'bearer' || !token) return null;
-
   return token;
 };
 
@@ -131,7 +152,7 @@ const findActiveSession = async (token) => {
   if (!session) return null;
 
   if (session.expiresAt <= new Date()) {
-    await prisma.adminSession.delete({ where: { token } });
+    await prisma.adminSession.delete({ where: { token } }).catch(() => {});
     return null;
   }
 
@@ -156,7 +177,8 @@ const getAuthenticatedAdmin = async (req) => {
   return { admin: session.admin, session, status: 200 };
 };
 
-// Auth Routes
+// ---------- Auth Routes ----------
+
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const { email } = req.body ?? {};
@@ -256,35 +278,45 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     return res.status(500).json({ message: 'Unable to resend OTP right now.' });
   }
 });
-
 app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
-    const { normalizedOtp } = getNormalizedOtp(otp);
 
-    if (!isValidEmail(email) || !normalizedOtp) {
+    const normalizedOtp = String(otp || "").trim().replace(/\D/g, "");
+
+    if (!isValidEmail(email) || normalizedOtp.length !== 6) {
       return res.status(400).json({ message: 'Email and a valid 6 digit OTP are required.' });
     }
 
-    const normalizedEmail = normalizeEmail(email);
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const record = await findValidOtpRecord(normalizedEmail, normalizedOtp);
+    const record = await prisma.otpVerification.findFirst({
+      where: {
+        email: normalizedEmail,
+        codeHash: normalizedOtp,
+        purpose: "PASSWORD_RESET",
+        expiresAt: { gt: new Date() },
+        verifiedAt: null
+      }
+    });
 
     if (!record) {
       return res.status(400).json({ message: 'Invalid or expired OTP.' });
     }
 
     await prisma.otpVerification.update({
-      where: { id: record.id },
+      where: { _id: record._id },   // <-- IMPORTANT FIX FOR MONGO
       data: { verifiedAt: new Date() },
     });
 
     return res.json({ message: 'OTP verified successfully.' });
+
   } catch (error) {
     console.error('OTP verification failed', error);
     return res.status(500).json({ message: 'Unable to verify OTP right now.' });
   }
 });
+
 
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
@@ -334,6 +366,8 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 });
 
+// ---------- Admin Auth ----------
+
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { email, password } = req.body ?? {};
@@ -342,7 +376,8 @@ app.post('/api/admin/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    const admin = await prisma.adminUser.findFirst({ where: { email } });
+    const normalizedEmail = normalizeEmail(email);
+    const admin = await prisma.adminUser.findFirst({ where: { email: normalizedEmail } });
 
     if (!admin || admin.status !== 'ACTIVE') {
       return res.status(401).json({ message: 'Invalid credentials or inactive account.' });
@@ -389,9 +424,7 @@ app.post('/api/admin/change-password', async (req, res) => {
     }
 
     if (!isStrongPassword(newPassword)) {
-      return res
-        .status(400)
-        .json({ message: 'Password must be at least 8 characters and include letters and numbers.' });
+      return res.status(400).json({ message: 'Password must be at least 8 characters and include letters and numbers.' });
     }
 
     if (hashPassword(currentPassword) !== admin.passwordHash) {
@@ -407,6 +440,7 @@ app.post('/api/admin/change-password', async (req, res) => {
       data: { passwordHash: hashPassword(newPassword) },
     });
 
+    // invalidate other sessions (keep current)
     await prisma.adminSession.deleteMany({
       where: {
         adminId: admin.id,
@@ -435,7 +469,7 @@ app.put('/api/admin/profile', async (req, res) => {
       return res.status(400).json({ message: 'A valid email address is required.' });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(email);
     const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
 
     if (!fullName) {
@@ -486,6 +520,7 @@ app.post('/api/admin/logout', async (req, res) => {
     const token = parseBearerToken(req.headers.authorization);
 
     if (!token) {
+      console.log('Logout requested without token');
       return res.status(200).json({ message: 'Logged out.' });
     }
 
@@ -498,7 +533,8 @@ app.post('/api/admin/logout', async (req, res) => {
   }
 });
 
-// Feedback Routes
+// ---------- Feedback Routes ----------
+
 app.get('/api/admin/feedbacks', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
@@ -638,7 +674,7 @@ app.delete('/api/admin/feedbacks/:id', async (req, res) => {
   }
 });
 
-// Static content routes
+// ---------- Static content routes ----------
 const hero = {
   title: 'Unlock Your Business Potential',
   subtitle: 'Data-driven marketing campaigns that deliver measurable growth.',
@@ -647,117 +683,109 @@ const hero = {
   stats: [
     { label: 'Campaigns Launched', value: '1200+' },
     { label: 'Satisfied Clients', value: '500+' },
-    { label: 'Average ROI', value: '340%' }
-  ]
+    { label: 'Average ROI', value: '340%' },
+  ],
 };
 
 const advantages = [
   {
     title: 'Real-time analytics',
-    description: 'Measure every click, conversion, and customer touchpoint with live dashboards.'
+    description: 'Measure every click, conversion, and customer touchpoint with live dashboards.',
   },
   {
     title: 'Omni-channel strategies',
-    description: 'Execute cohesive campaigns across search, social, email, and programmatic display.'
+    description: 'Execute cohesive campaigns across search, social, email, and programmatic display.',
   },
   {
     title: 'Human + AI expertise',
-    description: 'Blend award-winning strategists with machine learning models tuned for marketing.'
+    description: 'Blend award-winning strategists with machine learning models tuned for marketing.',
   },
   {
     title: 'Full funnel optimization',
-    description: 'Drive awareness, engagement, and sales with tailored conversion journeys.'
-  }
+    description: 'Drive awareness, engagement, and sales with tailored conversion journeys.',
+  },
 ];
 
 const differentiators = [
   {
     title: 'Industry leading onboarding',
-    points: [
-      'Kickoff workshop in under 48 hours',
-      'Persona and messaging strategy in 1 week',
-      'Launch-ready campaigns by day 14'
-    ]
+    points: ['Kickoff workshop in under 48 hours', 'Persona and messaging strategy in 1 week', 'Launch-ready campaigns by day 14'],
   },
   {
     title: 'Performance insights',
-    points: [
-      'Weekly growth playbooks',
-      'Audience micro-segmentation',
-      'Predictive lead scoring models'
-    ]
-  }
+    points: ['Weekly growth playbooks', 'Audience micro-segmentation', 'Predictive lead scoring models'],
+  },
 ];
 
 const reasons = [
   {
     title: 'Customizable technology stack',
-    description: 'Integrate seamlessly with your CRM, CDP, and sales automation tools.'
+    description: 'Integrate seamlessly with your CRM, CDP, and sales automation tools.',
   },
   {
     title: 'Transparent collaboration',
-    description: 'Slack, dashboards, and quarterly business reviews keep everyone in sync.'
+    description: 'Slack, dashboards, and quarterly business reviews keep everyone in sync.',
   },
   {
     title: 'Proven processes',
-    description: 'Framework refined across SaaS, eCommerce, and enterprise clients.'
+    description: 'Framework refined across SaaS, eCommerce, and enterprise clients.',
   },
   {
     title: 'Global delivery',
-    description: 'Regional experts cover 30+ countries and 15 languages.'
-  }
+    description: 'Regional experts cover 30+ countries and 15 languages.',
+  },
 ];
 
 const products = [
   {
     name: 'DemandGen Accelerator',
     description: 'Launch multi-channel campaigns with creative, automation, and analytics included.',
-    badge: 'Top Seller'
+    badge: 'Top Seller',
   },
   {
     name: 'Lifecycle Nurture Suite',
     description: 'Automated nurture flows tailored for trials, conversions, and retention.',
-    badge: 'New'
+    badge: 'New',
   },
   {
     name: 'Commerce Growth Engine',
-    description: 'Dynamic product ads, retargeting, and merchandising optimization for retailers.'
-  }
+    description: 'Dynamic product ads, retargeting, and merchandising optimization for retailers.',
+  },
 ];
 
 const metrics = [
   { value: '12M+', label: 'Leads Generated' },
   { value: '250%', label: 'Average Pipeline Growth' },
   { value: '6.5x', label: 'Return on Ad Spend' },
-  { value: '95%', label: 'Client Retention Rate' }
+  { value: '95%', label: 'Client Retention Rate' },
 ];
 
 const faqs = [
   {
     question: 'What industries do you specialize in?',
-    answer: 'We work with SaaS, FinTech, eCommerce, healthcare, and B2B service organizations.'
+    answer: 'We work with SaaS, FinTech, eCommerce, healthcare, and B2B service organizations.',
   },
   {
     question: 'How quickly can we launch?',
-    answer: 'Most clients launch their first optimized campaigns within the first two weeks.'
+    answer: 'Most clients launch their first optimized campaigns within the first two weeks.',
   },
   {
     question: 'Do you offer performance guarantees?',
-    answer: 'We set clear KPIs during onboarding and continuously iterate to exceed them.'
-  }
+    answer: 'We set clear KPIs during onboarding and continuously iterate to exceed them.',
+  },
 ];
 
 const testimonials = [
   {
     quote: 'VEDX tripled our inbound opportunities within three months and gave us reporting our board loves.',
     author: 'Priya Shah',
-    role: 'VP of Marketing, Aethon Labs'
+    role: 'VP of Marketing, Aethon Labs',
   },
   {
     quote: 'The blend of strategy, creative, and data science is unmatched. They feel like an extension of our team.',
     author: 'Chris Douglas',
-    role: 'Head of Growth, Stratus AI'
-  }
+    role: 'Head of Growth, Stratus AI',
+  },
 ];
 
 app.get('/api/hero', (_req, res) => res.json(hero));
@@ -775,7 +803,11 @@ process.on('SIGINT', async () => {
   console.log('Shutting down gracefully...');
   await prisma.$disconnect();
   if (mongoClient) {
-    await mongoClient.close();
+    try {
+      await mongoClient.close();
+    } catch (err) {
+      console.error('Error closing mongo client', err);
+    }
   }
   process.exit(0);
 });
