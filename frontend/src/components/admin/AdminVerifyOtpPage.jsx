@@ -49,38 +49,48 @@ const AdminVerifyOtpPage = () => {
   };
 
   const handleVerify = async () => {
-    const code = validateOtp();
+  const code = validateOtp();
 
-    if (!code) return;
+  if (!code) return;
 
-    setIsSubmitting(true);
-    setMessage('');
+  setIsSubmitting(true);
+  setMessage('');
 
+  try {
+    const response = await fetch(apiUrl('/api/auth/verify-otp'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: storedEmail, otp: code }),
+    });
+
+    const raw = await response.text();
+    console.log("RAW RESPONSE =", raw);
+
+    let payload = null;
     try {
-      const response = await fetch(apiUrl('/api/auth/verify-otp'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: storedEmail, otp: code }),
-      });
-
-      const payload = await response.json();
-
-      if (!response.ok) {
-        setError(payload?.message || 'OTP verification failed.');
-        return;
-      }
-
-      sessionStorage.setItem('adminResetEmail', storedEmail);
-      sessionStorage.setItem('adminResetOtp', code);
-      setMessage('Code verified. Continue to create a new password.');
-      navigate('/admin/reset-password');
-    } catch (verifyError) {
-      console.error('OTP verification failed', verifyError);
-      setError('Unable to verify the code right now.');
-    } finally {
-      setIsSubmitting(false);
+      payload = JSON.parse(raw);
+    } catch (e) {
+      console.log("JSON PARSE ERROR =", e);
     }
-  };
+
+    console.log("PAYLOAD =", payload);
+
+    if (!response.ok) {
+      setError(payload?.message || 'OTP verification failed.');
+      return;
+    }
+
+    sessionStorage.setItem('adminResetEmail', storedEmail);
+    sessionStorage.setItem('adminResetOtp', code);
+    setMessage('Code verified. Continue to create a new password.');
+    navigate('/admin/reset-password');
+  } catch (verifyError) {
+    console.error('OTP verification failed', verifyError);
+    setError('Unable to verify the code right now.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleResend = async () => {
     if (!storedEmail) return;

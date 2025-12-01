@@ -278,6 +278,7 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     return res.status(500).json({ message: 'Unable to resend OTP right now.' });
   }
 });
+
 app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
@@ -286,47 +287,46 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     const normalizedEmail = String(email || "").trim().toLowerCase();
     const normalizedOtp = String(otp || "").trim().replace(/\D/g, "");
 
-    // Validate
+    // Validate input
     if (!normalizedEmail || normalizedOtp.length !== 6) {
       return res.status(400).json({
-        message: 'Email and a valid 6 digit OTP are required.'
+        message: "Email and a valid 6 digit OTP are required."
       });
     }
 
-    // Find OTP record
+    // Check OTP record
     const record = await prisma.otpVerification.findFirst({
       where: {
         email: normalizedEmail,
-        codeHash: normalizedOtp,
+        code: normalizedOtp,
         purpose: "PASSWORD_RESET",
-        expiresAt: { gt: new Date() },
-        verifiedAt: null
+        expiresAt: { gt: new Date() },   // Not expired
+        verifiedAt: null                 // Not already used
       }
     });
 
     console.log("record =", record);
 
-
     if (!record) {
       return res.status(400).json({
-        message: 'Invalid or expired OTP.'
+        message: "Invalid or expired OTP."
       });
     }
 
     // Mark OTP as verified
     await prisma.otpVerification.update({
-      where: { _id: record._id },     // MongoDB requires _id
+      where: { id: record.id },   // ✔ use 'id' (mapped to _id)
       data: { verifiedAt: new Date() }
     });
 
     return res.json({
-      message: 'OTP verified successfully.'
+      message: "OTP verified successfully."
     });
 
   } catch (error) {
-    console.error('OTP verification failed:', error);
+    console.error("OTP verification failed:", error);
     return res.status(500).json({
-      message: 'Unable to verify OTP right now.'
+      message: "Unable to verify OTP right now."
     });
   }
 });

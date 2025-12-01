@@ -179,7 +179,7 @@ model HireRole {
 model OtpVerification {
   id          String     @id @map("_id") @default(auto()) @db.ObjectId
   email       String
-  codeHash    String
+  code    String
   purpose     OtpPurpose
   expiresAt   DateTime
   verifiedAt  DateTime?
