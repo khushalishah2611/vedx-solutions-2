@@ -33,7 +33,28 @@ connectDB()
   });
 
 const hashPassword = (value) => crypto.createHash('sha256').update(value).digest('hex');
-const hashOtp = (value) => crypto.createHash('sha256').update(value).digest('hex');
+
+const normalizeOtpInput = (otp) => {
+  const digitsOnly = String(otp ?? '').replace(/\D/g, '');
+
+  if (!digitsOnly || digitsOnly.length > 6) {
+    return null;
+  }
+
+  const normalized = digitsOnly.padStart(6, '0');
+
+  return normalized.length === 6 ? normalized : null;
+};
+
+const hashOtp = (value) => {
+  const normalized = normalizeOtpInput(value);
+
+  if (!normalized) return null;
+
+  return crypto.createHash('sha256').update(normalized).digest('hex');
+};
+
+const normalizeEmail = (email) => email?.trim().toLowerCase() ?? '';
 
 const normalizeEmail = (email) => email?.trim().toLowerCase() ?? '';
 
@@ -60,16 +81,29 @@ const buildAdminResponse = (admin) => ({
 
 const isValidRating = (value) => Number.isInteger(value) && value >= 1 && value <= 5;
 
-const normalizeOtpInput = (otp) => {
-  const digitsOnly = String(otp ?? '').replace(/\D/g, '');
+const getNormalizedOtpHash = (otpInput) => {
+  const normalizedOtp = normalizeOtpInput(otpInput);
 
-  if (!digitsOnly || digitsOnly.length > 6) {
-    return null;
-  }
+  if (!normalizedOtp) return { normalizedOtp: null, otpHash: null };
 
-  const normalized = digitsOnly.padStart(6, '0');
+  const otpHash = hashOtp(normalizedOtp);
 
-  return normalized.length === 6 ? normalized : null;
+  return { normalizedOtp, otpHash };
+};
+
+const findValidOtpRecord = async (email, otpHash) => {
+  if (!email || !otpHash) return null;
+
+  return prisma.otpVerification.findFirst({
+    where: {
+      email,
+      purpose: OtpPurpose.PASSWORD_RESET,
+      codeHash: otpHash,
+      consumedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 };
 
 const getNormalizedOtpHash = (otpInput) => {
