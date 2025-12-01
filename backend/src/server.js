@@ -276,53 +276,6 @@ app.post('/api/auth/resend-otp', async (req, res) => {
   }
 });
 
-app.post('/api/auth/verify-otp', async (req, res) => {
-  try {
-    const { email, otp } = req.body ?? {};
-
-    if (!isValidEmail(email)) {
-      return res.status(400).json({ message: 'A valid email address is required.' });
-    }
-
-    const normalizedEmail = normalizeEmail(email);
-    const { normalizedOtp } = getNormalizedOtp(otp);
-
-    if (!normalizedEmail || !normalizedOtp) {
-      return res.status(400).json({
-        message: "Email and a valid 6 digit OTP are required."
-      });
-    }
-
-    // Check DB using the shared helper to ensure consistent filters
-    const record = await findValidOtpRecord(normalizedEmail, normalizedOtp);
-
-    console.log("DB Record Found:", record);
-
-    if (!record) {
-      return res.status(400).json({
-        message: "Invalid or expired OTP."
-      });
-    }
-
-    // Mark OTP as verified
-    await prisma.otpVerification.update({
-      where: { id: record.id },
-      data: { verifiedAt: new Date() }
-    });
-
-    return res.status(200).json({
-      message: "OTP verified successfully."
-    });
-
-  } catch (error) {
-    console.error("OTP verification failed:", error);
-    return res.status(500).json({
-      message: "Unable to verify OTP right now."
-    });
-  }
-});
-
-
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body ?? {};
