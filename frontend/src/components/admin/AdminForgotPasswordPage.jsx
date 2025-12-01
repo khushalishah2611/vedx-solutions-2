@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Button, Container, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { API_BASE } from "../../utils/const"; 
+
 const AdminForgotPasswordPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -16,7 +17,6 @@ const AdminForgotPasswordPage = () => {
     }
 
     const looksLikeEmail = /.+@.+\..+/.test(email.trim());
-
     if (!looksLikeEmail) {
       setError('Provide a valid email address.');
       return false;
@@ -41,7 +41,13 @@ const AdminForgotPasswordPage = () => {
         body: JSON.stringify({ email: email.trim() }),
       });
 
-      const payload = await response.json();
+      let payload = {};
+      try {
+        payload = await response.json();
+      } catch {
+        // response body empty
+        payload = {};
+      }
 
       if (!response.ok) {
         setServerMessage(payload?.message || 'Unable to send verification code.');
@@ -50,6 +56,7 @@ const AdminForgotPasswordPage = () => {
 
       sessionStorage.setItem('adminResetEmail', email.trim());
       sessionStorage.removeItem('adminResetOtp');
+
       setServerMessage('Verification code sent to your email.');
       navigate('/admin/verify-otp');
     } catch (submitError) {
@@ -86,6 +93,7 @@ const AdminForgotPasswordPage = () => {
                 Enter the email address linked with your administrator account. We will send a verification code to reset your password.
               </Typography>
             </Stack>
+
             <TextField
               label="Registered email"
               type="email"
@@ -97,14 +105,17 @@ const AdminForgotPasswordPage = () => {
               helperText={error}
               autoComplete="username"
             />
-            {serverMessage ? (
+
+            {serverMessage && (
               <Typography variant="body2" color="primary">
                 {serverMessage}
               </Typography>
-            ) : null}
+            )}
+
             <Button variant="contained" size="large" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Sending...' : 'Send verification code'}
             </Button>
+
             <Button component={RouterLink} to="/admin" color="secondary">
               Back to login
             </Button>
