@@ -8,7 +8,7 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: API_BASE,
+        target: "https://vedx-solutions-2-9ij5.vercel.app",
         changeOrigin: true
       }
     }
