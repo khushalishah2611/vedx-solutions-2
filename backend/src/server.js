@@ -106,7 +106,7 @@ const findValidOtpRecord = async (email, normalizedOtp) => {
     where: {
       email,
       purpose: OtpPurpose.PASSWORD_RESET,
-      codeHash: normalizedOtp, // you're storing raw OTP (not hashed) as codeHash per your code
+      code: normalizedOtp, // you're storing raw OTP (not hashed) as codeHash per your code
       consumedAt: null,
       expiresAt: { gt: new Date() },
     },
@@ -212,7 +212,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     await prisma.otpVerification.create({
       data: {
         email: normalizedEmail,
-        codeHash: normalizedOtp,
+        code: normalizedOtp,
         purpose: OtpPurpose.PASSWORD_RESET,
         expiresAt,
       },
@@ -260,7 +260,7 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     await prisma.otpVerification.create({
       data: {
         email: normalizedEmail,
-        codeHash: normalizedOtp,
+        code: normalizedOtp,
         purpose: OtpPurpose.PASSWORD_RESET,
         expiresAt,
       },
