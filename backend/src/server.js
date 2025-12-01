@@ -297,7 +297,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     const record = await prisma.otpVerification.findFirst({
       where: {
         email: normalizedEmail,
-        code: normalizedOtp,
+        codeHash: normalizedOtp,
         purpose: "PASSWORD_RESET",
         expiresAt: { gt: new Date() },
         verifiedAt: null
