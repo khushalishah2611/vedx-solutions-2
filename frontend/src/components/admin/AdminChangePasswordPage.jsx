@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
+import { apiUrl } from '../../utils/const.js';
 
 const AdminChangePasswordPage = () => {
   const [formValues, setFormValues] = useState({
@@ -50,7 +51,7 @@ const AdminChangePasswordPage = () => {
     setSuccessMessage('');
 
     try {
-      const response = await fetch('/api/admin/change-password', {
+      const response = await fetch(apiUrl('/api/admin/change-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

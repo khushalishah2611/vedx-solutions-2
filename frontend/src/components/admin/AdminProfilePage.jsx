@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, CardContent, Grid, Stack, TextField, Typography } from '@mui/material';
 import { getStoredAdminProfile, setStoredAdminProfile } from '../../data/adminProfile.js';
+import { apiUrl } from '../../utils/const.js';
 
 const AdminProfilePage = () => {
   const storedProfile = useMemo(() => getStoredAdminProfile(), []);
@@ -63,7 +64,7 @@ const AdminProfilePage = () => {
     setSuccessMessage('');
 
     try {
-      const response = await fetch('/api/admin/profile', {
+      const response = await fetch(apiUrl('/api/admin/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

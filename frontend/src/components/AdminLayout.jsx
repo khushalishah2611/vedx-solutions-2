@@ -38,6 +38,7 @@ import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { getStoredAdminProfile } from '../data/adminProfile.js';
+import { apiUrl } from '../utils/const.js';
 
 const drawerWidth = 280;
 
@@ -94,7 +95,7 @@ const AdminLayout = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      await fetch('/api/admin/logout', {
+      await fetch(apiUrl('/api/admin/logout'), {
         method: 'POST',
         headers: token
           ? {

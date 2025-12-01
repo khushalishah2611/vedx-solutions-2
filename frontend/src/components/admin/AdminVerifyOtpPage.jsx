@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Button, Container, Grid, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { apiUrl } from '../../utils/const.js';
 
 const AdminVerifyOtpPage = () => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const AdminVerifyOtpPage = () => {
     setMessage('');
 
     try {
-      const response = await fetch('/api/auth/verify-otp', {
+      const response = await fetch(apiUrl('/api/auth/verify-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: storedEmail, otp: code }),
@@ -89,7 +90,7 @@ const AdminVerifyOtpPage = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/resend-otp', {
+      const response = await fetch(apiUrl('/api/auth/resend-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: storedEmail }),
