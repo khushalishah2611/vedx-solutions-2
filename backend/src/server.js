@@ -33,7 +33,28 @@ connectDB()
   });
 
 const hashPassword = (value) => crypto.createHash('sha256').update(value).digest('hex');
-const hashOtp = (value) => crypto.createHash('sha256').update(value).digest('hex');
+
+const normalizeOtpInput = (otp) => {
+  const digitsOnly = String(otp ?? '').replace(/\D/g, '');
+
+  if (!digitsOnly || digitsOnly.length > 6) {
+    return null;
+  }
+
+  const normalized = digitsOnly.padStart(6, '0');
+
+  return normalized.length === 6 ? normalized : null;
+};
+
+const hashOtp = (value) => {
+  const normalized = normalizeOtpInput(value);
+
+  if (!normalized) return null;
+
+  return crypto.createHash('sha256').update(normalized).digest('hex');
+};
+
+const normalizeEmail = (email) => email?.trim().toLowerCase() ?? '';
 
 const isValidEmail = (email) =>
   typeof email === 'string' &&
@@ -58,16 +79,29 @@ const buildAdminResponse = (admin) => ({
 
 const isValidRating = (value) => Number.isInteger(value) && value >= 1 && value <= 5;
 
-const normalizeOtpInput = (otp) => {
-  const digitsOnly = String(otp ?? '').replace(/\D/g, '');
+const getNormalizedOtpHash = (otpInput) => {
+  const normalizedOtp = normalizeOtpInput(otpInput);
 
-  if (!digitsOnly || digitsOnly.length > 6) {
-    return null;
-  }
+  if (!normalizedOtp) return { normalizedOtp: null, otpHash: null };
 
-  const normalized = digitsOnly.padStart(6, '0');
+  const otpHash = hashOtp(normalizedOtp);
 
-  return normalized.length === 6 ? normalized : null;
+  return { normalizedOtp, otpHash };
+};
+
+const findValidOtpRecord = async (email, otpHash) => {
+  if (!email || !otpHash) return null;
+
+  return prisma.otpVerification.findFirst({
+    where: {
+      email,
+      purpose: OtpPurpose.PASSWORD_RESET,
+      codeHash: otpHash,
+      consumedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 };
 
 const formatFeedbackResponse = (feedback) => ({
@@ -141,7 +175,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       return res.status(400).json({ message: 'A valid email address is required.' });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(email);
     const admin = await prisma.adminUser.findFirst({ where: { email: normalizedEmail } });
 
     if (!admin) {
@@ -155,18 +189,24 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     await invalidateExistingOtps(normalizedEmail);
 
     const otp = generateOtpCode();
+    const { normalizedOtp, otpHash } = getNormalizedOtpHash(otp);
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+
+    if (!normalizedOtp || !otpHash) {
+      console.error('Generated OTP was invalid');
+      return res.status(500).json({ message: 'Unable to start password reset right now.' });
+    }
 
     await prisma.otpVerification.create({
       data: {
         email: normalizedEmail,
-        codeHash: hashOtp(otp),
+        codeHash: otpHash,
         purpose: OtpPurpose.PASSWORD_RESET,
         expiresAt,
       },
     });
 
-    const emailSent = await sendOtpEmail(normalizedEmail, otp);
+    const emailSent = await sendOtpEmail(normalizedEmail, normalizedOtp);
 
     if (!emailSent) {
       return res.status(500).json({ message: 'Unable to send the OTP email right now.' });
@@ -187,7 +227,7 @@ app.post('/api/auth/resend-otp', async (req, res) => {
       return res.status(400).json({ message: 'A valid email address is required.' });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(email);
     const admin = await prisma.adminUser.findFirst({ where: { email: normalizedEmail } });
 
     if (!admin) {
@@ -197,18 +237,24 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     await invalidateExistingOtps(normalizedEmail);
 
     const otp = generateOtpCode();
+    const { normalizedOtp, otpHash } = getNormalizedOtpHash(otp);
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+
+    if (!normalizedOtp || !otpHash) {
+      console.error('Generated OTP was invalid');
+      return res.status(500).json({ message: 'Unable to resend OTP right now.' });
+    }
 
     await prisma.otpVerification.create({
       data: {
         email: normalizedEmail,
-        codeHash: hashOtp(otp),
+        codeHash: otpHash,
         purpose: OtpPurpose.PASSWORD_RESET,
         expiresAt,
       },
     });
 
-    const emailSent = await sendOtpEmail(normalizedEmail, otp);
+    const emailSent = await sendOtpEmail(normalizedEmail, normalizedOtp);
 
     if (!emailSent) {
       return res.status(500).json({ message: 'Unable to send the OTP email right now.' });
@@ -224,26 +270,15 @@ app.post('/api/auth/resend-otp', async (req, res) => {
 app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
-    const normalizedOtp = normalizeOtpInput(otp);
+    const { normalizedOtp, otpHash } = getNormalizedOtpHash(otp);
 
     if (!isValidEmail(email) || !normalizedOtp) {
       return res.status(400).json({ message: 'Email and a valid 6 digit OTP are required.' });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const otpHash = hashOtp(normalizedOtp);
-    const now = new Date();
+    const normalizedEmail = normalizeEmail(email);
 
-    const record = await prisma.otpVerification.findFirst({
-      where: {
-        email: normalizedEmail,
-        purpose: OtpPurpose.PASSWORD_RESET,
-        codeHash: otpHash,
-        consumedAt: null,
-        expiresAt: { gt: now },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const record = await findValidOtpRecord(normalizedEmail, otpHash);
 
     if (!record) {
       return res.status(400).json({ message: 'Invalid or expired OTP.' });
@@ -251,7 +286,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 
     await prisma.otpVerification.update({
       where: { id: record.id },
-      data: { verifiedAt: now },
+      data: { verifiedAt: new Date() },
     });
 
     return res.json({ message: 'OTP verified successfully.' });
@@ -264,7 +299,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body ?? {};
-    const normalizedOtp = normalizeOtpInput(otp);
+    const { normalizedOtp, otpHash } = getNormalizedOtpHash(otp);
 
     if (!isValidEmail(email) || !normalizedOtp || !newPassword) {
       return res.status(400).json({ message: 'Email, a valid 6 digit OTP, and new password are required.' });
@@ -274,26 +309,14 @@ app.post('/api/auth/reset-password', async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 8 characters and include letters and numbers.' });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(email);
     const admin = await prisma.adminUser.findFirst({ where: { email: normalizedEmail } });
 
     if (!admin) {
       return res.status(404).json({ message: 'Account not found for the provided email.' });
     }
 
-    const otpHash = hashOtp(normalizedOtp);
-    const now = new Date();
-
-    const otpRecord = await prisma.otpVerification.findFirst({
-      where: {
-        email: normalizedEmail,
-        purpose: OtpPurpose.PASSWORD_RESET,
-        codeHash: otpHash,
-        consumedAt: null,
-        expiresAt: { gt: now },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const otpRecord = await findValidOtpRecord(normalizedEmail, otpHash);
 
     if (!otpRecord) {
       return res.status(400).json({ message: 'Invalid or expired OTP.' });
@@ -302,6 +325,8 @@ app.post('/api/auth/reset-password', async (req, res) => {
     if (!otpRecord.verifiedAt) {
       return res.status(400).json({ message: 'OTP must be verified before resetting the password.' });
     }
+
+    const now = new Date();
 
     await prisma.$transaction([
       prisma.adminUser.update({
