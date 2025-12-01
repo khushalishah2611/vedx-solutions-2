@@ -88,7 +88,9 @@ model ServiceCategory {
   name        String
   slug        String    @unique
   description String?
-  services    Service[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  subCategories ServiceSubCategory[]
 }
 
 model Service {
@@ -98,10 +100,22 @@ model Service {
   summary     String?
   imageUrl    String?
   tags        Json?
-  categoryId  String?          @db.ObjectId
-  category    ServiceCategory? @relation(fields: [categoryId], references: [id])
+  subCategoryId String?              @db.ObjectId
+  subCategory   ServiceSubCategory?  @relation(fields: [subCategoryId], references: [id])
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+}
+
+model ServiceSubCategory {
+  id           String          @id @map("_id") @default(auto()) @db.ObjectId
+  name         String
+  slug         String          @unique
+  description  String?
+  categoryId   String          @db.ObjectId
+  category     ServiceCategory @relation(fields: [categoryId], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  services     Service[]
 }
 
 model BlogPost {
@@ -158,10 +172,12 @@ model ClientFeedback {
 
 model HireCategory {
   id          String     @id @map("_id") @default(auto()) @db.ObjectId
-  name        String
+  title       String
   slug        String     @unique
   description String?
   roles       HireRole[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model HireRole {
@@ -171,6 +187,8 @@ model HireRole {
   description    String?
   hireCategory   HireCategory @relation(fields: [hireCategoryId], references: [id])
   hireCategoryId String       @db.ObjectId
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model OtpVerification {

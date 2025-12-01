@@ -37,94 +37,85 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import SubdirectoryArrowRightRoundedIcon from '@mui/icons-material/SubdirectoryArrowRightRounded';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import { apiUrl } from '../../utils/const.js';
 
-// ─────────────────────────────
-// Initial data
-// ─────────────────────────────
-const initialCategories = [
-  {
-    id: 'web',
-    label: 'Web',
-    name: 'Web Development',
-    description: 'Full-stack web solutions, CMS builds, and design systems.',
-    createdOn: '2024-07-01',
-    subcategories: [
-      { id: 'frontend', name: 'Frontend', description: 'React, Next.js, and performant UI builds.' },
-      { id: 'backend', name: 'Backend', description: 'Node.js, Python, and cloud-first APIs.' },
-      { id: 'cms', name: 'CMS', description: 'Headless CMS and site replatforming.' },
-    ],
-  },
-  {
-    id: 'mobile',
-    label: 'Mobile',
-    name: 'Mobile Apps',
-    description: 'Native and cross-platform mobile products.',
-    createdOn: '2024-07-05',
-    subcategories: [
-      { id: 'ios', name: 'iOS', description: 'Swift / SwiftUI product delivery.' },
-      { id: 'android', name: 'Android', description: 'Compose-first Android squads.' },
-    ],
-  },
-  {
-    id: 'data',
-    label: 'Data',
-    name: 'Data & AI',
-    description: 'Analytics platforms, AI copilots, and automation.',
-    createdOn: '2024-07-08',
-    subcategories: [
-      { id: 'analytics', name: 'Analytics', description: 'Dashboards, pipelines, and observability.' },
-      { id: 'automation', name: 'Automation', description: 'Workflow orchestration and RPA.' },
-    ],
-  },
-];
+const slugify = (value = '') =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
-const initialHireCategories = [
-  {
-    id: 'frontend-dev',
-    title: 'Frontend Developers',
-    description: 'React, Next.js, and modern UI specialists.',
-    subcategories: [
-      { id: 'react', title: 'React Developer' },
-      { id: 'nextjs', title: 'Next.js Developer' },
-    ],
-  },
-  {
-    id: 'backend-dev',
-    title: 'Backend Developers',
-    description: 'Node.js, APIs, and microservices.',
-    subcategories: [
-      { id: 'node', title: 'Node.js Developer' },
-      { id: 'python', title: 'Python Developer' },
-    ],
-  },
-];
+const formatDate = (value) =>
+  value ? String(value).split('T')[0] : new Date().toISOString().split('T')[0];
 
-// ─────────────────────────────
-// Component
-// ─────────────────────────────
+const normalizeServiceSubcategory = (sub = {}) => ({
+  id: sub.id,
+  name: sub.name || '',
+  slug: sub.slug || '',
+  description: sub.description || '',
+  createdOn: formatDate(sub.createdAt),
+});
+
+const normalizeServiceCategory = (category = {}, fallbackSubcategories = []) => ({
+  id: category.id,
+  name: category.name || '',
+  slug: category.slug || '',
+  description: category.description || '',
+  createdOn: formatDate(category.createdAt),
+  subcategories: Array.isArray(category.subCategories)
+    ? category.subCategories.map((sub) => normalizeServiceSubcategory(sub))
+    : fallbackSubcategories,
+});
+
+const normalizeHireSubcategory = (sub = {}) => ({
+  id: sub.id,
+  title: sub.title || '',
+  slug: sub.slug || '',
+  description: sub.description || '',
+  createdOn: formatDate(sub.createdAt),
+});
+
+const normalizeHireCategory = (category = {}, fallbackSubcategories = []) => ({
+  id: category.id,
+  title: category.title || '',
+  slug: category.slug || '',
+  description: category.description || '',
+  createdOn: formatDate(category.createdAt),
+  subcategories: Array.isArray(category.roles)
+    ? category.roles.map((role) => normalizeHireSubcategory(role))
+    : fallbackSubcategories,
+});
+
 const AdminNavigationPage = () => {
   const rowsPerPage = 5;
 
   // ─────────────────────────
   // NAVIGATION CATEGORIES STATE
   // ─────────────────────────
-  const [categories, setCategories] = useState(initialCategories);
-  const [selectedCategoryId, setSelectedCategoryId] = useState(initialCategories[0]?.id || null);
+  const [categories, setCategories] = useState([]);
+  const [categoriesError, setCategoriesError] = useState('');
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [categoryDialogMode, setCategoryDialogMode] = useState('create');
+  const [categoryDialogError, setCategoryDialogError] = useState('');
   const [categoryForm, setCategoryForm] = useState({
     id: '',
     name: '',
-    label: '',
+    slug: '',
     description: '',
   });
   const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [savingCategory, setSavingCategory] = useState(false);
 
   const [subDialogOpen, setSubDialogOpen] = useState(false);
   const [subDialogMode, setSubDialogMode] = useState('create');
-  const [subForm, setSubForm] = useState({ id: '', name: '', description: '' });
+  const [subDialogError, setSubDialogError] = useState('');
+  const [subForm, setSubForm] = useState({ id: '', name: '', slug: '', description: '' });
   const [subToDelete, setSubToDelete] = useState(null);
+  const [savingSubcategory, setSavingSubcategory] = useState(false);
 
   const [page, setPage] = useState(1);
 
@@ -147,142 +138,343 @@ const AdminNavigationPage = () => {
 
   const resetPagination = () => setPage(1);
 
+  const loadCategories = async () => {
+    setLoadingCategories(true);
+    setCategoriesError('');
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        throw new Error('Your session expired. Please log in again.');
+      }
+
+      const response = await fetch(apiUrl('/api/admin/service-categories'), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to load categories.');
+      }
+
+      const normalized = (payload.categories || []).map((category) =>
+        normalizeServiceCategory(category, [])
+      );
+      setCategories(normalized);
+      setSelectedCategoryId(normalized[0]?.id || null);
+      resetPagination();
+    } catch (error) {
+      console.error('Load service categories failed', error);
+      setCategoriesError(error?.message || 'Unable to load categories right now.');
+      setCategories([]);
+      setSelectedCategoryId(null);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
   const openCategoryDialog = (mode = 'create', category = null) => {
     setCategoryDialogMode(mode);
+    setCategoryDialogError('');
     setCategoryDialogOpen(true);
     if (category) {
       setCategoryForm({
         id: category.id,
         name: category.name || '',
-        label: category.label || '',
+        slug: category.slug || '',
         description: category.description || '',
       });
     } else {
-      setCategoryForm({ id: '', name: '', label: '', description: '' });
+      setCategoryForm({ id: '', name: '', slug: '', description: '' });
     }
   };
 
   const closeCategoryDialog = () => setCategoryDialogOpen(false);
 
-  const handleCategorySave = () => {
-    if (!categoryForm.name.trim()) return;
+  const handleCategorySave = async () => {
+    setCategoryDialogError('');
+    const trimmedName = categoryForm.name.trim();
+    const normalizedSlug = slugify(categoryForm.slug || trimmedName);
+    const description = categoryForm.description.trim();
 
-    const normalizedLabel = categoryForm.label.trim() || categoryForm.name.trim();
-
-    if (categoryDialogMode === 'edit' && categoryForm.id) {
-      setCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === categoryForm.id
-            ? { ...cat, ...categoryForm, label: normalizedLabel }
-            : cat
-        )
-      );
-    } else {
-      const newCategory = {
-        id:
-          categoryForm.name.trim().toLowerCase().replace(/\s+/g, '-') ||
-          `category-${Date.now()}`,
-        name: categoryForm.name.trim(),
-        label: normalizedLabel,
-        description: categoryForm.description || '',
-        createdOn: new Date().toISOString().split('T')[0],
-        subcategories: [],
-      };
-      setCategories((prev) => [newCategory, ...prev]);
-      setSelectedCategoryId(newCategory.id);
-      resetPagination();
+    if (!trimmedName) {
+      setCategoryDialogError('Name is required.');
+      return;
     }
 
-    closeCategoryDialog();
-  };
+    if (!normalizedSlug) {
+      setCategoryDialogError('Slug is required.');
+      return;
+    }
 
-  const handleCategoryDelete = () => {
-    if (!categoryToDelete) return;
-    setCategories((prev) => {
-      const updated = prev.filter((cat) => cat.id !== categoryToDelete.id);
-      if (selectedCategoryId === categoryToDelete.id) {
-        setSelectedCategoryId(updated[0]?.id || null);
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      setCategoryDialogError('Your session expired. Please log in again.');
+      return;
+    }
+
+    setSavingCategory(true);
+
+    try {
+      const response = await fetch(
+        categoryDialogMode === 'edit'
+          ? apiUrl(`/api/admin/service-categories/${categoryForm.id}`)
+          : apiUrl('/api/admin/service-categories'),
+        {
+          method: categoryDialogMode === 'edit' ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: trimmedName,
+            description: description || null,
+            slug: normalizedSlug,
+          }),
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to save category.');
+      }
+
+      const updatedCategory = normalizeServiceCategory(
+        payload.category,
+        categoryDialogMode === 'edit'
+          ? categories.find((cat) => cat.id === categoryForm.id)?.subcategories || []
+          : []
+      );
+
+      setCategories((prev) =>
+        categoryDialogMode === 'edit'
+          ? prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
+          : [updatedCategory, ...prev]
+      );
+
+      if (categoryDialogMode === 'create') {
+        setSelectedCategoryId(updatedCategory.id);
         resetPagination();
       }
-      return updated;
-    });
-    setCategoryToDelete(null);
+
+      closeCategoryDialog();
+    } catch (error) {
+      console.error('Save service category failed', error);
+      setCategoryDialogError(error?.message || 'Unable to save category right now.');
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleCategoryDelete = async () => {
+    if (!categoryToDelete) return;
+
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      setCategoriesError('Your session expired. Please log in again.');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        apiUrl(`/api/admin/service-categories/${categoryToDelete.id}`),
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to delete category.');
+      }
+
+      setCategories((prev) => {
+        const updated = prev.filter((cat) => cat.id !== categoryToDelete.id);
+        if (selectedCategoryId === categoryToDelete.id) {
+          setSelectedCategoryId(updated[0]?.id || null);
+          resetPagination();
+        }
+        return updated;
+      });
+    } catch (error) {
+      console.error('Delete service category failed', error);
+      setCategoriesError(error?.message || 'Unable to delete category right now.');
+    } finally {
+      setCategoryToDelete(null);
+    }
   };
 
   const openSubDialog = (mode = 'create', subcategory = null) => {
     if (!selectedCategory) return;
     setSubDialogMode(mode);
+    setSubDialogError('');
     setSubDialogOpen(true);
     if (subcategory) {
       setSubForm({ ...subcategory });
     } else {
-      setSubForm({ id: '', name: '', description: '' });
+      setSubForm({ id: '', name: '', slug: '', description: '' });
     }
   };
 
   const closeSubDialog = () => setSubDialogOpen(false);
 
-  const handleSubSave = () => {
-    if (!subForm.name.trim() || !selectedCategory) return;
+  const handleSubSave = async () => {
+    if (!selectedCategory) return;
+    setSubDialogError('');
 
-    setCategories((prev) =>
-      prev.map((category) => {
-        if (category.id !== selectedCategory.id) return category;
+    const trimmedName = subForm.name.trim();
+    const normalizedSlug = slugify(subForm.slug || trimmedName);
+    const description = subForm.description.trim();
 
-        if (subDialogMode === 'edit' && subForm.id) {
+    if (!trimmedName) {
+      setSubDialogError('Sub-category name is required.');
+      return;
+    }
+
+    if (!normalizedSlug) {
+      setSubDialogError('Slug is required.');
+      return;
+    }
+
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      setSubDialogError('Your session expired. Please log in again.');
+      return;
+    }
+
+    setSavingSubcategory(true);
+
+    try {
+      const response = await fetch(
+        subDialogMode === 'edit'
+          ? apiUrl(`/api/admin/service-subcategories/${subForm.id}`)
+          : apiUrl('/api/admin/service-subcategories'),
+        {
+          method: subDialogMode === 'edit' ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: trimmedName,
+            description: description || null,
+            slug: normalizedSlug,
+            categoryId: selectedCategory.id,
+          }),
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to save sub-category.');
+      }
+
+      const updatedSub = normalizeServiceSubcategory(payload.subCategory);
+
+      setCategories((prev) =>
+        prev.map((category) => {
+          if (category.id !== selectedCategory.id) return category;
+
+          if (subDialogMode === 'edit') {
+            return {
+              ...category,
+              subcategories: category.subcategories.map((sub) =>
+                sub.id === updatedSub.id ? updatedSub : sub
+              ),
+            };
+          }
+
           return {
             ...category,
-            subcategories: category.subcategories.map((sub) =>
-              sub.id === subForm.id ? { ...subForm } : sub
-            ),
+            subcategories: [updatedSub, ...category.subcategories],
           };
-        }
+        })
+      );
 
-        const newSub = {
-          ...subForm,
-          id:
-            subForm.name.trim().toLowerCase().replace(/\s+/g, '-') ||
-            `sub-${Date.now()}`,
-        };
-        return { ...category, subcategories: [newSub, ...category.subcategories] };
-      })
-    );
-
-    closeSubDialog();
+      closeSubDialog();
+    } catch (error) {
+      console.error('Save service subcategory failed', error);
+      setSubDialogError(error?.message || 'Unable to save sub-category right now.');
+    } finally {
+      setSavingSubcategory(false);
+    }
   };
 
-  const handleSubDelete = () => {
+  const handleSubDelete = async () => {
     if (!subToDelete || !selectedCategory) return;
 
-    setCategories((prev) =>
-      prev.map((category) =>
-        category.id === selectedCategory.id
-          ? {
-              ...category,
-              subcategories: category.subcategories.filter(
-                (sub) => sub.id !== subToDelete.id
-              ),
-            }
-          : category
-      )
-    );
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      setCategoriesError('Your session expired. Please log in again.');
+      return;
+    }
 
-    setSubToDelete(null);
+    try {
+      const response = await fetch(
+        apiUrl(`/api/admin/service-subcategories/${subToDelete.id}`),
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to delete sub-category.');
+      }
+
+      setCategories((prev) =>
+        prev.map((category) =>
+          category.id === selectedCategory.id
+            ? {
+                ...category,
+                subcategories: category.subcategories.filter(
+                  (sub) => sub.id !== subToDelete.id
+                ),
+              }
+            : category
+        )
+      );
+    } catch (error) {
+      console.error('Delete service subcategory failed', error);
+      setCategoriesError(error?.message || 'Unable to delete sub-category right now.');
+    } finally {
+      setSubToDelete(null);
+    }
   };
 
   // ─────────────────────────
   // HIRE DEVELOPERS STATE
   // ─────────────────────────
-  const [hireCategories, setHireCategories] = useState(initialHireCategories);
+  const [hireCategories, setHireCategories] = useState([]);
+  const [hireCategoriesError, setHireCategoriesError] = useState('');
+  const [loadingHireCategories, setLoadingHireCategories] = useState(false);
   const [hireCategoryPage, setHireCategoryPage] = useState(1);
 
   const [hireCategoryDialogOpen, setHireCategoryDialogOpen] = useState(false);
   const [editingHireCategoryId, setEditingHireCategoryId] = useState(null);
   const [hireCategoryForm, setHireCategoryForm] = useState({
     title: '',
+    slug: '',
     description: '',
   });
   const [hireCategoryError, setHireCategoryError] = useState('');
+  const [savingHireCategory, setSavingHireCategory] = useState(false);
 
   const [subcategoryDialogOpen, setSubcategoryDialogOpen] = useState(false);
   const [activeHireCategoryId, setActiveHireCategoryId] = useState(null);
@@ -291,13 +483,14 @@ const AdminNavigationPage = () => {
     [hireCategories, activeHireCategoryId]
   );
 
-  const [hireSubcategoryForm, setHireSubcategoryForm] = useState({ title: '' });
+  const [hireSubcategoryForm, setHireSubcategoryForm] = useState({ title: '', slug: '', description: '' });
   const [editingHireSubcategoryId, setEditingHireSubcategoryId] = useState(null);
   const [hireSubcategoryError, setHireSubcategoryError] = useState('');
+  const [savingHireSubcategory, setSavingHireSubcategory] = useState(false);
 
   // Hire category delete dialog state
   const [hireCategoryToDelete, setHireCategoryToDelete] = useState(null);
-  // NEW: hire sub-category delete dialog state
+  // Hire sub-category delete dialog state
   const [hireSubcategoryToDelete, setHireSubcategoryToDelete] = useState(null);
 
   const paginatedHireCategories = useMemo(() => {
@@ -305,16 +498,57 @@ const AdminNavigationPage = () => {
     return hireCategories.slice(start, start + rowsPerPage);
   }, [hireCategories, hireCategoryPage, rowsPerPage]);
 
+  const loadHireCategories = async () => {
+    setLoadingHireCategories(true);
+    setHireCategoriesError('');
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        throw new Error('Your session expired. Please log in again.');
+      }
+
+      const response = await fetch(apiUrl('/api/admin/hire-categories'), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to load hire categories.');
+      }
+
+      const normalized = (payload.categories || []).map((category) =>
+        normalizeHireCategory(category, [])
+      );
+      setHireCategories(normalized);
+      setHireCategoryPage(1);
+    } catch (error) {
+      console.error('Load hire categories failed', error);
+      setHireCategoriesError(error?.message || 'Unable to load hire categories right now.');
+      setHireCategories([]);
+    } finally {
+      setLoadingHireCategories(false);
+    }
+  };
+
+  useEffect(() => {
+    loadHireCategories();
+  }, []);
+
   const openHireCategoryDialog = (category = null) => {
     if (category) {
       setEditingHireCategoryId(category.id);
       setHireCategoryForm({
         title: category.title || '',
+        slug: category.slug || '',
         description: category.description || '',
       });
     } else {
       setEditingHireCategoryId(null);
-      setHireCategoryForm({ title: '', description: '' });
+      setHireCategoryForm({ title: '', slug: '', description: '' });
     }
     setHireCategoryError('');
     setHireCategoryDialogOpen(true);
@@ -325,66 +559,132 @@ const AdminNavigationPage = () => {
     setHireCategoryError('');
   };
 
-  const handleSaveHireCategory = () => {
-    if (!hireCategoryForm.title.trim()) {
+  const handleSaveHireCategory = async () => {
+    setHireCategoryError('');
+    const trimmedTitle = hireCategoryForm.title.trim();
+    const normalizedSlug = slugify(hireCategoryForm.slug || trimmedTitle);
+    const description = hireCategoryForm.description.trim();
+
+    if (!trimmedTitle) {
       setHireCategoryError('Category title is required.');
       return;
     }
 
-    if (editingHireCategoryId) {
-      setHireCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === editingHireCategoryId
-            ? {
-                ...cat,
-                title: hireCategoryForm.title.trim(),
-                description: hireCategoryForm.description || '',
-              }
-            : cat
-        )
-      );
-    } else {
-      const newCategory = {
-        id:
-          hireCategoryForm.title.trim().toLowerCase().replace(/\s+/g, '-') ||
-          `hire-${Date.now()}`,
-        title: hireCategoryForm.title.trim(),
-        description: hireCategoryForm.description || '',
-        subcategories: [],
-      };
-      setHireCategories((prev) => [newCategory, ...prev]);
-      setHireCategoryPage(1);
+    if (!normalizedSlug) {
+      setHireCategoryError('Slug is required.');
+      return;
     }
 
-    closeHireCategoryDialog();
-  };
+    const token = localStorage.getItem('adminToken');
 
-  const handleConfirmDeleteHireCategory = () => {
-    if (!hireCategoryToDelete) return;
+    if (!token) {
+      setHireCategoryError('Your session expired. Please log in again.');
+      return;
+    }
 
-    setHireCategories((prev) => {
-      const updated = prev.filter((cat) => cat.id !== hireCategoryToDelete.id);
+    setSavingHireCategory(true);
 
-      // adjust page if needed
-      const maxPage = Math.max(1, Math.ceil(updated.length / rowsPerPage));
-      if (hireCategoryPage > maxPage) {
-        setHireCategoryPage(maxPage);
+    try {
+      const response = await fetch(
+        editingHireCategoryId
+          ? apiUrl(`/api/admin/hire-categories/${editingHireCategoryId}`)
+          : apiUrl('/api/admin/hire-categories'),
+        {
+          method: editingHireCategoryId ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: trimmedTitle,
+            description: description || null,
+            slug: normalizedSlug,
+          }),
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to save hire category.');
       }
 
-      return updated;
-    });
+      const updatedCategory = normalizeHireCategory(
+        payload.category,
+        editingHireCategoryId
+          ? hireCategories.find((cat) => cat.id === editingHireCategoryId)?.subcategories || []
+          : []
+      );
 
-    if (activeHireCategoryId === hireCategoryToDelete.id) {
-      setActiveHireCategoryId(null);
+      setHireCategories((prev) =>
+        editingHireCategoryId
+          ? prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
+          : [updatedCategory, ...prev]
+      );
+
+      setHireCategoryPage(1);
+      closeHireCategoryDialog();
+    } catch (error) {
+      console.error('Save hire category failed', error);
+      setHireCategoryError(error?.message || 'Unable to save hire category right now.');
+    } finally {
+      setSavingHireCategory(false);
+    }
+  };
+
+  const handleConfirmDeleteHireCategory = async () => {
+    if (!hireCategoryToDelete) return;
+
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      setHireCategoriesError('Your session expired. Please log in again.');
+      return;
     }
 
-    setHireCategoryToDelete(null);
+    try {
+      const response = await fetch(
+        apiUrl(`/api/admin/hire-categories/${hireCategoryToDelete.id}`),
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to delete hire category.');
+      }
+
+      setHireCategories((prev) => {
+        const updated = prev.filter((cat) => cat.id !== hireCategoryToDelete.id);
+
+        const maxPage = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+        if (hireCategoryPage > maxPage) {
+          setHireCategoryPage(maxPage);
+        }
+
+        return updated;
+      });
+
+      if (activeHireCategoryId === hireCategoryToDelete.id) {
+        setActiveHireCategoryId(null);
+      }
+    } catch (error) {
+      console.error('Delete hire category failed', error);
+      setHireCategoriesError(error?.message || 'Unable to delete hire category right now.');
+    } finally {
+      setHireCategoryToDelete(null);
+    }
   };
 
   const openSubcategoryDialog = (category) => {
     setActiveHireCategoryId(category.id);
     setEditingHireSubcategoryId(null);
-    setHireSubcategoryForm({ title: '' });
+    setHireSubcategoryForm({ title: '', slug: '', description: '' });
     setHireSubcategoryError('');
     setSubcategoryDialogOpen(true);
   };
@@ -395,68 +695,138 @@ const AdminNavigationPage = () => {
     setEditingHireSubcategoryId(null);
   };
 
-  const handleSaveHireSubcategory = () => {
-    if (!hireSubcategoryForm.title.trim()) {
+  const handleSaveHireSubcategory = async () => {
+    setHireSubcategoryError('');
+    const trimmedTitle = hireSubcategoryForm.title.trim();
+    const normalizedSlug = slugify(hireSubcategoryForm.slug || trimmedTitle);
+    const description = hireSubcategoryForm.description.trim();
+
+    if (!trimmedTitle) {
       setHireSubcategoryError('Sub-category title is required.');
+      return;
+    }
+    if (!normalizedSlug) {
+      setHireSubcategoryError('Slug is required.');
       return;
     }
     if (!activeHireCategory) return;
 
-    setHireCategories((prev) =>
-      prev.map((cat) => {
-        if (cat.id !== activeHireCategory.id) return cat;
+    const token = localStorage.getItem('adminToken');
 
-        if (editingHireSubcategoryId) {
+    if (!token) {
+      setHireSubcategoryError('Your session expired. Please log in again.');
+      return;
+    }
+
+    setSavingHireSubcategory(true);
+
+    try {
+      const response = await fetch(
+        editingHireSubcategoryId
+          ? apiUrl(`/api/admin/hire-roles/${editingHireSubcategoryId}`)
+          : apiUrl('/api/admin/hire-roles'),
+        {
+          method: editingHireSubcategoryId ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: trimmedTitle,
+            description: description || null,
+            slug: normalizedSlug,
+            hireCategoryId: activeHireCategory.id,
+          }),
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to save hire sub-category.');
+      }
+
+      const updatedSubcategory = normalizeHireSubcategory(payload.role);
+
+      setHireCategories((prev) =>
+        prev.map((cat) => {
+          if (cat.id !== activeHireCategory.id) return cat;
+
+          if (editingHireSubcategoryId) {
+            return {
+              ...cat,
+              subcategories: cat.subcategories.map((sub) =>
+                sub.id === updatedSubcategory.id ? updatedSubcategory : sub
+              ),
+            };
+          }
+
           return {
             ...cat,
-            subcategories: cat.subcategories.map((sub) =>
-              sub.id === editingHireSubcategoryId
-                ? { ...sub, title: hireSubcategoryForm.title.trim() }
-                : sub
-            ),
+            subcategories: [updatedSubcategory, ...cat.subcategories],
           };
-        }
+        })
+      );
 
-        const newSubcategory = {
-          id:
-            hireSubcategoryForm.title
-              .trim()
-              .toLowerCase()
-              .replace(/\s+/g, '-') || `hire-sub-${Date.now()}`,
-          title: hireSubcategoryForm.title.trim(),
-        };
-
-        return {
-          ...cat,
-          subcategories: [newSubcategory, ...cat.subcategories],
-        };
-      })
-    );
-
-    setHireSubcategoryForm({ title: '' });
-    setEditingHireSubcategoryId(null);
-    setHireSubcategoryError('');
+      setHireSubcategoryForm({ title: '', slug: '', description: '' });
+      setEditingHireSubcategoryId(null);
+      setHireSubcategoryError('');
+    } catch (error) {
+      console.error('Save hire subcategory failed', error);
+      setHireSubcategoryError(error?.message || 'Unable to save hire sub-category right now.');
+    } finally {
+      setSavingHireSubcategory(false);
+    }
   };
 
   const handleEditHireSubcategory = (subcategory) => {
     setEditingHireSubcategoryId(subcategory.id);
-    setHireSubcategoryForm({ title: subcategory.title || '' });
+    setHireSubcategoryForm({
+      title: subcategory.title || '',
+      slug: subcategory.slug || '',
+      description: subcategory.description || '',
+    });
     setHireSubcategoryError('');
   };
 
-  const handleDeleteHireSubcategory = (id) => {
+  const handleDeleteHireSubcategory = async (id) => {
     if (!activeHireCategory) return;
 
-    setHireCategories((prev) =>
-      prev.map((cat) =>
-        cat.id === activeHireCategory.id
-          ? {
-              ...cat,
-              subcategories: cat.subcategories.filter((sub) => sub.id !== id),
-            }
-          : cat
-      )
-    );
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      setHireCategoriesError('Your session expired. Please log in again.');
+      return;
+    }
+
+    try {
+      const response = await fetch(apiUrl(`/api/admin/hire-roles/${id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to delete hire sub-category.');
+      }
+
+      setHireCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === activeHireCategory.id
+            ? {
+                ...cat,
+                subcategories: cat.subcategories.filter((sub) => sub.id !== id),
+              }
+            : cat
+        )
+      );
+    } catch (error) {
+      console.error('Delete hire subcategory failed', error);
+      setHireCategoriesError(error?.message || 'Unable to delete hire sub-category right now.');
+    }
   };
 
   // ─────────────────────────
@@ -491,6 +861,11 @@ const AdminNavigationPage = () => {
             />
             <Divider />
             <CardContent>
+              {categoriesError && (
+                <Typography color="error" variant="body2" mb={1}>
+                  {categoriesError}
+                </Typography>
+              )}
               <List disablePadding>
                 {categories.map((category) => {
                   const isSelected = category.id === selectedCategoryId;
@@ -515,12 +890,12 @@ const AdminNavigationPage = () => {
                               <Typography variant="subtitle1" fontWeight={700}>
                                 {category.name}
                               </Typography>
-                              {category.label && (
+                              {category.slug && (
                                 <Chip
                                   size="small"
                                   color="primary"
                                   variant="outlined"
-                                  label={`Label: ${category.label}`}
+                                  label={`Slug: ${category.slug}`}
                                 />
                               )}
                               <Chip
@@ -559,7 +934,7 @@ const AdminNavigationPage = () => {
                     </ListItem>
                   );
                 })}
-                {categories.length === 0 && (
+                {!loadingCategories && categories.length === 0 && (
                   <Typography
                     variant="body2"
                     color="text.secondary"
@@ -567,6 +942,11 @@ const AdminNavigationPage = () => {
                     py={2}
                   >
                     No categories yet. Add your first one to get started.
+                  </Typography>
+                )}
+                {loadingCategories && (
+                  <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+                    Loading categories...
                   </Typography>
                 )}
               </List>
@@ -609,16 +989,14 @@ const AdminNavigationPage = () => {
                     <Typography variant="body2" color="text.secondary">
                       Category description
                     </Typography>
-                    <Typography variant="body1">
-                      {selectedCategory.description}
-                    </Typography>
-                    {selectedCategory.label && (
+                    <Typography variant="body1">{selectedCategory.description}</Typography>
+                    {selectedCategory.slug && (
                       <Typography
                         variant="caption"
                         color="primary.main"
                         fontWeight={700}
                       >
-                        Navigation label: {selectedCategory.label}
+                        Slug: {selectedCategory.slug}
                       </Typography>
                     )}
                     <Typography variant="caption" color="text.secondary">
@@ -648,30 +1026,23 @@ const AdminNavigationPage = () => {
                                 <Typography variant="subtitle2" fontWeight={700}>
                                   {subcategory.name}
                                 </Typography>
+                                {subcategory.slug && (
+                                  <Chip label={subcategory.slug} size="small" variant="outlined" />
+                                )}
                               </Stack>
                             </TableCell>
                             <TableCell>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                noWrap
-                              >
+                              <Typography variant="body2" color="text.secondary" noWrap>
                                 {subcategory.description || 'No description'}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
-                              <Stack
-                                direction="row"
-                                spacing={1}
-                                justifyContent="flex-end"
-                              >
+                              <Stack direction="row" spacing={1} justifyContent="flex-end">
                                 <Tooltip title="Edit sub-category">
                                   <IconButton
                                     size="small"
                                     color="primary"
-                                    onClick={() =>
-                                      openSubDialog('edit', subcategory)
-                                    }
+                                    onClick={() => openSubDialog('edit', subcategory)}
                                   >
                                     <EditOutlinedIcon fontSize="small" />
                                   </IconButton>
@@ -697,8 +1068,7 @@ const AdminNavigationPage = () => {
                                 color="text.secondary"
                                 align="center"
                               >
-                                No sub-categories yet. Use "Add sub-category" to create
-                                one.
+                                No sub-categories yet. Use "Add sub-category" to create one.
                               </Typography>
                             </TableCell>
                           </TableRow>
@@ -710,9 +1080,7 @@ const AdminNavigationPage = () => {
                     <Pagination
                       count={Math.max(
                         1,
-                        Math.ceil(
-                          selectedCategory.subcategories.length / rowsPerPage
-                        )
+                        Math.ceil(selectedCategory.subcategories.length / rowsPerPage)
                       )}
                       page={page}
                       onChange={(event, value) => setPage(value)}
@@ -756,6 +1124,11 @@ const AdminNavigationPage = () => {
           />
           <Divider />
           <CardContent>
+            {hireCategoriesError && (
+              <Typography color="error" variant="body2" mb={2}>
+                {hireCategoriesError}
+              </Typography>
+            )}
             <Typography variant="body2" color="text.secondary" mb={2}>
               Keep hire developer content organised and avoid duplicates by maintaining a
               clear category → sub-category structure.
@@ -773,7 +1146,14 @@ const AdminNavigationPage = () => {
               <TableBody>
                 {paginatedHireCategories.map((category) => (
                   <TableRow key={category.id} hover>
-                    <TableCell sx={{ fontWeight: 700 }}>{category.title}</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        {category.title}
+                        {category.slug && (
+                          <Chip size="small" label={category.slug} variant="outlined" />
+                        )}
+                      </Stack>
+                    </TableCell>
                     <TableCell sx={{ maxWidth: 360 }}>
                       <Typography variant="body2" color="text.secondary" noWrap>
                         {category.description || '-'}
@@ -781,25 +1161,13 @@ const AdminNavigationPage = () => {
                     </TableCell>
                     <TableCell sx={{ maxWidth: 360 }}>
                       {category.subcategories.length ? (
-                        <Stack
-                          direction="row"
-                          spacing={0.5}
-                          flexWrap="wrap"
-                          useFlexGap
-                        >
+                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                           {category.subcategories.map((subcategory) => (
-                            <Chip
-                              key={subcategory.id}
-                              label={subcategory.title}
-                              size="small"
-                            />
+                            <Chip key={subcategory.id} label={subcategory.title} size="small" />
                           ))}
                         </Stack>
                       ) : (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                        >
+                        <Typography variant="caption" color="text.secondary">
                           No sub-categories yet
                         </Typography>
                       )}
@@ -807,18 +1175,12 @@ const AdminNavigationPage = () => {
                     <TableCell align="right">
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
                         <Tooltip title="Manage sub-categories">
-                          <IconButton
-                            size="small"
-                            onClick={() => openSubcategoryDialog(category)}
-                          >
+                          <IconButton size="small" onClick={() => openSubcategoryDialog(category)}>
                             <VisibilityOutlinedIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Edit">
-                          <IconButton
-                            size="small"
-                            onClick={() => openHireCategoryDialog(category)}
-                          >
+                          <IconButton size="small" onClick={() => openHireCategoryDialog(category)}>
                             <EditOutlinedIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -835,15 +1197,20 @@ const AdminNavigationPage = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {!hireCategories.length && (
+                {!loadingHireCategories && !hireCategories.length && (
                   <TableRow>
                     <TableCell colSpan={4}>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        align="center"
-                      >
+                      <Typography variant="body2" color="text.secondary" align="center">
                         No hire categories configured yet.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {loadingHireCategories && (
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        Loading hire categories...
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -867,12 +1234,7 @@ const AdminNavigationPage = () => {
       {/* ────────────────────────────── */}
       {/* DIALOGS - NAVIGATION CATEGORIES */}
       {/* ────────────────────────────── */}
-      <Dialog
-        open={categoryDialogOpen}
-        onClose={closeCategoryDialog}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={categoryDialogOpen} onClose={closeCategoryDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
           {categoryDialogMode === 'edit' ? 'Edit category' : 'Add category'}
         </DialogTitle>
@@ -888,11 +1250,11 @@ const AdminNavigationPage = () => {
               required
             />
             <TextField
-              label="Navigation label"
-              helperText="Short label shown in the main navigation"
-              value={categoryForm.label}
+              label="Slug"
+              helperText="Unique slug used for navigation"
+              value={categoryForm.slug}
               onChange={(event) =>
-                setCategoryForm((prev) => ({ ...prev, label: event.target.value }))
+                setCategoryForm((prev) => ({ ...prev, slug: event.target.value }))
               }
               fullWidth
             />
@@ -909,13 +1271,18 @@ const AdminNavigationPage = () => {
               multiline
               minRows={3}
             />
+            {categoryDialogError && (
+              <Typography color="error" variant="body2">
+                {categoryDialogError}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={closeCategoryDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleCategorySave} variant="contained">
+          <Button onClick={handleCategorySave} variant="contained" disabled={savingCategory}>
             {categoryDialogMode === 'edit' ? 'Save changes' : 'Create category'}
           </Button>
         </DialogActions>
@@ -944,12 +1311,7 @@ const AdminNavigationPage = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog
-        open={subDialogOpen}
-        onClose={closeSubDialog}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={subDialogOpen} onClose={closeSubDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
           {subDialogMode === 'edit' ? 'Edit sub-category' : 'Add sub-category'}
         </DialogTitle>
@@ -965,6 +1327,15 @@ const AdminNavigationPage = () => {
               required
             />
             <TextField
+              label="Slug"
+              value={subForm.slug}
+              onChange={(event) =>
+                setSubForm((prev) => ({ ...prev, slug: event.target.value }))
+              }
+              fullWidth
+              helperText="Unique slug for this sub-category"
+            />
+            <TextField
               label="Description"
               value={subForm.description}
               onChange={(event) =>
@@ -977,13 +1348,18 @@ const AdminNavigationPage = () => {
               multiline
               minRows={3}
             />
+            {subDialogError && (
+              <Typography color="error" variant="body2">
+                {subDialogError}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={closeSubDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleSubSave} variant="contained">
+          <Button onClick={handleSubSave} variant="contained" disabled={savingSubcategory}>
             {subDialogMode === 'edit' ? 'Save changes' : 'Create sub-category'}
           </Button>
         </DialogActions>
@@ -1039,10 +1415,18 @@ const AdminNavigationPage = () => {
               }
               error={Boolean(hireCategoryError)}
               helperText={
-                hireCategoryError ||
-                'Create master categories for hire developer options.'
+                hireCategoryError || 'Create master categories for hire developer options.'
               }
               fullWidth
+            />
+            <TextField
+              label="Slug"
+              value={hireCategoryForm.slug}
+              onChange={(event) =>
+                setHireCategoryForm((prev) => ({ ...prev, slug: event.target.value }))
+              }
+              fullWidth
+              helperText="Unique slug for this hire category"
             />
             <TextField
               label="Description"
@@ -1064,7 +1448,7 @@ const AdminNavigationPage = () => {
           <Button onClick={closeHireCategoryDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleSaveHireCategory} variant="contained">
+          <Button onClick={handleSaveHireCategory} variant="contained" disabled={savingHireCategory}>
             {editingHireCategoryId ? 'Update category' : 'Add category'}
           </Button>
         </DialogActions>
@@ -1102,11 +1486,38 @@ const AdminNavigationPage = () => {
                 fullWidth
               />
 
+              <TextField
+                label="Slug"
+                value={hireSubcategoryForm.slug}
+                onChange={(event) =>
+                  setHireSubcategoryForm((prev) => ({ ...prev, slug: event.target.value }))
+                }
+                fullWidth
+                helperText="Unique slug for this hire sub-category"
+              />
+
+              <TextField
+                label="Description"
+                value={hireSubcategoryForm.description}
+                onChange={(event) =>
+                  setHireSubcategoryForm((prev) => ({
+                    ...prev,
+                    description: event.target.value,
+                  }))
+                }
+                fullWidth
+                multiline
+                minRows={3}
+                placeholder="Optional description"
+              />
+
               <Stack direction="row" justifyContent="flex-end">
-                <Button variant="contained" onClick={handleSaveHireSubcategory}>
-                  {editingHireSubcategoryId
-                    ? 'Update sub-category'
-                    : 'Add sub-category'}
+                <Button
+                  variant="contained"
+                  onClick={handleSaveHireSubcategory}
+                  disabled={savingHireSubcategory}
+                >
+                  {editingHireSubcategoryId ? 'Update sub-category' : 'Add sub-category'}
                 </Button>
               </Stack>
 
@@ -1114,27 +1525,27 @@ const AdminNavigationPage = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
+                    <TableCell>Slug</TableCell>
+                    <TableCell>Description</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {activeHireCategory.subcategories.map((subcategory) => (
                     <TableRow key={subcategory.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>
-                        {subcategory.title}
+                      <TableCell sx={{ fontWeight: 700 }}>{subcategory.title}</TableCell>
+                      <TableCell>{subcategory.slug}</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {subcategory.description || '-'}
+                        </Typography>
                       </TableCell>
                       <TableCell align="right">
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          justifyContent="flex-end"
-                        >
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
                           <Tooltip title="Edit">
                             <IconButton
                               size="small"
-                              onClick={() =>
-                                handleEditHireSubcategory(subcategory)
-                              }
+                              onClick={() => handleEditHireSubcategory(subcategory)}
                             >
                               <EditOutlinedIcon fontSize="small" />
                             </IconButton>
@@ -1143,9 +1554,7 @@ const AdminNavigationPage = () => {
                             <IconButton
                               color="error"
                               size="small"
-                              onClick={() =>
-                                setHireSubcategoryToDelete(subcategory)
-                              }
+                              onClick={() => setHireSubcategoryToDelete(subcategory)}
                             >
                               <DeleteOutlineIcon fontSize="small" />
                             </IconButton>
@@ -1156,12 +1565,8 @@ const AdminNavigationPage = () => {
                   ))}
                   {!activeHireCategory.subcategories.length && (
                     <TableRow>
-                      <TableCell colSpan={2}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          align="center"
-                        >
+                      <TableCell colSpan={4}>
+                        <Typography variant="body2" color="text.secondary" align="center">
                           No sub-categories yet.
                         </Typography>
                       </TableCell>
@@ -1200,17 +1605,13 @@ const AdminNavigationPage = () => {
           <Button onClick={() => setHireCategoryToDelete(null)} color="inherit">
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirmDeleteHireCategory}
-            color="error"
-            variant="contained"
-          >
+          <Button onClick={handleConfirmDeleteHireCategory} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* NEW: Hire sub-category delete dialog */}
+      {/* Hire sub-category delete dialog */}
       <Dialog
         open={Boolean(hireSubcategoryToDelete)}
         onClose={() => setHireSubcategoryToDelete(null)}

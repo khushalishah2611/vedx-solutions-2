@@ -52,6 +52,18 @@ const hashPassword = (value) =>
 
 const normalizeEmail = (email) => (email ? String(email).trim().toLowerCase() : '');
 
+const normalizeText = (value) => (typeof value === 'string' ? value.trim() : '');
+
+const normalizeSlug = (value) => {
+  if (!value) return '';
+
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+};
+
 const isValidEmail = (email) =>
   typeof email === 'string' &&
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
@@ -512,6 +524,851 @@ app.post('/api/admin/logout', async (req, res) => {
   } catch (error) {
     console.error('Logout failed', error);
     return res.status(500).json({ message: 'Unable to logout right now.' });
+  }
+});
+
+// ---------- Service categories ----------
+app.get('/api/service-categories', async (_req, res) => {
+  try {
+    const categories = await prisma.serviceCategory.findMany({
+      include: { subCategories: true },
+      orderBy: { name: 'asc' },
+    });
+
+    return res.json({ categories });
+  } catch (error) {
+    console.error('Public service categories fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load service categories.' });
+  }
+});
+
+app.get('/api/services', async (_req, res) => {
+  try {
+    const services = await prisma.service.findMany({
+      include: { subCategory: { include: { category: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ services });
+  } catch (error) {
+    console.error('Public services fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load services.' });
+  }
+});
+
+const validateCategoryInput = (body) => {
+  const name = normalizeText(body?.name);
+  const description = normalizeText(body?.description) || null;
+  const providedSlug = normalizeSlug(body?.slug);
+  const slugSource = providedSlug || normalizeSlug(name);
+  const slug = slugSource;
+
+  if (!name || !slug) {
+    return { error: 'Name is required for the category.' };
+  }
+
+  return { name, description, slug };
+};
+
+app.get('/api/admin/service-categories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categories = await prisma.serviceCategory.findMany({
+      include: { subCategories: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ categories });
+  } catch (error) {
+    console.error('Admin service categories fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load service categories right now.' });
+  }
+});
+
+app.post('/api/admin/service-categories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateCategoryInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name, description, slug } = validation;
+
+    const existing = await prisma.serviceCategory.findUnique({ where: { slug } });
+
+    if (existing) {
+      return res.status(409).json({ message: 'Category with this slug already exists.' });
+    }
+
+    const category = await prisma.serviceCategory.create({
+      data: { name, slug, description },
+    });
+
+    return res.status(201).json({ category, message: 'Service category created.' });
+  } catch (error) {
+    console.error('Service category create failed', error);
+    return res.status(500).json({ message: 'Unable to create service category right now.' });
+  }
+});
+
+app.put('/api/admin/service-categories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categoryId = req.params.id?.trim();
+
+    if (!categoryId) {
+      return res.status(400).json({ message: 'A valid category id is required.' });
+    }
+
+    const validation = validateCategoryInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name, description, slug } = validation;
+
+    const existing = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Service category not found.' });
+    }
+
+    if (slug !== existing.slug) {
+      const slugOwner = await prisma.serviceCategory.findUnique({ where: { slug } });
+
+      if (slugOwner && slugOwner.id !== categoryId) {
+        return res.status(409).json({ message: 'Another category already uses this slug.' });
+      }
+    }
+
+    const updated = await prisma.serviceCategory.update({
+      where: { id: categoryId },
+      data: { name, description, slug },
+    });
+
+    return res.json({ category: updated, message: 'Service category updated.' });
+  } catch (error) {
+    console.error('Service category update failed', error);
+    return res.status(500).json({ message: 'Unable to update service category right now.' });
+  }
+});
+
+app.delete('/api/admin/service-categories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categoryId = req.params.id?.trim();
+
+    if (!categoryId) {
+      return res.status(400).json({ message: 'A valid category id is required.' });
+    }
+
+    const existing = await prisma.serviceCategory.findUnique({
+      where: { id: categoryId },
+      include: { subCategories: { select: { id: true } } },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Service category not found.' });
+    }
+
+    const subCategoryIds = existing.subCategories.map((sub) => sub.id);
+
+    await prisma.$transaction([
+      prisma.service.updateMany({
+        where: { subCategoryId: { in: subCategoryIds } },
+        data: { subCategoryId: null },
+      }),
+      prisma.serviceSubCategory.deleteMany({ where: { id: { in: subCategoryIds } } }),
+      prisma.serviceCategory.delete({ where: { id: categoryId } }),
+    ]);
+
+    return res.json({ message: 'Service category deleted.' });
+  } catch (error) {
+    console.error('Service category delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete service category right now.' });
+  }
+});
+
+// ---------- Service subcategories ----------
+const validateSubCategoryInput = (body) => {
+  const name = normalizeText(body?.name);
+  const description = normalizeText(body?.description) || null;
+  const categoryId = body?.categoryId?.trim();
+  const providedSlug = normalizeSlug(body?.slug);
+  const slugSource = providedSlug || normalizeSlug(name);
+  const slug = slugSource;
+
+  if (!name || !slug) {
+    return { error: 'Name is required for the subcategory.' };
+  }
+
+  if (!categoryId) {
+    return { error: 'A parent category id is required.' };
+  }
+
+  return { name, description, categoryId, slug };
+};
+
+app.get('/api/admin/service-subcategories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const subCategories = await prisma.serviceSubCategory.findMany({
+      include: { category: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ subCategories });
+  } catch (error) {
+    console.error('Service subcategories fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load service subcategories right now.' });
+  }
+});
+
+app.post('/api/admin/service-subcategories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateSubCategoryInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name, description, slug, categoryId } = validation;
+
+    const category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+
+    if (!category) {
+      return res.status(404).json({ message: 'Parent category not found.' });
+    }
+
+    const existingSlug = await prisma.serviceSubCategory.findUnique({ where: { slug } });
+
+    if (existingSlug) {
+      return res.status(409).json({ message: 'Subcategory with this slug already exists.' });
+    }
+
+    const subCategory = await prisma.serviceSubCategory.create({
+      data: { name, description, slug, categoryId },
+    });
+
+    return res.status(201).json({ subCategory, message: 'Service subcategory created.' });
+  } catch (error) {
+    console.error('Service subcategory create failed', error);
+    return res.status(500).json({ message: 'Unable to create service subcategory right now.' });
+  }
+});
+
+app.put('/api/admin/service-subcategories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const subCategoryId = req.params.id?.trim();
+
+    if (!subCategoryId) {
+      return res.status(400).json({ message: 'A valid subcategory id is required.' });
+    }
+
+    const validation = validateSubCategoryInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name, description, slug, categoryId } = validation;
+
+    const subCategory = await prisma.serviceSubCategory.findUnique({ where: { id: subCategoryId } });
+
+    if (!subCategory) {
+      return res.status(404).json({ message: 'Service subcategory not found.' });
+    }
+
+    if (slug !== subCategory.slug) {
+      const slugOwner = await prisma.serviceSubCategory.findUnique({ where: { slug } });
+
+      if (slugOwner && slugOwner.id !== subCategoryId) {
+        return res.status(409).json({ message: 'Another subcategory already uses this slug.' });
+      }
+    }
+
+    const category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+
+    if (!category) {
+      return res.status(404).json({ message: 'Parent category not found.' });
+    }
+
+    const updated = await prisma.serviceSubCategory.update({
+      where: { id: subCategoryId },
+      data: { name, description, slug, categoryId },
+    });
+
+    return res.json({ subCategory: updated, message: 'Service subcategory updated.' });
+  } catch (error) {
+    console.error('Service subcategory update failed', error);
+    return res.status(500).json({ message: 'Unable to update service subcategory right now.' });
+  }
+});
+
+app.delete('/api/admin/service-subcategories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const subCategoryId = req.params.id?.trim();
+
+    if (!subCategoryId) {
+      return res.status(400).json({ message: 'A valid subcategory id is required.' });
+    }
+
+    const subCategory = await prisma.serviceSubCategory.findUnique({ where: { id: subCategoryId } });
+
+    if (!subCategory) {
+      return res.status(404).json({ message: 'Service subcategory not found.' });
+    }
+
+    await prisma.$transaction([
+      prisma.service.updateMany({
+        where: { subCategoryId },
+        data: { subCategoryId: null },
+      }),
+      prisma.serviceSubCategory.delete({ where: { id: subCategoryId } }),
+    ]);
+
+    return res.json({ message: 'Service subcategory deleted.' });
+  } catch (error) {
+    console.error('Service subcategory delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete service subcategory right now.' });
+  }
+});
+
+// ---------- Services ----------
+const validateServiceInput = (body) => {
+  const title = normalizeText(body?.title);
+  const summary = normalizeText(body?.summary) || null;
+  const imageUrl = normalizeText(body?.imageUrl) || null;
+  const providedSlug = normalizeSlug(body?.slug);
+  const slugSource = providedSlug || normalizeSlug(title);
+  const slug = slugSource;
+  const subCategoryId = body?.subCategoryId?.trim() || null;
+  const tags = Array.isArray(body?.tags) ? body.tags : body?.tags ?? null;
+
+  if (!title || !slug) {
+    return { error: 'Title is required for the service.' };
+  }
+
+  return { title, summary, imageUrl, slug, subCategoryId, tags };
+};
+
+app.get('/api/admin/services', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const services = await prisma.service.findMany({
+      include: { subCategory: { include: { category: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ services });
+  } catch (error) {
+    console.error('Services fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load services right now.' });
+  }
+});
+
+app.post('/api/admin/services', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateServiceInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { title, summary, imageUrl, slug, subCategoryId, tags } = validation;
+
+    const existing = await prisma.service.findUnique({ where: { slug } });
+
+    if (existing) {
+      return res.status(409).json({ message: 'Service with this slug already exists.' });
+    }
+
+    if (subCategoryId) {
+      const subCategory = await prisma.serviceSubCategory.findUnique({ where: { id: subCategoryId } });
+
+      if (!subCategory) {
+        return res.status(404).json({ message: 'Related subcategory not found.' });
+      }
+    }
+
+    const service = await prisma.service.create({
+      data: { title, summary, imageUrl, slug, subCategoryId, tags },
+    });
+
+    return res.status(201).json({ service, message: 'Service created.' });
+  } catch (error) {
+    console.error('Service create failed', error);
+    return res.status(500).json({ message: 'Unable to create service right now.' });
+  }
+});
+
+app.put('/api/admin/services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const serviceId = req.params.id?.trim();
+
+    if (!serviceId) {
+      return res.status(400).json({ message: 'A valid service id is required.' });
+    }
+
+    const validation = validateServiceInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { title, summary, imageUrl, slug, subCategoryId, tags } = validation;
+
+    const service = await prisma.service.findUnique({ where: { id: serviceId } });
+
+    if (!service) {
+      return res.status(404).json({ message: 'Service not found.' });
+    }
+
+    if (slug !== service.slug) {
+      const slugOwner = await prisma.service.findUnique({ where: { slug } });
+
+      if (slugOwner && slugOwner.id !== serviceId) {
+        return res.status(409).json({ message: 'Another service already uses this slug.' });
+      }
+    }
+
+    if (subCategoryId) {
+      const subCategory = await prisma.serviceSubCategory.findUnique({ where: { id: subCategoryId } });
+
+      if (!subCategory) {
+        return res.status(404).json({ message: 'Related subcategory not found.' });
+      }
+    }
+
+    const updated = await prisma.service.update({
+      where: { id: serviceId },
+      data: { title, summary, imageUrl, slug, subCategoryId, tags },
+    });
+
+    return res.json({ service: updated, message: 'Service updated.' });
+  } catch (error) {
+    console.error('Service update failed', error);
+    return res.status(500).json({ message: 'Unable to update service right now.' });
+  }
+});
+
+app.delete('/api/admin/services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const serviceId = req.params.id?.trim();
+
+    if (!serviceId) {
+      return res.status(400).json({ message: 'A valid service id is required.' });
+    }
+
+    const service = await prisma.service.findUnique({ where: { id: serviceId } });
+
+    if (!service) {
+      return res.status(404).json({ message: 'Service not found.' });
+    }
+
+    await prisma.service.delete({ where: { id: serviceId } });
+
+    return res.json({ message: 'Service deleted.' });
+  } catch (error) {
+    console.error('Service delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete service right now.' });
+  }
+});
+
+// ---------- Hire categories and roles ----------
+const validateHireCategoryInput = (body) => {
+  const title = normalizeText(body?.title);
+  const description = normalizeText(body?.description) || null;
+  const providedSlug = normalizeSlug(body?.slug);
+  const slugSource = providedSlug || normalizeSlug(title);
+  const slug = slugSource;
+
+  if (!title || !slug) {
+    return { error: 'Title is required for the hire category.' };
+  }
+
+  return { title, description, slug };
+};
+
+const validateHireRoleInput = (body) => {
+  const title = normalizeText(body?.title);
+  const description = normalizeText(body?.description) || null;
+  const hireCategoryId = body?.hireCategoryId?.trim();
+  const providedSlug = normalizeSlug(body?.slug);
+  const slugSource = providedSlug || normalizeSlug(title);
+  const slug = slugSource;
+
+  if (!title || !slug) {
+    return { error: 'Title is required for the hire sub-category.' };
+  }
+
+  if (!hireCategoryId) {
+    return { error: 'A parent hire category id is required.' };
+  }
+
+  return { title, description, hireCategoryId, slug };
+};
+
+app.get('/api/hire-categories', async (_req, res) => {
+  try {
+    const categories = await prisma.hireCategory.findMany({
+      include: { roles: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ categories });
+  } catch (error) {
+    console.error('Public hire categories fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load hire categories.' });
+  }
+});
+
+app.get('/api/admin/hire-categories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categories = await prisma.hireCategory.findMany({
+      include: { roles: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ categories });
+  } catch (error) {
+    console.error('Admin hire categories fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load hire categories right now.' });
+  }
+});
+
+app.post('/api/admin/hire-categories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateHireCategoryInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { title, description, slug } = validation;
+
+    const existing = await prisma.hireCategory.findUnique({ where: { slug } });
+
+    if (existing) {
+      return res.status(409).json({ message: 'Hire category with this slug already exists.' });
+    }
+
+    const category = await prisma.hireCategory.create({
+      data: { title, description, slug },
+    });
+
+    return res.status(201).json({ category, message: 'Hire category created.' });
+  } catch (error) {
+    console.error('Hire category create failed', error);
+    return res.status(500).json({ message: 'Unable to create hire category right now.' });
+  }
+});
+
+app.put('/api/admin/hire-categories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categoryId = req.params.id?.trim();
+
+    if (!categoryId) {
+      return res.status(400).json({ message: 'A valid hire category id is required.' });
+    }
+
+    const validation = validateHireCategoryInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { title, description, slug } = validation;
+
+    const existing = await prisma.hireCategory.findUnique({ where: { id: categoryId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Hire category not found.' });
+    }
+
+    if (slug !== existing.slug) {
+      const slugOwner = await prisma.hireCategory.findUnique({ where: { slug } });
+
+      if (slugOwner && slugOwner.id !== categoryId) {
+        return res.status(409).json({ message: 'Another hire category already uses this slug.' });
+      }
+    }
+
+    const updated = await prisma.hireCategory.update({
+      where: { id: categoryId },
+      data: { title, description, slug },
+    });
+
+    return res.json({ category: updated, message: 'Hire category updated.' });
+  } catch (error) {
+    console.error('Hire category update failed', error);
+    return res.status(500).json({ message: 'Unable to update hire category right now.' });
+  }
+});
+
+app.delete('/api/admin/hire-categories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categoryId = req.params.id?.trim();
+
+    if (!categoryId) {
+      return res.status(400).json({ message: 'A valid hire category id is required.' });
+    }
+
+    const existing = await prisma.hireCategory.findUnique({
+      where: { id: categoryId },
+      include: { roles: { select: { id: true } } },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Hire category not found.' });
+    }
+
+    const roleIds = existing.roles.map((role) => role.id);
+
+    await prisma.$transaction([
+      prisma.hireRole.deleteMany({ where: { id: { in: roleIds } } }),
+      prisma.hireCategory.delete({ where: { id: categoryId } }),
+    ]);
+
+    return res.json({ message: 'Hire category deleted.' });
+  } catch (error) {
+    console.error('Hire category delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete hire category right now.' });
+  }
+});
+
+app.get('/api/admin/hire-roles', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const roles = await prisma.hireRole.findMany({
+      include: { hireCategory: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ roles });
+  } catch (error) {
+    console.error('Hire roles fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load hire roles right now.' });
+  }
+});
+
+app.post('/api/admin/hire-roles', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateHireRoleInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { title, description, slug, hireCategoryId } = validation;
+
+    const category = await prisma.hireCategory.findUnique({ where: { id: hireCategoryId } });
+
+    if (!category) {
+      return res.status(404).json({ message: 'Parent hire category not found.' });
+    }
+
+    const existingSlug = await prisma.hireRole.findUnique({ where: { slug } });
+
+    if (existingSlug) {
+      return res.status(409).json({ message: 'Hire sub-category with this slug already exists.' });
+    }
+
+    const role = await prisma.hireRole.create({
+      data: { title, description, slug, hireCategoryId },
+    });
+
+    return res.status(201).json({ role, message: 'Hire sub-category created.' });
+  } catch (error) {
+    console.error('Hire sub-category create failed', error);
+    return res.status(500).json({ message: 'Unable to create hire sub-category right now.' });
+  }
+});
+
+app.put('/api/admin/hire-roles/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const roleId = req.params.id?.trim();
+
+    if (!roleId) {
+      return res.status(400).json({ message: 'A valid hire sub-category id is required.' });
+    }
+
+    const validation = validateHireRoleInput(req.body);
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { title, description, slug, hireCategoryId } = validation;
+
+    const role = await prisma.hireRole.findUnique({ where: { id: roleId } });
+
+    if (!role) {
+      return res.status(404).json({ message: 'Hire sub-category not found.' });
+    }
+
+    if (slug !== role.slug) {
+      const slugOwner = await prisma.hireRole.findUnique({ where: { slug } });
+
+      if (slugOwner && slugOwner.id !== roleId) {
+        return res.status(409).json({ message: 'Another hire sub-category already uses this slug.' });
+      }
+    }
+
+    const category = await prisma.hireCategory.findUnique({ where: { id: hireCategoryId } });
+
+    if (!category) {
+      return res.status(404).json({ message: 'Parent hire category not found.' });
+    }
+
+    const updated = await prisma.hireRole.update({
+      where: { id: roleId },
+      data: { title, description, slug, hireCategoryId },
+    });
+
+    return res.json({ role: updated, message: 'Hire sub-category updated.' });
+  } catch (error) {
+    console.error('Hire sub-category update failed', error);
+    return res.status(500).json({ message: 'Unable to update hire sub-category right now.' });
+  }
+});
+
+app.delete('/api/admin/hire-roles/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const roleId = req.params.id?.trim();
+
+    if (!roleId) {
+      return res.status(400).json({ message: 'A valid hire sub-category id is required.' });
+    }
+
+    const role = await prisma.hireRole.findUnique({ where: { id: roleId } });
+
+    if (!role) {
+      return res.status(404).json({ message: 'Hire sub-category not found.' });
+    }
+
+    await prisma.hireRole.delete({ where: { id: roleId } });
+
+    return res.json({ message: 'Hire sub-category deleted.' });
+  } catch (error) {
+    console.error('Hire sub-category delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete hire sub-category right now.' });
   }
 });
 
