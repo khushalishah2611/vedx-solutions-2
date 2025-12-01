@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-
+import { API_BASE } from "../../utils/const"; 
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -8,10 +8,9 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: 'https://vedx-solutions-2-9ij5.vercel.app/',
+        target: API_BASE,
         changeOrigin: true
       }
     }
   }
 });
-// http://localhost:5000

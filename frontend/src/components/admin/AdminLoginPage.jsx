@@ -12,9 +12,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { setStoredAdminProfile } from '../../data/adminProfile.js';
 
-// 🔥 SET YOUR WORKING BACKEND URL HERE
-const API_BASE = "https://vedx-solutions-2-9ij5.vercel.app";
-
+import { API_BASE } from "../../utils/const"; 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
 

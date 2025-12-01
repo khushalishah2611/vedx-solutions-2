@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Button, Container, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-
+import { API_BASE } from "../../utils/const"; 
 const AdminForgotPasswordPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -35,7 +35,7 @@ const AdminForgotPasswordPage = () => {
     setServerMessage('');
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
