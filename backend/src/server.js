@@ -571,15 +571,17 @@ const validateCategoryInput = (body) => {
 };
 
 app.get('/api/admin/service-categories', async (req, res) => {
+  const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+  if (!admin) {
+    const statusCode = status || 401;
+    return res.status(statusCode).json({ message: message || 'Session token missing.' });
+  }
+
   try {
-    const { admin, status, message } = await getAuthenticatedAdmin(req);
-
-    if (!admin) {
-      return res.status(status).json({ message });
-    }
-
     const categories = await prisma.serviceCategory.findMany({
       include: { subCategories: true },
+      where: { createdAt: { not: null } },
       orderBy: { createdAt: 'desc' },
     });
 
