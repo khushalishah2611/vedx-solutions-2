@@ -35,7 +35,9 @@ const AdminLoginPage = () => {
     const verifySession = async () => {
       try {
         const response = await fetch(`${API_BASE}/api/admin/session`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (!response.ok) {
