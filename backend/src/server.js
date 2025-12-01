@@ -586,9 +586,9 @@ app.put('/api/admin/feedbacks/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const feedbackId = Number(req.params.id);
+    const feedbackId = req.params.id?.trim();
 
-    if (!Number.isInteger(feedbackId)) {
+    if (!feedbackId) {
       return res.status(400).json({ message: 'A valid feedback id is required.' });
     }
 
@@ -641,9 +641,9 @@ app.delete('/api/admin/feedbacks/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const feedbackId = Number(req.params.id);
+    const feedbackId = req.params.id?.trim();
 
-    if (!Number.isInteger(feedbackId)) {
+    if (!feedbackId) {
       return res.status(400).json({ message: 'A valid feedback id is required.' });
     }
 
