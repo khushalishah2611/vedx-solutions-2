@@ -44,7 +44,7 @@ const AdminForgotPasswordPage = () => {
     setServerMessage('');
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+      const response = await fetch(`https://vedx-solutions-2-9ij5.vercel.app/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
