@@ -283,25 +283,17 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
 
-    const normalizedEmail = String(email || "").trim().toLowerCase();
-    const normalizedOtp = String(otp || "").trim().replace(/\D/g, "");
+    const normalizedEmail = normalizeEmail(email);
+    const { normalizedOtp } = getNormalizedOtp(otp);
 
-    if (!normalizedEmail || normalizedOtp.length !== 6) {
+    if (!normalizedEmail || !normalizedOtp) {
       return res.status(400).json({
         message: "Email and a valid 6 digit OTP are required."
       });
     }
 
-    // Check DB
-    const record = await prisma.otpVerification.findFirst({
-      where: {
-        email: normalizedEmail,
-        code: normalizedOtp,
-        purpose: "PASSWORD_RESET",
-        expiresAt: { gt: new Date() },
-        verifiedAt: null
-      }
-    });
+    // Check DB using the shared helper to ensure consistent filters
+    const record = await findValidOtpRecord(normalizedEmail, normalizedOtp);
 
     console.log("DB Record Found:", record);
 
