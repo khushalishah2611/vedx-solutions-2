@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, OtpPurpose } from '@prisma/client';
 import { sendOtpEmail } from './utils/email.js';
 import 'dotenv/config';
 import connectDB from './lib/db.js';
@@ -12,10 +12,6 @@ const port = process.env.PORT || 3000;
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
-
-const OtpPurpose = {
-  PASSWORD_RESET: 'PASSWORD_RESET',
-};
 
 app.use(cors());
 app.use(express.json());
@@ -106,8 +102,9 @@ const findValidOtpRecord = async (email, normalizedOtp) => {
     where: {
       email,
       purpose: OtpPurpose.PASSWORD_RESET,
-      code: normalizedOtp, // you're storing raw OTP (not hashed) as codeHash per your code
+      code: normalizedOtp,
       consumedAt: null,
+      verifiedAt: null,
       expiresAt: { gt: new Date() },
     },
     orderBy: { createdAt: 'desc' },
@@ -282,6 +279,10 @@ app.post('/api/auth/resend-otp', async (req, res) => {
 app.post('/api/auth/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body ?? {};
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'A valid email address is required.' });
+    }
 
     const normalizedEmail = normalizeEmail(email);
     const { normalizedOtp } = getNormalizedOtp(otp);
