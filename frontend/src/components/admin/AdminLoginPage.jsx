@@ -12,7 +12,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { setStoredAdminProfile } from '../../data/adminProfile.js';
 
-import { API_BASE } from "../../utils/const"; 
+import { API_BASE } from "../../utils/const";
 const AdminLoginPage = () => {
   const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ const AdminLoginPage = () => {
 
     const verifySession = async () => {
       try {
-        const response = await fetch(`https://vedx-solutions-2-9ij5.vercel.app/api/api/admin/session`, {
+        const response = await fetch(`${API_BASE}/api/admin/session`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -95,7 +95,7 @@ const AdminLoginPage = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`https://vedx-solutions-2-9ij5.vercel.app/api/admin/login`, {
+      const response = await fetch(`${API_BASE}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

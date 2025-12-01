@@ -44,21 +44,22 @@ const AdminForgotPasswordPage = () => {
     setServerMessage('');
 
     try {
-      const response = await fetch(`https://vedx-solutions-2-9ij5.vercel.app/api/auth/forgot-password`, {
+      const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
       });
 
-      let payload = {};
-      try {
-        payload = await response.json();
-      } catch {
-        payload = {};
-      }
+      const contentType = response.headers.get('content-type');
+      const payload = contentType?.includes('application/json')
+        ? await response.json()
+        : null;
 
       if (!response.ok) {
-        setServerMessage(payload.message || 'Unable to send verification code.');
+        const fallbackMessage = !payload ? await response.text() : '';
+        setServerMessage(
+          payload?.message || fallbackMessage || 'Unable to send verification code.'
+        );
         return;
       }
 
