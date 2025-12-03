@@ -815,6 +815,7 @@ app.get('/api/admin/service-categories', async (req, res) => {
   try {
     const categories = await prisma.serviceCategory.findMany({
       include: { subCategories: true },
+      where: { createdAt: { not: null } },
       orderBy: { createdAt: 'desc' },
     });
 
