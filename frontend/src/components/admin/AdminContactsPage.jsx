@@ -30,53 +30,7 @@ import {
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-
-const initialContacts = [
-  {
-    name: 'Rahul Mehta',
-    email: 'rahul@startuphub.in',
-    phone: '+91 90210 12345',
-    countryCode: 'IN',
-    projectType: 'Web Application',
-    contactType: 'Sales',
-    description: 'Needs a responsive MVP to validate the new SaaS idea. Looking for a fast turnaround.',
-    status: 'New',
-    receivedOn: '2024-07-12',
-    attachments: [
-      { src: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=320&q=80', title: 'Brand moodboard' },
-      { src: 'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=320&q=80', title: 'Wireframe' }
-    ]
-  },
-  {
-    name: 'Sneha Iyer',
-    email: 'sneha@designcraft.io',
-    phone: '+91 99887 66554',
-    countryCode: 'IN',
-    projectType: 'Product Design',
-    contactType: 'Partnership',
-    description: 'Interested in collaborating on UI/UX audit and brand refresh for premium clients.',
-    status: 'In progress',
-    receivedOn: '2024-07-10',
-    attachments: [
-      { src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=320&q=80', title: 'Case study deck' }
-    ]
-  },
-  {
-    name: 'Arjun Rao',
-    email: 'arjun@buildwave.co',
-    phone: '+91 91234 55667',
-    countryCode: 'IN',
-    projectType: 'Mobile App',
-    contactType: 'Support',
-    description: 'Requested an estimate for logistics tracking app with driver onboarding.',
-    status: 'Replied',
-    receivedOn: '2024-07-08',
-    attachments: [
-      { src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=320&q=80', title: 'Process diagram' },
-      { src: 'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=320&q=80', title: 'App concept' }
-    ]
-  }
-];
+import { apiUrl } from '../../utils/const.js';
 
 const dateFilterOptions = [
   { value: 'all', label: 'All dates' },
@@ -141,12 +95,32 @@ const defaultFilters = {
   end: '',
 };
 
+const normalizeContactFromApi = (contact) => ({
+  id: contact.id,
+  name: contact.name || '',
+  email: contact.email || '',
+  phone: contact.phone || '',
+  countryCode: contact.countryCode || '',
+  projectType: contact.projectType || '',
+  contactType: contact.contactType || 'General enquiry',
+  description: contact.description || contact.message || '',
+  status: contact.status || 'New',
+  receivedOn:
+    contact.receivedOn || (contact.createdAt ? String(contact.createdAt).split('T')[0] : ''),
+  attachments: contact.attachments || [],
+});
+
 const AdminContactsPage = () => {
-  const [contactList, setContactList] = useState(initialContacts);
+  const [contactList, setContactList] = useState([]);
   const [editingContact, setEditingContact] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [contactToDelete, setContactToDelete] = useState(null);
   const [viewingContact, setViewingContact] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [serverError, setServerError] = useState('');
+  const [savingContact, setSavingContact] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const projectTypes = useMemo(
     () => ['Web Application', 'Mobile App', 'Product Design', 'Consulting', 'Other'],
@@ -163,12 +137,48 @@ const AdminContactsPage = () => {
     []
   );
 
+  const loadContacts = async () => {
+    setLoading(true);
+    setServerError('');
+
+    try {
+      const token = localStorage.getItem('adminToken');
+
+      if (!token) {
+        throw new Error('Your session expired. Please log in again.');
+      }
+
+      const response = await fetch(apiUrl('/api/admin/contacts'), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to load contacts.');
+      }
+
+      setContactList((payload.contacts || []).map(normalizeContactFromApi));
+    } catch (error) {
+      console.error('Load contacts failed', error);
+      setServerError(error?.message || 'Unable to load contacts right now.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const rowsPerPage = 5;
   const [filterDraft, setFilterDraft] = useState(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
   const [page, setPage] = useState(1);
 
   const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
+
+  useEffect(() => {
+    loadContacts();
+  }, []);
 
   const filteredContacts = useMemo(
     () =>
@@ -203,32 +213,87 @@ const AdminContactsPage = () => {
   const openEditDialog = (contact) => {
     setEditingContact(contact);
     setEditForm({ ...contact });
+    setEditError('');
   };
 
   const closeEditDialog = () => {
     setEditingContact(null);
     setEditForm(null);
+    setEditError('');
   };
 
   const handleEditChange = (field, value) => {
     setEditForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!editForm) return;
 
-    setContactList((prev) =>
-      prev.map((contact) => (contact.email === editingContact.email ? { ...editForm } : contact))
-    );
-    closeEditDialog();
+    const trimmedName = editForm.name.trim();
+    const trimmedEmail = editForm.email.trim();
+    const trimmedDescription = (editForm.description || '').trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedDescription) {
+      setEditError('Name, email, and description are required.');
+      return;
+    }
+
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      setEditError('Your session expired. Please log in again.');
+      return;
+    }
+
+    setSavingContact(true);
+
+    try {
+      const response = await fetch(apiUrl(`/api/admin/contacts/${editForm.id}`), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          phone: editForm.phone ? editForm.phone.trim() : '',
+          countryCode: editForm.countryCode ? editForm.countryCode.trim() : '',
+          contactType: editForm.contactType,
+          projectType: editForm.projectType,
+          description: trimmedDescription,
+          status: editForm.status,
+        }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to update contact.');
+      }
+
+      setContactList((prev) =>
+        prev.map((contact) =>
+          contact.id === payload.contact.id ? normalizeContactFromApi(payload.contact) : contact
+        )
+      );
+      closeEditDialog();
+    } catch (error) {
+      console.error('Update contact failed', error);
+      setEditError(error?.message || 'Unable to update contact right now.');
+    } finally {
+      setSavingContact(false);
+    }
   };
 
   const openDeleteDialog = (contact) => {
     setContactToDelete(contact);
+    setServerError('');
   };
 
   const closeDeleteDialog = () => {
     setContactToDelete(null);
+    setDeleteLoading(false);
   };
 
   const openViewDialog = (contact) => {
@@ -239,10 +304,39 @@ const AdminContactsPage = () => {
     setViewingContact(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!contactToDelete) return;
-    setContactList((prev) => prev.filter((contact) => contact.email !== contactToDelete.email));
-    closeDeleteDialog();
+
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      setServerError('Your session expired. Please log in again.');
+      return;
+    }
+
+    setDeleteLoading(true);
+
+    try {
+      const response = await fetch(apiUrl(`/api/admin/contacts/${contactToDelete.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to delete contact.');
+      }
+
+      setContactList((prev) => prev.filter((contact) => contact.id !== contactToDelete.id));
+      closeDeleteDialog();
+    } catch (error) {
+      console.error('Delete contact failed', error);
+      setServerError(error?.message || 'Unable to delete contact right now.');
+      setDeleteLoading(false);
+    }
   };
 
   const applyFilters = () => {
@@ -293,6 +387,11 @@ const AdminContactsPage = () => {
               Review the latest messages sent through the public website contact form. Follow up with the leads to keep the
               pipeline active.
             </Typography>
+            {serverError && (
+              <Typography variant="body2" color="error.main">
+                {serverError}
+              </Typography>
+            )}
             <Divider sx={{ my: 1 }} />
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }}>
               <TextField
@@ -412,90 +511,102 @@ const AdminContactsPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {pagedContacts.map((contact) => (
-                    <TableRow key={contact.email} hover>
-                      <TableCell>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                          <Avatar>{contact.name.charAt(0)}</Avatar>
-                          <Typography variant="subtitle1" fontWeight={600}>
-                            {contact.name}
+                  {!loading &&
+                    pagedContacts.map((contact) => (
+                      <TableRow key={contact.id || contact.email} hover>
+                        <TableCell>
+                          <Stack direction="row" spacing={2} alignItems="center">
+                            <Avatar>{contact.name.charAt(0)}</Avatar>
+                            <Typography variant="subtitle1" fontWeight={600}>
+                              {contact.name}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Stack spacing={0.5}>
+                            <Typography variant="body2" color="text.secondary">
+                              {contact.email}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {contact.phone
+                                ? `${contact.countryCode ? `${contact.countryCode} · ` : ''}${contact.phone}`
+                                : '—'}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.primary" fontWeight={600} noWrap>
+                            {contact.contactType}
                           </Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Stack spacing={0.5}>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.primary" fontWeight={500}>
+                            {contact.projectType || '—'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 260 }}>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {contact.description}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
                           <Typography variant="body2" color="text.secondary">
-                            {contact.email}
+                            {contact.receivedOn || '-'}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {`${contact.countryCode} · ${contact.phone}`}
-                          </Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.primary" fontWeight={600} noWrap>
-                          {contact.contactType}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={contact.status}
+                            color={
+                              contact.status === 'New'
+                                ? 'primary'
+                                : contact.status === 'Replied'
+                                  ? 'success'
+                                  : contact.status === 'Closed'
+                                    ? 'secondary'
+                                    : 'warning'
+                            }
+                            size="small"
+                            sx={{ fontWeight: 600 }}
+                          />
+                        </TableCell>
+                        <TableCell align="right">
+                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Tooltip title="View details">
+                              <IconButton
+                                size="small"
+                                color="inherit"
+                                onClick={() => openViewDialog(contact)}
+                              >
+                                <VisibilityOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Edit">
+                              <IconButton size="small" color="primary" onClick={() => openEditDialog(contact)}>
+                                <EditOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton size="small" color="error" onClick={() => openDeleteDialog(contact)}>
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  {loading && (
+                    <TableRow>
+                      <TableCell colSpan={8}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          Loading contacts...
                         </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.primary" fontWeight={500}>
-                          {contact.projectType}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 260 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {contact.description}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {contact.receivedOn || '-'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={contact.status}
-                          color={
-                            contact.status === 'New'
-                              ? 'primary'
-                              : contact.status === 'Replied'
-                                ? 'success'
-                                : contact.status === 'Closed'
-                                  ? 'secondary'
-                                  : 'warning'
-                          }
-                          size="small"
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="View details">
-                            <IconButton
-                              size="small"
-                              color="inherit"
-                              onClick={() => openViewDialog(contact)}
-                            >
-                              <VisibilityOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Edit">
-                            <IconButton size="small" color="primary" onClick={() => openEditDialog(contact)}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton size="small" color="error" onClick={() => openDeleteDialog(contact)}>
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
                       </TableCell>
                     </TableRow>
-                  ))}
-                  {filteredContacts.length === 0 && (
+                  )}
+                  {!loading && filteredContacts.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7}>
+                      <TableCell colSpan={8}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No enquiries yet. Everything new will show up here.
                         </Typography>
@@ -521,6 +632,11 @@ const AdminContactsPage = () => {
         <DialogContent dividers>
           {editForm && (
             <Stack spacing={2} mt={1}>
+              {editError && (
+                <Typography variant="body2" color="error.main">
+                  {editError}
+                </Typography>
+              )}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField
                   label="Name"
@@ -607,7 +723,7 @@ const AdminContactsPage = () => {
           <Button onClick={closeEditDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleEditSave} variant="contained">
+          <Button onClick={handleEditSave} variant="contained" disabled={savingContact}>
             Save changes
           </Button>
         </DialogActions>
@@ -628,7 +744,7 @@ const AdminContactsPage = () => {
           <Button onClick={closeDeleteDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+          <Button onClick={handleConfirmDelete} color="error" variant="contained" disabled={deleteLoading}>
             Delete
           </Button>
         </DialogActions>
@@ -667,7 +783,11 @@ const AdminContactsPage = () => {
                   Contact
                 </Typography>
                 <Typography variant="body1">{viewingContact.email}</Typography>
-                <Typography variant="body1">{`${viewingContact.countryCode} · ${viewingContact.phone}`}</Typography>
+                <Typography variant="body1">
+                  {viewingContact.phone
+                    ? `${viewingContact.countryCode ? `${viewingContact.countryCode} · ` : ''}${viewingContact.phone}`
+                    : '—'}
+                </Typography>
               </Stack>
 
               <Stack spacing={1}>
@@ -675,7 +795,7 @@ const AdminContactsPage = () => {
                   Project type
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
-                  {viewingContact.projectType}
+                  {viewingContact.projectType || '—'}
                 </Typography>
               </Stack>
 
@@ -684,7 +804,7 @@ const AdminContactsPage = () => {
                   Contact type
                 </Typography>
                 <Typography variant="body1" fontWeight={600}>
-                  {viewingContact.contactType}
+                  {viewingContact.contactType || '—'}
                 </Typography>
               </Stack>
 

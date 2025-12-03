@@ -131,6 +131,21 @@ const formatFeedbackResponse = (feedback) => ({
   updatedAt: feedback.updatedAt,
 });
 
+const formatContactResponse = (contact) => ({
+  id: contact.id,
+  name: contact.name,
+  email: contact.email,
+  phone: contact.phone || '',
+  countryCode: contact.countryCode || '',
+  contactType: contact.contactType || 'General enquiry',
+  projectType: contact.projectType || '',
+  description: contact.description || contact.message || '',
+  status: contact.status || 'New',
+  receivedOn: contact.createdAt ? contact.createdAt.toISOString().split('T')[0] : null,
+  createdAt: contact.createdAt,
+  updatedAt: contact.updatedAt,
+});
+
 const parseBearerToken = (authorizationHeader) => {
   if (!authorizationHeader) return null;
   const parts = String(authorizationHeader).split(' ').filter(Boolean);
@@ -145,6 +160,41 @@ const invalidateExistingOtps = (email) =>
   prisma.otpVerification.deleteMany({
     where: { email },
   });
+
+const CONTACT_STATUSES = ['New', 'In progress', 'Replied', 'Closed'];
+
+const validateContactInput = (body, { allowStatusUpdate = false } = {}) => {
+  const name = normalizeText(body?.name);
+  const email = normalizeEmail(body?.email);
+  const phone = normalizeText(body?.phone) || null;
+  const countryCode = normalizeText(body?.countryCode)?.toUpperCase() || null;
+  const contactType = normalizeText(body?.contactType) || null;
+  const projectType = normalizeText(body?.projectType) || null;
+  const description = normalizeText(body?.description || body?.message);
+  const rawStatus = normalizeText(body?.status);
+  const statusMatch = rawStatus
+    ? CONTACT_STATUSES.find((value) => value.toLowerCase() === rawStatus.toLowerCase())
+    : null;
+  const status = statusMatch || 'New';
+
+  if (!name) {
+    return { error: 'Name is required.' };
+  }
+
+  if (!isValidEmail(email)) {
+    return { error: 'A valid email address is required.' };
+  }
+
+  if (!description) {
+    return { error: 'Description is required.' };
+  }
+
+  if (allowStatusUpdate && rawStatus && !statusMatch) {
+    return { error: 'Invalid status provided.' };
+  }
+
+  return { name, email, phone, countryCode, contactType, projectType, description, status: allowStatusUpdate ? status : 'New' };
+};
 
 const findActiveSession = async (token) => {
   if (!token) return null;
@@ -1370,6 +1420,131 @@ app.delete('/api/admin/hire-roles/:id', async (req, res) => {
   } catch (error) {
     console.error('Hire sub-category delete failed', error);
     return res.status(500).json({ message: 'Unable to delete hire sub-category right now.' });
+  }
+});
+
+// ---------- Contact Routes ----------
+
+app.post('/api/contact', async (req, res) => {
+  try {
+    const validation = validateContactInput(req.body || {});
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name, email, phone, countryCode, contactType, projectType, description, status } = validation;
+
+    await prisma.contactMessage.create({
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        countryCode: countryCode || null,
+        contactType: contactType || null,
+        projectType: projectType || null,
+        description,
+        message: description,
+        status,
+      },
+    });
+
+    return res.status(201).json({ message: 'Thanks! Your enquiry has been received.' });
+  } catch (error) {
+    console.error('Contact submission failed', error);
+    return res.status(500).json({ message: 'Unable to submit your enquiry right now.' });
+  }
+});
+
+app.get('/api/admin/contacts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const contacts = await prisma.contactMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ contacts: contacts.map(formatContactResponse) });
+  } catch (error) {
+    console.error('Contact list failed', error);
+    return res.status(500).json({ message: 'Unable to load contacts right now.' });
+  }
+});
+
+app.put('/api/admin/contacts/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const contactId = req.params.id?.trim();
+
+    if (!contactId) {
+      return res.status(400).json({ message: 'A valid contact id is required.' });
+    }
+
+    const validation = validateContactInput(req.body || {}, { allowStatusUpdate: true });
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const existing = await prisma.contactMessage.findUnique({ where: { id: contactId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Contact not found.' });
+    }
+
+    const { name, email, phone, countryCode, contactType, projectType, description, status: contactStatus } = validation;
+
+    const updated = await prisma.contactMessage.update({
+      where: { id: contactId },
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        countryCode: countryCode || null,
+        contactType: contactType || null,
+        projectType: projectType || null,
+        description,
+        message: description,
+        status: contactStatus,
+      },
+    });
+
+    return res.json({ contact: formatContactResponse(updated), message: 'Contact updated.' });
+  } catch (error) {
+    console.error('Contact update failed', error);
+    return res.status(500).json({ message: 'Unable to update contact right now.' });
+  }
+});
+
+app.delete('/api/admin/contacts/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const contactId = req.params.id?.trim();
+
+    if (!contactId) {
+      return res.status(400).json({ message: 'A valid contact id is required.' });
+    }
+
+    await prisma.contactMessage.delete({ where: { id: contactId } });
+
+    return res.json({ message: 'Contact deleted.' });
+  } catch (error) {
+    console.error('Contact delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete contact right now.' });
   }
 });
 

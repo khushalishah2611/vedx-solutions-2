@@ -152,9 +152,14 @@ model ContactMessage {
   id        String   @id @map("_id") @default(auto()) @db.ObjectId
   name      String
   email     String
+  phone     String?
+  countryCode String?
+  contactType String?
+  projectType String?
+  description String?
   subject   String?
-  message   String
-  status    String   @default("new")
+  message   String?
+  status    String   @default("New")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
