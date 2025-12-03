@@ -131,6 +131,117 @@ const formatFeedbackResponse = (feedback) => ({
   updatedAt: feedback.updatedAt,
 });
 
+const formatContactResponse = (contact) => ({
+  id: contact.id,
+  name: contact.name,
+  email: contact.email,
+  phone: contact.phone || '',
+  countryCode: contact.countryCode || '',
+  contactType: contact.contactType || 'General enquiry',
+  projectType: contact.projectType || '',
+  description: contact.description || contact.message || '',
+  status: contact.status || 'New',
+  receivedOn: contact.createdAt ? contact.createdAt.toISOString().split('T')[0] : null,
+  createdAt: contact.createdAt,
+  updatedAt: contact.updatedAt,
+});
+
+const formatProjectTypeResponse = (projectType) => ({
+  id: projectType.id,
+  name: projectType.name,
+  createdAt: projectType.createdAt,
+  updatedAt: projectType.updatedAt,
+});
+
+const formatBlogCategoryResponse = (category) => ({
+  id: category.id,
+  name: category.name,
+  createdAt: category.createdAt,
+  updatedAt: category.updatedAt,
+});
+
+const deriveBlogUiStatus = (status, publishDate) => {
+  const today = new Date().toISOString().split('T')[0];
+  if (status === 'DRAFT') return 'Draft';
+  if (publishDate && publishDate > today) return 'Scheduled';
+  return 'Published';
+};
+
+const formatBlogPostResponse = (post) => {
+  const publishDate = post.publishedAt ? post.publishedAt.toISOString().split('T')[0] : null;
+  return {
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    categoryId: post.categoryId || '',
+    category: post.category ? formatBlogCategoryResponse(post.category) : null,
+    publishDate,
+    description: post.summary || '',
+    conclusion: post.content || '',
+    status: deriveBlogUiStatus(post.status, publishDate),
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+  };
+};
+
+const EMPLOYMENT_LABELS = {
+  FULL_TIME: 'Full-time',
+  PART_TIME: 'Part-time',
+  CONTRACT: 'Contract',
+  INTERN: 'Intern',
+};
+
+const normalizeEmploymentType = (value) => {
+  const normalized = String(value ?? '')
+    .trim()
+    .toUpperCase()
+    .replace(/[-\s]/g, '_');
+
+  if (normalized === 'FULL_TIME') return 'FULL_TIME';
+  if (normalized === 'PART_TIME') return 'PART_TIME';
+  if (normalized === 'CONTRACT') return 'CONTRACT';
+  if (normalized === 'INTERN') return 'INTERN';
+
+  return 'FULL_TIME';
+};
+
+const formatEmploymentLabel = (value) => EMPLOYMENT_LABELS[value] || 'Full-time';
+
+const normalizeDateOnly = (value) => {
+  const parsed = value ? new Date(value) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return null;
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+};
+
+const formatCareerOpeningResponse = (opening) => ({
+  id: opening.id,
+  title: opening.title,
+  position: opening.position || opening.department || '',
+  experience: opening.experience || '',
+  employmentType: formatEmploymentLabel(opening.employmentType),
+  postedOn: opening.postedOn ? opening.postedOn.toISOString().split('T')[0] : opening.createdAt?.toISOString().split('T')[0],
+  description: opening.description || '',
+  imageUrl: opening.imageUrl || '',
+  createdAt: opening.createdAt,
+  updatedAt: opening.updatedAt,
+});
+
+const formatCareerApplicationResponse = (application) => ({
+  id: application.id,
+  name: application.name,
+  email: application.email,
+  contact: application.contact || '',
+  experience: application.experience || '',
+  employmentType: formatEmploymentLabel(application.employmentType),
+  appliedOn: application.appliedOn ? application.appliedOn.toISOString().split('T')[0] : application.createdAt?.toISOString().split('T')[0],
+  resumeUrl: application.resumeUrl || '',
+  notes: application.notes || '',
+  jobId: application.jobId || '',
+  job: application.job ? formatCareerOpeningResponse(application.job) : null,
+  createdAt: application.createdAt,
+  updatedAt: application.updatedAt,
+});
+
 const parseBearerToken = (authorizationHeader) => {
   if (!authorizationHeader) return null;
   const parts = String(authorizationHeader).split(' ').filter(Boolean);
@@ -145,6 +256,129 @@ const invalidateExistingOtps = (email) =>
   prisma.otpVerification.deleteMany({
     where: { email },
   });
+
+const CONTACT_STATUSES = ['New', 'In progress', 'Replied', 'Closed'];
+
+const validateContactInput = (body, { allowStatusUpdate = false } = {}) => {
+  const name = normalizeText(body?.name);
+  const email = normalizeEmail(body?.email);
+  const phone = normalizeText(body?.phone) || null;
+  const countryCode = normalizeText(body?.countryCode)?.toUpperCase() || null;
+  const contactType = normalizeText(body?.contactType) || null;
+  const projectType = normalizeText(body?.projectType) || null;
+  const description = normalizeText(body?.description || body?.message);
+  const rawStatus = normalizeText(body?.status);
+  const statusMatch = rawStatus
+    ? CONTACT_STATUSES.find((value) => value.toLowerCase() === rawStatus.toLowerCase())
+    : null;
+  const status = statusMatch || 'New';
+
+  if (!name) {
+    return { error: 'Name is required.' };
+  }
+
+  if (!isValidEmail(email)) {
+    return { error: 'A valid email address is required.' };
+  }
+
+  if (!description) {
+    return { error: 'Description is required.' };
+  }
+
+  if (allowStatusUpdate && rawStatus && !statusMatch) {
+    return { error: 'Invalid status provided.' };
+  }
+
+  return { name, email, phone, countryCode, contactType, projectType, description, status: allowStatusUpdate ? status : 'New' };
+};
+
+const validateProjectTypeInput = (body) => {
+  const name = normalizeText(body?.name);
+
+  if (!name) {
+    return { error: 'Project type name is required.' };
+  }
+
+  return { name };
+};
+
+const validateBlogCategoryInput = (body) => {
+  const name = normalizeText(body?.name);
+
+  if (!name) {
+    return { error: 'Category name is required.' };
+  }
+
+  return { name };
+};
+
+const normalizePublishDate = (value) => {
+  const parsed = value ? new Date(value) : new Date();
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+};
+
+const normalizeBlogStatus = (status) => {
+  const value = normalizeText(status).toLowerCase();
+  if (value === 'published') return 'Published';
+  if (value === 'scheduled') return 'Scheduled';
+  return 'Draft';
+};
+
+const mapUiStatusToPublishStatus = (status) => {
+  if (status === 'Published') return 'PUBLISHED';
+  if (status === 'Scheduled') return 'REVIEW';
+  return 'DRAFT';
+};
+
+const validateBlogPostInput = (body) => {
+  const title = normalizeText(body?.title);
+  const description = normalizeText(body?.description);
+  const conclusion = normalizeText(body?.conclusion);
+  const slugInput = normalizeText(body?.slug || body?.title);
+  const slug = normalizeSlug(slugInput) || `post-${Date.now()}`;
+  const publishDate = normalizePublishDate(body?.publishDate);
+  const status = normalizeBlogStatus(body?.status);
+  const categoryId = normalizeText(body?.categoryId) || null;
+
+  if (!title) return { error: 'Title is required.' };
+  if (!description) return { error: 'Description is required.' };
+
+  return { title, description, conclusion, slug, publishDate, status, categoryId };
+};
+
+const validateCareerOpeningInput = (body) => {
+  const title = normalizeText(body?.title);
+  const position = normalizeText(body?.position);
+  const experience = normalizeText(body?.experience) || null;
+  const description = normalizeText(body?.description);
+  const employmentType = normalizeEmploymentType(body?.employmentType);
+  const postedOn = normalizeDateOnly(body?.postedOn) || new Date();
+  const imageUrl = normalizeText(body?.imageUrl) || null;
+  const slugInput = normalizeSlug(body?.slug || body?.title) || `role-${Date.now()}`;
+
+  if (!title) return { error: 'Title is required.' };
+  if (!position) return { error: 'Position is required.' };
+  if (!description) return { error: 'Description is required.' };
+
+  return { title, position, experience, description, employmentType, postedOn, imageUrl, slug: slugInput };
+};
+
+const validateCareerApplicationInput = (body) => {
+  const name = normalizeText(body?.name);
+  const email = normalizeEmail(body?.email);
+  const contact = normalizeText(body?.contact) || null;
+  const experience = normalizeText(body?.experience) || null;
+  const employmentType = normalizeEmploymentType(body?.employmentType);
+  const appliedOn = normalizeDateOnly(body?.appliedOn) || new Date();
+  const resumeUrl = normalizeText(body?.resumeUrl) || null;
+  const notes = normalizeText(body?.notes) || null;
+  const jobId = normalizeText(body?.jobId) || null;
+
+  if (!name) return { error: 'Name is required.' };
+  if (!email || !isValidEmail(email)) return { error: 'A valid email is required.' };
+
+  return { name, email, contact, experience, employmentType, appliedOn, resumeUrl, notes, jobId };
+};
 
 const findActiveSession = async (token) => {
   if (!token) return null;
@@ -1373,6 +1607,567 @@ app.delete('/api/admin/hire-roles/:id', async (req, res) => {
   }
 });
 
+// ---------- Project Type Routes ----------
+
+app.get('/api/project-types', async (req, res) => {
+  try {
+    const projectTypes = await prisma.projectType.findMany({
+      orderBy: { name: 'asc' },
+    });
+
+    return res.json({ projectTypes: projectTypes.map(formatProjectTypeResponse) });
+  } catch (error) {
+    console.error('Project type list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load project types right now.' });
+  }
+});
+
+app.get('/api/admin/project-types', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const projectTypes = await prisma.projectType.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ projectTypes: projectTypes.map(formatProjectTypeResponse) });
+  } catch (error) {
+    console.error('Project type list failed', error);
+    return res.status(500).json({ message: 'Unable to load project types right now.' });
+  }
+});
+
+app.post('/api/admin/project-types', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateProjectTypeInput(req.body || {});
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name } = validation;
+
+    const created = await prisma.projectType.create({
+      data: { name },
+    });
+
+    return res.status(201).json({ projectType: formatProjectTypeResponse(created) });
+  } catch (error) {
+    console.error('Project type create failed', error);
+
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A project type with this name already exists.' });
+    }
+
+    return res.status(500).json({ message: 'Unable to create project type right now.' });
+  }
+});
+
+app.put('/api/admin/project-types/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const projectTypeId = req.params.id?.trim();
+
+    if (!projectTypeId) {
+      return res.status(400).json({ message: 'A valid project type id is required.' });
+    }
+
+    const validation = validateProjectTypeInput(req.body || {});
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const existing = await prisma.projectType.findUnique({ where: { id: projectTypeId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Project type not found.' });
+    }
+
+    const { name } = validation;
+
+    const updated = await prisma.projectType.update({
+      where: { id: projectTypeId },
+      data: { name },
+    });
+
+    return res.json({ projectType: formatProjectTypeResponse(updated), message: 'Project type updated.' });
+  } catch (error) {
+    console.error('Project type update failed', error);
+
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A project type with this name already exists.' });
+    }
+
+    return res.status(500).json({ message: 'Unable to update project type right now.' });
+  }
+});
+
+app.delete('/api/admin/project-types/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const projectTypeId = req.params.id?.trim();
+
+    if (!projectTypeId) {
+      return res.status(400).json({ message: 'A valid project type id is required.' });
+    }
+
+    const existing = await prisma.projectType.findUnique({ where: { id: projectTypeId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Project type not found.' });
+    }
+
+    await prisma.projectType.delete({ where: { id: projectTypeId } });
+
+    return res.json({ message: 'Project type deleted.' });
+  } catch (error) {
+    console.error('Project type delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete project type right now.' });
+  }
+});
+
+// ---------- Blog Category Routes ----------
+
+app.get('/api/blog-categories', async (req, res) => {
+  try {
+    const categories = await prisma.blogCategory.findMany({ orderBy: { name: 'asc' } });
+    return res.json({ categories: categories.map(formatBlogCategoryResponse) });
+  } catch (error) {
+    console.error('Blog category list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load blog categories right now.' });
+  }
+});
+
+app.get('/api/admin/blog-categories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categories = await prisma.blogCategory.findMany({ orderBy: { createdAt: 'desc' } });
+    return res.json({ categories: categories.map(formatBlogCategoryResponse) });
+  } catch (error) {
+    console.error('Blog category list failed', error);
+    return res.status(500).json({ message: 'Unable to load blog categories right now.' });
+  }
+});
+
+app.post('/api/admin/blog-categories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateBlogCategoryInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.blogCategory.create({ data: { name: validation.name } });
+    return res.status(201).json({ category: formatBlogCategoryResponse(created) });
+  } catch (error) {
+    console.error('Blog category create failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A category with this name already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to create category right now.' });
+  }
+});
+
+app.put('/api/admin/blog-categories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categoryId = req.params.id?.trim();
+    if (!categoryId) return res.status(400).json({ message: 'A valid category id is required.' });
+
+    const validation = validateBlogCategoryInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
+    if (!existing) return res.status(404).json({ message: 'Category not found.' });
+
+    const updated = await prisma.blogCategory.update({
+      where: { id: categoryId },
+      data: { name: validation.name },
+    });
+
+    return res.json({ category: formatBlogCategoryResponse(updated), message: 'Category updated.' });
+  } catch (error) {
+    console.error('Blog category update failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A category with this name already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to update category right now.' });
+  }
+});
+
+app.delete('/api/admin/blog-categories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categoryId = req.params.id?.trim();
+    if (!categoryId) return res.status(400).json({ message: 'A valid category id is required.' });
+
+    const existing = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
+    if (!existing) return res.status(404).json({ message: 'Category not found.' });
+
+    await prisma.$transaction([
+      prisma.blogPost.updateMany({ where: { categoryId }, data: { categoryId: null } }),
+      prisma.blogCategory.delete({ where: { id: categoryId } }),
+    ]);
+
+    return res.json({ message: 'Category deleted.' });
+  } catch (error) {
+    console.error('Blog category delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete category right now.' });
+  }
+});
+
+// ---------- Blog Post Routes ----------
+
+app.get('/api/blog-posts', async (req, res) => {
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: { publishedAt: 'desc' },
+      include: { category: true },
+    });
+
+    const today = new Date();
+    const published = posts.filter((post) => !post.publishedAt || post.publishedAt <= today);
+
+    return res.json({ posts: published.map(formatBlogPostResponse) });
+  } catch (error) {
+    console.error('Blog post list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load blog posts right now.' });
+  }
+});
+
+app.get('/api/admin/blog-posts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const posts = await prisma.blogPost.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { category: true },
+    });
+
+    return res.json({ posts: posts.map(formatBlogPostResponse) });
+  } catch (error) {
+    console.error('Blog post list failed', error);
+    return res.status(500).json({ message: 'Unable to load blog posts right now.' });
+  }
+});
+
+app.post('/api/admin/blog-posts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateBlogPostInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const { title, description, conclusion, slug, publishDate, status: uiStatus, categoryId } = validation;
+
+    if (categoryId) {
+      const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
+      if (!categoryExists) return res.status(404).json({ message: 'Selected category not found.' });
+    }
+
+    const created = await prisma.blogPost.create({
+      data: {
+        title,
+        slug,
+        summary: description,
+        content: conclusion || description,
+        status: mapUiStatusToPublishStatus(uiStatus),
+        publishedAt: publishDate,
+        categoryId: categoryId || null,
+      },
+      include: { category: true },
+    });
+
+    return res.status(201).json({ post: formatBlogPostResponse(created) });
+  } catch (error) {
+    console.error('Blog post create failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A blog post with this slug already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to create blog post right now.' });
+  }
+});
+
+app.put('/api/admin/blog-posts/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const postId = req.params.id?.trim();
+    if (!postId) return res.status(400).json({ message: 'A valid blog post id is required.' });
+
+    const validation = validateBlogPostInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
+    if (!existing) return res.status(404).json({ message: 'Blog post not found.' });
+
+    const { title, description, conclusion, slug, publishDate, status: uiStatus, categoryId } = validation;
+
+    if (categoryId) {
+      const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
+      if (!categoryExists) return res.status(404).json({ message: 'Selected category not found.' });
+    }
+
+    const updated = await prisma.blogPost.update({
+      where: { id: postId },
+      data: {
+        title,
+        slug,
+        summary: description,
+        content: conclusion || description,
+        status: mapUiStatusToPublishStatus(uiStatus),
+        publishedAt: publishDate,
+        categoryId: categoryId || null,
+      },
+      include: { category: true },
+    });
+
+    return res.json({ post: formatBlogPostResponse(updated), message: 'Blog post updated.' });
+  } catch (error) {
+    console.error('Blog post update failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A blog post with this slug already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to update blog post right now.' });
+  }
+});
+
+app.delete('/api/admin/blog-posts/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const postId = req.params.id?.trim();
+    if (!postId) return res.status(400).json({ message: 'A valid blog post id is required.' });
+
+    const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
+    if (!existing) return res.status(404).json({ message: 'Blog post not found.' });
+
+    await prisma.blogPost.delete({ where: { id: postId } });
+    return res.json({ message: 'Blog post deleted.' });
+  } catch (error) {
+    console.error('Blog post delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete blog post right now.' });
+  }
+});
+
+// ---------- Contact Routes ----------
+
+app.post('/api/contact', async (req, res) => {
+  try {
+    const validation = validateContactInput(req.body || {});
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name, email, phone, countryCode, contactType, projectType, description, status } = validation;
+
+    await prisma.contactMessage.create({
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        countryCode: countryCode || null,
+        contactType: contactType || null,
+        projectType: projectType || null,
+        description,
+        message: description,
+        status,
+      },
+    });
+
+    return res.status(201).json({ message: 'Thanks! Your enquiry has been received.' });
+  } catch (error) {
+    console.error('Contact submission failed', error);
+    return res.status(500).json({ message: 'Unable to submit your enquiry right now.' });
+  }
+});
+
+app.get('/api/admin/contacts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const contacts = await prisma.contactMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ contacts: contacts.map(formatContactResponse) });
+  } catch (error) {
+    console.error('Contact list failed', error);
+    return res.status(500).json({ message: 'Unable to load contacts right now.' });
+  }
+});
+
+app.post('/api/admin/contacts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateContactInput(req.body || {}, { allowStatusUpdate: true });
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name, email, phone, countryCode, contactType, projectType, description, status: contactStatus } = validation;
+
+    const created = await prisma.contactMessage.create({
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        countryCode: countryCode || null,
+        contactType: contactType || null,
+        projectType: projectType || null,
+        description,
+        message: description,
+        status: contactStatus,
+      },
+    });
+
+    return res.status(201).json({ contact: formatContactResponse(created), message: 'Contact created.' });
+  } catch (error) {
+    console.error('Contact create failed', error);
+    return res.status(500).json({ message: 'Unable to create contact right now.' });
+  }
+});
+
+app.put('/api/admin/contacts/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const contactId = req.params.id?.trim();
+
+    if (!contactId) {
+      return res.status(400).json({ message: 'A valid contact id is required.' });
+    }
+
+    const validation = validateContactInput(req.body || {}, { allowStatusUpdate: true });
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const existing = await prisma.contactMessage.findUnique({ where: { id: contactId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Contact not found.' });
+    }
+
+    const { name, email, phone, countryCode, contactType, projectType, description, status: contactStatus } = validation;
+
+    const updated = await prisma.contactMessage.update({
+      where: { id: contactId },
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        countryCode: countryCode || null,
+        contactType: contactType || null,
+        projectType: projectType || null,
+        description,
+        message: description,
+        status: contactStatus,
+      },
+    });
+
+    return res.json({ contact: formatContactResponse(updated), message: 'Contact updated.' });
+  } catch (error) {
+    console.error('Contact update failed', error);
+    return res.status(500).json({ message: 'Unable to update contact right now.' });
+  }
+});
+
+app.delete('/api/admin/contacts/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const contactId = req.params.id?.trim();
+
+    if (!contactId) {
+      return res.status(400).json({ message: 'A valid contact id is required.' });
+    }
+
+    await prisma.contactMessage.delete({ where: { id: contactId } });
+
+    return res.json({ message: 'Contact deleted.' });
+  } catch (error) {
+    console.error('Contact delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete contact right now.' });
+  }
+});
+
 // ---------- Feedback Routes ----------
 
 app.get('/api/admin/feedbacks', async (req, res) => {
@@ -1511,6 +2306,319 @@ app.delete('/api/admin/feedbacks/:id', async (req, res) => {
   } catch (error) {
     console.error('Feedback delete failed', error);
     return res.status(500).json({ message: 'Unable to delete feedback right now.' });
+  }
+});
+
+// ---------- Careers (jobs & applications) ----------
+
+app.get('/api/careers/jobs', async (_req, res) => {
+  try {
+    const jobs = await prisma.careerOpening.findMany({
+      where: { isOpen: true },
+      orderBy: [{ postedOn: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    return res.json({ jobs: jobs.map(formatCareerOpeningResponse) });
+  } catch (error) {
+    console.error('Public career openings fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load openings.' });
+  }
+});
+
+app.post('/api/careers/applications', async (req, res) => {
+  try {
+    const validation = validateCareerApplicationInput(req.body || {});
+
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const { name, email, contact, experience, employmentType, appliedOn, resumeUrl, notes, jobId } = validation;
+
+    if (jobId) {
+      const exists = await prisma.careerOpening.findUnique({ where: { id: jobId } });
+      if (!exists) return res.status(404).json({ message: 'Selected job was not found.' });
+    }
+
+    const application = await prisma.careerApplication.create({
+      data: {
+        name,
+        email,
+        contact,
+        experience,
+        employmentType,
+        appliedOn,
+        resumeUrl,
+        notes,
+        jobId: jobId || null,
+      },
+      include: { job: true },
+    });
+
+    return res.status(201).json({
+      application: formatCareerApplicationResponse(application),
+      message: 'Application submitted successfully.',
+    });
+  } catch (error) {
+    console.error('Public career application failed', error);
+    return res.status(500).json({ message: 'Unable to submit application right now.' });
+  }
+});
+
+app.get('/api/admin/careers/jobs', async (req, res) => {
+  const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+  if (!admin) {
+    const code = status || 401;
+    return res.status(code).json({ message: message || 'Session token missing.' });
+  }
+
+  try {
+    const jobs = await prisma.careerOpening.findMany({
+      orderBy: [{ postedOn: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    return res.json({ jobs: jobs.map(formatCareerOpeningResponse) });
+  } catch (error) {
+    console.error('Admin career openings fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load career openings right now.' });
+  }
+});
+
+app.post('/api/admin/careers/jobs', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateCareerOpeningInput(req.body || {});
+
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    let { slug } = validation;
+    const { title, position, experience, description, employmentType, postedOn, imageUrl } = validation;
+
+    const existingSlug = await prisma.careerOpening.findUnique({ where: { slug } });
+    if (existingSlug) {
+      slug = `${slug}-${Date.now().toString(36)}`;
+    }
+
+    const created = await prisma.careerOpening.create({
+      data: {
+        title,
+        slug,
+        position,
+        employmentType,
+        experience,
+        description,
+        postedOn,
+        imageUrl,
+      },
+    });
+
+    return res.status(201).json({ job: formatCareerOpeningResponse(created), message: 'Job created.' });
+  } catch (error) {
+    console.error('Career opening create failed', error);
+    return res.status(500).json({ message: 'Unable to create job right now.' });
+  }
+});
+
+app.put('/api/admin/careers/jobs/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const jobId = req.params.id?.trim();
+    if (!jobId) return res.status(400).json({ message: 'A valid job id is required.' });
+
+    const validation = validateCareerOpeningInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.careerOpening.findUnique({ where: { id: jobId } });
+    if (!existing) return res.status(404).json({ message: 'Job not found.' });
+
+    let { slug } = validation;
+    const { title, position, experience, description, employmentType, postedOn, imageUrl } = validation;
+
+    const slugConflict = await prisma.careerOpening.findUnique({ where: { slug } });
+    if (slugConflict && slugConflict.id !== jobId) {
+      slug = `${slug}-${Date.now().toString(36)}`;
+    }
+
+    const updated = await prisma.careerOpening.update({
+      where: { id: jobId },
+      data: {
+        title,
+        slug,
+        position,
+        employmentType,
+        experience,
+        description,
+        postedOn,
+        imageUrl,
+      },
+    });
+
+    return res.json({ job: formatCareerOpeningResponse(updated), message: 'Job updated.' });
+  } catch (error) {
+    console.error('Career opening update failed', error);
+    return res.status(500).json({ message: 'Unable to update job right now.' });
+  }
+});
+
+app.delete('/api/admin/careers/jobs/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const jobId = req.params.id?.trim();
+    if (!jobId) return res.status(400).json({ message: 'A valid job id is required.' });
+
+    await prisma.careerOpening.delete({ where: { id: jobId } });
+
+    return res.json({ message: 'Job deleted.' });
+  } catch (error) {
+    console.error('Career opening delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete job right now.' });
+  }
+});
+
+app.get('/api/admin/careers/applications', async (req, res) => {
+  const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+  if (!admin) {
+    const code = status || 401;
+    return res.status(code).json({ message: message || 'Session token missing.' });
+  }
+
+  try {
+    const jobId = req.query?.jobId ? String(req.query.jobId) : null;
+    const applications = await prisma.careerApplication.findMany({
+      where: jobId ? { jobId } : {},
+      include: { job: true },
+      orderBy: [{ appliedOn: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    return res.json({ applications: applications.map(formatCareerApplicationResponse) });
+  } catch (error) {
+    console.error('Admin career applications fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load applications right now.' });
+  }
+});
+
+app.post('/api/admin/careers/applications', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateCareerApplicationInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const { name, email, contact, experience, employmentType, appliedOn, resumeUrl, notes, jobId } = validation;
+
+    if (jobId) {
+      const exists = await prisma.careerOpening.findUnique({ where: { id: jobId } });
+      if (!exists) return res.status(404).json({ message: 'Selected job was not found.' });
+    }
+
+    const application = await prisma.careerApplication.create({
+      data: {
+        name,
+        email,
+        contact,
+        experience,
+        employmentType,
+        appliedOn,
+        resumeUrl,
+        notes,
+        jobId: jobId || null,
+      },
+      include: { job: true },
+    });
+
+    return res.status(201).json({
+      application: formatCareerApplicationResponse(application),
+      message: 'Application created.',
+    });
+  } catch (error) {
+    console.error('Career application create failed', error);
+    return res.status(500).json({ message: 'Unable to create application right now.' });
+  }
+});
+
+app.put('/api/admin/careers/applications/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const applicationId = req.params.id?.trim();
+    if (!applicationId) return res.status(400).json({ message: 'A valid application id is required.' });
+
+    const validation = validateCareerApplicationInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.careerApplication.findUnique({ where: { id: applicationId } });
+    if (!existing) return res.status(404).json({ message: 'Application not found.' });
+
+    const { name, email, contact, experience, employmentType, appliedOn, resumeUrl, notes, jobId } = validation;
+
+    if (jobId) {
+      const exists = await prisma.careerOpening.findUnique({ where: { id: jobId } });
+      if (!exists) return res.status(404).json({ message: 'Selected job was not found.' });
+    }
+
+    const updated = await prisma.careerApplication.update({
+      where: { id: applicationId },
+      data: {
+        name,
+        email,
+        contact,
+        experience,
+        employmentType,
+        appliedOn,
+        resumeUrl,
+        notes,
+        jobId: jobId || null,
+      },
+      include: { job: true },
+    });
+
+    return res.json({ application: formatCareerApplicationResponse(updated), message: 'Application updated.' });
+  } catch (error) {
+    console.error('Career application update failed', error);
+    return res.status(500).json({ message: 'Unable to update application right now.' });
+  }
+});
+
+app.delete('/api/admin/careers/applications/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const applicationId = req.params.id?.trim();
+    if (!applicationId) return res.status(400).json({ message: 'A valid application id is required.' });
+
+    await prisma.careerApplication.delete({ where: { id: applicationId } });
+
+    return res.json({ message: 'Application deleted.' });
+  } catch (error) {
+    console.error('Career application delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete application right now.' });
   }
 });
 
