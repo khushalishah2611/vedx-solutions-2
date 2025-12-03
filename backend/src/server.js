@@ -153,6 +153,37 @@ const formatProjectTypeResponse = (projectType) => ({
   updatedAt: projectType.updatedAt,
 });
 
+const formatBlogCategoryResponse = (category) => ({
+  id: category.id,
+  name: category.name,
+  createdAt: category.createdAt,
+  updatedAt: category.updatedAt,
+});
+
+const deriveBlogUiStatus = (status, publishDate) => {
+  const today = new Date().toISOString().split('T')[0];
+  if (status === 'DRAFT') return 'Draft';
+  if (publishDate && publishDate > today) return 'Scheduled';
+  return 'Published';
+};
+
+const formatBlogPostResponse = (post) => {
+  const publishDate = post.publishedAt ? post.publishedAt.toISOString().split('T')[0] : null;
+  return {
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    categoryId: post.categoryId || '',
+    category: post.category ? formatBlogCategoryResponse(post.category) : null,
+    publishDate,
+    description: post.summary || '',
+    conclusion: post.content || '',
+    status: deriveBlogUiStatus(post.status, publishDate),
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+  };
+};
+
 const parseBearerToken = (authorizationHeader) => {
   if (!authorizationHeader) return null;
   const parts = String(authorizationHeader).split(' ').filter(Boolean);
@@ -211,6 +242,50 @@ const validateProjectTypeInput = (body) => {
   }
 
   return { name };
+};
+
+const validateBlogCategoryInput = (body) => {
+  const name = normalizeText(body?.name);
+
+  if (!name) {
+    return { error: 'Category name is required.' };
+  }
+
+  return { name };
+};
+
+const normalizePublishDate = (value) => {
+  const parsed = value ? new Date(value) : new Date();
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+};
+
+const normalizeBlogStatus = (status) => {
+  const value = normalizeText(status).toLowerCase();
+  if (value === 'published') return 'Published';
+  if (value === 'scheduled') return 'Scheduled';
+  return 'Draft';
+};
+
+const mapUiStatusToPublishStatus = (status) => {
+  if (status === 'Published') return 'PUBLISHED';
+  if (status === 'Scheduled') return 'REVIEW';
+  return 'DRAFT';
+};
+
+const validateBlogPostInput = (body) => {
+  const title = normalizeText(body?.title);
+  const description = normalizeText(body?.description);
+  const conclusion = normalizeText(body?.conclusion);
+  const slugInput = normalizeText(body?.slug || body?.title);
+  const slug = normalizeSlug(slugInput) || `post-${Date.now()}`;
+  const publishDate = normalizePublishDate(body?.publishDate);
+  const status = normalizeBlogStatus(body?.status);
+  const categoryId = normalizeText(body?.categoryId) || null;
+
+  if (!title) return { error: 'Title is required.' };
+  if (!description) return { error: 'Description is required.' };
+
+  return { title, description, conclusion, slug, publishDate, status, categoryId };
 };
 
 const findActiveSession = async (token) => {
@@ -1577,6 +1652,265 @@ app.delete('/api/admin/project-types/:id', async (req, res) => {
   } catch (error) {
     console.error('Project type delete failed', error);
     return res.status(500).json({ message: 'Unable to delete project type right now.' });
+  }
+});
+
+// ---------- Blog Category Routes ----------
+
+app.get('/api/blog-categories', async (req, res) => {
+  try {
+    const categories = await prisma.blogCategory.findMany({ orderBy: { name: 'asc' } });
+    return res.json({ categories: categories.map(formatBlogCategoryResponse) });
+  } catch (error) {
+    console.error('Blog category list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load blog categories right now.' });
+  }
+});
+
+app.get('/api/admin/blog-categories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categories = await prisma.blogCategory.findMany({ orderBy: { createdAt: 'desc' } });
+    return res.json({ categories: categories.map(formatBlogCategoryResponse) });
+  } catch (error) {
+    console.error('Blog category list failed', error);
+    return res.status(500).json({ message: 'Unable to load blog categories right now.' });
+  }
+});
+
+app.post('/api/admin/blog-categories', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateBlogCategoryInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.blogCategory.create({ data: { name: validation.name } });
+    return res.status(201).json({ category: formatBlogCategoryResponse(created) });
+  } catch (error) {
+    console.error('Blog category create failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A category with this name already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to create category right now.' });
+  }
+});
+
+app.put('/api/admin/blog-categories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categoryId = req.params.id?.trim();
+    if (!categoryId) return res.status(400).json({ message: 'A valid category id is required.' });
+
+    const validation = validateBlogCategoryInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
+    if (!existing) return res.status(404).json({ message: 'Category not found.' });
+
+    const updated = await prisma.blogCategory.update({
+      where: { id: categoryId },
+      data: { name: validation.name },
+    });
+
+    return res.json({ category: formatBlogCategoryResponse(updated), message: 'Category updated.' });
+  } catch (error) {
+    console.error('Blog category update failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A category with this name already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to update category right now.' });
+  }
+});
+
+app.delete('/api/admin/blog-categories/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const categoryId = req.params.id?.trim();
+    if (!categoryId) return res.status(400).json({ message: 'A valid category id is required.' });
+
+    const existing = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
+    if (!existing) return res.status(404).json({ message: 'Category not found.' });
+
+    await prisma.$transaction([
+      prisma.blogPost.updateMany({ where: { categoryId }, data: { categoryId: null } }),
+      prisma.blogCategory.delete({ where: { id: categoryId } }),
+    ]);
+
+    return res.json({ message: 'Category deleted.' });
+  } catch (error) {
+    console.error('Blog category delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete category right now.' });
+  }
+});
+
+// ---------- Blog Post Routes ----------
+
+app.get('/api/blog-posts', async (req, res) => {
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: { publishedAt: 'desc' },
+      include: { category: true },
+    });
+
+    const today = new Date();
+    const published = posts.filter((post) => !post.publishedAt || post.publishedAt <= today);
+
+    return res.json({ posts: published.map(formatBlogPostResponse) });
+  } catch (error) {
+    console.error('Blog post list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load blog posts right now.' });
+  }
+});
+
+app.get('/api/admin/blog-posts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const posts = await prisma.blogPost.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { category: true },
+    });
+
+    return res.json({ posts: posts.map(formatBlogPostResponse) });
+  } catch (error) {
+    console.error('Blog post list failed', error);
+    return res.status(500).json({ message: 'Unable to load blog posts right now.' });
+  }
+});
+
+app.post('/api/admin/blog-posts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateBlogPostInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const { title, description, conclusion, slug, publishDate, status: uiStatus, categoryId } = validation;
+
+    if (categoryId) {
+      const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
+      if (!categoryExists) return res.status(404).json({ message: 'Selected category not found.' });
+    }
+
+    const created = await prisma.blogPost.create({
+      data: {
+        title,
+        slug,
+        summary: description,
+        content: conclusion || description,
+        status: mapUiStatusToPublishStatus(uiStatus),
+        publishedAt: publishDate,
+        categoryId: categoryId || null,
+      },
+      include: { category: true },
+    });
+
+    return res.status(201).json({ post: formatBlogPostResponse(created) });
+  } catch (error) {
+    console.error('Blog post create failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A blog post with this slug already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to create blog post right now.' });
+  }
+});
+
+app.put('/api/admin/blog-posts/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const postId = req.params.id?.trim();
+    if (!postId) return res.status(400).json({ message: 'A valid blog post id is required.' });
+
+    const validation = validateBlogPostInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
+    if (!existing) return res.status(404).json({ message: 'Blog post not found.' });
+
+    const { title, description, conclusion, slug, publishDate, status: uiStatus, categoryId } = validation;
+
+    if (categoryId) {
+      const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
+      if (!categoryExists) return res.status(404).json({ message: 'Selected category not found.' });
+    }
+
+    const updated = await prisma.blogPost.update({
+      where: { id: postId },
+      data: {
+        title,
+        slug,
+        summary: description,
+        content: conclusion || description,
+        status: mapUiStatusToPublishStatus(uiStatus),
+        publishedAt: publishDate,
+        categoryId: categoryId || null,
+      },
+      include: { category: true },
+    });
+
+    return res.json({ post: formatBlogPostResponse(updated), message: 'Blog post updated.' });
+  } catch (error) {
+    console.error('Blog post update failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A blog post with this slug already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to update blog post right now.' });
+  }
+});
+
+app.delete('/api/admin/blog-posts/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const postId = req.params.id?.trim();
+    if (!postId) return res.status(400).json({ message: 'A valid blog post id is required.' });
+
+    const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
+    if (!existing) return res.status(404).json({ message: 'Blog post not found.' });
+
+    await prisma.blogPost.delete({ where: { id: postId } });
+    return res.json({ message: 'Blog post deleted.' });
+  } catch (error) {
+    console.error('Blog post delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete blog post right now.' });
   }
 });
 

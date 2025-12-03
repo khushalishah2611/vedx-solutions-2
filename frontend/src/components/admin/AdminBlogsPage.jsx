@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Box,
   Button,
   Card,
   CardContent,
@@ -29,43 +28,22 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import { blogPosts } from '../../data/blogs.js';
+import { apiUrl } from '../../utils/const.js';
 
 const normalizeDateInput = (value) => {
-  const parsed = new Date(value);
+  const parsed = value ? new Date(value) : new Date();
   if (Number.isNaN(parsed.getTime())) return new Date().toISOString().split('T')[0];
   return parsed.toISOString().split('T')[0];
 };
 
-const normalizeConclusion = (conclusion) => {
-  if (typeof conclusion === 'string') return conclusion;
-  if (conclusion?.paragraphs?.length) {
-    return conclusion.paragraphs.join('\n\n');
-  }
-  return '';
-};
-
-const deriveStatusFromDate = (blog) => {
-  const publishDate = normalizeDateInput(blog.publishDate);
+const deriveStatusFromDate = (status, publishDate) => {
+  const normalizedDate = normalizeDateInput(publishDate);
   const today = new Date().toISOString().split('T')[0];
 
-  if (blog.status === 'Draft') return 'Draft';
-  if (publishDate > today) return 'Scheduled';
+  if (status === 'Draft') return 'Draft';
+  if (normalizedDate > today) return 'Scheduled';
   return 'Published';
 };
-
-const mapBlogPostsToRows = (posts) =>
-  posts.slice(0, 5).map((post) => ({
-    id: post.slug,
-    title: post.title,
-    category: post.category,
-    publishDate: normalizeDateInput(post.publishedOn),
-    description: post.excerpt,
-    conclusion: normalizeConclusion(post.conclusion),
-    status: 'Published',
-    textColor: '#1f2937',
-    isBold: false
-  })).map((blog) => ({ ...blog, status: deriveStatusFromDate(blog) }));
 
 const dateFilterOptions = [
   { value: 'all', label: 'All dates' },
@@ -120,29 +98,42 @@ const matchesDateFilter = (value, filter, range) => {
 };
 
 const defaultBlogFilters = { category: 'all', status: 'all', date: 'all', start: '', end: '' };
+const statusOptions = ['Draft', 'Published', 'Scheduled'];
+
+const mapApiBlogToRow = (blog) => ({
+  id: blog.id,
+  title: blog.title,
+  category: blog.category?.name || 'Uncategorized',
+  categoryId: blog.categoryId || '',
+  publishDate: blog.publishDate ? normalizeDateInput(blog.publishDate) : new Date().toISOString().split('T')[0],
+  description: blog.description || '',
+  conclusion: blog.conclusion || '',
+  status: deriveStatusFromDate(blog.status, blog.publishDate),
+});
 
 const AdminBlogsPage = () => {
-  const categoryOptions = useMemo(
-    () => Array.from(new Set(blogPosts.map((post) => post.category))),
-    []
-  );
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [categoriesError, setCategoriesError] = useState('');
 
-  const [blogList, setBlogList] = useState(mapBlogPostsToRows(blogPosts));
+  const [blogList, setBlogList] = useState([]);
+  const [blogsError, setBlogsError] = useState('');
+  const [loadingBlogs, setLoadingBlogs] = useState(false);
 
   const [dialogMode, setDialogMode] = useState('create'); // 'create' | 'edit'
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeBlog, setActiveBlog] = useState(null);
+  const [savingBlog, setSavingBlog] = useState(false);
+  const [dialogError, setDialogError] = useState('');
 
   const [formState, setFormState] = useState({
     id: '',
     title: '',
-    category: categoryOptions[0] || 'General',
+    categoryId: '',
     publishDate: new Date().toISOString().split('T')[0],
     description: '',
     conclusion: '',
     status: 'Draft',
-    textColor: '#1f2937',
-    isBold: false
   });
 
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -155,25 +146,63 @@ const AdminBlogsPage = () => {
   const [filterDraft, setFilterDraft] = useState(defaultBlogFilters);
   const [appliedFilters, setAppliedFilters] = useState(defaultBlogFilters);
 
-  useEffect(() => {
-    const normalizedBlogs = blogList.map((blog) => {
-      const nextStatus = deriveStatusFromDate(blog);
-      if (nextStatus !== blog.status) {
-        return { ...blog, status: nextStatus };
-      }
-      return blog;
-    });
+  const token = useMemo(() => localStorage.getItem('adminToken'), []);
 
-    const hasChanges = normalizedBlogs.some((blog, index) => blog !== blogList[index]);
-    if (hasChanges) {
-      setBlogList(normalizedBlogs);
+  const loadCategories = async () => {
+    setLoadingCategories(true);
+    setCategoriesError('');
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl('/api/admin/blog-categories'), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to load categories.');
+      setCategoryOptions(payload.categories || []);
+    } catch (error) {
+      console.error('Load blog categories failed', error);
+      setCategoryOptions([]);
+      setCategoriesError(error?.message || 'Unable to load categories right now.');
+    } finally {
+      setLoadingCategories(false);
     }
-  }, [blogList]);
+  };
+
+  const loadBlogs = async () => {
+    setLoadingBlogs(true);
+    setBlogsError('');
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl('/api/admin/blog-posts'), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to load blogs.');
+      setBlogList((payload.posts || []).map(mapApiBlogToRow));
+    } catch (error) {
+      console.error('Load blogs failed', error);
+      setBlogList([]);
+      setBlogsError(error?.message || 'Unable to load blogs right now.');
+    } finally {
+      setLoadingBlogs(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCategories();
+    loadBlogs();
+  }, []);
+
+  useEffect(() => {
+    if (categoryOptions.length && !formState.categoryId) {
+      setFormState((prev) => ({ ...prev, categoryId: categoryOptions[0].id }));
+    }
+  }, [categoryOptions, formState.categoryId]);
 
   const filteredBlogs = useMemo(
     () =>
       blogList.filter((blog) => {
-        const categoryMatch = appliedFilters.category === 'all' || blog.category === appliedFilters.category;
+        const categoryMatch = appliedFilters.category === 'all' || blog.categoryId === appliedFilters.category;
         const statusMatch = appliedFilters.status === 'all' || blog.status === appliedFilters.status;
         const dateMatch = matchesDateFilter(blog.publishDate, appliedFilters.date, appliedFilters);
         return categoryMatch && dateMatch && statusMatch;
@@ -198,17 +227,16 @@ const AdminBlogsPage = () => {
   const openCreateDialog = () => {
     setDialogMode('create');
     setActiveBlog(null);
+    setDialogError('');
     setDialogOpen(true);
     setFormState({
       id: '',
       title: '',
-      category: categoryOptions[0] || 'General',
+      categoryId: categoryOptions[0]?.id || '',
       publishDate: new Date().toISOString().split('T')[0],
       description: '',
       conclusion: '',
       status: 'Draft',
-      textColor: '#1f2937',
-      isBold: false
     });
   };
 
@@ -216,13 +244,14 @@ const AdminBlogsPage = () => {
     setDialogMode('edit');
     setActiveBlog(blog);
     setDialogOpen(true);
-    // keep id so we can update correct row
+    setDialogError('');
     setFormState({ ...blog });
   };
 
   const closeDialog = () => {
     setActiveBlog(null);
     setDialogOpen(false);
+    setDialogError('');
   };
 
   const applyFilters = () => setAppliedFilters(filterDraft);
@@ -244,7 +273,10 @@ const AdminBlogsPage = () => {
 
   const activeFilterChips = useMemo(() => {
     const chips = [];
-    if (appliedFilters.category !== 'all') chips.push({ key: 'category', label: `Category: ${appliedFilters.category}` });
+    if (appliedFilters.category !== 'all') {
+      const label = categoryOptions.find((cat) => cat.id === appliedFilters.category)?.name || 'Uncategorized';
+      chips.push({ key: 'category', label: `Category: ${label}` });
+    }
     if (appliedFilters.status !== 'all') chips.push({ key: 'status', label: `Status: ${appliedFilters.status}` });
     if (appliedFilters.date !== 'all') {
       const rangeLabel =
@@ -254,35 +286,66 @@ const AdminBlogsPage = () => {
       chips.push({ key: 'date', label: `Publish date: ${appliedFilters.date}${rangeLabel}` });
     }
     return chips;
-  }, [appliedFilters]);
+  }, [appliedFilters, categoryOptions]);
 
   const handleFormChange = (field, value) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event?.preventDefault();
-    if (!formState.title.trim() || !formState.description.trim()) return;
+    setDialogError('');
 
-    const nextState = { ...formState, status: deriveStatusFromDate(formState) };
-
-    if (dialogMode === 'edit' && activeBlog) {
-      // update existing draft
-      setBlogList((prev) =>
-        prev.map((blog) =>
-          blog.id === activeBlog.id ? { ...nextState } : blog
-        )
-      );
-    } else {
-      // create new draft
-      const newEntry = {
-        ...nextState,
-        id: `${Date.now()}`
-      };
-      setBlogList((prev) => [newEntry, ...prev]);
+    if (!formState.title.trim() || !formState.description.trim()) {
+      setDialogError('Title and description are required.');
+      return;
     }
 
-    closeDialog();
+    setSavingBlog(true);
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const payload = {
+        title: formState.title,
+        categoryId: formState.categoryId || null,
+        publishDate: formState.publishDate,
+        description: formState.description,
+        conclusion: formState.conclusion,
+        status: formState.status,
+      };
+
+      const response = await fetch(
+        dialogMode === 'edit'
+          ? apiUrl(`/api/admin/blog-posts/${formState.id}`)
+          : apiUrl('/api/admin/blog-posts'),
+        {
+          method: dialogMode === 'edit' ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.message || 'Unable to save blog.');
+
+      const mapped = mapApiBlogToRow(result.post);
+
+      setBlogList((prev) => {
+        if (dialogMode === 'edit') {
+          return prev.map((blog) => (blog.id === mapped.id ? mapped : blog));
+        }
+        return [mapped, ...prev];
+      });
+
+      closeDialog();
+    } catch (error) {
+      console.error('Save blog failed', error);
+      setDialogError(error?.message || 'Unable to save blog right now.');
+    } finally {
+      setSavingBlog(false);
+    }
   };
 
   const openDeleteDialog = (blog) => {
@@ -293,10 +356,24 @@ const AdminBlogsPage = () => {
     setDeleteTarget(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    setBlogList((prev) => prev.filter((blog) => blog.id !== deleteTarget.id));
-    closeDeleteDialog();
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/admin/blog-posts/${deleteTarget.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.message || 'Unable to delete blog.');
+      setBlogList((prev) => prev.filter((blog) => blog.id !== deleteTarget.id));
+      closeDeleteDialog();
+    } catch (error) {
+      console.error('Delete blog failed', error);
+      setBlogsError(error?.message || 'Unable to delete blog right now.');
+    }
   };
 
   const openViewDialog = (blog) => {
@@ -325,6 +402,16 @@ const AdminBlogsPage = () => {
         />
         <Divider />
         <CardContent>
+          {blogsError && (
+            <Typography color="error" variant="body2" mb={2}>
+              {blogsError}
+            </Typography>
+          )}
+          {categoriesError && (
+            <Typography color="error" variant="body2" mb={2}>
+              {categoriesError}
+            </Typography>
+          )}
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'flex-end' }} mb={2}>
             <TextField
               select
@@ -332,13 +419,15 @@ const AdminBlogsPage = () => {
               value={filterDraft.category}
               onChange={(event) => setFilterDraft((prev) => ({ ...prev, category: event.target.value }))}
               sx={{ minWidth: 200 }}
+              disabled={loadingCategories}
             >
               <MenuItem value="all">All categories</MenuItem>
               {categoryOptions.map((category) => (
-                <MenuItem key={category} value={category}>
-                  {category}
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
                 </MenuItem>
               ))}
+              <MenuItem value="">Uncategorized</MenuItem>
             </TextField>
             <TextField
               select
@@ -348,9 +437,11 @@ const AdminBlogsPage = () => {
               sx={{ minWidth: 180 }}
             >
               <MenuItem value="all">All statuses</MenuItem>
-              <MenuItem value="Draft">Draft</MenuItem>
-              <MenuItem value="Published">Published</MenuItem>
-              <MenuItem value="Scheduled">Scheduled</MenuItem>
+              {statusOptions.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
             </TextField>
             <TextField
               select
@@ -430,7 +521,6 @@ const AdminBlogsPage = () => {
                       >
                         {blog.title}
                       </Typography>
-
                     </TableCell>
                     <TableCell width="16%">
                       <Chip
@@ -493,7 +583,7 @@ const AdminBlogsPage = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredBlogs.length === 0 && (
+                {!loadingBlogs && filteredBlogs.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6}>
                       <Typography
@@ -501,7 +591,16 @@ const AdminBlogsPage = () => {
                         color="text.secondary"
                         align="center"
                       >
-                        No drafts yet. Click &quot;New draft&quot; to create one.
+                        No drafts yet. Click "New draft" to create one.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {loadingBlogs && (
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        Loading blogs...
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -538,15 +637,17 @@ const AdminBlogsPage = () => {
             <TextField
               select
               label="Category"
-              value={formState.category}
-              onChange={(event) => handleFormChange('category', event.target.value)}
+              value={formState.categoryId}
+              onChange={(event) => handleFormChange('categoryId', event.target.value)}
               fullWidth
+              disabled={loadingCategories}
             >
-              {(categoryOptions.length ? categoryOptions : ['General']).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
+              {categoryOptions.map((option) => (
+                <MenuItem key={option.id} value={option.id}>
+                  {option.name}
                 </MenuItem>
               ))}
+              <MenuItem value="">Uncategorized</MenuItem>
             </TextField>
             <TextField
               label="Publish date"
@@ -570,9 +671,11 @@ const AdminBlogsPage = () => {
               onChange={(event) => handleFormChange('status', event.target.value)}
               fullWidth
             >
-              <MenuItem value="Draft">Draft</MenuItem>
-              <MenuItem value="Published">Published</MenuItem>
-              <MenuItem value="Scheduled">Scheduled</MenuItem>
+              {statusOptions.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
             </TextField>
             <TextField
               label="Description"
@@ -595,13 +698,18 @@ const AdminBlogsPage = () => {
               maxRows={10}
               fullWidth
             />
+            {dialogError && (
+              <Typography color="error" variant="body2">
+                {dialogError}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={closeDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} variant="contained">
+          <Button onClick={handleSubmit} variant="contained" disabled={savingBlog}>
             {dialogMode === 'edit' ? 'Save changes' : 'Save draft'}
           </Button>
         </DialogActions>
@@ -666,7 +774,7 @@ const AdminBlogsPage = () => {
         <DialogTitle>Delete blog</DialogTitle>
         <DialogContent dividers>
           <Typography variant="body2" color="text.secondary">
-            Are you sure you want to delete &quot;{deleteTarget?.title}&quot;? This action cannot be undone.
+            Are you sure you want to delete "{deleteTarget?.title}"? This action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions>
