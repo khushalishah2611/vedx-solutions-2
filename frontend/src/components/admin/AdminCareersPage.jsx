@@ -53,7 +53,6 @@ const mapJobFromApi = (job) => ({
   employmentType: job.employmentType || 'Full-time',
   postedOn: job.postedOn ? normalizeDateInput(job.postedOn) : new Date().toISOString().split('T')[0],
   description: job.description || '',
-  imageUrl: job.imageUrl || '',
 });
 
 const mapApplicationFromApi = (application) => ({
@@ -67,8 +66,6 @@ const mapApplicationFromApi = (application) => ({
   resumeUrl: application.resumeUrl || '',
   resumeFile: null,
   notes: application.notes || '',
-  jobId: application.jobId || '',
-  jobTitle: application.job?.title || '',
 });
 
 const dateFilterOptions = [
@@ -143,7 +140,6 @@ const emptyJobForm = {
   employmentType: 'Full-time',
   postedOn: new Date().toISOString().split('T')[0],
   description: '',
-  imageUrl: '',
 };
 
 const emptyApplicationForm = {
@@ -157,7 +153,6 @@ const emptyApplicationForm = {
   resumeUrl: '',
   resumeFile: null,
   notes: '',
-  jobId: '',
 };
 
 const AdminCareersPage = () => {
@@ -452,7 +447,6 @@ const AdminCareersPage = () => {
         employmentType: jobForm.employmentType,
         postedOn,
         description: trimmedDescription,
-        imageUrl: jobForm.imageUrl,
       };
 
       const response = await fetch(
@@ -589,7 +583,6 @@ const AdminCareersPage = () => {
         appliedOn: applicationForm.appliedOn,
         resumeUrl: applicationForm.resumeUrl || applicationForm.resumeFile?.url || '',
         notes: trimmedNotes,
-        jobId: applicationForm.jobId || null,
       };
 
       const response = await fetch(
@@ -700,15 +693,12 @@ const AdminCareersPage = () => {
     setResumeError('');
   };
 
-  const handleResumeDownload = (application) => {
-    const resumeUrl = application?.resumeFile?.url || application?.resumeUrl;
+  const resolveResumeUrl = (application) => application?.resumeFile?.url || application?.resumeUrl;
+
+  const handleResumeView = (application) => {
+    const resumeUrl = resolveResumeUrl(application);
     if (!resumeUrl) return;
-    const link = document.createElement('a');
-    link.href = resumeUrl;
-    link.target = '_blank';
-    link.rel = 'noreferrer';
-    link.download = 'resume.pdf';
-    link.click();
+    window.open(resumeUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -1074,12 +1064,12 @@ const AdminCareersPage = () => {
                               <VisibilityOutlinedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Download resume">
+                          <Tooltip title="View resume">
                             <IconButton
                               size="small"
                               color="secondary"
-                              onClick={() => handleResumeDownload(application)}
-                              disabled={!application.resumeFile?.url && !application.resumeUrl}
+                              onClick={() => handleResumeView(application)}
+                              disabled={!resolveResumeUrl(application)}
                             >
                               <DownloadOutlinedIcon fontSize="small" />
                             </IconButton>
@@ -1195,13 +1185,6 @@ const AdminCareersPage = () => {
               </Grid>
             </Grid>
             <TextField
-              label="Cover image (optional)"
-              placeholder="https://..."
-              value={jobForm.imageUrl}
-              onChange={(event) => handleJobFormChange('imageUrl', event.target.value)}
-              fullWidth
-            />
-            <TextField
               label="Description"
               placeholder="Describe responsibilities, required skills, and perks"
               value={jobForm.description}
@@ -1247,11 +1230,6 @@ const AdminCareersPage = () => {
               <Typography variant="body2" color="text.secondary">
                 Posted on: {viewJob.postedOn || '-'}
               </Typography>
-              {viewJob.imageUrl && (
-                <Typography variant="body2" color="text.secondary">
-                  Image: {viewJob.imageUrl}
-                </Typography>
-              )}
               <Divider />
               <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                 {viewJob.description || 'No description provided yet.'}
@@ -1388,24 +1366,6 @@ const AdminCareersPage = () => {
                     required
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Resume link (optional)"
-                    placeholder="https://..."
-                    value={applicationForm.resumeUrl}
-                    onChange={(event) => handleApplicationFormChange('resumeUrl', event.target.value)}
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Job ID (optional)"
-                    placeholder="Link to a specific job"
-                    value={applicationForm.jobId}
-                    onChange={(event) => handleApplicationFormChange('jobId', event.target.value)}
-                    fullWidth
-                  />
-                </Grid>
                 <Grid item xs={12}>
                   <Stack spacing={0.5}>
                     <Button component="label" variant="outlined">
@@ -1416,11 +1376,18 @@ const AdminCareersPage = () => {
                       <Typography variant="body2" color="text.secondary">
                         {applicationForm.resumeFile
                           ? `Selected: ${applicationForm.resumeFile.name}`
+                          : applicationForm.resumeUrl
+                          ? 'Existing resume on file'
                           : 'No file selected yet.'}
                       </Typography>
                       {applicationForm.resumeFile && (
                         <Button color="error" size="small" onClick={handleClearResumeFile}>
                           Remove file
+                        </Button>
+                      )}
+                      {(applicationForm.resumeFile || applicationForm.resumeUrl) && (
+                        <Button size="small" onClick={() => handleResumeView(applicationForm)}>
+                          View resume
                         </Button>
                       )}
                     </Stack>
@@ -1510,10 +1477,10 @@ const AdminCareersPage = () => {
               <Button
                 variant="outlined"
                 startIcon={<DownloadOutlinedIcon />}
-                onClick={() => handleResumeDownload(viewApplication)}
-                disabled={!viewApplication.resumeFile?.url && !viewApplication.resumeUrl}
+                onClick={() => handleResumeView(viewApplication)}
+                disabled={!resolveResumeUrl(viewApplication)}
               >
-                Download resume
+                View resume
               </Button>
             </Stack>
           )}

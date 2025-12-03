@@ -139,10 +139,7 @@ const AdminContactsPage = () => {
   const [savingProjectType, setSavingProjectType] = useState(false);
   const [projectTypeToDelete, setProjectTypeToDelete] = useState(null);
 
-  const contactTypes = useMemo(
-    () => ['Sales', 'Support', 'Partnership', 'General enquiry'],
-    []
-  );
+  const contactTypes = useMemo(() => ['General enquiry'], []);
 
   const enquiryStatuses = useMemo(
     () => ['New', 'In progress', 'Replied', 'Closed'],
