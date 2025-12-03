@@ -146,6 +146,13 @@ const formatContactResponse = (contact) => ({
   updatedAt: contact.updatedAt,
 });
 
+const formatProjectTypeResponse = (projectType) => ({
+  id: projectType.id,
+  name: projectType.name,
+  createdAt: projectType.createdAt,
+  updatedAt: projectType.updatedAt,
+});
+
 const parseBearerToken = (authorizationHeader) => {
   if (!authorizationHeader) return null;
   const parts = String(authorizationHeader).split(' ').filter(Boolean);
@@ -194,6 +201,16 @@ const validateContactInput = (body, { allowStatusUpdate = false } = {}) => {
   }
 
   return { name, email, phone, countryCode, contactType, projectType, description, status: allowStatusUpdate ? status : 'New' };
+};
+
+const validateProjectTypeInput = (body) => {
+  const name = normalizeText(body?.name);
+
+  if (!name) {
+    return { error: 'Project type name is required.' };
+  }
+
+  return { name };
 };
 
 const findActiveSession = async (token) => {
@@ -1423,6 +1440,146 @@ app.delete('/api/admin/hire-roles/:id', async (req, res) => {
   }
 });
 
+// ---------- Project Type Routes ----------
+
+app.get('/api/project-types', async (req, res) => {
+  try {
+    const projectTypes = await prisma.projectType.findMany({
+      orderBy: { name: 'asc' },
+    });
+
+    return res.json({ projectTypes: projectTypes.map(formatProjectTypeResponse) });
+  } catch (error) {
+    console.error('Project type list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load project types right now.' });
+  }
+});
+
+app.get('/api/admin/project-types', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const projectTypes = await prisma.projectType.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ projectTypes: projectTypes.map(formatProjectTypeResponse) });
+  } catch (error) {
+    console.error('Project type list failed', error);
+    return res.status(500).json({ message: 'Unable to load project types right now.' });
+  }
+});
+
+app.post('/api/admin/project-types', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateProjectTypeInput(req.body || {});
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name } = validation;
+
+    const created = await prisma.projectType.create({
+      data: { name },
+    });
+
+    return res.status(201).json({ projectType: formatProjectTypeResponse(created) });
+  } catch (error) {
+    console.error('Project type create failed', error);
+
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A project type with this name already exists.' });
+    }
+
+    return res.status(500).json({ message: 'Unable to create project type right now.' });
+  }
+});
+
+app.put('/api/admin/project-types/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const projectTypeId = req.params.id?.trim();
+
+    if (!projectTypeId) {
+      return res.status(400).json({ message: 'A valid project type id is required.' });
+    }
+
+    const validation = validateProjectTypeInput(req.body || {});
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const existing = await prisma.projectType.findUnique({ where: { id: projectTypeId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Project type not found.' });
+    }
+
+    const { name } = validation;
+
+    const updated = await prisma.projectType.update({
+      where: { id: projectTypeId },
+      data: { name },
+    });
+
+    return res.json({ projectType: formatProjectTypeResponse(updated), message: 'Project type updated.' });
+  } catch (error) {
+    console.error('Project type update failed', error);
+
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A project type with this name already exists.' });
+    }
+
+    return res.status(500).json({ message: 'Unable to update project type right now.' });
+  }
+});
+
+app.delete('/api/admin/project-types/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const projectTypeId = req.params.id?.trim();
+
+    if (!projectTypeId) {
+      return res.status(400).json({ message: 'A valid project type id is required.' });
+    }
+
+    const existing = await prisma.projectType.findUnique({ where: { id: projectTypeId } });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Project type not found.' });
+    }
+
+    await prisma.projectType.delete({ where: { id: projectTypeId } });
+
+    return res.json({ message: 'Project type deleted.' });
+  } catch (error) {
+    console.error('Project type delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete project type right now.' });
+  }
+});
+
 // ---------- Contact Routes ----------
 
 app.post('/api/contact', async (req, res) => {
@@ -1472,6 +1629,43 @@ app.get('/api/admin/contacts', async (req, res) => {
   } catch (error) {
     console.error('Contact list failed', error);
     return res.status(500).json({ message: 'Unable to load contacts right now.' });
+  }
+});
+
+app.post('/api/admin/contacts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateContactInput(req.body || {}, { allowStatusUpdate: true });
+
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
+
+    const { name, email, phone, countryCode, contactType, projectType, description, status: contactStatus } = validation;
+
+    const created = await prisma.contactMessage.create({
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        countryCode: countryCode || null,
+        contactType: contactType || null,
+        projectType: projectType || null,
+        description,
+        message: description,
+        status: contactStatus,
+      },
+    });
+
+    return res.status(201).json({ contact: formatContactResponse(created), message: 'Contact created.' });
+  } catch (error) {
+    console.error('Contact create failed', error);
+    return res.status(500).json({ message: 'Unable to create contact right now.' });
   }
 });
 

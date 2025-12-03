@@ -27,6 +27,7 @@ import {
   Tooltip,
   Typography
 } from '@mui/material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
@@ -95,6 +96,10 @@ const defaultFilters = {
   end: '',
 };
 
+const fallbackProjectTypes = ['Web Application', 'Mobile App', 'Product Design', 'Consulting', 'Other'];
+
+const formatDate = (value) => (value ? String(value).split('T')[0] : '-');
+
 const normalizeContactFromApi = (contact) => ({
   id: contact.id,
   name: contact.name || '',
@@ -121,11 +126,20 @@ const AdminContactsPage = () => {
   const [savingContact, setSavingContact] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [editError, setEditError] = useState('');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createForm, setCreateForm] = useState(null);
+  const [creatingContact, setCreatingContact] = useState(false);
+  const [createError, setCreateError] = useState('');
 
-  const projectTypes = useMemo(
-    () => ['Web Application', 'Mobile App', 'Product Design', 'Consulting', 'Other'],
-    []
-  );
+  const [projectTypes, setProjectTypes] = useState([]);
+  const [projectTypesLoading, setProjectTypesLoading] = useState(false);
+  const [projectTypesError, setProjectTypesError] = useState('');
+  const [projectTypeDialogOpen, setProjectTypeDialogOpen] = useState(false);
+  const [projectTypeDialogMode, setProjectTypeDialogMode] = useState('create');
+  const [projectTypeForm, setProjectTypeForm] = useState({ id: '', name: '' });
+  const [projectTypeDialogError, setProjectTypeDialogError] = useState('');
+  const [savingProjectType, setSavingProjectType] = useState(false);
+  const [projectTypeToDelete, setProjectTypeToDelete] = useState(null);
 
   const contactTypes = useMemo(
     () => ['Sales', 'Support', 'Partnership', 'General enquiry'],
@@ -136,6 +150,23 @@ const AdminContactsPage = () => {
     () => ['New', 'In progress', 'Replied', 'Closed'],
     []
   );
+
+  const projectTypeOptions = useMemo(() => {
+    const options = (projectTypes || []).map((type) => type.name || '').filter(Boolean);
+    const fromContacts = contactList.map((contact) => contact.projectType).filter(Boolean);
+    return [...new Set([...options, ...fromContacts, ...fallbackProjectTypes])];
+  }, [projectTypes, contactList]);
+
+  const buildEmptyContactForm = () => ({
+    name: '',
+    email: '',
+    phone: '',
+    countryCode: '',
+    contactType: contactTypes[0] || 'General enquiry',
+    projectType: projectTypeOptions[0] || '',
+    description: '',
+    status: 'New',
+  });
 
   const loadContacts = async () => {
     setLoading(true);
@@ -169,15 +200,50 @@ const AdminContactsPage = () => {
     }
   };
 
+  const loadProjectTypes = async () => {
+    setProjectTypesLoading(true);
+    setProjectTypesError('');
+
+    try {
+      const token = localStorage.getItem('adminToken');
+
+      if (!token) {
+        throw new Error('Your session expired. Please log in again.');
+      }
+
+      const response = await fetch(apiUrl('/api/admin/project-types'), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to load project types.');
+      }
+
+      setProjectTypes(payload.projectTypes || []);
+    } catch (error) {
+      console.error('Load project types failed', error);
+      setProjectTypesError(error?.message || 'Unable to load project types right now.');
+      setProjectTypes([]);
+    } finally {
+      setProjectTypesLoading(false);
+    }
+  };
+
   const rowsPerPage = 5;
   const [filterDraft, setFilterDraft] = useState(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
   const [page, setPage] = useState(1);
 
-  const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
+  const matchesQuery = (value, query) =>
+    String(value || '').toLowerCase().includes(query.trim().toLowerCase());
 
   useEffect(() => {
     loadContacts();
+    loadProjectTypes();
   }, []);
 
   const filteredContacts = useMemo(
@@ -209,6 +275,78 @@ const AdminContactsPage = () => {
     const maxPage = Math.max(1, Math.ceil(filteredContacts.length / rowsPerPage));
     setPage((prev) => Math.min(prev, maxPage));
   }, [filteredContacts.length, rowsPerPage]);
+
+  const openCreateDialog = () => {
+    setCreateDialogOpen(true);
+    setCreateForm(buildEmptyContactForm());
+    setCreateError('');
+  };
+
+  const closeCreateDialog = () => {
+    setCreateDialogOpen(false);
+    setCreateForm(null);
+    setCreateError('');
+  };
+
+  const handleCreateChange = (field, value) => {
+    setCreateForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateSave = async () => {
+    if (!createForm) return;
+
+    const trimmedName = createForm.name.trim();
+    const trimmedEmail = createForm.email.trim();
+    const trimmedDescription = (createForm.description || '').trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedDescription) {
+      setCreateError('Name, email, and description are required.');
+      return;
+    }
+
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      setCreateError('Your session expired. Please log in again.');
+      return;
+    }
+
+    setCreatingContact(true);
+
+    try {
+      const response = await fetch(apiUrl('/api/admin/contacts'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          phone: createForm.phone ? createForm.phone.trim() : '',
+          countryCode: createForm.countryCode ? createForm.countryCode.trim() : '',
+          contactType: createForm.contactType,
+          projectType: createForm.projectType,
+          description: trimmedDescription,
+          status: createForm.status,
+        }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to create contact.');
+      }
+
+      setContactList((prev) => [normalizeContactFromApi(payload.contact), ...prev]);
+      closeCreateDialog();
+    } catch (error) {
+      console.error('Create contact failed', error);
+      setCreateError(error?.message || 'Unable to create contact right now.');
+    } finally {
+      setCreatingContact(false);
+    }
+  };
 
   const openEditDialog = (contact) => {
     setEditingContact(contact);
@@ -339,6 +477,111 @@ const AdminContactsPage = () => {
     }
   };
 
+  const openProjectTypeDialog = (mode = 'create', projectType = null) => {
+    setProjectTypeDialogMode(mode);
+    setProjectTypeDialogError('');
+    setProjectTypeDialogOpen(true);
+
+    if (projectType) {
+      setProjectTypeForm({ id: projectType.id, name: projectType.name || '' });
+    } else {
+      setProjectTypeForm({ id: '', name: '' });
+    }
+  };
+
+  const closeProjectTypeDialog = () => {
+    setProjectTypeDialogOpen(false);
+    setProjectTypeDialogError('');
+    setProjectTypeForm({ id: '', name: '' });
+  };
+
+  const handleProjectTypeSave = async () => {
+    const trimmedName = projectTypeForm.name.trim();
+
+    if (!trimmedName) {
+      setProjectTypeDialogError('Project type name is required.');
+      return;
+    }
+
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      setProjectTypeDialogError('Your session expired. Please log in again.');
+      return;
+    }
+
+    setSavingProjectType(true);
+
+    try {
+      const response = await fetch(
+        projectTypeDialogMode === 'edit'
+          ? apiUrl(`/api/admin/project-types/${projectTypeForm.id}`)
+          : apiUrl('/api/admin/project-types'),
+        {
+          method: projectTypeDialogMode === 'edit' ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name: trimmedName }),
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to save project type.');
+      }
+
+      const saved = payload.projectType;
+
+      setProjectTypes((prev) =>
+        projectTypeDialogMode === 'edit'
+          ? prev.map((type) => (type.id === saved.id ? saved : type))
+          : [saved, ...prev]
+      );
+
+      closeProjectTypeDialog();
+    } catch (error) {
+      console.error('Save project type failed', error);
+      setProjectTypeDialogError(error?.message || 'Unable to save project type right now.');
+    } finally {
+      setSavingProjectType(false);
+    }
+  };
+
+  const handleProjectTypeDelete = async () => {
+    if (!projectTypeToDelete) return;
+
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      setProjectTypesError('Your session expired. Please log in again.');
+      return;
+    }
+
+    try {
+      const response = await fetch(apiUrl(`/api/admin/project-types/${projectTypeToDelete.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to delete project type.');
+      }
+
+      setProjectTypes((prev) => prev.filter((type) => type.id !== projectTypeToDelete.id));
+      setProjectTypeToDelete(null);
+    } catch (error) {
+      console.error('Delete project type failed', error);
+      setProjectTypesError(error?.message || 'Unable to delete project type right now.');
+    }
+  };
+
   const applyFilters = () => {
     setAppliedFilters(filterDraft);
   };
@@ -382,11 +625,27 @@ const AdminContactsPage = () => {
       <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Stack spacing={2}>
-            <Typography variant="h5">Contact enquiries</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Review the latest messages sent through the public website contact form. Follow up with the leads to keep the
-              pipeline active.
-            </Typography>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1}
+              justifyContent="space-between"
+              alignItems={{ sm: 'center' }}
+            >
+              <Box>
+                <Typography variant="h5">Contact enquiries</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Review the latest messages sent through the public website contact form. Follow up with the leads to keep the
+                  pipeline active.
+                </Typography>
+              </Box>
+              <Button
+                onClick={openCreateDialog}
+                variant="contained"
+                startIcon={<AddCircleOutlineIcon />}
+              >
+                New enquiry
+              </Button>
+            </Stack>
             {serverError && (
               <Typography variant="body2" color="error.main">
                 {serverError}
@@ -627,6 +886,194 @@ const AdminContactsPage = () => {
           </Stack>
         </CardContent>
       </Card>
+      <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider', mt: 3 }}>
+        <CardContent>
+          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} spacing={1} mb={2}>
+            <Box>
+              <Typography variant="h6">Project types</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Maintain the master list of project types used by the contact form.
+              </Typography>
+            </Box>
+            <Button
+              startIcon={<AddCircleOutlineIcon />}
+              variant="outlined"
+              onClick={() => openProjectTypeDialog('create')}
+            >
+              Add project type
+            </Button>
+          </Stack>
+
+          {projectTypesError && (
+            <Typography color="error" variant="body2" mb={1}>
+              {projectTypesError}
+            </Typography>
+          )}
+
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell>Updated</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {projectTypesLoading && (
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        Loading project types...
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {!projectTypesLoading &&
+                  projectTypes.map((projectType) => (
+                    <TableRow key={projectType.id} hover>
+                      <TableCell sx={{ fontWeight: 600 }}>{projectType.name}</TableCell>
+                      <TableCell>{formatDate(projectType.createdAt)}</TableCell>
+                      <TableCell>{formatDate(projectType.updatedAt)}</TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => openProjectTypeDialog('edit', projectType)}
+                            >
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => setProjectTypeToDelete(projectType)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                {!projectTypesLoading && projectTypes.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        No project types yet. Add your first one to start using it in enquiries.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+      <Dialog open={createDialogOpen} onClose={closeCreateDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Add enquiry</DialogTitle>
+        <DialogContent dividers>
+          {createForm && (
+            <Stack spacing={2} mt={1}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  label="Name"
+                  fullWidth
+                  value={createForm.name}
+                  onChange={(event) => handleCreateChange('name', event.target.value)}
+                />
+                <TextField
+                  label="Email"
+                  type="email"
+                  fullWidth
+                  value={createForm.email}
+                  onChange={(event) => handleCreateChange('email', event.target.value)}
+                />
+              </Stack>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  label="Country"
+                  fullWidth
+                  value={createForm.countryCode}
+                  onChange={(event) => handleCreateChange('countryCode', event.target.value.toUpperCase())}
+                />
+                <TextField
+                  label="Mobile number"
+                  fullWidth
+                  value={createForm.phone}
+                  onChange={(event) => handleCreateChange('phone', event.target.value)}
+                />
+              </Stack>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  select
+                  label="Contact type"
+                  value={createForm.contactType}
+                  onChange={(event) => handleCreateChange('contactType', event.target.value)}
+                  fullWidth
+                >
+                  {contactTypes.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  label="Project type"
+                  value={createForm.projectType}
+                  onChange={(event) => handleCreateChange('projectType', event.target.value)}
+                  fullWidth
+                >
+                  {projectTypeOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+              <TextField
+                label="Description"
+                value={createForm.description}
+                onChange={(event) => handleCreateChange('description', event.target.value)}
+                multiline
+                minRows={3}
+                fullWidth
+              />
+              <TextField
+                select
+                label="Status"
+                value={createForm.status}
+                onChange={(event) => handleCreateChange('status', event.target.value)}
+                fullWidth
+              >
+                {enquiryStatuses.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {status}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {createError && (
+                <Typography color="error" variant="body2">
+                  {createError}
+                </Typography>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeCreateDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleCreateSave} variant="contained" disabled={creatingContact}>
+            Create enquiry
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={Boolean(editingContact)} onClose={closeEditDialog} maxWidth="sm" fullWidth>
         <DialogTitle>Edit enquiry</DialogTitle>
         <DialogContent dividers>
@@ -687,7 +1134,7 @@ const AdminContactsPage = () => {
                   onChange={(event) => handleEditChange('projectType', event.target.value)}
                   fullWidth
                 >
-                  {projectTypes.map((option) => (
+                  {projectTypeOptions.map((option) => (
                     <MenuItem key={option} value={option}>
                       {option}
                     </MenuItem>
@@ -840,6 +1287,51 @@ const AdminContactsPage = () => {
         <DialogActions>
           <Button onClick={closeViewDialog} color="primary">
             Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={projectTypeDialogOpen} onClose={closeProjectTypeDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>
+          {projectTypeDialogMode === 'edit' ? 'Edit project type' : 'Add project type'}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Name"
+              value={projectTypeForm.name}
+              onChange={(event) => setProjectTypeForm((prev) => ({ ...prev, name: event.target.value }))}
+              fullWidth
+              autoFocus
+            />
+            {projectTypeDialogError && (
+              <Typography color="error" variant="body2">
+                {projectTypeDialogError}
+              </Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeProjectTypeDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleProjectTypeSave} variant="contained" disabled={savingProjectType}>
+            {projectTypeDialogMode === 'edit' ? 'Save changes' : 'Create project type'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={Boolean(projectTypeToDelete)} onClose={() => setProjectTypeToDelete(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete project type</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Delete "{projectTypeToDelete?.name}" from the master list? This cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setProjectTypeToDelete(null)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleProjectTypeDelete} color="error" variant="contained">
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
