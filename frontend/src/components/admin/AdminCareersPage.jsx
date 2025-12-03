@@ -37,77 +37,39 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import CloseIcon from '@mui/icons-material/Close';
+import { apiUrl } from '../../utils/const.js';
 
-const initialJobPosts = [
-  {
-    id: 'senior-fe-dev',
-    title: 'Senior Frontend Developer',
-    position: 'Frontend Engineer',
-    experience: '5+ years',
-    employmentType: 'Full-time',
-    postedOn: '2024-07-01',
-    description:
-      'Lead UI development for SaaS dashboards, mentor junior engineers, and collaborate with designers on component systems.'
-  },
-  {
-    id: 'product-designer',
-    title: 'Product Designer',
-    position: 'Design',
-    experience: '3+ years',
-    employmentType: 'Full-time',
-    postedOn: '2024-06-28',
-    description:
-      'Work closely with engineering and product to craft thoughtful user experiences and run usability studies.'
-  }
-];
-
-const initialApplications = [
-  {
-    id: 'app-01',
-    name: 'Priya Sharma',
-    email: 'priya.sharma@example.com',
-    contact: '+91 98765 43210',
-    experience: '4 years',
-    employmentType: 'Full-time',
-    appliedOn: '2024-07-10',
-    resumeUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    notes: 'Interested in remote-first teams and prefers frontend-heavy roles.'
-  },
-  {
-    id: 'app-02',
-    name: 'Rahul Verma',
-    email: 'rahul.verma@example.com',
-    contact: '+91 91234 56789',
-    experience: '2 years',
-    employmentType: 'Part-time',
-    appliedOn: '2024-07-08',
-    resumeUrl: 'https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf',
-    notes: 'Has prior startup experience and contributed to design systems.'
-  }
-];
-
-const emptyJobForm = {
-  id: '',
-  title: '',
-  position: '',
-  experience: '',
-  employmentType: 'Full-time',
-  postedOn: new Date().toISOString().split('T')[0],
-  description: ''
+const normalizeDateInput = (value) => {
+  const parsed = value ? new Date(value) : new Date();
+  if (Number.isNaN(parsed.getTime())) return new Date().toISOString().split('T')[0];
+  return parsed.toISOString().split('T')[0];
 };
 
-const emptyApplicationForm = {
-  id: '',
-  name: '',
-  email: '',
-  contact: '',
-  experience: '',
-  employmentType: 'Full-time',
-  appliedOn: new Date().toISOString().split('T')[0],
-  resumeUrl: '',
+const mapJobFromApi = (job) => ({
+  id: job.id,
+  title: job.title,
+  position: job.position || '',
+  experience: job.experience || '',
+  employmentType: job.employmentType || 'Full-time',
+  postedOn: job.postedOn ? normalizeDateInput(job.postedOn) : new Date().toISOString().split('T')[0],
+  description: job.description || '',
+  imageUrl: job.imageUrl || '',
+});
+
+const mapApplicationFromApi = (application) => ({
+  id: application.id,
+  name: application.name,
+  email: application.email,
+  contact: application.contact || '',
+  experience: application.experience || '',
+  employmentType: application.employmentType || 'Full-time',
+  appliedOn: application.appliedOn ? normalizeDateInput(application.appliedOn) : new Date().toISOString().split('T')[0],
+  resumeUrl: application.resumeUrl || '',
   resumeFile: null,
-  notes: ''
-};
+  notes: application.notes || '',
+  jobId: application.jobId || '',
+  jobTitle: application.job?.title || '',
+});
 
 const dateFilterOptions = [
   { value: 'all', label: 'All dates' },
@@ -173,10 +135,41 @@ const matchesDateFilter = (value, filter, range) => {
   }
 };
 
+const emptyJobForm = {
+  id: '',
+  title: '',
+  position: '',
+  experience: '',
+  employmentType: 'Full-time',
+  postedOn: new Date().toISOString().split('T')[0],
+  description: '',
+  imageUrl: '',
+};
+
+const emptyApplicationForm = {
+  id: '',
+  name: '',
+  email: '',
+  contact: '',
+  experience: '',
+  employmentType: 'Full-time',
+  appliedOn: new Date().toISOString().split('T')[0],
+  resumeUrl: '',
+  resumeFile: null,
+  notes: '',
+  jobId: '',
+};
+
 const AdminCareersPage = () => {
-  const employmentTypes = useMemo(() => ['Full-time', 'Part-time', 'Contract'], []);
-  const [jobPosts, setJobPosts] = useState(initialJobPosts);
-  const [applications, setApplications] = useState(initialApplications);
+  const employmentTypes = useMemo(() => ['Full-time', 'Part-time', 'Contract', 'Intern'], []);
+  const token = useMemo(() => localStorage.getItem('adminToken'), []);
+
+  const [jobPosts, setJobPosts] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [jobsError, setJobsError] = useState('');
+  const [applicationsError, setApplicationsError] = useState('');
+  const [loadingJobs, setLoadingJobs] = useState(false);
+  const [loadingApplications, setLoadingApplications] = useState(false);
   const [activeSection, setActiveSection] = useState('job-posts');
 
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
@@ -185,6 +178,8 @@ const AdminCareersPage = () => {
   const [jobForm, setJobForm] = useState(emptyJobForm);
   const [jobToDelete, setJobToDelete] = useState(null);
   const [viewJob, setViewJob] = useState(null);
+  const [jobDialogError, setJobDialogError] = useState('');
+  const [savingJob, setSavingJob] = useState(false);
 
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
   const [applicationDialogMode, setApplicationDialogMode] = useState('create');
@@ -193,6 +188,8 @@ const AdminCareersPage = () => {
   const [applicationToDelete, setApplicationToDelete] = useState(null);
   const [viewApplication, setViewApplication] = useState(null);
   const [resumeError, setResumeError] = useState('');
+  const [applicationDialogError, setApplicationDialogError] = useState('');
+  const [savingApplication, setSavingApplication] = useState(false);
 
   const rowsPerPage = 5;
   const [jobFilterDraft, setJobFilterDraft] = useState(defaultJobFilters);
@@ -203,6 +200,51 @@ const AdminCareersPage = () => {
   const [applicationPage, setApplicationPage] = useState(1);
 
   const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
+
+  const loadJobPosts = async () => {
+    setLoadingJobs(true);
+    setJobsError('');
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl('/api/admin/careers/jobs'), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to load job posts.');
+      setJobPosts((payload.jobs || []).map(mapJobFromApi));
+    } catch (error) {
+      console.error('Load job posts failed', error);
+      setJobPosts([]);
+      setJobsError(error?.message || 'Unable to load job posts right now.');
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
+
+  const loadApplications = async () => {
+    setLoadingApplications(true);
+    setApplicationsError('');
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl('/api/admin/careers/applications'), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to load applications.');
+      setApplications((payload.applications || []).map(mapApplicationFromApi));
+    } catch (error) {
+      console.error('Load applications failed', error);
+      setApplications([]);
+      setApplicationsError(error?.message || 'Unable to load applications right now.');
+    } finally {
+      setLoadingApplications(false);
+    }
+  };
+
+  useEffect(() => {
+    loadJobPosts();
+    loadApplications();
+  }, []);
 
   const filteredJobPosts = useMemo(
     () =>
@@ -353,6 +395,7 @@ const AdminCareersPage = () => {
   const openJobCreateDialog = () => {
     setJobDialogMode('create');
     setActiveJob(null);
+    setJobDialogError('');
     setJobForm({
       ...emptyJobForm,
       employmentType: employmentTypes[0],
@@ -364,6 +407,7 @@ const AdminCareersPage = () => {
   const openJobEditDialog = (job) => {
     setJobDialogMode('edit');
     setActiveJob(job);
+    setJobDialogError('');
     setJobForm(job);
     setJobDialogOpen(true);
   };
@@ -371,19 +415,78 @@ const AdminCareersPage = () => {
   const closeJobDialog = () => {
     setJobDialogOpen(false);
     setActiveJob(null);
+    setJobDialogError('');
   };
 
-  const handleJobSubmit = (event) => {
+  const handleJobSubmit = async (event) => {
     event?.preventDefault();
-    if (!jobForm.title.trim() || !jobForm.position.trim()) return;
+    setJobDialogError('');
 
-    if (jobDialogMode === 'edit' && activeJob) {
-      setJobPosts((prev) => prev.map((job) => (job.id === activeJob.id ? { ...jobForm } : job)));
-    } else {
-      const newJob = { ...jobForm, id: `job-${Date.now()}` };
-      setJobPosts((prev) => [newJob, ...prev]);
+    const trimmedTitle = jobForm.title.trim();
+    const trimmedPosition = jobForm.position.trim();
+    const trimmedExperience = jobForm.experience.trim();
+    const trimmedDescription = jobForm.description.trim();
+    const postedOn = jobForm.postedOn;
+
+    const requiredField = [
+      { key: trimmedTitle, label: 'Title' },
+      { key: trimmedPosition, label: 'Position' },
+      { key: trimmedExperience, label: 'Experience' },
+      { key: jobForm.employmentType, label: 'Employment type' },
+      { key: postedOn, label: 'Posted on' },
+      { key: trimmedDescription, label: 'Description' },
+    ].find((entry) => !entry.key);
+
+    if (requiredField) {
+      setJobDialogError(`${requiredField.label} is required.`);
+      return;
     }
-    closeJobDialog();
+
+    setSavingJob(true);
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const payload = {
+        title: trimmedTitle,
+        position: trimmedPosition,
+        experience: trimmedExperience,
+        employmentType: jobForm.employmentType,
+        postedOn,
+        description: trimmedDescription,
+        imageUrl: jobForm.imageUrl,
+      };
+
+      const response = await fetch(
+        jobDialogMode === 'edit'
+          ? apiUrl(`/api/admin/careers/jobs/${jobForm.id}`)
+          : apiUrl('/api/admin/careers/jobs'),
+        {
+          method: jobDialogMode === 'edit' ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.message || 'Unable to save job.');
+
+      const mapped = mapJobFromApi(result.job);
+      setJobPosts((prev) => {
+        if (jobDialogMode === 'edit') {
+          return prev.map((job) => (job.id === mapped.id ? mapped : job));
+        }
+        return [mapped, ...prev];
+      });
+
+      closeJobDialog();
+    } catch (error) {
+      console.error('Save job failed', error);
+      setJobDialogError(error?.message || 'Unable to save job right now.');
+    } finally {
+      setSavingJob(false);
+    }
   };
 
   const openJobDeleteDialog = (job) => {
@@ -394,10 +497,25 @@ const AdminCareersPage = () => {
     setJobToDelete(null);
   };
 
-  const handleConfirmDeleteJob = () => {
+  const handleConfirmDeleteJob = async () => {
     if (!jobToDelete) return;
-    setJobPosts((prev) => prev.filter((job) => job.id !== jobToDelete.id));
-    closeJobDeleteDialog();
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/admin/careers/jobs/${jobToDelete.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to delete job.');
+      setJobPosts((prev) => prev.filter((job) => job.id !== jobToDelete.id));
+    } catch (error) {
+      console.error('Delete job failed', error);
+      setJobsError(error?.message || 'Unable to delete job right now.');
+    } finally {
+      closeJobDeleteDialog();
+    }
   };
 
   const handleViewJob = (job) => {
@@ -411,6 +529,7 @@ const AdminCareersPage = () => {
   const openApplicationCreateDialog = () => {
     setApplicationDialogMode('create');
     setActiveApplication(null);
+    setApplicationDialogError('');
     setApplicationForm({
       ...emptyApplicationForm,
       employmentType: employmentTypes[0],
@@ -422,7 +541,8 @@ const AdminCareersPage = () => {
   const openApplicationEditDialog = (application) => {
     setApplicationDialogMode('edit');
     setActiveApplication(application);
-    setApplicationForm({ ...application, resumeFile: application.resumeFile ?? null });
+    setApplicationDialogError('');
+    setApplicationForm({ ...application, resumeFile: null });
     setApplicationDialogOpen(true);
   };
 
@@ -430,23 +550,80 @@ const AdminCareersPage = () => {
     setApplicationDialogOpen(false);
     setActiveApplication(null);
     setResumeError('');
+    setApplicationDialogError('');
   };
 
-  const handleApplicationSubmit = (event) => {
+  const handleApplicationSubmit = async (event) => {
     event?.preventDefault();
-    if (!applicationForm.name.trim() || !applicationForm.email.trim()) return;
+    setApplicationDialogError('');
 
-    if (applicationDialogMode === 'edit' && activeApplication) {
-      setApplications((prev) =>
-        prev.map((application) =>
-          application.id === activeApplication.id ? { ...applicationForm } : application
-        )
-      );
-    } else {
-      const newApplication = { ...applicationForm, id: `application-${Date.now()}` };
-      setApplications((prev) => [newApplication, ...prev]);
+    const trimmedName = applicationForm.name.trim();
+    const trimmedEmail = applicationForm.email.trim();
+    const trimmedContact = applicationForm.contact.trim();
+    const trimmedExperience = applicationForm.experience.trim();
+    const trimmedNotes = applicationForm.notes.trim();
+
+    const requiredField = [
+      { key: trimmedName, label: 'Full name' },
+      { key: trimmedEmail, label: 'Email' },
+      { key: trimmedContact, label: 'Mobile number' },
+      { key: applicationForm.employmentType, label: 'Employment type' },
+      { key: applicationForm.appliedOn, label: 'Applied date' },
+    ].find((entry) => !entry.key);
+
+    if (requiredField) {
+      setApplicationDialogError(`${requiredField.label} is required.`);
+      return;
     }
-    closeApplicationDialog();
+
+    setSavingApplication(true);
+
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const payload = {
+        name: trimmedName,
+        email: trimmedEmail,
+        contact: trimmedContact,
+        experience: trimmedExperience,
+        employmentType: applicationForm.employmentType,
+        appliedOn: applicationForm.appliedOn,
+        resumeUrl: applicationForm.resumeUrl || applicationForm.resumeFile?.url || '',
+        notes: trimmedNotes,
+        jobId: applicationForm.jobId || null,
+      };
+
+      const response = await fetch(
+        applicationDialogMode === 'edit'
+          ? apiUrl(`/api/admin/careers/applications/${applicationForm.id}`)
+          : apiUrl('/api/admin/careers/applications'),
+        {
+          method: applicationDialogMode === 'edit' ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.message || 'Unable to save applicant.');
+
+      const mapped = mapApplicationFromApi(result.application);
+      setApplications((prev) => {
+        if (applicationDialogMode === 'edit') {
+          return prev.map((application) => (application.id === mapped.id ? mapped : application));
+        }
+        return [mapped, ...prev];
+      });
+
+      closeApplicationDialog();
+    } catch (error) {
+      console.error('Save applicant failed', error);
+      setApplicationDialogError(error?.message || 'Unable to save applicant right now.');
+    } finally {
+      setSavingApplication(false);
+    }
   };
 
   const openApplicationDeleteDialog = (application) => {
@@ -457,11 +634,24 @@ const AdminCareersPage = () => {
     setApplicationToDelete(null);
   };
 
-  const handleConfirmDeleteApplication = () => {
+  const handleConfirmDeleteApplication = async () => {
     if (!applicationToDelete) return;
-    revokeResumeObjectUrl(applicationToDelete.resumeFile);
-    setApplications((prev) => prev.filter((application) => application.id !== applicationToDelete.id));
-    closeApplicationDeleteDialog();
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/admin/careers/applications/${applicationToDelete.id}`), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to delete applicant.');
+      revokeResumeObjectUrl(applicationToDelete.resumeFile);
+      setApplications((prev) => prev.filter((application) => application.id !== applicationToDelete.id));
+    } catch (error) {
+      console.error('Delete applicant failed', error);
+      setApplicationsError(error?.message || 'Unable to delete applicant right now.');
+    } finally {
+      closeApplicationDeleteDialog();
+    }
   };
 
   const handleViewApplication = (application) => {
@@ -497,7 +687,7 @@ const AdminCareersPage = () => {
       return {
         ...prev,
         resumeFile: { name: file.name, url: URL.createObjectURL(file) },
-        resumeUrl: ''
+        resumeUrl: '',
       };
     });
   };
@@ -549,6 +739,11 @@ const AdminCareersPage = () => {
           />
           <Divider />
           <CardContent>
+            {jobsError && (
+              <Typography color="error" variant="body2" mb={2}>
+                {jobsError}
+              </Typography>
+            )}
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
               <TextField
                 label="Position or title"
@@ -677,7 +872,16 @@ const AdminCareersPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredJobPosts.length === 0 && (
+                  {loadingJobs && (
+                    <TableRow>
+                      <TableCell colSpan={7}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          Loading job posts...
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!loadingJobs && filteredJobPosts.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7}>
                         <Typography variant="body2" color="text.secondary" align="center">
@@ -706,14 +910,19 @@ const AdminCareersPage = () => {
           <CardHeader
             title="Applications"
             subheader="Review candidates, update their details, or download their resumes."
-          // action={
-          //   <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
-          //     Add applicant
-          //   </Button>
-          // }
+            action={
+              <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
+                Add applicant
+              </Button>
+            }
           />
           <Divider />
           <CardContent>
+            {applicationsError && (
+              <Typography color="error" variant="body2" mb={2}>
+                {applicationsError}
+              </Typography>
+            )}
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
               <TextField
                 label="Name"
@@ -897,7 +1106,16 @@ const AdminCareersPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredApplications.length === 0 && (
+                  {loadingApplications && (
+                    <TableRow>
+                      <TableCell colSpan={7}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          Loading applications...
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!loadingApplications && filteredApplications.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7}>
                         <Typography variant="body2" color="text.secondary" align="center">
@@ -945,20 +1163,44 @@ const AdminCareersPage = () => {
               value={jobForm.experience}
               onChange={(event) => handleJobFormChange('experience', event.target.value)}
               fullWidth
+              required
             />
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="Employment type"
+                  value={jobForm.employmentType}
+                  onChange={(event) => handleJobFormChange('employmentType', event.target.value)}
+                  fullWidth
+                  required
+                >
+                  {employmentTypes.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Posted on"
+                  type="date"
+                  value={jobForm.postedOn}
+                  onChange={(event) => handleJobFormChange('postedOn', event.target.value)}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  required
+                />
+              </Grid>
+            </Grid>
             <TextField
-              select
-              label="Employment type"
-              value={jobForm.employmentType}
-              onChange={(event) => handleJobFormChange('employmentType', event.target.value)}
+              label="Cover image (optional)"
+              placeholder="https://..."
+              value={jobForm.imageUrl}
+              onChange={(event) => handleJobFormChange('imageUrl', event.target.value)}
               fullWidth
-            >
-              {employmentTypes.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </TextField>
+            />
             <TextField
               label="Description"
               placeholder="Describe responsibilities, required skills, and perks"
@@ -968,14 +1210,20 @@ const AdminCareersPage = () => {
               multiline
               minRows={4}
               maxRows={10}
+              required
             />
+            {jobDialogError && (
+              <Typography color="error" variant="body2">
+                {jobDialogError}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={closeJobDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleJobSubmit} variant="contained">
+          <Button onClick={handleJobSubmit} variant="contained" disabled={savingJob}>
             {jobDialogMode === 'edit' ? 'Save changes' : 'Create job'}
           </Button>
         </DialogActions>
@@ -996,6 +1244,14 @@ const AdminCareersPage = () => {
               <Typography variant="body2" color="text.secondary">
                 Experience: {viewJob.experience || 'Not specified'}
               </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Posted on: {viewJob.postedOn || '-'}
+              </Typography>
+              {viewJob.imageUrl && (
+                <Typography variant="body2" color="text.secondary">
+                  Image: {viewJob.imageUrl}
+                </Typography>
+              )}
               <Divider />
               <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                 {viewJob.description || 'No description provided yet.'}
@@ -1021,7 +1277,7 @@ const AdminCareersPage = () => {
           <Button onClick={closeJobDeleteDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleConfirmDeleteJob} color="error" variant="contained">
+          <Button onClick={handleConfirmDeleteJob} color="error" variant="contained" disabled={savingJob}>
             Delete
           </Button>
         </DialogActions>
@@ -1092,6 +1348,7 @@ const AdminCareersPage = () => {
                         </InputAdornment>
                       ),
                     }}
+                    required
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1101,6 +1358,7 @@ const AdminCareersPage = () => {
                     value={applicationForm.experience}
                     onChange={(event) => handleApplicationFormChange('experience', event.target.value)}
                     fullWidth
+                    required
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1110,6 +1368,7 @@ const AdminCareersPage = () => {
                     value={applicationForm.employmentType}
                     onChange={(event) => handleApplicationFormChange('employmentType', event.target.value)}
                     fullWidth
+                    required
                   >
                     {employmentTypes.map((type) => (
                       <MenuItem key={type} value={type}>
@@ -1120,10 +1379,30 @@ const AdminCareersPage = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                    label="Applied on"
+                    type="date"
+                    value={applicationForm.appliedOn}
+                    onChange={(event) => handleApplicationFormChange('appliedOn', event.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
                     label="Resume link (optional)"
                     placeholder="https://..."
                     value={applicationForm.resumeUrl}
                     onChange={(event) => handleApplicationFormChange('resumeUrl', event.target.value)}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Job ID (optional)"
+                    placeholder="Link to a specific job"
+                    value={applicationForm.jobId}
+                    onChange={(event) => handleApplicationFormChange('jobId', event.target.value)}
                     fullWidth
                   />
                 </Grid>
@@ -1162,12 +1441,19 @@ const AdminCareersPage = () => {
                 </Grid>
               </Grid>
 
+              {applicationDialogError && (
+                <Typography color="error" variant="body2">
+                  {applicationDialogError}
+                </Typography>
+              )}
+
               <Box sx={{ textAlign: 'start', mt: 1 }}>
                 <Button
                   type="submit"
                   variant="contained"
                   size="large"
                   onClick={handleApplicationSubmit}
+                  disabled={savingApplication}
                   sx={{
                     background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
                     color: '#fff',
@@ -1250,7 +1536,7 @@ const AdminCareersPage = () => {
           <Button onClick={closeApplicationDeleteDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleConfirmDeleteApplication} color="error" variant="contained">
+          <Button onClick={handleConfirmDeleteApplication} color="error" variant="contained" disabled={savingApplication}>
             Delete
           </Button>
         </DialogActions>

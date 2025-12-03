@@ -184,6 +184,64 @@ const formatBlogPostResponse = (post) => {
   };
 };
 
+const EMPLOYMENT_LABELS = {
+  FULL_TIME: 'Full-time',
+  PART_TIME: 'Part-time',
+  CONTRACT: 'Contract',
+  INTERN: 'Intern',
+};
+
+const normalizeEmploymentType = (value) => {
+  const normalized = String(value ?? '')
+    .trim()
+    .toUpperCase()
+    .replace(/[-\s]/g, '_');
+
+  if (normalized === 'FULL_TIME') return 'FULL_TIME';
+  if (normalized === 'PART_TIME') return 'PART_TIME';
+  if (normalized === 'CONTRACT') return 'CONTRACT';
+  if (normalized === 'INTERN') return 'INTERN';
+
+  return 'FULL_TIME';
+};
+
+const formatEmploymentLabel = (value) => EMPLOYMENT_LABELS[value] || 'Full-time';
+
+const normalizeDateOnly = (value) => {
+  const parsed = value ? new Date(value) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return null;
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+};
+
+const formatCareerOpeningResponse = (opening) => ({
+  id: opening.id,
+  title: opening.title,
+  position: opening.position || opening.department || '',
+  experience: opening.experience || '',
+  employmentType: formatEmploymentLabel(opening.employmentType),
+  postedOn: opening.postedOn ? opening.postedOn.toISOString().split('T')[0] : opening.createdAt?.toISOString().split('T')[0],
+  description: opening.description || '',
+  imageUrl: opening.imageUrl || '',
+  createdAt: opening.createdAt,
+  updatedAt: opening.updatedAt,
+});
+
+const formatCareerApplicationResponse = (application) => ({
+  id: application.id,
+  name: application.name,
+  email: application.email,
+  contact: application.contact || '',
+  experience: application.experience || '',
+  employmentType: formatEmploymentLabel(application.employmentType),
+  appliedOn: application.appliedOn ? application.appliedOn.toISOString().split('T')[0] : application.createdAt?.toISOString().split('T')[0],
+  resumeUrl: application.resumeUrl || '',
+  notes: application.notes || '',
+  jobId: application.jobId || '',
+  job: application.job ? formatCareerOpeningResponse(application.job) : null,
+  createdAt: application.createdAt,
+  updatedAt: application.updatedAt,
+});
+
 const parseBearerToken = (authorizationHeader) => {
   if (!authorizationHeader) return null;
   const parts = String(authorizationHeader).split(' ').filter(Boolean);
@@ -286,6 +344,40 @@ const validateBlogPostInput = (body) => {
   if (!description) return { error: 'Description is required.' };
 
   return { title, description, conclusion, slug, publishDate, status, categoryId };
+};
+
+const validateCareerOpeningInput = (body) => {
+  const title = normalizeText(body?.title);
+  const position = normalizeText(body?.position);
+  const experience = normalizeText(body?.experience) || null;
+  const description = normalizeText(body?.description);
+  const employmentType = normalizeEmploymentType(body?.employmentType);
+  const postedOn = normalizeDateOnly(body?.postedOn) || new Date();
+  const imageUrl = normalizeText(body?.imageUrl) || null;
+  const slugInput = normalizeSlug(body?.slug || body?.title) || `role-${Date.now()}`;
+
+  if (!title) return { error: 'Title is required.' };
+  if (!position) return { error: 'Position is required.' };
+  if (!description) return { error: 'Description is required.' };
+
+  return { title, position, experience, description, employmentType, postedOn, imageUrl, slug: slugInput };
+};
+
+const validateCareerApplicationInput = (body) => {
+  const name = normalizeText(body?.name);
+  const email = normalizeEmail(body?.email);
+  const contact = normalizeText(body?.contact) || null;
+  const experience = normalizeText(body?.experience) || null;
+  const employmentType = normalizeEmploymentType(body?.employmentType);
+  const appliedOn = normalizeDateOnly(body?.appliedOn) || new Date();
+  const resumeUrl = normalizeText(body?.resumeUrl) || null;
+  const notes = normalizeText(body?.notes) || null;
+  const jobId = normalizeText(body?.jobId) || null;
+
+  if (!name) return { error: 'Name is required.' };
+  if (!email || !isValidEmail(email)) return { error: 'A valid email is required.' };
+
+  return { name, email, contact, experience, employmentType, appliedOn, resumeUrl, notes, jobId };
 };
 
 const findActiveSession = async (token) => {
@@ -2214,6 +2306,319 @@ app.delete('/api/admin/feedbacks/:id', async (req, res) => {
   } catch (error) {
     console.error('Feedback delete failed', error);
     return res.status(500).json({ message: 'Unable to delete feedback right now.' });
+  }
+});
+
+// ---------- Careers (jobs & applications) ----------
+
+app.get('/api/careers/jobs', async (_req, res) => {
+  try {
+    const jobs = await prisma.careerOpening.findMany({
+      where: { isOpen: true },
+      orderBy: [{ postedOn: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    return res.json({ jobs: jobs.map(formatCareerOpeningResponse) });
+  } catch (error) {
+    console.error('Public career openings fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load openings.' });
+  }
+});
+
+app.post('/api/careers/applications', async (req, res) => {
+  try {
+    const validation = validateCareerApplicationInput(req.body || {});
+
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const { name, email, contact, experience, employmentType, appliedOn, resumeUrl, notes, jobId } = validation;
+
+    if (jobId) {
+      const exists = await prisma.careerOpening.findUnique({ where: { id: jobId } });
+      if (!exists) return res.status(404).json({ message: 'Selected job was not found.' });
+    }
+
+    const application = await prisma.careerApplication.create({
+      data: {
+        name,
+        email,
+        contact,
+        experience,
+        employmentType,
+        appliedOn,
+        resumeUrl,
+        notes,
+        jobId: jobId || null,
+      },
+      include: { job: true },
+    });
+
+    return res.status(201).json({
+      application: formatCareerApplicationResponse(application),
+      message: 'Application submitted successfully.',
+    });
+  } catch (error) {
+    console.error('Public career application failed', error);
+    return res.status(500).json({ message: 'Unable to submit application right now.' });
+  }
+});
+
+app.get('/api/admin/careers/jobs', async (req, res) => {
+  const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+  if (!admin) {
+    const code = status || 401;
+    return res.status(code).json({ message: message || 'Session token missing.' });
+  }
+
+  try {
+    const jobs = await prisma.careerOpening.findMany({
+      orderBy: [{ postedOn: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    return res.json({ jobs: jobs.map(formatCareerOpeningResponse) });
+  } catch (error) {
+    console.error('Admin career openings fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load career openings right now.' });
+  }
+});
+
+app.post('/api/admin/careers/jobs', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateCareerOpeningInput(req.body || {});
+
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    let { slug } = validation;
+    const { title, position, experience, description, employmentType, postedOn, imageUrl } = validation;
+
+    const existingSlug = await prisma.careerOpening.findUnique({ where: { slug } });
+    if (existingSlug) {
+      slug = `${slug}-${Date.now().toString(36)}`;
+    }
+
+    const created = await prisma.careerOpening.create({
+      data: {
+        title,
+        slug,
+        position,
+        employmentType,
+        experience,
+        description,
+        postedOn,
+        imageUrl,
+      },
+    });
+
+    return res.status(201).json({ job: formatCareerOpeningResponse(created), message: 'Job created.' });
+  } catch (error) {
+    console.error('Career opening create failed', error);
+    return res.status(500).json({ message: 'Unable to create job right now.' });
+  }
+});
+
+app.put('/api/admin/careers/jobs/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const jobId = req.params.id?.trim();
+    if (!jobId) return res.status(400).json({ message: 'A valid job id is required.' });
+
+    const validation = validateCareerOpeningInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.careerOpening.findUnique({ where: { id: jobId } });
+    if (!existing) return res.status(404).json({ message: 'Job not found.' });
+
+    let { slug } = validation;
+    const { title, position, experience, description, employmentType, postedOn, imageUrl } = validation;
+
+    const slugConflict = await prisma.careerOpening.findUnique({ where: { slug } });
+    if (slugConflict && slugConflict.id !== jobId) {
+      slug = `${slug}-${Date.now().toString(36)}`;
+    }
+
+    const updated = await prisma.careerOpening.update({
+      where: { id: jobId },
+      data: {
+        title,
+        slug,
+        position,
+        employmentType,
+        experience,
+        description,
+        postedOn,
+        imageUrl,
+      },
+    });
+
+    return res.json({ job: formatCareerOpeningResponse(updated), message: 'Job updated.' });
+  } catch (error) {
+    console.error('Career opening update failed', error);
+    return res.status(500).json({ message: 'Unable to update job right now.' });
+  }
+});
+
+app.delete('/api/admin/careers/jobs/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const jobId = req.params.id?.trim();
+    if (!jobId) return res.status(400).json({ message: 'A valid job id is required.' });
+
+    await prisma.careerOpening.delete({ where: { id: jobId } });
+
+    return res.json({ message: 'Job deleted.' });
+  } catch (error) {
+    console.error('Career opening delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete job right now.' });
+  }
+});
+
+app.get('/api/admin/careers/applications', async (req, res) => {
+  const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+  if (!admin) {
+    const code = status || 401;
+    return res.status(code).json({ message: message || 'Session token missing.' });
+  }
+
+  try {
+    const jobId = req.query?.jobId ? String(req.query.jobId) : null;
+    const applications = await prisma.careerApplication.findMany({
+      where: jobId ? { jobId } : {},
+      include: { job: true },
+      orderBy: [{ appliedOn: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    return res.json({ applications: applications.map(formatCareerApplicationResponse) });
+  } catch (error) {
+    console.error('Admin career applications fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load applications right now.' });
+  }
+});
+
+app.post('/api/admin/careers/applications', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateCareerApplicationInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const { name, email, contact, experience, employmentType, appliedOn, resumeUrl, notes, jobId } = validation;
+
+    if (jobId) {
+      const exists = await prisma.careerOpening.findUnique({ where: { id: jobId } });
+      if (!exists) return res.status(404).json({ message: 'Selected job was not found.' });
+    }
+
+    const application = await prisma.careerApplication.create({
+      data: {
+        name,
+        email,
+        contact,
+        experience,
+        employmentType,
+        appliedOn,
+        resumeUrl,
+        notes,
+        jobId: jobId || null,
+      },
+      include: { job: true },
+    });
+
+    return res.status(201).json({
+      application: formatCareerApplicationResponse(application),
+      message: 'Application created.',
+    });
+  } catch (error) {
+    console.error('Career application create failed', error);
+    return res.status(500).json({ message: 'Unable to create application right now.' });
+  }
+});
+
+app.put('/api/admin/careers/applications/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const applicationId = req.params.id?.trim();
+    if (!applicationId) return res.status(400).json({ message: 'A valid application id is required.' });
+
+    const validation = validateCareerApplicationInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.careerApplication.findUnique({ where: { id: applicationId } });
+    if (!existing) return res.status(404).json({ message: 'Application not found.' });
+
+    const { name, email, contact, experience, employmentType, appliedOn, resumeUrl, notes, jobId } = validation;
+
+    if (jobId) {
+      const exists = await prisma.careerOpening.findUnique({ where: { id: jobId } });
+      if (!exists) return res.status(404).json({ message: 'Selected job was not found.' });
+    }
+
+    const updated = await prisma.careerApplication.update({
+      where: { id: applicationId },
+      data: {
+        name,
+        email,
+        contact,
+        experience,
+        employmentType,
+        appliedOn,
+        resumeUrl,
+        notes,
+        jobId: jobId || null,
+      },
+      include: { job: true },
+    });
+
+    return res.json({ application: formatCareerApplicationResponse(updated), message: 'Application updated.' });
+  } catch (error) {
+    console.error('Career application update failed', error);
+    return res.status(500).json({ message: 'Unable to update application right now.' });
+  }
+});
+
+app.delete('/api/admin/careers/applications/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const applicationId = req.params.id?.trim();
+    if (!applicationId) return res.status(400).json({ message: 'A valid application id is required.' });
+
+    await prisma.careerApplication.delete({ where: { id: applicationId } });
+
+    return res.json({ message: 'Application deleted.' });
+  } catch (error) {
+    console.error('Career application delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete application right now.' });
   }
 });
 

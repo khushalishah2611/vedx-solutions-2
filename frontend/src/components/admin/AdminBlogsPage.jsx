@@ -45,6 +45,12 @@ const deriveStatusFromDate = (status, publishDate) => {
   return 'Published';
 };
 
+const formatDisplayDate = (value) => {
+  const parsed = value ? new Date(value) : null;
+  if (!parsed || Number.isNaN(parsed.getTime())) return '-';
+  return parsed.toISOString().split('T')[0];
+};
+
 const dateFilterOptions = [
   { value: 'all', label: 'All dates' },
   { value: 'today', label: 'Today' },
@@ -115,6 +121,12 @@ const AdminBlogsPage = () => {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [categoriesError, setCategoriesError] = useState('');
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [categoryDialogMode, setCategoryDialogMode] = useState('create');
+  const [categoryDialogError, setCategoryDialogError] = useState('');
+  const [categoryForm, setCategoryForm] = useState({ id: '', name: '' });
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [savingCategory, setSavingCategory] = useState(false);
 
   const [blogList, setBlogList] = useState([]);
   const [blogsError, setBlogsError] = useState('');
@@ -165,6 +177,127 @@ const AdminBlogsPage = () => {
       setCategoriesError(error?.message || 'Unable to load categories right now.');
     } finally {
       setLoadingCategories(false);
+    }
+  };
+
+  const openCategoryDialog = (mode = 'create', category = null) => {
+    setCategoryDialogMode(mode);
+    setCategoryDialogError('');
+    setCategoryDialogOpen(true);
+    if (category) {
+      setCategoryForm({ id: category.id, name: category.name || '' });
+    } else {
+      setCategoryForm({ id: '', name: '' });
+    }
+  };
+
+  const closeCategoryDialog = () => {
+    setCategoryDialogOpen(false);
+    setCategoryDialogError('');
+  };
+
+  const handleCategorySave = async () => {
+    setCategoryDialogError('');
+    const trimmedName = categoryForm.name.trim();
+    if (!trimmedName) {
+      setCategoryDialogError('Category name is required.');
+      return;
+    }
+
+    setSavingCategory(true);
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+
+      const response = await fetch(
+        categoryDialogMode === 'edit'
+          ? apiUrl(`/api/admin/blog-categories/${categoryForm.id}`)
+          : apiUrl('/api/admin/blog-categories'),
+        {
+          method: categoryDialogMode === 'edit' ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name: trimmedName }),
+        }
+      );
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to save category.');
+
+      const saved = payload.category;
+      setCategoryOptions((prev) =>
+        categoryDialogMode === 'edit'
+          ? prev.map((cat) => (cat.id === saved.id ? saved : cat))
+          : [saved, ...prev]
+      );
+
+      if (categoryDialogMode === 'edit') {
+        setBlogList((prev) =>
+          prev.map((blog) =>
+            blog.categoryId === saved.id ? { ...blog, category: saved.name } : blog
+          )
+        );
+      }
+
+      // if the blog form or filters were using an empty category, set it to the newly created one
+      if (!formState.categoryId || formState.categoryId === categoryForm.id) {
+        setFormState((prev) => ({ ...prev, categoryId: saved.id }));
+      }
+
+      if (appliedFilters.category === categoryForm.id) {
+        setAppliedFilters((prev) => ({ ...prev, category: saved.id }));
+      }
+
+      closeCategoryDialog();
+    } catch (error) {
+      console.error('Save blog category failed', error);
+      setCategoryDialogError(error?.message || 'Unable to save category right now.');
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleCategoryDelete = async () => {
+    if (!categoryToDelete) return;
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/admin/blog-categories/${categoryToDelete.id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to delete category.');
+
+      const updatedCategories = categoryOptions.filter((cat) => cat.id !== categoryToDelete.id);
+      setCategoryOptions(updatedCategories);
+
+      setBlogList((prev) =>
+        prev.map((blog) =>
+          blog.categoryId === categoryToDelete.id
+            ? { ...blog, categoryId: '', category: 'Uncategorized' }
+            : blog
+        )
+      );
+
+      if (filterDraft.category === categoryToDelete.id || appliedFilters.category === categoryToDelete.id) {
+        setFilterDraft((prev) => ({ ...prev, category: 'all' }));
+        setAppliedFilters((prev) => ({ ...prev, category: 'all' }));
+      }
+
+      if (formState.categoryId === categoryToDelete.id) {
+        setFormState((prev) => ({ ...prev, categoryId: updatedCategories[0]?.id || '' }));
+      }
+
+      setCategoryToDelete(null);
+    } catch (error) {
+      console.error('Delete blog category failed', error);
+      setCategoriesError(error?.message || 'Unable to delete category right now.');
+    } finally {
+      setCategoryToDelete(null);
     }
   };
 
@@ -401,6 +534,85 @@ const AdminBlogsPage = () => {
     <Stack spacing={3}>
       <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
         <CardHeader
+          title="Blog categories"
+          subheader="Create, rename, or delete categories used by blog posts."
+          action={
+            <Button variant="contained" onClick={() => openCategoryDialog('create')}>
+              Add category
+            </Button>
+          }
+        />
+        <Divider />
+        <CardContent>
+          {categoriesError && (
+            <Typography color="error" variant="body2" mb={2}>
+              {categoriesError}
+            </Typography>
+          )}
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {categoryOptions.map((category) => (
+                  <TableRow key={category.id} hover>
+                    <TableCell sx={{ fontWeight: 700 }}>{category.name}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDisplayDate(category.createdAt)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <Tooltip title="Edit category">
+                          <IconButton size="small" onClick={() => openCategoryDialog('edit', category)}>
+                            <EditOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete category">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => setCategoryToDelete(category)}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {!loadingCategories && categoryOptions.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        No categories yet. Create one to start organising posts.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {loadingCategories && (
+                  <TableRow>
+                    <TableCell colSpan={3}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        Loading categories...
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+
+      <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+        <CardHeader
           title="Blogs"
           subheader="Create, edit, view or remove posts in a simple table view."
           action={
@@ -631,6 +843,53 @@ const AdminBlogsPage = () => {
           </Stack>
         </CardContent>
       </Card>
+
+      {/* Blog category dialog */}
+      <Dialog open={categoryDialogOpen} onClose={closeCategoryDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>{categoryDialogMode === 'edit' ? 'Edit category' : 'Add category'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Category name"
+              value={categoryForm.name}
+              onChange={(event) => setCategoryForm((prev) => ({ ...prev, name: event.target.value }))}
+              fullWidth
+              required
+              autoFocus
+            />
+            {categoryDialogError && (
+              <Typography color="error" variant="body2">
+                {categoryDialogError}
+              </Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeCategoryDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleCategorySave} variant="contained" disabled={savingCategory}>
+            {categoryDialogMode === 'edit' ? 'Save changes' : 'Create category'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(categoryToDelete)} onClose={() => setCategoryToDelete(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete category</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Delete "{categoryToDelete?.name}"? Posts in this category will become uncategorized.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCategoryToDelete(null)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleCategoryDelete} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Create / Edit draft dialog */}
       <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>

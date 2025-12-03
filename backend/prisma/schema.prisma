@@ -148,15 +148,36 @@ model CareerOpening {
   id               String         @id @map("_id") @default(auto()) @db.ObjectId
   title            String
   slug             String         @unique
-  location         String
-  department       String
+  position         String?
+  location         String?
+  department       String?
+  experience       String?
   employmentType   EmploymentType @default(FULL_TIME)
+  postedOn         DateTime?      @default(now())
+  imageUrl         String?
   description      String?
   requirements     Json?
   isRemoteFriendly Boolean        @default(true)
   isOpen           Boolean        @default(true)
+  applications     CareerApplication[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
+}
+
+model CareerApplication {
+  id             String         @id @map("_id") @default(auto()) @db.ObjectId
+  name           String
+  email          String
+  contact        String?
+  experience     String?
+  employmentType EmploymentType @default(FULL_TIME)
+  appliedOn      DateTime?      @default(now())
+  resumeUrl      String?
+  notes          String?
+  jobId          String?        @db.ObjectId
+  job            CareerOpening? @relation(fields: [jobId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 model ContactMessage {
