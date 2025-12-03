@@ -296,8 +296,21 @@ const AdminBlogsPage = () => {
     event?.preventDefault();
     setDialogError('');
 
-    if (!formState.title.trim() || !formState.description.trim()) {
-      setDialogError('Title and description are required.');
+    const trimmedTitle = formState.title.trim();
+    const trimmedDescription = formState.description.trim();
+    const trimmedConclusion = formState.conclusion.trim();
+
+    const requiredField = [
+      { key: trimmedTitle, label: 'Title' },
+      { key: formState.categoryId, label: 'Category' },
+      { key: formState.publishDate, label: 'Publish date' },
+      { key: formState.status, label: 'Status' },
+      { key: trimmedDescription, label: 'Description' },
+      { key: trimmedConclusion, label: 'Conclusion' },
+    ].find((entry) => !entry.key);
+
+    if (requiredField) {
+      setDialogError(`${requiredField.label} is required.`);
       return;
     }
 
@@ -305,11 +318,11 @@ const AdminBlogsPage = () => {
     try {
       if (!token) throw new Error('Your session expired. Please log in again.');
       const payload = {
-        title: formState.title,
-        categoryId: formState.categoryId || null,
+        title: trimmedTitle,
+        categoryId: formState.categoryId,
         publishDate: formState.publishDate,
-        description: formState.description,
-        conclusion: formState.conclusion,
+        description: trimmedDescription,
+        conclusion: trimmedConclusion,
         status: formState.status,
       };
 
@@ -640,7 +653,8 @@ const AdminBlogsPage = () => {
               value={formState.categoryId}
               onChange={(event) => handleFormChange('categoryId', event.target.value)}
               fullWidth
-              disabled={loadingCategories}
+              disabled={loadingCategories || !categoryOptions.length}
+              required
             >
               {categoryOptions.map((option) => (
                 <MenuItem key={option.id} value={option.id}>
@@ -663,6 +677,7 @@ const AdminBlogsPage = () => {
                   cursor: 'pointer'
                 }
               }}
+              required
             />
             <TextField
               select
@@ -670,6 +685,7 @@ const AdminBlogsPage = () => {
               value={formState.status}
               onChange={(event) => handleFormChange('status', event.target.value)}
               fullWidth
+              required
             >
               {statusOptions.map((status) => (
                 <MenuItem key={status} value={status}>
@@ -697,6 +713,7 @@ const AdminBlogsPage = () => {
               minRows={3}
               maxRows={10}
               fullWidth
+              required
             />
             {dialogError && (
               <Typography color="error" variant="body2">

@@ -96,8 +96,6 @@ const defaultFilters = {
   end: '',
 };
 
-const fallbackProjectTypes = ['Web Application', 'Mobile App', 'Product Design', 'Consulting', 'Other'];
-
 const formatDate = (value) => (value ? String(value).split('T')[0] : '-');
 
 const normalizeContactFromApi = (contact) => ({
@@ -105,7 +103,7 @@ const normalizeContactFromApi = (contact) => ({
   name: contact.name || '',
   email: contact.email || '',
   phone: contact.phone || '',
-  countryCode: contact.countryCode || '',
+  countryCode: contact.countryCode || '+91',
   projectType: contact.projectType || '',
   contactType: contact.contactType || 'General enquiry',
   description: contact.description || contact.message || '',
@@ -151,17 +149,16 @@ const AdminContactsPage = () => {
     []
   );
 
-  const projectTypeOptions = useMemo(() => {
-    const options = (projectTypes || []).map((type) => type.name || '').filter(Boolean);
-    const fromContacts = contactList.map((contact) => contact.projectType).filter(Boolean);
-    return [...new Set([...options, ...fromContacts, ...fallbackProjectTypes])];
-  }, [projectTypes, contactList]);
+  const projectTypeOptions = useMemo(
+    () => Array.from(new Set((projectTypes || []).map((type) => type.name || '').filter(Boolean))),
+    [projectTypes]
+  );
 
   const buildEmptyContactForm = () => ({
     name: '',
     email: '',
     phone: '',
-    countryCode: '',
+    countryCode: '+91',
     contactType: contactTypes[0] || 'General enquiry',
     projectType: projectTypeOptions[0] || '',
     description: '',
@@ -246,6 +243,20 @@ const AdminContactsPage = () => {
     loadProjectTypes();
   }, []);
 
+  useEffect(() => {
+    setCreateForm((prev) => {
+      if (!prev) return prev;
+      if (prev.projectType || !projectTypeOptions.length) return prev;
+      return { ...prev, projectType: projectTypeOptions[0] };
+    });
+
+    setEditForm((prev) => {
+      if (!prev) return prev;
+      if (prev.projectType || !projectTypeOptions.length) return prev;
+      return { ...prev, projectType: projectTypeOptions[0] };
+    });
+  }, [projectTypeOptions]);
+
   const filteredContacts = useMemo(
     () =>
       contactList.filter((contact) => {
@@ -297,10 +308,23 @@ const AdminContactsPage = () => {
 
     const trimmedName = createForm.name.trim();
     const trimmedEmail = createForm.email.trim();
+    const trimmedPhone = (createForm.phone || '').trim();
+    const trimmedCountry = (createForm.countryCode || '').trim();
     const trimmedDescription = (createForm.description || '').trim();
 
-    if (!trimmedName || !trimmedEmail || !trimmedDescription) {
-      setCreateError('Name, email, and description are required.');
+    const requiredField = [
+      { key: trimmedName, label: 'Name' },
+      { key: trimmedEmail, label: 'Email' },
+      { key: trimmedCountry, label: 'Country code' },
+      { key: trimmedPhone, label: 'Mobile number' },
+      { key: createForm.contactType, label: 'Contact type' },
+      { key: createForm.projectType, label: 'Project type' },
+      { key: trimmedDescription, label: 'Description' },
+      { key: createForm.status, label: 'Status' },
+    ].find((entry) => !entry.key);
+
+    if (requiredField) {
+      setCreateError(`${requiredField.label} is required.`);
       return;
     }
 
@@ -323,8 +347,8 @@ const AdminContactsPage = () => {
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
-          phone: createForm.phone ? createForm.phone.trim() : '',
-          countryCode: createForm.countryCode ? createForm.countryCode.trim() : '',
+          phone: trimmedPhone,
+          countryCode: trimmedCountry,
           contactType: createForm.contactType,
           projectType: createForm.projectType,
           description: trimmedDescription,
@@ -350,7 +374,7 @@ const AdminContactsPage = () => {
 
   const openEditDialog = (contact) => {
     setEditingContact(contact);
-    setEditForm({ ...contact });
+    setEditForm({ ...contact, countryCode: contact.countryCode || '+91' });
     setEditError('');
   };
 
@@ -369,10 +393,23 @@ const AdminContactsPage = () => {
 
     const trimmedName = editForm.name.trim();
     const trimmedEmail = editForm.email.trim();
+    const trimmedPhone = (editForm.phone || '').trim();
+    const trimmedCountry = (editForm.countryCode || '').trim();
     const trimmedDescription = (editForm.description || '').trim();
 
-    if (!trimmedName || !trimmedEmail || !trimmedDescription) {
-      setEditError('Name, email, and description are required.');
+    const requiredField = [
+      { key: trimmedName, label: 'Name' },
+      { key: trimmedEmail, label: 'Email' },
+      { key: trimmedCountry, label: 'Country code' },
+      { key: trimmedPhone, label: 'Mobile number' },
+      { key: editForm.contactType, label: 'Contact type' },
+      { key: editForm.projectType, label: 'Project type' },
+      { key: trimmedDescription, label: 'Description' },
+      { key: editForm.status, label: 'Status' },
+    ].find((entry) => !entry.key);
+
+    if (requiredField) {
+      setEditError(`${requiredField.label} is required.`);
       return;
     }
 
@@ -395,8 +432,8 @@ const AdminContactsPage = () => {
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
-          phone: editForm.phone ? editForm.phone.trim() : '',
-          countryCode: editForm.countryCode ? editForm.countryCode.trim() : '',
+          phone: trimmedPhone,
+          countryCode: trimmedCountry,
           contactType: editForm.contactType,
           projectType: editForm.projectType,
           description: trimmedDescription,
@@ -985,6 +1022,7 @@ const AdminContactsPage = () => {
                   fullWidth
                   value={createForm.name}
                   onChange={(event) => handleCreateChange('name', event.target.value)}
+                  required
                 />
                 <TextField
                   label="Email"
@@ -992,20 +1030,23 @@ const AdminContactsPage = () => {
                   fullWidth
                   value={createForm.email}
                   onChange={(event) => handleCreateChange('email', event.target.value)}
+                  required
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField
-                  label="Country"
+                  label="Country code"
                   fullWidth
                   value={createForm.countryCode}
-                  onChange={(event) => handleCreateChange('countryCode', event.target.value.toUpperCase())}
+                  disabled
+                  required
                 />
                 <TextField
                   label="Mobile number"
                   fullWidth
                   value={createForm.phone}
                   onChange={(event) => handleCreateChange('phone', event.target.value)}
+                  required
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -1015,6 +1056,7 @@ const AdminContactsPage = () => {
                   value={createForm.contactType}
                   onChange={(event) => handleCreateChange('contactType', event.target.value)}
                   fullWidth
+                  required
                 >
                   {contactTypes.map((option) => (
                     <MenuItem key={option} value={option}>
@@ -1028,6 +1070,13 @@ const AdminContactsPage = () => {
                   value={createForm.projectType}
                   onChange={(event) => handleCreateChange('projectType', event.target.value)}
                   fullWidth
+                  disabled={!projectTypeOptions.length}
+                  required
+                  helperText={
+                    projectTypeOptions.length
+                      ? 'Select the project type from the master list'
+                      : 'Add a project type first to assign it here.'
+                  }
                 >
                   {projectTypeOptions.map((option) => (
                     <MenuItem key={option} value={option}>
@@ -1043,6 +1092,7 @@ const AdminContactsPage = () => {
                 multiline
                 minRows={3}
                 fullWidth
+                required
               />
               <TextField
                 select
@@ -1050,6 +1100,7 @@ const AdminContactsPage = () => {
                 value={createForm.status}
                 onChange={(event) => handleCreateChange('status', event.target.value)}
                 fullWidth
+                required
               >
                 {enquiryStatuses.map((status) => (
                   <MenuItem key={status} value={status}>
@@ -1090,6 +1141,7 @@ const AdminContactsPage = () => {
                   fullWidth
                   value={editForm.name}
                   onChange={(event) => handleEditChange('name', event.target.value)}
+                  required
                 />
                 <TextField
                   label="Email"
@@ -1097,20 +1149,23 @@ const AdminContactsPage = () => {
                   fullWidth
                   value={editForm.email}
                   onChange={(event) => handleEditChange('email', event.target.value)}
+                  required
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField
-                  label="Country"
+                  label="Country code"
                   fullWidth
                   value={editForm.countryCode}
-                  onChange={(event) => handleEditChange('countryCode', event.target.value.toUpperCase())}
+                  disabled
+                  required
                 />
                 <TextField
                   label="Mobile number"
                   fullWidth
                   value={editForm.phone}
                   onChange={(event) => handleEditChange('phone', event.target.value)}
+                  required
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -1120,6 +1175,7 @@ const AdminContactsPage = () => {
                   value={editForm.contactType}
                   onChange={(event) => handleEditChange('contactType', event.target.value)}
                   fullWidth
+                  required
                 >
                   {contactTypes.map((option) => (
                     <MenuItem key={option} value={option}>
@@ -1133,6 +1189,13 @@ const AdminContactsPage = () => {
                   value={editForm.projectType}
                   onChange={(event) => handleEditChange('projectType', event.target.value)}
                   fullWidth
+                  disabled={!projectTypeOptions.length}
+                  required
+                  helperText={
+                    projectTypeOptions.length
+                      ? 'Select the project type from the master list'
+                      : 'Add a project type first to assign it here.'
+                  }
                 >
                   {projectTypeOptions.map((option) => (
                     <MenuItem key={option} value={option}>
@@ -1148,6 +1211,7 @@ const AdminContactsPage = () => {
                 multiline
                 minRows={3}
                 fullWidth
+                required
               />
               <TextField
                 select
@@ -1155,6 +1219,7 @@ const AdminContactsPage = () => {
                 value={editForm.status}
                 onChange={(event) => handleEditChange('status', event.target.value)}
                 fullWidth
+                required
               >
                 {enquiryStatuses.map((status) => (
                   <MenuItem key={status} value={status}>
