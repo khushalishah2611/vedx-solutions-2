@@ -1266,6 +1266,7 @@ const AdminCareersPage = () => {
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack spacing={0.5}>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
+
                 {applicationDialogMode === 'edit' ? 'Edit applicant' : 'New applicant'}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -1377,8 +1378,8 @@ const AdminCareersPage = () => {
                         {applicationForm.resumeFile
                           ? `Selected: ${applicationForm.resumeFile.name}`
                           : applicationForm.resumeUrl
-                          ? 'Existing resume on file'
-                          : 'No file selected yet.'}
+                            ? 'Existing resume on file'
+                            : 'No file selected yet.'}
                       </Typography>
                       {applicationForm.resumeFile && (
                         <Button color="error" size="small" onClick={handleClearResumeFile}>
@@ -1415,24 +1416,7 @@ const AdminCareersPage = () => {
               )}
 
               <Box sx={{ textAlign: 'start', mt: 1 }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  onClick={handleApplicationSubmit}
-                  disabled={savingApplication}
-                  sx={{
-                    background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                    color: '#fff',
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: { xs: 4, md: 5 },
-                    py: { xs: 1.25, md: 1.5 },
-                    '&:hover': {
-                      background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                    },
-                  }}
+                <Button variant="contained"
                 >
                   {applicationDialogMode === 'edit' ? 'Save applicant' : 'Submit applicant'}
                 </Button>
