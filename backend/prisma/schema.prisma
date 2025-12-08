@@ -7,6 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// ----------------------------------------------------------
+/// ENUMS
+/// ----------------------------------------------------------
+enum BannerType {
+  HOME
+  ABOUT
+  BLOGS
+  CONTACT
+  CAREER
+}
+
 enum AdminRole {
   SUPER_ADMIN
   EDITOR
@@ -24,13 +35,192 @@ enum PublishStatus {
   PUBLISHED
 }
 
-
 enum EmploymentType {
   FULL_TIME
   PART_TIME
   CONTRACT
   INTERN
 }
+
+/// ----------------------------------------------------------
+/// DASHBOARD BANNER
+/// ----------------------------------------------------------
+model Banner {
+  id        String        @id @map("_id") @default(auto()) @db.ObjectId
+  title     String
+  type      BannerType
+  /// Non-home banners (about/blogs/contact/career) ek image
+  imageUrl  String?
+  /// Home banner mate multiple images
+  images    BannerImage[]
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model BannerImage {
+  id        String   @id @map("_id") @default(auto()) @db.ObjectId
+  bannerId  String   @db.ObjectId
+  banner    Banner   @relation(fields: [bannerId], references: [id])
+
+  imageUrl  String
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// ----------------------------------------------------------
+/// PROCESS TAB (steps)
+/// ----------------------------------------------------------
+model ProcessStep {
+  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  title       String
+  description String?
+  imageUrl    String?
+
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// ----------------------------------------------------------
+/// OUR SERVICES – SLIDERS + SERVICE CARDS
+/// ----------------------------------------------------------
+/// Slider = hero section (title + description + image)
+model ServiceSlider {
+  id                String        @id @map("_id") @default(auto()) @db.ObjectId
+  sliderTitle       String
+  sliderDescription String?
+  sliderImageUrl    String?
+
+  services          ServiceCard[]
+
+  isActive          Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+/// Individual service cards, mapped to a slider
+model ServiceCard {
+  id           String        @id @map("_id") @default(auto()) @db.ObjectId
+  title        String
+  /// Optional, future ma use kari shakay
+  subtitle     String?
+  description  String?
+  imageUrl     String?
+
+  sliderId     String        @db.ObjectId
+  slider       ServiceSlider @relation(fields: [sliderId], references: [id])
+
+  sortOrder    Int           @default(0)
+  isFeatured   Boolean       @default(false)
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+/// ----------------------------------------------------------
+/// INDUSTRIES WE SERVE
+/// ----------------------------------------------------------
+/// Header (Title + Description) – singleton type section
+model IndustriesConfig {
+  id          String     @id @map("_id") @default(auto()) @db.ObjectId
+  title       String
+  description String?
+
+  items       Industry[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+/// List items (Fintech, Healthtech, etc.)
+model Industry {
+  id          String           @id @map("_id") @default(auto()) @db.ObjectId
+  sectionId   String           @db.ObjectId
+  section     IndustriesConfig @relation(fields: [sectionId], references: [id])
+
+  title       String
+  description String?
+  imageUrl    String?
+
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  /// Optional: avoid exact same title duplicate per section
+  @@unique([sectionId, title])
+}
+
+/// ----------------------------------------------------------
+/// TECH SOLUTIONS FOR ALL BUSINESS TYPES
+/// ----------------------------------------------------------
+/// Header content
+model TechSolutionsConfig {
+  id          String         @id @map("_id") @default(auto()) @db.ObjectId
+  title       String
+  description String?
+
+  solutions   TechSolution[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+/// Solutions list (SMB accelerators, Enterprise modernization)
+model TechSolution {
+  id          String              @id @map("_id") @default(auto()) @db.ObjectId
+  sectionId   String              @db.ObjectId
+  section     TechSolutionsConfig @relation(fields: [sectionId], references: [id])
+
+  title       String
+  description String?
+
+  sortOrder   Int          @default(0)
+  isActive    Boolean      @default(true)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+/// ----------------------------------------------------------
+/// EXPERTISE MODELS
+/// ----------------------------------------------------------
+model ExpertiseConfig {
+  id          String         @id @map("_id") @default(auto()) @db.ObjectId
+  title       String
+  description String?
+
+  items       ExpertiseItem[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model ExpertiseItem {
+  id          String          @id @map("_id") @default(auto()) @db.ObjectId
+  sectionId   String          @db.ObjectId
+  section     ExpertiseConfig @relation(fields: [sectionId], references: [id])
+
+  title       String
+  description String?
+  imageUrl    String?
+
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+/// ----------------------------------------------------------
+/// EXISTING MODELS (Admin, Navigation, Services, Blog, Career, etc.)
+/// ----------------------------------------------------------
 
 model AdminUser {
   id           String        @id @map("_id") @default(auto()) @db.ObjectId
@@ -94,16 +284,16 @@ model ServiceCategory {
 }
 
 model Service {
-  id          String           @id @map("_id") @default(auto()) @db.ObjectId
-  title       String
-  slug        String           @unique
-  summary     String?
-  imageUrl    String?
-  tags        Json?
-  subCategoryId String?              @db.ObjectId
-  subCategory   ServiceSubCategory?  @relation(fields: [subCategoryId], references: [id])
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id            String              @id @map("_id") @default(auto()) @db.ObjectId
+  title         String
+  slug          String              @unique
+  summary       String?
+  imageUrl      String?
+  tags          Json?
+  subCategoryId String?             @db.ObjectId
+  subCategory   ServiceSubCategory? @relation(fields: [subCategoryId], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
 
 model ServiceSubCategory {
@@ -181,19 +371,19 @@ model CareerApplication {
 }
 
 model ContactMessage {
-  id        String   @id @map("_id") @default(auto()) @db.ObjectId
-  name      String
-  email     String
-  phone     String?
+  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  name        String
+  email       String
+  phone       String?
   countryCode String?
   contactType String?
   projectType String?
   description String?
-  subject   String?
-  message   String?
-  status    String   @default("New")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  subject     String?
+  message     String?
+  status      String   @default("New")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ProjectType {
@@ -214,6 +404,8 @@ model ClientFeedback {
   updatedAt DateTime @updatedAt
 }
 
+/// NOTE: HireCategory / HireRole already exists for "Hire developers" flows.
+/// (Mara pela Int-based HireCategory/HireSubcategory models hata – e hataavi didha.)
 model HireCategory {
   id          String     @id @map("_id") @default(auto()) @db.ObjectId
   title       String
@@ -229,8 +421,8 @@ model HireRole {
   title          String
   slug           String       @unique
   description    String?
-  hireCategory   HireCategory @relation(fields: [hireCategoryId], references: [id])
   hireCategoryId String       @db.ObjectId
+  hireCategory   HireCategory @relation(fields: [hireCategoryId], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }

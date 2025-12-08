@@ -2622,128 +2622,688 @@ app.delete('/api/admin/careers/applications/:id', async (req, res) => {
   }
 });
 
-// ---------- Static content routes ----------
-const hero = {
-  title: 'Unlock Your Business Potential',
-  subtitle: 'Data-driven marketing campaigns that deliver measurable growth.',
-  ctaPrimary: 'Get Started',
-  ctaSecondary: 'View Case Studies',
-  stats: [
-    { label: 'Campaigns Launched', value: '1200+' },
-    { label: 'Satisfied Clients', value: '500+' },
-    { label: 'Average ROI', value: '340%' },
-  ],
-};
+function serializeImages(images) {
+  if (!images) return null;
+  if (Array.isArray(images)) return JSON.stringify(images);
+  return JSON.stringify([images]);
+}
 
-const advantages = [
-  {
-    title: 'Real-time analytics',
-    description: 'Measure every click, conversion, and customer touchpoint with live dashboards.',
-  },
-  {
-    title: 'Omni-channel strategies',
-    description: 'Execute cohesive campaigns across search, social, email, and programmatic display.',
-  },
-  {
-    title: 'Human + AI expertise',
-    description: 'Blend award-winning strategists with machine learning models tuned for marketing.',
-  },
-  {
-    title: 'Full funnel optimization',
-    description: 'Drive awareness, engagement, and sales with tailored conversion journeys.',
-  },
-];
+function parseImages(imagesField) {
+  if (!imagesField) return [];
+  try {
+    const parsed = JSON.parse(imagesField);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
-const differentiators = [
-  {
-    title: 'Industry leading onboarding',
-    points: ['Kickoff workshop in under 48 hours', 'Persona and messaging strategy in 1 week', 'Launch-ready campaigns by day 14'],
-  },
-  {
-    title: 'Performance insights',
-    points: ['Weekly growth playbooks', 'Audience micro-segmentation', 'Predictive lead scoring models'],
-  },
-];
+/* -----------------------------------
+ * BANNERS
+ * ----------------------------------- */
 
-const reasons = [
-  {
-    title: 'Customizable technology stack',
-    description: 'Integrate seamlessly with your CRM, CDP, and sales automation tools.',
-  },
-  {
-    title: 'Transparent collaboration',
-    description: 'Slack, dashboards, and quarterly business reviews keep everyone in sync.',
-  },
-  {
-    title: 'Proven processes',
-    description: 'Framework refined across SaaS, eCommerce, and enterprise clients.',
-  },
-  {
-    title: 'Global delivery',
-    description: 'Regional experts cover 30+ countries and 15 languages.',
-  },
-];
+// GET all banners
+app.get('/api/banners', async (req, res) => {
+  try {
+    const banners = await prisma.banner.findMany({
+      orderBy: { id: 'desc' },
+    });
 
-const products = [
-  {
-    name: 'DemandGen Accelerator',
-    description: 'Launch multi-channel campaigns with creative, automation, and analytics included.',
-    badge: 'Top Seller',
-  },
-  {
-    name: 'Lifecycle Nurture Suite',
-    description: 'Automated nurture flows tailored for trials, conversions, and retention.',
-    badge: 'New',
-  },
-  {
-    name: 'Commerce Growth Engine',
-    description: 'Dynamic product ads, retargeting, and merchandising optimization for retailers.',
-  },
-];
+    const normalized = banners.map((b) => ({
+      id: b.id,
+      title: b.title,
+      type: b.type,
+      image: b.image,
+      images: parseImages(b.images),
+    }));
 
-const metrics = [
-  { value: '12M+', label: 'Leads Generated' },
-  { value: '250%', label: 'Average Pipeline Growth' },
-  { value: '6.5x', label: 'Return on Ad Spend' },
-  { value: '95%', label: 'Client Retention Rate' },
-];
+    res.json(normalized);
+  } catch (err) {
+    console.error('GET /api/banners error', err);
+    res.status(500).json({ error: 'Failed to fetch banners' });
+  }
+});
 
-const faqs = [
-  {
-    question: 'What industries do you specialize in?',
-    answer: 'We work with SaaS, FinTech, eCommerce, healthcare, and B2B service organizations.',
-  },
-  {
-    question: 'How quickly can we launch?',
-    answer: 'Most clients launch their first optimized campaigns within the first two weeks.',
-  },
-  {
-    question: 'Do you offer performance guarantees?',
-    answer: 'We set clear KPIs during onboarding and continuously iterate to exceed them.',
-  },
-];
+// CREATE banner
+app.post('/api/banners', async (req, res) => {
+  try {
+    const { title, type, image, images } = req.body;
+    if (!title || !type) {
+      return res.status(400).json({ error: 'title and type are required' });
+    }
 
-const testimonials = [
-  {
-    quote: 'VEDX tripled our inbound opportunities within three months and gave us reporting our board loves.',
-    author: 'Priya Shah',
-    role: 'VP of Marketing, Aethon Labs',
-  },
-  {
-    quote: 'The blend of strategy, creative, and data science is unmatched. They feel like an extension of our team.',
-    author: 'Chris Douglas',
-    role: 'Head of Growth, Stratus AI',
-  },
-];
+    const created = await prisma.banner.create({
+      data: {
+        title,
+        type,
+        image: type === 'home' ? null : image || null,
+        images: type === 'home' ? serializeImages(images) : null,
+      },
+    });
 
-app.get('/api/hero', (_req, res) => res.json(hero));
-app.get('/api/advantages', (_req, res) => res.json(advantages));
-app.get('/api/differentiators', (_req, res) => res.json(differentiators));
-app.get('/api/reasons', (_req, res) => res.json(reasons));
-app.get('/api/products', (_req, res) => res.json(products));
-app.get('/api/metrics', (_req, res) => res.json(metrics));
-app.get('/api/faqs', (_req, res) => res.json(faqs));
-app.get('/api/testimonials', (_req, res) => res.json(testimonials));
+    res.status(201).json({
+      id: created.id,
+      title: created.title,
+      type: created.type,
+      image: created.image,
+      images: parseImages(created.images),
+    });
+  } catch (err) {
+    console.error('POST /api/banners error', err);
+    res.status(500).json({ error: 'Failed to create banner' });
+  }
+});
+
+// UPDATE banner
+app.put('/api/banners/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { title, type, image, images } = req.body;
+
+    const existing = await prisma.banner.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Banner not found' });
+    }
+
+    const updated = await prisma.banner.update({
+      where: { id },
+      data: {
+        title: title ?? existing.title,
+        type: type ?? existing.type,
+        image: (type || existing.type) === 'home' ? null : image ?? existing.image,
+        images:
+          (type || existing.type) === 'home'
+            ? serializeImages(images ?? parseImages(existing.images))
+            : null,
+      },
+    });
+
+    res.json({
+      id: updated.id,
+      title: updated.title,
+      type: updated.type,
+      image: updated.image,
+      images: parseImages(updated.images),
+    });
+  } catch (err) {
+    console.error('PUT /api/banners/:id error', err);
+    res.status(500).json({ error: 'Failed to update banner' });
+  }
+});
+
+// DELETE banner
+app.delete('/api/banners/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.banner.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/banners/:id error', err);
+    res.status(500).json({ error: 'Failed to delete banner' });
+  }
+});
+
+/* -----------------------------------
+ * PROCESS STEPS
+ * ----------------------------------- */
+
+app.get('/api/process-steps', async (req, res) => {
+  try {
+    const steps = await prisma.processStep.findMany({ orderBy: { id: 'desc' } });
+    res.json(steps);
+  } catch (err) {
+    console.error('GET /api/process-steps error', err);
+    res.status(500).json({ error: 'Failed to fetch process steps' });
+  }
+});
+
+app.post('/api/process-steps', async (req, res) => {
+  try {
+    const { title, description, image } = req.body;
+    if (!title) return res.status(400).json({ error: 'title is required' });
+
+    const created = await prisma.processStep.create({
+      data: { title, description: description || null, image: image || null },
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('POST /api/process-steps error', err);
+    res.status(500).json({ error: 'Failed to create process step' });
+  }
+});
+
+app.put('/api/process-steps/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { title, description, image } = req.body;
+    const updated = await prisma.processStep.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        image,
+      },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/process-steps/:id error', err);
+    res.status(500).json({ error: 'Failed to update process step' });
+  }
+});
+
+app.delete('/api/process-steps/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.processStep.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/process-steps/:id error', err);
+    res.status(500).json({ error: 'Failed to delete process step' });
+  }
+});
+
+/* -----------------------------------
+ * OUR SERVICES: SLIDERS
+ * ----------------------------------- */
+
+app.get('/api/our-services/sliders', async (req, res) => {
+  try {
+    const sliders = await prisma.ourServicesSlider.findMany({
+      orderBy: { id: 'desc' },
+    });
+    res.json(sliders);
+  } catch (err) {
+    console.error('GET /api/our-services/sliders error', err);
+    res.status(500).json({ error: 'Failed to fetch sliders' });
+  }
+});
+
+app.post('/api/our-services/sliders', async (req, res) => {
+  try {
+    const { sliderTitle, sliderDescription, sliderImage } = req.body;
+    if (!sliderTitle) return res.status(400).json({ error: 'sliderTitle is required' });
+
+    const created = await prisma.ourServicesSlider.create({
+      data: {
+        sliderTitle,
+        sliderDescription: sliderDescription || null,
+        sliderImage: sliderImage || null,
+      },
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('POST /api/our-services/sliders error', err);
+    res.status(500).json({ error: 'Failed to create slider' });
+  }
+});
+
+app.put('/api/our-services/sliders/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { sliderTitle, sliderDescription, sliderImage } = req.body;
+
+    const updated = await prisma.ourServicesSlider.update({
+      where: { id },
+      data: { sliderTitle, sliderDescription, sliderImage },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/our-services/sliders/:id error', err);
+    res.status(500).json({ error: 'Failed to update slider' });
+  }
+});
+
+app.delete('/api/our-services/sliders/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.ourServicesSlider.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/our-services/sliders/:id error', err);
+    res.status(500).json({ error: 'Failed to delete slider' });
+  }
+});
+
+/* -----------------------------------
+ * OUR SERVICES: SERVICE CARDS
+ * ----------------------------------- */
+
+app.get('/api/our-services/services', async (req, res) => {
+  try {
+    const services = await prisma.ourService.findMany({
+      orderBy: { id: 'desc' },
+      include: { slider: true },
+    });
+    res.json(services);
+  } catch (err) {
+    console.error('GET /api/our-services/services error', err);
+    res.status(500).json({ error: 'Failed to fetch services' });
+  }
+});
+
+app.post('/api/our-services/services', async (req, res) => {
+  try {
+    const { title, sliderId } = req.body;
+    if (!title || !sliderId) {
+      return res.status(400).json({ error: 'title and sliderId are required' });
+    }
+
+    const created = await prisma.ourService.create({
+      data: { title, sliderId: Number(sliderId) },
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('POST /api/our-services/services error', err);
+    res.status(500).json({ error: 'Failed to create service' });
+  }
+});
+
+app.put('/api/our-services/services/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { title, sliderId } = req.body;
+
+    const updated = await prisma.ourService.update({
+      where: { id },
+      data: { title, sliderId: sliderId ? Number(sliderId) : undefined },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/our-services/services/:id error', err);
+    res.status(500).json({ error: 'Failed to update service' });
+  }
+});
+
+app.delete('/api/our-services/services/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.ourService.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/our-services/services/:id error', err);
+    res.status(500).json({ error: 'Failed to delete service' });
+  }
+});
+
+/* -----------------------------------
+ * INDUSTRIES (header + list)
+ * ----------------------------------- */
+
+// Header
+app.get('/api/industries/config', async (req, res) => {
+  try {
+    let config = await prisma.industriesConfig.findUnique({ where: { id: 1 } });
+    if (!config) {
+      config = await prisma.industriesConfig.create({
+        data: {
+          id: 1,
+          title: 'Industries we serve',
+          description: 'Tailored solutions for digital-first leaders across sectors.',
+        },
+      });
+    }
+    res.json(config);
+  } catch (err) {
+    console.error('GET /api/industries/config error', err);
+    res.status(500).json({ error: 'Failed to fetch industries config' });
+  }
+});
+
+app.put('/api/industries/config', async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const updated = await prisma.industriesConfig.upsert({
+      where: { id: 1 },
+      update: { title, description },
+      create: {
+        id: 1,
+        title: title || 'Industries we serve',
+        description: description || '',
+      },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/industries/config error', err);
+    res.status(500).json({ error: 'Failed to update industries config' });
+  }
+});
+
+// Items
+app.get('/api/industries', async (req, res) => {
+  try {
+    const items = await prisma.industry.findMany({ orderBy: { id: 'desc' } });
+    res.json(items);
+  } catch (err) {
+    console.error('GET /api/industries error', err);
+    res.status(500).json({ error: 'Failed to fetch industries' });
+  }
+});
+
+app.post('/api/industries', async (req, res) => {
+  try {
+    const { title, description, image } = req.body;
+    if (!title) return res.status(400).json({ error: 'title is required' });
+
+    const created = await prisma.industry.create({
+      data: { title, description: description || null, image: image || null },
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('POST /api/industries error', err);
+    res.status(500).json({ error: 'Failed to create industry' });
+  }
+});
+
+app.put('/api/industries/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { title, description, image } = req.body;
+
+    const updated = await prisma.industry.update({
+      where: { id },
+      data: { title, description, image },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/industries/:id error', err);
+    res.status(500).json({ error: 'Failed to update industry' });
+  }
+});
+
+app.delete('/api/industries/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.industry.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/industries/:id error', err);
+    res.status(500).json({ error: 'Failed to delete industry' });
+  }
+});
+
+/* -----------------------------------
+ * TECH SOLUTIONS (header + items)
+ * ----------------------------------- */
+
+app.get('/api/tech-solutions/config', async (req, res) => {
+  try {
+    let config = await prisma.techSolutionsConfig.findUnique({ where: { id: 1 } });
+    if (!config) {
+      config = await prisma.techSolutionsConfig.create({
+        data: {
+          id: 1,
+          title: 'Tech solutions for all business types',
+          description: '',
+        },
+      });
+    }
+    res.json(config);
+  } catch (err) {
+    console.error('GET /api/tech-solutions/config error', err);
+    res.status(500).json({ error: 'Failed to fetch tech solutions config' });
+  }
+});
+
+app.put('/api/tech-solutions/config', async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const updated = await prisma.techSolutionsConfig.upsert({
+      where: { id: 1 },
+      update: { title, description },
+      create: { id: 1, title: title || '', description: description || '' },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/tech-solutions/config error', err);
+    res.status(500).json({ error: 'Failed to update tech solutions config' });
+  }
+});
+
+app.get('/api/tech-solutions', async (req, res) => {
+  try {
+    const items = await prisma.techSolution.findMany({ orderBy: { id: 'desc' } });
+    res.json(items);
+  } catch (err) {
+    console.error('GET /api/tech-solutions error', err);
+    res.status(500).json({ error: 'Failed to fetch tech solutions' });
+  }
+});
+
+app.post('/api/tech-solutions', async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    if (!title) return res.status(400).json({ error: 'title is required' });
+
+    const created = await prisma.techSolution.create({
+      data: { title, description: description || null },
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('POST /api/tech-solutions error', err);
+    res.status(500).json({ error: 'Failed to create tech solution' });
+  }
+});
+
+app.put('/api/tech-solutions/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { title, description } = req.body;
+
+    const updated = await prisma.techSolution.update({
+      where: { id },
+      data: { title, description },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/tech-solutions/:id error', err);
+    res.status(500).json({ error: 'Failed to update tech solution' });
+  }
+});
+
+app.delete('/api/tech-solutions/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.techSolution.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/tech-solutions/:id error', err);
+    res.status(500).json({ error: 'Failed to delete tech solution' });
+  }
+});
+
+/* -----------------------------------
+ * EXPERTISE (header + items)
+ * ----------------------------------- */
+
+app.get('/api/expertise/config', async (req, res) => {
+  try {
+    let config = await prisma.expertiseConfig.findUnique({ where: { id: 1 } });
+    if (!config) {
+      config = await prisma.expertiseConfig.create({
+        data: {
+          id: 1,
+          title: 'Ways to choose our expertise',
+          description: '',
+        },
+      });
+    }
+    res.json(config);
+  } catch (err) {
+    console.error('GET /api/expertise/config error', err);
+    res.status(500).json({ error: 'Failed to fetch expertise config' });
+  }
+});
+
+app.put('/api/expertise/config', async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const updated = await prisma.expertiseConfig.upsert({
+      where: { id: 1 },
+      update: { title, description },
+      create: { id: 1, title: title || '', description: description || '' },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/expertise/config error', err);
+    res.status(500).json({ error: 'Failed to update expertise config' });
+  }
+});
+
+app.get('/api/expertise', async (req, res) => {
+  try {
+    const items = await prisma.expertiseItem.findMany({ orderBy: { id: 'desc' } });
+    res.json(items);
+  } catch (err) {
+    console.error('GET /api/expertise error', err);
+    res.status(500).json({ error: 'Failed to fetch expertise items' });
+  }
+});
+
+app.post('/api/expertise', async (req, res) => {
+  try {
+    const { title, description, image } = req.body;
+    if (!title) return res.status(400).json({ error: 'title is required' });
+
+    const created = await prisma.expertiseItem.create({
+      data: { title, description: description || null, image: image || null },
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('POST /api/expertise error', err);
+    res.status(500).json({ error: 'Failed to create expertise item' });
+  }
+});
+
+app.put('/api/expertise/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { title, description, image } = req.body;
+
+    const updated = await prisma.expertiseItem.update({
+      where: { id },
+      data: { title, description, image },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/expertise/:id error', err);
+    res.status(500).json({ error: 'Failed to update expertise item' });
+  }
+});
+
+app.delete('/api/expertise/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.expertiseItem.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/expertise/:id error', err);
+    res.status(500).json({ error: 'Failed to delete expertise item' });
+  }
+});
+
+/* -----------------------------------
+ * HIRE DEVELOPERS (category + subcategories)
+ * ----------------------------------- */
+
+app.get('/api/hire/categories', async (req, res) => {
+  try {
+    const categories = await prisma.hireCategory.findMany({
+      orderBy: { id: 'desc' },
+      include: { subcategories: true },
+    });
+    res.json(categories);
+  } catch (err) {
+    console.error('GET /api/hire/categories error', err);
+    res.status(500).json({ error: 'Failed to fetch hire categories' });
+  }
+});
+
+app.post('/api/hire/categories', async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    if (!title) return res.status(400).json({ error: 'title is required' });
+
+    const created = await prisma.hireCategory.create({
+      data: { title, description: description || null },
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('POST /api/hire/categories error', err);
+    res.status(500).json({ error: 'Failed to create hire category' });
+  }
+});
+
+app.put('/api/hire/categories/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { title, description } = req.body;
+
+    const updated = await prisma.hireCategory.update({
+      where: { id },
+      data: { title, description },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire/categories/:id error', err);
+    res.status(500).json({ error: 'Failed to update hire category' });
+  }
+});
+
+app.delete('/api/hire/categories/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.hireCategory.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire/categories/:id error', err);
+    res.status(500).json({ error: 'Failed to delete hire category' });
+  }
+});
+
+// Subcategories
+app.post('/api/hire/categories/:categoryId/subcategories', async (req, res) => {
+  try {
+    const categoryId = Number(req.params.categoryId);
+    const { title } = req.body;
+    if (!title) return res.status(400).json({ error: 'title is required' });
+
+    const created = await prisma.hireSubcategory.create({
+      data: { title, categoryId },
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('POST /api/hire/categories/:categoryId/subcategories error', err);
+    res.status(500).json({ error: 'Failed to create subcategory' });
+  }
+});
+
+app.put('/api/hire/subcategories/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { title } = req.body;
+
+    const updated = await prisma.hireSubcategory.update({
+      where: { id },
+      data: { title },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire/subcategories/:id error', err);
+    res.status(500).json({ error: 'Failed to update subcategory' });
+  }
+});
+
+app.delete('/api/hire/subcategories/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.hireSubcategory.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire/subcategories/:id error', err);
+    res.status(500).json({ error: 'Failed to delete subcategory' });
+  }
+});
+
 app.get('/', (_req, res) => res.json({ status: 'ok', message: 'VEDX Solutions marketing API' }));
 
 // Graceful shutdown

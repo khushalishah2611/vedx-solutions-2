@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react';
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -6,7 +8,6 @@ import {
   CardContent,
   CardHeader,
   Divider,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,152 +28,16 @@ import {
   TextField,
   Tooltip,
   Typography,
-} from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+  Chip,
+} from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import { apiUrl } from "../../utils/const.js";
 
-
-const initialProcess = [
-  {
-    id: 'process-1',
-    title: 'Discovery and planning',
-    description: 'Align goals, scope, and delivery milestones with stakeholder workshops.',
-    image:
-      'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=800&q=60',
-  },
-  {
-    id: 'process-2',
-    title: 'Release and measurement',
-    description: 'Ship builds, monitor analytics, and optimise through iterative releases.',
-    image:
-      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=60',
-  },
-];
-
-const initialOurServices = {
-  sliderTitle: 'Our Services',
-  sliderDescription: 'Showcase priority services with visuals, titles, and taxonomy tags.',
-  sliderImage:
-    'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1600&q=80',
-  services: [
-    {
-      id: 'os-1',
-      title: 'Cloud native engineering',
-      subtitle: 'Modernise delivery with resilient architectures.',
-      image:
-        'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      id: 'os-2',
-      title: 'Data and AI accelerators',
-      subtitle: 'Operationalise analytics with governed workflows.',
-      image:
-        'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=60',
-    },
-  ],
-};
-
-const initialIndustries = {
-  title: 'Industries we serve',
-  description: 'Tailored solutions for digital-first leaders across sectors.',
-  items: [
-    {
-      id: 'ind-1',
-      title: 'Fintech',
-      description: 'Regulatory-ready delivery with robust security practices.',
-      image:
-        'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=60',
-    },
-    {
-      id: 'ind-2',
-      title: 'Healthtech',
-      description: 'Compliant experiences with patient-first design.',
-      image:
-        'https://images.unsplash.com/photo-1521791055366-0d553872125f?auto=format&fit=crop&w=1200&q=60',
-    },
-  ],
-};
-
-const initialTechSolutions = {
-  title: 'Tech solutions for all business types',
-  description: 'Reusable solution kits that scale with growth and compliance needs.',
-  solutions: [
-    {
-      id: 'ts-1',
-      title: 'SMB accelerators',
-      description: 'Launch quickly with curated starter kits and managed services.',
-    },
-    {
-      id: 'ts-2',
-      title: 'Enterprise modernization',
-      description: 'Refactor, cloud migrate, and govern change with confidence.',
-    },
-  ],
-};
-
-const initialExpertise = {
-  title: 'Ways to choose our expertise',
-  description: 'Pick the collaboration model and focus area that best fits your roadmap.',
-  items: [
-    {
-      id: 'exp-1',
-      title: 'Dedicated pods',
-      description: 'Long-running pods aligned to a business unit with steady velocity.',
-      image:
-        'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=800&q=60',
-    },
-    {
-      id: 'exp-2',
-      title: 'Outcome squads',
-      description: 'Cross-functional teams focused on a single measurable outcome.',
-      image:
-        'https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&w=800&q=60',
-    },
-  ],
-};
-
-const initialHireCategories = [
-  {
-    id: 'hire-cat-1',
-    title: 'Mobile app developers',
-    description: 'Build native and cross-platform mobile experiences.',
-    subcategories: [
-      { id: 'hire-sub-1', title: 'Android developers' },
-      { id: 'hire-sub-2', title: 'iOS developers' },
-      { id: 'hire-sub-3', title: 'React Native developers' },
-    ],
-  },
-  {
-    id: 'hire-cat-2',
-    title: 'Web app developers',
-    description: 'Ship performant web applications with modern stacks.',
-    subcategories: [
-      { id: 'hire-sub-4', title: 'Full stack engineers' },
-      { id: 'hire-sub-5', title: 'Frontend specialists' },
-      { id: 'hire-sub-6', title: 'Backend specialists' },
-    ],
-  },
-];
-
-const initialBanners = [
-  {
-    id: 'banner-1',
-    title: 'Home spotlight',
-    type: 'home',
-    images: [
-      'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1400&q=80',
-    ],
-  },
-  {
-    id: 'banner-2',
-    title: 'Build with VedX',
-    type: 'about',
-    image:
-      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1600&q=60',
-  },
-];
+/* =======================
+ * Image upload helper
+ * ======================= */
 
 const ImageUpload = ({ label, value, onChange, required }) => {
   const handleFileChange = (event) => {
@@ -181,7 +46,9 @@ const ImageUpload = ({ label, value, onChange, required }) => {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      onChange(reader.result);
+      if (typeof reader.result === "string") {
+        onChange(reader.result);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -191,16 +58,16 @@ const ImageUpload = ({ label, value, onChange, required }) => {
       <Typography variant="subtitle2">{label}</Typography>
       <Box
         sx={{
-          width: '100%',
+          width: "100%",
           borderRadius: 1,
-          border: '1px dashed',
-          borderColor: 'divider',
+          border: "1px dashed",
+          borderColor: "divider",
           p: 1,
-          backgroundColor: 'background.default',
+          backgroundColor: "background.default",
           minHeight: 220,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {value ? (
@@ -209,28 +76,46 @@ const ImageUpload = ({ label, value, onChange, required }) => {
             src={value}
             alt={`${label} preview`}
             sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
               borderRadius: 1,
             }}
           />
         ) : (
-          <Typography variant="body2" color="text.secondary" textAlign="center" px={2}>
-            Banner preview will appear here once you add a title and choose an image.
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            textAlign="center"
+            px={2}
+          >
+            Banner preview will appear here once you add a title and choose an
+            image.
           </Typography>
         )}
       </Box>
-      <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
+      <Button variant="outlined" component="label" sx={{ alignSelf: "flex-start" }}>
         Choose image
-        <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          required={required}
+          onChange={handleFileChange}
+        />
       </Button>
     </Stack>
   );
 };
 
+/* =======================
+ * Main component
+ * ======================= */
+
 const AdminDashboardPage = () => {
-  const [activeTab, setActiveTab] = useState('banner');
+  const [activeTab, setActiveTab] = useState(
+    "banner" // "banner" | "process" | "our-services" | "industries" | "tech-solutions" | "expertise" | "hire"
+  );
   const rowsPerPage = 5;
 
   const fileInputRef = useRef(null);
@@ -238,112 +123,303 @@ const AdminDashboardPage = () => {
   const processFileInputRef = useRef(null);
   const expertiseFileInputRef = useRef(null);
 
-  const [banners, setBanners] = useState(initialBanners);
-  const [bannerForm, setBannerForm] = useState({ title: '', image: '', images: [], type: '' });
+  /* --------------------------
+   * BANNERS
+   * -------------------------- */
+  const [banners, setBanners] = useState([]);
+  const [bannerForm, setBannerForm] = useState({
+    title: "",
+    image: "",
+    images: [],
+    type: "",
+  });
   const [editingBannerId, setEditingBannerId] = useState(null);
   const [bannerPage, setBannerPage] = useState(1);
 
-  const [processList, setProcessList] = useState(initialProcess);
+  /* --------------------------
+   * PROCESS
+   * -------------------------- */
+  const [processList, setProcessList] = useState([]);
   const [processForm, setProcessForm] = useState({
-    title: '',
-    description: '',
-    image: '',
+    title: "",
+    description: "",
+    image: "",
   });
   const [processDialogOpen, setProcessDialogOpen] = useState(false);
   const [editingProcessId, setEditingProcessId] = useState(null);
   const [processPage, setProcessPage] = useState(1);
 
-  // ─────────────────────
-  // OUR SERVICES - SLIDERS + SERVICES
-  // ─────────────────────
-  const [ourServicesSliders, setOurServicesSliders] = useState(() => [
-    {
-      id: 'slider-default',
-      sliderTitle: initialOurServices.sliderTitle,
-      sliderDescription: initialOurServices.sliderDescription,
-      sliderImage: initialOurServices.sliderImage,
-    },
-  ]);
-
+  /* --------------------------
+   * OUR SERVICES - sliders + services
+   * -------------------------- */
+  const [ourServicesSliders, setOurServicesSliders] = useState([]);
   const [ourServicesHeroForm, setOurServicesHeroForm] = useState({
-    sliderTitle: initialOurServices.sliderTitle,
-    sliderDescription: initialOurServices.sliderDescription,
-    sliderImage: initialOurServices.sliderImage,
+    sliderTitle: "",
+    sliderDescription: "",
+    sliderImage: "",
   });
-  const [editingSliderId, setEditingSliderId] = useState('slider-default');
+  const [editingSliderId, setEditingSliderId] = useState(null);
   const [ourServicesSliderPage, setOurServicesSliderPage] = useState(1);
   const [ourHeaderSaved, setOurHeaderSaved] = useState(false);
+  const [sliderDialogOpen, setSliderDialogOpen] = useState(false);
 
-  // services table pagination + dialog
-  const [services, setServices] = useState(() =>
-    initialOurServices.services.map((item) => ({
-      ...item,
-      sliderId: 'slider-default',
-    }))
-  );
-
+  const [services, setServices] = useState([]);
   const [ourServiceForm, setOurServiceForm] = useState({
-    title: '',
-    sliderId: 'slider-default',
+    title: "",
+    sliderId: "",
   });
   const [ourServiceDialogOpen, setOurServiceDialogOpen] = useState(false);
   const [ourServiceDeleteDialogOpen, setOurServiceDeleteDialogOpen] = useState(false);
   const [ourServicePendingDelete, setOurServicePendingDelete] = useState(null);
   const [editingOurServiceId, setEditingOurServiceId] = useState(null);
   const [ourServicePage, setOurServicePage] = useState(1);
-  const [sliderPickerOpen, setSliderPickerOpen] = useState(false); // image-wise slider picker
+  const [sliderPickerOpen, setSliderPickerOpen] = useState(false);
 
-  const [industries, setIndustries] = useState(initialIndustries);
-  const [industryForm, setIndustryForm] = useState({ title: '', description: '', image: '' });
+  /* --------------------------
+   * INDUSTRIES
+   * -------------------------- */
+  const [industriesConfig, setIndustriesConfig] = useState({
+    title: "",
+    description: "",
+  });
+  const [industriesItems, setIndustriesItems] = useState([]);
+  const [industryForm, setIndustryForm] = useState({
+    title: "",
+    description: "",
+    image: "",
+  });
   const [industrySaved, setIndustrySaved] = useState(false);
   const [industryDialogOpen, setIndustryDialogOpen] = useState(false);
-  const [editingIndustryId, setEditingIndustryId] = useState(1);
+  const [editingIndustryId, setEditingIndustryId] = useState(null);
   const [industryPage, setIndustryPage] = useState(1);
 
-  const [techSolutions, setTechSolutions] = useState(initialTechSolutions);
-  const [techSolutionForm, setTechSolutionForm] = useState({ title: '', description: '' });
+  /* --------------------------
+   * TECH SOLUTIONS
+   * -------------------------- */
+  const [techSolutionsConfig, setTechSolutionsConfig] = useState({
+    title: "",
+    description: "",
+  });
+  const [techSolutionsList, setTechSolutionsList] = useState([]);
+  const [techSolutionForm, setTechSolutionForm] = useState({
+    title: "",
+    description: "",
+  });
   const [techSolutionsSaved, setTechSolutionsSaved] = useState(false);
   const [techSolutionDialogOpen, setTechSolutionDialogOpen] = useState(false);
   const [editingTechSolutionId, setEditingTechSolutionId] = useState(null);
   const [techSolutionPage, setTechSolutionPage] = useState(1);
 
-  const [expertise, setExpertise] = useState(initialExpertise);
-  const [expertiseForm, setExpertiseForm] = useState({ title: '', description: '', image: '' });
+  /* --------------------------
+   * EXPERTISE
+   * -------------------------- */
+  const [expertiseConfig, setExpertiseConfig] = useState({
+    title: "",
+    description: "",
+  });
+  const [expertiseItems, setExpertiseItems] = useState([]);
+  const [expertiseForm, setExpertiseForm] = useState({
+    title: "",
+    description: "",
+    image: "",
+  });
   const [expertiseSaved, setExpertiseSaved] = useState(false);
   const [expertiseDialogOpen, setExpertiseDialogOpen] = useState(false);
   const [editingExpertiseId, setEditingExpertiseId] = useState(null);
   const [expertisePage, setExpertisePage] = useState(1);
 
-  // Our services - slider dialog
-  const [sliderDialogOpen, setSliderDialogOpen] = useState(false);
-
-  const [hireCategories, setHireCategories] = useState(initialHireCategories);
-  const [hireCategoryForm, setHireCategoryForm] = useState({ title: '', description: '' });
+  /* --------------------------
+   * HIRE DEVELOPERS
+   * -------------------------- */
+  const [hireCategories, setHireCategories] = useState([]);
+  const [hireCategoryForm, setHireCategoryForm] = useState({
+    title: "",
+    description: "",
+  });
   const [editingHireCategoryId, setEditingHireCategoryId] = useState(null);
   const [hireCategoryPage, setHireCategoryPage] = useState(1);
   const [activeHireCategoryId, setActiveHireCategoryId] = useState(null);
-  const [hireSubcategoryForm, setHireSubcategoryForm] = useState({ title: '' });
+  const [hireSubcategoryForm, setHireSubcategoryForm] = useState({ title: "" });
   const [editingHireSubcategoryId, setEditingHireSubcategoryId] = useState(null);
+  const [hireCategoryDialogOpen, setHireCategoryDialogOpen] = useState(false);
+  const [subcategoryDialogOpen, setSubcategoryDialogOpen] = useState(false);
+  const [hireCategoryError, setHireCategoryError] = useState("");
+  const [hireSubcategoryError, setHireSubcategoryError] = useState("");
 
-
-  // selected slider for service dialog preview
+  /* --------------------------
+   * Derived selections
+   * -------------------------- */
   const selectedSliderForServiceDialog =
     ourServicesSliders.find((s) => s.id === ourServiceForm.sliderId) || null;
 
-  // ─────────────────────────────────────
-  // Banner handlers
-  // ─────────────────────────────────────
+  /* ------------------------------------------------
+   * INITIAL LOAD – fetch all sections from backend
+   * ------------------------------------------------ */
+  useEffect(() => {
+    const loadAll = async () => {
+      try {
+        await Promise.all([
+          loadBanners(),
+          loadProcessSteps(),
+          loadOurServices(),
+          loadIndustries(),
+          loadTechSolutions(),
+          loadExpertise(),
+          loadHireCategories(),
+        ]);
+      } catch (err) {
+        console.error("Initial load error", err);
+      }
+    };
+
+    loadAll();
+  }, []);
+
+  /* --------------------------
+   * Load helpers
+   * -------------------------- */
+  const loadBanners = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/banners"));
+      if (!res.ok) throw new Error("Failed to fetch banners");
+      const data = await res.json();
+      setBanners(data);
+    } catch (err) {
+      console.error("loadBanners error", err);
+    }
+  };
+
+  const loadProcessSteps = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/process-steps"));
+      if (!res.ok) throw new Error("Failed to fetch process steps");
+      const data = await res.json();
+      setProcessList(data);
+    } catch (err) {
+      console.error("loadProcessSteps error", err);
+    }
+  };
+
+  const loadOurServices = async () => {
+    try {
+      const [slidersRes, servicesRes] = await Promise.all([
+        fetch(apiUrl("/api/our-services/sliders")),
+        fetch(apiUrl("/api/our-services/services")),
+      ]);
+      if (!slidersRes.ok) throw new Error("Failed to fetch sliders");
+      if (!servicesRes.ok) throw new Error("Failed to fetch services");
+
+      const slidersData = await slidersRes.json();
+      const servicesData = await servicesRes.json();
+
+      setOurServicesSliders(slidersData);
+      setServices(servicesData);
+
+      if (slidersData.length && ourServiceForm.sliderId === "") {
+        setOurServiceForm((prev) => ({ ...prev, sliderId: slidersData[0].id }));
+      }
+    } catch (err) {
+      console.error("loadOurServices error", err);
+    }
+  };
+
+  const loadIndustries = async () => {
+    try {
+      const [configRes, itemsRes] = await Promise.all([
+        fetch(apiUrl("/api/industries/config")),
+        fetch(apiUrl("/api/industries")),
+      ]);
+      if (!configRes.ok) throw new Error("Failed to fetch industries config");
+      if (!itemsRes.ok) throw new Error("Failed to fetch industries");
+
+      const config = await configRes.json();
+      const items = await itemsRes.json();
+
+      setIndustriesConfig({
+        title: config.title ?? "",
+        description: config.description ?? "",
+      });
+      setIndustriesItems(items);
+    } catch (err) {
+      console.error("loadIndustries error", err);
+    }
+  };
+
+  const loadTechSolutions = async () => {
+    try {
+      const [configRes, itemsRes] = await Promise.all([
+        fetch(apiUrl("/api/tech-solutions/config")),
+        fetch(apiUrl("/api/tech-solutions")),
+      ]);
+      if (!configRes.ok) throw new Error("Failed to fetch tech solutions config");
+      if (!itemsRes.ok) throw new Error("Failed to fetch tech solutions");
+
+      const config = await configRes.json();
+      const items = await itemsRes.json();
+
+      setTechSolutionsConfig({
+        title: config.title ?? "",
+        description: config.description ?? "",
+      });
+      setTechSolutionsList(items);
+    } catch (err) {
+      console.error("loadTechSolutions error", err);
+    }
+  };
+
+  const loadExpertise = async () => {
+    try {
+      const [configRes, itemsRes] = await Promise.all([
+        fetch(apiUrl("/api/expertise/config")),
+        fetch(apiUrl("/api/expertise")),
+      ]);
+      if (!configRes.ok) throw new Error("Failed to fetch expertise config");
+      if (!itemsRes.ok) throw new Error("Failed to fetch expertise");
+
+      const config = await configRes.json();
+      const items = await itemsRes.json();
+
+      setExpertiseConfig({
+        title: config.title ?? "",
+        description: config.description ?? "",
+      });
+      setExpertiseItems(items);
+    } catch (err) {
+      console.error("loadExpertise error", err);
+    }
+  };
+
+  const loadHireCategories = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/hire/categories"));
+      if (!res.ok) throw new Error("Failed to fetch hire categories");
+      const data = await res.json();
+      setHireCategories(data);
+    } catch (err) {
+      console.error("loadHireCategories error", err);
+    }
+  };
+
+  /* -----------------------------------
+   * BANNER handlers
+   * ----------------------------------- */
   const handleBannerImageChange = (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
 
-    if (bannerForm.type === 'home') {
+    if (bannerForm.type === "home") {
       Promise.all(
         files.map(
           (file) =>
             new Promise((resolve) => {
               const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
+              reader.onload = () => {
+                if (typeof reader.result === "string") {
+                  resolve(reader.result);
+                } else {
+                  resolve("");
+                }
+              };
               reader.readAsDataURL(file);
             })
         )
@@ -354,7 +430,9 @@ const AdminDashboardPage = () => {
     const file = files[0];
     const reader = new FileReader();
     reader.onload = () => {
-      setBannerForm((prev) => ({ ...prev, image: reader.result, images: [] }));
+      if (typeof reader.result === "string") {
+        setBannerForm((prev) => ({ ...prev, image: reader.result, images: [] }));
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -362,59 +440,65 @@ const AdminDashboardPage = () => {
   const handleBannerTypeChange = (event) => {
     const nextType = event.target.value;
     const nextImages =
-      nextType === 'home'
+      nextType === "home"
         ? bannerForm.images.length
           ? bannerForm.images
           : bannerForm.image
-            ? [bannerForm.image]
-            : []
+          ? [bannerForm.image]
+          : []
         : [];
     setBannerForm((prev) => ({
       ...prev,
       type: nextType,
-      image: nextType === 'home' ? '' : prev.image,
+      image: nextType === "home" ? "" : prev.image,
       images: nextImages,
     }));
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
-  const handleAddOrUpdateBanner = () => {
-    const isHome = bannerForm.type === 'home';
+  const handleAddOrUpdateBanner = async () => {
+    const isHome = bannerForm.type === "home";
     const hasImage = isHome ? bannerForm.images.length > 0 : Boolean(bannerForm.image);
     if (!bannerForm.title.trim() || !bannerForm.type || !hasImage) return;
 
-    if (editingBannerId) {
-      setBanners((prev) =>
-        prev.map((item) =>
-          item.id === editingBannerId
-            ? {
-              ...item,
-              title: bannerForm.title,
-              image: isHome ? '' : bannerForm.image,
-              images: isHome ? bannerForm.images : [],
-              type: bannerForm.type,
-            }
-            : item
-        )
-      );
-    } else {
-      const newItem = {
-        id: `banner-${Date.now()}`,
-        title: bannerForm.title,
-        type: bannerForm.type,
-        image: isHome ? '' : bannerForm.image,
-        images: isHome ? bannerForm.images : [],
-      };
-      setBanners((prev) => [newItem, ...prev]);
-      setBannerPage(1);
+    const payload = {
+      title: bannerForm.title.trim(),
+      type: bannerForm.type,
+      image: isHome ? null : bannerForm.image || null,
+      images: isHome ? bannerForm.images : [],
+    };
+
+    try {
+      if (editingBannerId != null) {
+        const res = await fetch(apiUrl(`/api/banners/${editingBannerId}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to update banner");
+        const updated = await res.json();
+        setBanners((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+      } else {
+        const res = await fetch(apiUrl("/api/banners"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create banner");
+        const created = await res.json();
+        setBanners((prev) => [created, ...prev]);
+        setBannerPage(1);
+      }
+    } catch (err) {
+      console.error("handleAddOrUpdateBanner error", err);
     }
 
-    setBannerForm({ title: '', image: '', images: [], type: '' });
+    setBannerForm({ title: "", image: "", images: [], type: "" });
     setEditingBannerId(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -423,51 +507,62 @@ const AdminDashboardPage = () => {
     if (!match) return;
     setBannerForm({
       title: match.title,
-      image: match.image || '',
+      image: match.image || "",
       images: match.images || [],
-      type: match.type || '',
+      type: match.type,
     });
     setEditingBannerId(id);
   };
 
-  const handleDeleteBanner = (id) => {
-    setBanners((prev) => prev.filter((item) => item.id !== id));
-    if (editingBannerId === id) {
-      setEditingBannerId(null);
-      setBannerForm({ title: '', image: '', images: [], type: '' });
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+  const handleDeleteBanner = async (id) => {
+    try {
+      const res = await fetch(apiUrl(`/api/banners/${id}`), { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete banner");
+      setBanners((prev) => {
+        const updated = prev.filter((item) => item.id !== id);
+        setBannerPage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
+      });
+      if (editingBannerId === id) {
+        setEditingBannerId(null);
+        setBannerForm({ title: "", image: "", images: [], type: "" });
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
+    } catch (err) {
+      console.error("handleDeleteBanner error", err);
     }
   };
 
-  // ─────────────────────────────────────
-  // Process handlers
-  // ─────────────────────────────────────
+  /* -----------------------------------
+   * PROCESS handlers
+   * ----------------------------------- */
   const openProcessDialog = (item = null) => {
     if (item) {
       setProcessForm({
-        title: item.title || '',
-        description: item.description || '',
-        image: item.image || '',
+        title: item.title || "",
+        description: item.description || "",
+        image: item.image || "",
       });
       setEditingProcessId(item.id);
     } else {
-      setProcessForm({ title: '', description: '', image: '' });
+      setProcessForm({ title: "", description: "", image: "" });
       setEditingProcessId(null);
     }
     setProcessDialogOpen(true);
     if (processFileInputRef.current) {
-      processFileInputRef.current.value = '';
+      processFileInputRef.current.value = "";
     }
   };
 
   const closeProcessDialog = () => {
     setProcessDialogOpen(false);
     setEditingProcessId(null);
-    setProcessForm({ title: '', description: '', image: '' });
+    setProcessForm({ title: "", description: "", image: "" });
     if (processFileInputRef.current) {
-      processFileInputRef.current.value = '';
+      processFileInputRef.current.value = "";
     }
   };
 
@@ -475,43 +570,79 @@ const AdminDashboardPage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setProcessForm((prev) => ({ ...prev, image: reader.result }));
+    reader.onload = () =>
+      typeof reader.result === "string" &&
+      setProcessForm((prev) => ({ ...prev, image: reader.result }));
     reader.readAsDataURL(file);
   };
 
-  const handleProcessSave = () => {
+  const handleProcessSave = async () => {
     if (!processForm.title.trim() || !processForm.image) return;
 
-    if (editingProcessId) {
-      setProcessList((prev) =>
-        prev.map((item) => (item.id === editingProcessId ? { ...item, ...processForm } : item))
-      );
-    } else {
-      const newItem = { ...processForm, id: `process-${Date.now()}` };
-      setProcessList((prev) => [newItem, ...prev]);
-      setProcessPage(1);
+    const payload = {
+      title: processForm.title.trim(),
+      description: processForm.description || null,
+      image: processForm.image || null,
+    };
+
+    try {
+      if (editingProcessId != null) {
+        const res = await fetch(apiUrl(`/api/process-steps/${editingProcessId}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to update process step");
+        const updated = await res.json();
+        setProcessList((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item))
+        );
+      } else {
+        const res = await fetch(apiUrl("/api/process-steps"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create process step");
+        const created = await res.json();
+        setProcessList((prev) => [created, ...prev]);
+        setProcessPage(1);
+      }
+      closeProcessDialog();
+    } catch (err) {
+      console.error("handleProcessSave error", err);
     }
-
-    closeProcessDialog();
   };
 
-  const handleDeleteProcess = (id) => {
-    setProcessList((prev) => prev.filter((item) => item.id !== id));
+  const handleDeleteProcess = async (id) => {
+    try {
+      const res = await fetch(apiUrl(`/api/process-steps/${id}`), { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete process step");
+      setProcessList((prev) => {
+        const updated = prev.filter((item) => item.id !== id);
+        setProcessPage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
+      });
+    } catch (err) {
+      console.error("handleDeleteProcess error", err);
+    }
   };
 
-  // ─────────────────────────────────────
-  // Our services - slider handlers
-  // ─────────────────────────────────────
+  /* -----------------------------------
+   * Our services – SLIDER handlers
+   * ----------------------------------- */
   const handleOurServicesHeroChange = (field, value) => {
     setOurServicesHeroForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // NEW: create a fresh slider (for multiple slider support)
   const handleCreateNewSlider = () => {
     setOurServicesHeroForm({
-      sliderTitle: '',
-      sliderDescription: '',
-      sliderImage: '',
+      sliderTitle: "",
+      sliderDescription: "",
+      sliderImage: "",
     });
     setEditingSliderId(null);
     setSliderDialogOpen(true);
@@ -521,89 +652,129 @@ const AdminDashboardPage = () => {
     setSliderDialogOpen(false);
     setEditingSliderId(null);
     setOurServicesHeroForm({
-      sliderTitle: '',
-      sliderDescription: '',
-      sliderImage: '',
+      sliderTitle: "",
+      sliderDescription: "",
+      sliderImage: "",
     });
   };
 
-  const handleOurServicesHeroSave = (event) => {
-    event?.preventDefault();
-    if (!ourServicesHeroForm.sliderTitle.trim() || !ourServicesHeroForm.sliderImage) return;
-
-    if (editingSliderId) {
-      setOurServicesSliders((prev) =>
-        prev.map((slider) =>
-          slider.id === editingSliderId ? { ...slider, ...ourServicesHeroForm } : slider
-        )
-      );
-    } else {
-      const newId = `slider-${Date.now()}`;
-      const newSlider = { id: newId, ...ourServicesHeroForm };
-      setOurServicesSliders((prev) => [newSlider, ...prev]);
-      setEditingSliderId(newId);
-      setOurServicesSliderPage(1);
+  const handleOurServicesHeroSave = async (event) => {
+    if (event) event.preventDefault();
+    if (!ourServicesHeroForm.sliderTitle.trim() || !ourServicesHeroForm.sliderImage) {
+      return;
     }
 
-    setOurHeaderSaved(true);
-    setTimeout(() => setOurHeaderSaved(false), 2000);
-    setSliderDialogOpen(false);
+    const payload = {
+      sliderTitle: ourServicesHeroForm.sliderTitle.trim(),
+      sliderDescription: ourServicesHeroForm.sliderDescription || null,
+      sliderImage: ourServicesHeroForm.sliderImage || null,
+    };
+
+    try {
+      if (editingSliderId != null) {
+        const res = await fetch(apiUrl(`/api/our-services/sliders/${editingSliderId}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to update slider");
+        const updated = await res.json();
+        setOurServicesSliders((prev) =>
+          prev.map((slider) => (slider.id === updated.id ? updated : slider))
+        );
+      } else {
+        const res = await fetch(apiUrl("/api/our-services/sliders"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create slider");
+        const created = await res.json();
+        setOurServicesSliders((prev) => [created, ...prev]);
+        setOurServicesSliderPage(1);
+        setEditingSliderId(created.id);
+        setOurServiceForm((prev) => ({
+          ...prev,
+          sliderId: prev.sliderId || created.id,
+        }));
+      }
+      setOurHeaderSaved(true);
+      setTimeout(() => setOurHeaderSaved(false), 2000);
+      setSliderDialogOpen(false);
+    } catch (err) {
+      console.error("handleOurServicesHeroSave error", err);
+    }
   };
 
   const handleEditOurServiceSlider = (slider) => {
     setOurServicesHeroForm({
       sliderTitle: slider.sliderTitle,
-      sliderDescription: slider.sliderDescription,
-      sliderImage: slider.sliderImage,
+      sliderDescription: slider.sliderDescription ?? "",
+      sliderImage: slider.sliderImage ?? "",
     });
     setEditingSliderId(slider.id);
     setSliderDialogOpen(true);
   };
 
-  const handleDeleteOurServiceSlider = (id) => {
-    setOurServicesSliders((prev) => {
-      const remaining = prev.filter((slider) => slider.id !== id);
+  const handleDeleteOurServiceSlider = async (id) => {
+    try {
+      const res = await fetch(apiUrl(`/api/our-services/sliders/${id}`), {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete slider");
 
-      if (editingSliderId === id) {
-        if (remaining.length) {
-          const first = remaining[0];
-          setEditingSliderId(first.id);
-          setOurServicesHeroForm({
-            sliderTitle: first.sliderTitle,
-            sliderDescription: first.sliderDescription,
-            sliderImage: first.sliderImage,
-          });
-        } else {
-          setEditingSliderId(null);
-          setOurServicesHeroForm({
-            sliderTitle: '',
-            sliderDescription: '',
-            sliderImage: '',
-          });
+      setOurServicesSliders((prev) => {
+        const remaining = prev.filter((slider) => slider.id !== id);
+
+        if (editingSliderId === id) {
+          if (remaining.length) {
+            const first = remaining[0];
+            setEditingSliderId(first.id);
+            setOurServicesHeroForm({
+              sliderTitle: first.sliderTitle,
+              sliderDescription: first.sliderDescription ?? "",
+              sliderImage: first.sliderImage ?? "",
+            });
+          } else {
+            setEditingSliderId(null);
+            setOurServicesHeroForm({
+              sliderTitle: "",
+              sliderDescription: "",
+              sliderImage: "",
+            });
+          }
         }
-      }
 
-      return remaining;
-    });
+        return remaining;
+      });
 
-    // Remove any services attached to this slider
-    setServices((prev) => prev.filter((service) => service.sliderId !== id));
+      setServices((prev) => prev.filter((service) => service.sliderId !== id));
+      setOurServiceForm((prev) => ({
+        ...prev,
+        sliderId:
+          prev.sliderId === id
+            ? ourServicesSliders.find((s) => s.id !== id)?.id ?? ""
+            : prev.sliderId,
+      }));
+    } catch (err) {
+      console.error("handleDeleteOurServiceSlider error", err);
+    }
   };
 
-  // ─────────────────────────────────────
-  // Our services - service handlers
-  // ─────────────────────────────────────
+  /* -----------------------------------
+   * Our services – SERVICE handlers
+   * ----------------------------------- */
   const openOurServiceCreateDialog = () => {
-    const defaultSliderId = editingSliderId || ourServicesSliders[0]?.id || '';
-    setOurServiceForm({ title: '', sliderId: defaultSliderId });
+    const defaultSliderId = editingSliderId ?? ourServicesSliders[0]?.id ?? "";
+    setOurServiceForm({ title: "", sliderId: defaultSliderId });
     setEditingOurServiceId(null);
     setOurServiceDialogOpen(true);
   };
 
   const openOurServiceEditDialog = (item) => {
     setOurServiceForm({
-      title: item.title || '',
-      sliderId: item.sliderId || editingSliderId || ourServicesSliders[0]?.id || '',
+      title: item.title || "",
+      sliderId: item.sliderId,
     });
     setEditingOurServiceId(item.id);
     setOurServiceDialogOpen(true);
@@ -612,32 +783,49 @@ const AdminDashboardPage = () => {
   const closeOurServiceDialog = () => {
     setOurServiceDialogOpen(false);
     setEditingOurServiceId(null);
-    const defaultSliderId = editingSliderId || ourServicesSliders[0]?.id || '';
-    setOurServiceForm({ title: '', sliderId: defaultSliderId });
+    const defaultSliderId = editingSliderId ?? ourServicesSliders[0]?.id ?? "";
+    setOurServiceForm({ title: "", sliderId: defaultSliderId });
   };
 
-  const handleSaveOurService = () => {
+  const handleSaveOurService = async () => {
     if (!ourServiceForm.title.trim() || !ourServiceForm.sliderId) return;
 
-    if (editingOurServiceId) {
-      setServices((prev) =>
-        prev.map((item) =>
-          item.id === editingOurServiceId
-            ? { ...item, title: ourServiceForm.title, sliderId: ourServiceForm.sliderId }
-            : item
-        )
-      );
-    } else {
-      const newItem = {
-        id: `os-${Date.now()}`,
-        title: ourServiceForm.title,
-        sliderId: ourServiceForm.sliderId,
-      };
-      setServices((prev) => [newItem, ...prev]);
-      setOurServicePage(1);
-    }
+    const payload = {
+      title: ourServiceForm.title.trim(),
+      sliderId: Number(ourServiceForm.sliderId),
+    };
 
-    closeOurServiceDialog();
+    try {
+      if (editingOurServiceId != null) {
+        const res = await fetch(
+          apiUrl(`/api/our-services/services/${editingOurServiceId}`),
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+        if (!res.ok) throw new Error("Failed to update service");
+        const updated = await res.json();
+        setServices((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item))
+        );
+      } else {
+        const res = await fetch(apiUrl("/api/our-services/services"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create service");
+        const created = await res.json();
+        setServices((prev) => [created, ...prev]);
+        setOurServicePage(1);
+      }
+
+      closeOurServiceDialog();
+    } catch (err) {
+      console.error("handleSaveOurService error", err);
+    }
   };
 
   const openOurServiceDeleteDialog = (item) => {
@@ -650,55 +838,83 @@ const AdminDashboardPage = () => {
     setOurServiceDeleteDialogOpen(false);
   };
 
-  const handleConfirmDeleteOurService = () => {
+  const handleConfirmDeleteOurService = async () => {
     if (!ourServicePendingDelete) return;
+    try {
+      const res = await fetch(
+        apiUrl(`/api/our-services/services/${ourServicePendingDelete.id}`),
+        {
+          method: "DELETE",
+        }
+      );
+      if (!res.ok) throw new Error("Failed to delete service");
 
-    setServices((prev) => {
-      const updated = prev.filter((item) => item.id !== ourServicePendingDelete.id);
-      const nextLength = updated.length;
-      setOurServicePage((prevPage) => {
-        const totalPages = Math.max(1, Math.ceil(nextLength / rowsPerPage));
-        return Math.min(prevPage, totalPages);
+      setServices((prev) => {
+        const updated = prev.filter((item) => item.id !== ourServicePendingDelete.id);
+        const nextLength = updated.length;
+        setOurServicePage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(nextLength / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
       });
-      return updated;
-    });
 
-    closeOurServiceDeleteDialog();
+      closeOurServiceDeleteDialog();
+    } catch (err) {
+      console.error("handleConfirmDeleteOurService error", err);
+    }
   };
 
-  // ─────────────────────────────────────
-  // Industries handlers
-  // ─────────────────────────────────────
-  const handleIndustrySave = () => {
-    setIndustries((prev) => ({ ...prev }));
-    setIndustrySaved(true);
-    setTimeout(() => setIndustrySaved(false), 2000);
+  /* -----------------------------------
+   * Industries handlers (config + items)
+   * ----------------------------------- */
+  const handleIndustrySave = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/industries/config"), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: industriesConfig.title,
+          description: industriesConfig.description,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save industries config");
+      const updated = await res.json();
+      setIndustriesConfig({
+        title: updated.title ?? "",
+        description: updated.description ?? "",
+      });
+      setIndustrySaved(true);
+      setTimeout(() => setIndustrySaved(false), 2000);
+    } catch (err) {
+      console.error("handleIndustrySave error", err);
+    }
   };
 
   const openIndustryDialog = (item = null) => {
     if (item) {
       setIndustryForm({
-        title: item.title || '',
-        description: item.description || '',
-        image: item.image || '',
+        title: item.title || "",
+        description: item.description || "",
+        image: item.image || "",
       });
       setEditingIndustryId(item.id);
     } else {
-      setIndustryForm({ title: '', description: '', image: '' });
+      setIndustryForm({ title: "", description: "", image: "" });
       setEditingIndustryId(null);
     }
     setIndustryDialogOpen(true);
     if (industryFileInputRef.current) {
-      industryFileInputRef.current.value = '';
+      industryFileInputRef.current.value = "";
     }
   };
 
   const closeIndustryDialog = () => {
     setIndustryDialogOpen(false);
     setEditingIndustryId(null);
-    setIndustryForm({ title: '', description: '', image: '' });
+    setIndustryForm({ title: "", description: "", image: "" });
     if (industryFileInputRef.current) {
-      industryFileInputRef.current.value = '';
+      industryFileInputRef.current.value = "";
     }
   };
 
@@ -707,55 +923,104 @@ const AdminDashboardPage = () => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      setIndustryForm((prev) => ({ ...prev, image: reader.result }));
+      if (typeof reader.result === "string") {
+        setIndustryForm((prev) => ({ ...prev, image: reader.result }));
+      }
     };
     reader.readAsDataURL(file);
   };
 
-  const handleIndustrySubmit = () => {
+  const handleIndustrySubmit = async () => {
     if (!industryForm.title.trim() || !industryForm.image) return;
 
-    if (editingIndustryId) {
-      setIndustries((prev) => ({
-        ...prev,
-        items: prev.items.map((item) =>
-          item.id === editingIndustryId ? { ...item, ...industryForm } : item
-        ),
-      }));
-    } else {
-      const newItem = { ...industryForm, id: `ind-${Date.now()}` };
-      setIndustries((prev) => ({ ...prev, items: [newItem, ...prev.items] }));
-      setIndustryPage(1);
-    }
+    const payload = {
+      title: industryForm.title.trim(),
+      description: industryForm.description || null,
+      image: industryForm.image || null,
+    };
 
-    closeIndustryDialog();
-  };
+    try {
+      if (editingIndustryId != null) {
+        const res = await fetch(apiUrl(`/api/industries/${editingIndustryId}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to update industry");
+        const updated = await res.json();
+        setIndustriesItems((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item))
+        );
+      } else {
+        const res = await fetch(apiUrl("/api/industries"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create industry");
+        const created = await res.json();
+        setIndustriesItems((prev) => [created, ...prev]);
+        setIndustryPage(1);
+      }
 
-  const handleDeleteIndustry = (id) => {
-    setIndustries((prev) => ({
-      ...prev,
-      items: prev.items.filter((item) => item.id !== id),
-    }));
-    if (editingIndustryId === id) {
       closeIndustryDialog();
+    } catch (err) {
+      console.error("handleIndustrySubmit error", err);
     }
   };
 
-  // ─────────────────────────────────────
-  // Tech solutions handlers
-  // ─────────────────────────────────────
-  const handleTechSolutionsSave = () => {
-    setTechSolutions((prev) => ({ ...prev }));
-    setTechSolutionsSaved(true);
-    setTimeout(() => setTechSolutionsSaved(false), 2000);
+  const handleDeleteIndustry = async (id) => {
+    try {
+      const res = await fetch(apiUrl(`/api/industries/${id}`), { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete industry");
+      setIndustriesItems((prev) => {
+        const updated = prev.filter((item) => item.id !== id);
+        setIndustryPage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
+      });
+      if (editingIndustryId === id) {
+        closeIndustryDialog();
+      }
+    } catch (err) {
+      console.error("handleDeleteIndustry error", err);
+    }
+  };
+
+  /* -----------------------------------
+   * Tech solutions handlers
+   * ----------------------------------- */
+  const handleTechSolutionsSave = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/tech-solutions/config"), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: techSolutionsConfig.title,
+          description: techSolutionsConfig.description,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save tech solutions config");
+      const updated = await res.json();
+      setTechSolutionsConfig({
+        title: updated.title ?? "",
+        description: updated.description ?? "",
+      });
+      setTechSolutionsSaved(true);
+      setTimeout(() => setTechSolutionsSaved(false), 2000);
+    } catch (err) {
+      console.error("handleTechSolutionsSave error", err);
+    }
   };
 
   const openTechSolutionDialog = (item = null) => {
     if (item) {
-      setTechSolutionForm({ title: item.title, description: item.description });
+      setTechSolutionForm({ title: item.title, description: item.description ?? "" });
       setEditingTechSolutionId(item.id);
     } else {
-      setTechSolutionForm({ title: '', description: '' });
+      setTechSolutionForm({ title: "", description: "" });
       setEditingTechSolutionId(null);
     }
     setTechSolutionDialogOpen(true);
@@ -764,68 +1029,113 @@ const AdminDashboardPage = () => {
   const closeTechSolutionDialog = () => {
     setTechSolutionDialogOpen(false);
     setEditingTechSolutionId(null);
-    setTechSolutionForm({ title: '', description: '' });
+    setTechSolutionForm({ title: "", description: "" });
   };
 
-  const handleTechSolutionSave = () => {
+  const handleTechSolutionSave = async () => {
     if (!techSolutionForm.title.trim()) return;
 
-    if (editingTechSolutionId) {
-      setTechSolutions((prev) => ({
-        ...prev,
-        solutions: prev.solutions.map((item) =>
-          item.id === editingTechSolutionId ? { ...item, ...techSolutionForm } : item
-        ),
-      }));
-    } else {
-      const newItem = { ...techSolutionForm, id: `ts-${Date.now()}` };
-      setTechSolutions((prev) => ({ ...prev, solutions: [newItem, ...prev.solutions] }));
-      setTechSolutionPage(1);
+    const payload = {
+      title: techSolutionForm.title.trim(),
+      description: techSolutionForm.description || null,
+    };
+
+    try {
+      if (editingTechSolutionId != null) {
+        const res = await fetch(apiUrl(`/api/tech-solutions/${editingTechSolutionId}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to update solution");
+        const updated = await res.json();
+        setTechSolutionsList((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item))
+        );
+      } else {
+        const res = await fetch(apiUrl("/api/tech-solutions"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create solution");
+        const created = await res.json();
+        setTechSolutionsList((prev) => [created, ...prev]);
+        setTechSolutionPage(1);
+      }
+      closeTechSolutionDialog();
+    } catch (err) {
+      console.error("handleTechSolutionSave error", err);
     }
-
-    closeTechSolutionDialog();
   };
 
-  const handleDeleteTechSolution = (id) => {
-    setTechSolutions((prev) => ({
-      ...prev,
-      solutions: prev.solutions.filter((item) => item.id !== id),
-    }));
+  const handleDeleteTechSolution = async (id) => {
+    try {
+      const res = await fetch(apiUrl(`/api/tech-solutions/${id}`), { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete solution");
+      setTechSolutionsList((prev) => {
+        const updated = prev.filter((item) => item.id !== id);
+        setTechSolutionPage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
+      });
+    } catch (err) {
+      console.error("handleDeleteTechSolution error", err);
+    }
   };
 
-  // ─────────────────────────────────────
-  // Expertise handlers
-  // ─────────────────────────────────────
-  const handleExpertiseSave = () => {
-    setExpertise((prev) => ({ ...prev }));
-    setExpertiseSaved(true);
-    setTimeout(() => setExpertiseSaved(false), 2000);
+  /* -----------------------------------
+   * Expertise handlers
+   * ----------------------------------- */
+  const handleExpertiseSave = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/expertise/config"), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: expertiseConfig.title,
+          description: expertiseConfig.description,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save expertise config");
+      const updated = await res.json();
+      setExpertiseConfig({
+        title: updated.title ?? "",
+        description: updated.description ?? "",
+      });
+      setExpertiseSaved(true);
+      setTimeout(() => setExpertiseSaved(false), 2000);
+    } catch (err) {
+      console.error("handleExpertiseSave error", err);
+    }
   };
 
   const openExpertiseDialog = (item = null) => {
     if (item) {
       setExpertiseForm({
-        title: item.title || '',
-        description: item.description || '',
-        image: item.image || '',
+        title: item.title || "",
+        description: item.description || "",
+        image: item.image || "",
       });
       setEditingExpertiseId(item.id);
     } else {
-      setExpertiseForm({ title: '', description: '', image: '' });
+      setExpertiseForm({ title: "", description: "", image: "" });
       setEditingExpertiseId(null);
     }
     setExpertiseDialogOpen(true);
     if (expertiseFileInputRef.current) {
-      expertiseFileInputRef.current.value = '';
+      expertiseFileInputRef.current.value = "";
     }
   };
 
   const closeExpertiseDialog = () => {
     setExpertiseDialogOpen(false);
     setEditingExpertiseId(null);
-    setExpertiseForm({ title: '', description: '', image: '' });
+    setExpertiseForm({ title: "", description: "", image: "" });
     if (expertiseFileInputRef.current) {
-      expertiseFileInputRef.current.value = '';
+      expertiseFileInputRef.current.value = "";
     }
   };
 
@@ -833,46 +1143,84 @@ const AdminDashboardPage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setExpertiseForm((prev) => ({ ...prev, image: reader.result }));
+    reader.onload = () =>
+      typeof reader.result === "string" &&
+      setExpertiseForm((prev) => ({ ...prev, image: reader.result }));
     reader.readAsDataURL(file);
   };
 
-  const handleExpertiseSubmit = () => {
+  const handleExpertiseSubmit = async () => {
     if (!expertiseForm.title.trim() || !expertiseForm.image) return;
 
-    if (editingExpertiseId) {
-      setExpertise((prev) => ({
-        ...prev,
-        items: prev.items.map((item) =>
-          item.id === editingExpertiseId ? { ...item, ...expertiseForm } : item
-        ),
-      }));
-    } else {
-      const newItem = { ...expertiseForm, id: `exp-${Date.now()}` };
-      setExpertise((prev) => ({ ...prev, items: [newItem, ...prev.items] }));
-      setExpertisePage(1);
-    }
+    const payload = {
+      title: expertiseForm.title.trim(),
+      description: expertiseForm.description || null,
+      image: expertiseForm.image || null,
+    };
 
-    closeExpertiseDialog();
-  };
+    try {
+      if (editingExpertiseId != null) {
+        const res = await fetch(apiUrl(`/api/expertise/${editingExpertiseId}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to update expertise");
+        const updated = await res.json();
+        setExpertiseItems((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item))
+        );
+      } else {
+        const res = await fetch(apiUrl("/api/expertise"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create expertise");
+        const created = await res.json();
+        setExpertiseItems((prev) => [created, ...prev]);
+        setExpertisePage(1);
+      }
 
-  const handleDeleteExpertise = (id) => {
-    setExpertise((prev) => ({ ...prev, items: prev.items.filter((item) => item.id !== id) }));
-    if (editingExpertiseId === id) {
       closeExpertiseDialog();
+    } catch (err) {
+      console.error("handleExpertiseSubmit error", err);
     }
   };
 
-  // ─────────────────────────────────────
-  // Hire developers - category + sub-category handlers
-  // ─────────────────────────────────────
+  const handleDeleteExpertise = async (id) => {
+    try {
+      const res = await fetch(apiUrl(`/api/expertise/${id}`), { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete expertise");
+      setExpertiseItems((prev) => {
+        const updated = prev.filter((item) => item.id !== id);
+        setExpertisePage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
+      });
+      if (editingExpertiseId === id) {
+        closeExpertiseDialog();
+      }
+    } catch (err) {
+      console.error("handleDeleteExpertise error", err);
+    }
+  };
+
+  /* -----------------------------------
+   * Hire developers – categories + subcategories
+   * ----------------------------------- */
   const openHireCategoryDialog = (item = null) => {
-    setHireCategoryError('');
+    setHireCategoryError("");
     if (item) {
-      setHireCategoryForm({ title: item.title || '', description: item.description || '' });
+      setHireCategoryForm({
+        title: item.title || "",
+        description: item.description || "",
+      });
       setEditingHireCategoryId(item.id);
     } else {
-      setHireCategoryForm({ title: '', description: '' });
+      setHireCategoryForm({ title: "", description: "" });
       setEditingHireCategoryId(null);
     }
     setHireCategoryDialogOpen(true);
@@ -881,14 +1229,14 @@ const AdminDashboardPage = () => {
   const closeHireCategoryDialog = () => {
     setHireCategoryDialogOpen(false);
     setEditingHireCategoryId(null);
-    setHireCategoryForm({ title: '', description: '' });
-    setHireCategoryError('');
+    setHireCategoryForm({ title: "", description: "" });
+    setHireCategoryError("");
   };
 
-  const handleSaveHireCategory = () => {
+  const handleSaveHireCategory = async () => {
     const title = hireCategoryForm.title.trim();
     if (!title) {
-      setHireCategoryError('Title is required');
+      setHireCategoryError("Title is required");
       return;
     }
 
@@ -899,75 +1247,96 @@ const AdminDashboardPage = () => {
     );
 
     if (duplicate) {
-      setHireCategoryError('A category with this title already exists');
+      setHireCategoryError("A category with this title already exists");
       return;
     }
 
-    setHireCategoryError('');
+    setHireCategoryError("");
 
-    if (editingHireCategoryId) {
-      setHireCategories((prev) =>
-        prev.map((category) =>
-          category.id === editingHireCategoryId
-            ? { ...category, ...hireCategoryForm, title }
-            : category
-        )
-      );
-    } else {
-      const newCategory = {
-        id: `hire-cat-${Date.now()}`,
-        title,
-        description: hireCategoryForm.description,
-        subcategories: [],
-      };
-      setHireCategories((prev) => [newCategory, ...prev]);
-      setHireCategoryPage(1);
+    const payload = {
+      title,
+      description: hireCategoryForm.description || null,
+    };
+
+    try {
+      if (editingHireCategoryId != null) {
+        const res = await fetch(apiUrl(`/api/hire/categories/${editingHireCategoryId}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to update hire category");
+        const updated = await res.json();
+        setHireCategories((prev) =>
+          prev.map((category) => (category.id === updated.id ? updated : category))
+        );
+      } else {
+        const res = await fetch(apiUrl("/api/hire/categories"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create category");
+        const created = await res.json();
+        setHireCategories((prev) => [created, ...prev]);
+        setHireCategoryPage(1);
+      }
+
+      closeHireCategoryDialog();
+    } catch (err) {
+      console.error("handleSaveHireCategory error", err);
     }
-
-    closeHireCategoryDialog();
   };
 
-  const handleDeleteHireCategory = (id) => {
-    setHireCategories((prev) => {
-      const updated = prev.filter((category) => category.id !== id);
-      setHireCategoryPage((prevPage) => {
-        const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
-        return Math.min(prevPage, totalPages);
+  const handleDeleteHireCategory = async (id) => {
+    try {
+      const res = await fetch(apiUrl(`/api/hire/categories/${id}`), { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete category");
+      setHireCategories((prev) => {
+        const updated = prev.filter((category) => category.id !== id);
+        setHireCategoryPage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
       });
-      return updated;
-    });
 
-    if (activeHireCategoryId === id) {
-      closeSubcategoryDialog();
+      if (activeHireCategoryId === id) {
+        closeSubcategoryDialog();
+      }
+    } catch (err) {
+      console.error("handleDeleteHireCategory error", err);
     }
   };
 
   const openSubcategoryDialog = (category) => {
     setActiveHireCategoryId(category.id);
-    setHireSubcategoryForm({ title: '' });
+    setHireSubcategoryForm({ title: "" });
     setEditingHireSubcategoryId(null);
-    setHireSubcategoryError('');
+    setHireSubcategoryError("");
     setSubcategoryDialogOpen(true);
   };
 
   const closeSubcategoryDialog = () => {
     setSubcategoryDialogOpen(false);
     setActiveHireCategoryId(null);
-    setHireSubcategoryForm({ title: '' });
+    setHireSubcategoryForm({ title: "" });
     setEditingHireSubcategoryId(null);
-    setHireSubcategoryError('');
+    setHireSubcategoryError("");
   };
 
-  const handleSaveHireSubcategory = () => {
+  const handleSaveHireSubcategory = async () => {
     if (!activeHireCategoryId) return;
 
     const title = hireSubcategoryForm.title.trim();
     if (!title) {
-      setHireSubcategoryError('Title is required');
+      setHireSubcategoryError("Title is required");
       return;
     }
 
-    const activeCategory = hireCategories.find((category) => category.id === activeHireCategoryId);
+    const activeCategory = hireCategories.find(
+      (category) => category.id === activeHireCategoryId
+    );
     const duplicate = activeCategory?.subcategories.some(
       (subcategory) =>
         subcategory.title.trim().toLowerCase() === title.toLowerCase() &&
@@ -975,58 +1344,104 @@ const AdminDashboardPage = () => {
     );
 
     if (duplicate) {
-      setHireSubcategoryError('This sub-category already exists for the category');
+      setHireSubcategoryError("This sub-category already exists for the category");
       return;
     }
 
-    setHireSubcategoryError('');
+    setHireSubcategoryError("");
 
-    setHireCategories((prev) =>
-      prev.map((category) => {
-        if (category.id !== activeHireCategoryId) return category;
+    try {
+      if (editingHireSubcategoryId != null) {
+        const res = await fetch(
+          apiUrl(`/api/hire/subcategories/${editingHireSubcategoryId}`),
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title }),
+          }
+        );
+        if (!res.ok) throw new Error("Failed to update subcategory");
+        const updated = await res.json();
 
-        const nextSubcategories = editingHireSubcategoryId
-          ? category.subcategories.map((subcategory) =>
-            subcategory.id === editingHireSubcategoryId
-              ? { ...subcategory, title }
-              : subcategory
-          )
-          : [{ id: `hire-sub-${Date.now()}`, title }, ...category.subcategories];
+        setHireCategories((prev) =>
+          prev.map((category) => {
+            if (category.id !== activeHireCategoryId) return category;
+            return {
+              ...category,
+              subcategories: category.subcategories.map((subcat) =>
+                subcat.id === updated.id ? updated : subcat
+              ),
+            };
+          })
+        );
+      } else {
+        const res = await fetch(
+          apiUrl(`/api/hire/categories/${activeHireCategoryId}/subcategories`),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title }),
+          }
+        );
+        if (!res.ok) throw new Error("Failed to create subcategory");
+        const created = await res.json();
 
-        return { ...category, subcategories: nextSubcategories };
-      })
-    );
+        setHireCategories((prev) =>
+          prev.map((category) => {
+            if (category.id !== activeHireCategoryId) return category;
+            return {
+              ...category,
+              subcategories: [created, ...category.subcategories],
+            };
+          })
+        );
+      }
 
-    setHireSubcategoryForm({ title: '' });
-    setEditingHireSubcategoryId(null);
+      setHireSubcategoryForm({ title: "" });
+      setEditingHireSubcategoryId(null);
+    } catch (err) {
+      console.error("handleSaveHireSubcategory error", err);
+    }
   };
 
   const handleEditHireSubcategory = (subcategory) => {
     setHireSubcategoryForm({ title: subcategory.title });
     setEditingHireSubcategoryId(subcategory.id);
-    setHireSubcategoryError('');
+    setHireSubcategoryError("");
   };
 
-  const handleDeleteHireSubcategory = (id) => {
-    setHireCategories((prev) =>
-      prev.map((category) => {
-        if (category.id !== activeHireCategoryId) return category;
-        return {
-          ...category,
-          subcategories: category.subcategories.filter((subcategory) => subcategory.id !== id),
-        };
-      })
-    );
+  const handleDeleteHireSubcategory = async (id) => {
+    if (!activeHireCategoryId) return;
+    try {
+      const res = await fetch(apiUrl(`/api/hire/subcategories/${id}`), {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete subcategory");
 
-    if (editingHireSubcategoryId === id) {
-      setHireSubcategoryForm({ title: '' });
-      setEditingHireSubcategoryId(null);
+      setHireCategories((prev) =>
+        prev.map((category) => {
+          if (category.id !== activeHireCategoryId) return category;
+          return {
+            ...category,
+            subcategories: category.subcategories.filter(
+              (subcategory) => subcategory.id !== id
+            ),
+          };
+        })
+      );
+
+      if (editingHireSubcategoryId === id) {
+        setHireSubcategoryForm({ title: "" });
+        setEditingHireSubcategoryId(null);
+      }
+    } catch (err) {
+      console.error("handleDeleteHireSubcategory error", err);
     }
   };
 
-  // ─────────────────────────────────────
-  // Pagination slices
-  // ─────────────────────────────────────
+  /* -----------------------------------
+   * Pagination slices
+   * ----------------------------------- */
   const paginatedBanners = banners.slice(
     (bannerPage - 1) * rowsPerPage,
     bannerPage * rowsPerPage
@@ -1035,15 +1450,15 @@ const AdminDashboardPage = () => {
     (processPage - 1) * rowsPerPage,
     processPage * rowsPerPage
   );
-  const paginatedIndustries = industries.items.slice(
+  const paginatedIndustries = industriesItems.slice(
     (industryPage - 1) * rowsPerPage,
     industryPage * rowsPerPage
   );
-  const paginatedTechSolutions = techSolutions.solutions.slice(
+  const paginatedTechSolutions = techSolutionsList.slice(
     (techSolutionPage - 1) * rowsPerPage,
     techSolutionPage * rowsPerPage
   );
-  const paginatedExpertise = expertise.items.slice(
+  const paginatedExpertise = expertiseItems.slice(
     (expertisePage - 1) * rowsPerPage,
     expertisePage * rowsPerPage
   );
@@ -1062,6 +1477,9 @@ const AdminDashboardPage = () => {
   const activeHireCategory =
     hireCategories.find((category) => category.id === activeHireCategoryId) || null;
 
+  /* ====================================================================
+   * RENDER
+   * ==================================================================== */
   return (
     <>
       <Stack spacing={3}>
@@ -1070,21 +1488,22 @@ const AdminDashboardPage = () => {
             Dashboard
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Configure cross-page modules including process, services, and expertise content.
+            Configure cross-page modules including process, services, industries, and
+            expertise content.
           </Typography>
         </Box>
 
         <Box
           sx={{
-            border: '1px solid',
-            borderColor: 'divider',
+            border: "1px solid",
+            borderColor: "divider",
             borderRadius: 1,
-            bgcolor: 'background.paper',
+            bgcolor: "background.paper",
           }}
         >
           <Tabs
             value={activeTab}
-            onChange={(event, value) => setActiveTab(value)}
+            onChange={(_, value) => setActiveTab(value)}
             variant="scrollable"
             scrollButtons="auto"
             indicatorColor="primary"
@@ -1096,13 +1515,13 @@ const AdminDashboardPage = () => {
             <Tab value="industries" label="Industries we serve" />
             <Tab value="tech-solutions" label="Tech solutions" />
             <Tab value="expertise" label="Expertise models" />
-
+            <Tab value="hire" label="Hire developers" />
           </Tabs>
         </Box>
 
         {/* BANNER TAB */}
-        {activeTab === 'banner' && (
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+        {activeTab === "banner" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
             <CardHeader
               title="Dashboard banner"
               subheader="Set the hero banner title and artwork for the dashboard."
@@ -1111,67 +1530,74 @@ const AdminDashboardPage = () => {
             <CardContent>
               <Stack
                 spacing={2}
-                direction={{ xs: 'column', md: 'row' }}
-                alignItems={{ xs: 'stretch', md: 'flex-start' }}
+                direction={{ xs: "column", md: "row" }}
+                alignItems={{ xs: "stretch", md: "flex-start" }}
               >
                 <Box
                   sx={{
                     flex: 1,
-                    border: '1px dashed',
-                    borderColor: 'divider',
+                    border: "1px dashed",
+                    borderColor: "divider",
                     borderRadius: 1,
-                    overflow: 'hidden',
+                    overflow: "hidden",
                     minHeight: 180,
-                    backgroundColor: 'background.default',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    backgroundColor: "background.default",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {bannerForm.type === 'home' ? (
+                  {bannerForm.type === "home" ? (
                     bannerForm.images.length ? (
                       <Stack
                         direction="row"
                         spacing={1.5}
-                        sx={{ width: '100%', overflowX: 'auto', p: 2 }}
+                        sx={{ width: "100%", overflowX: "auto", p: 2 }}
                       >
                         {bannerForm.images.map((src, index) => (
                           <Box
                             key={index}
                             component="img"
                             src={src}
-                            alt={(bannerForm.title || 'Banner preview') + ` ${index + 1}`}
+                            alt={(bannerForm.title || "Banner preview") + ` ${index + 1}`}
                             sx={{
                               height: 140,
                               width: 240,
-                              objectFit: 'cover',
+                              objectFit: "cover",
                               borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'divider',
+                              border: "1px solid",
+                              borderColor: "divider",
                             }}
                           />
                         ))}
                       </Stack>
                     ) : (
-                      <Typography variant="body2" color="text.secondary" align="center" px={2}>
-                        Banner preview will appear here once you add a title and choose an image.
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        align="center"
+                        px={2}
+                      >
+                        Banner preview will appear here once you add a title and choose
+                        an image.
                       </Typography>
                     )
                   ) : bannerForm.image ? (
                     <Box
                       component="img"
                       src={bannerForm.image}
-                      alt={bannerForm.title || 'Banner preview'}
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      alt={bannerForm.title || "Banner preview"}
+                      sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                   ) : (
                     <Typography variant="body2" color="text.secondary" align="center" px={2}>
-                      Banner preview will appear here once you add a title and choose an image.
+                      Banner preview will appear here once you add a title and choose an
+                      image.
                     </Typography>
                   )}
                 </Box>
 
-                <Stack spacing={2} flex={1} minWidth={{ xs: 'auto', md: 360 }}>
+                <Stack spacing={2} flex={1} minWidth={{ xs: "auto", md: 360 }}>
                   <TextField
                     label="Title"
                     value={bannerForm.title}
@@ -1200,8 +1626,8 @@ const AdminDashboardPage = () => {
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    multiple={bannerForm.type === 'home'}
-                    style={{ display: 'none' }}
+                    multiple={bannerForm.type === "home"}
+                    style={{ display: "none" }}
                     onChange={handleBannerImageChange}
                   />
                   <Button
@@ -1209,18 +1635,18 @@ const AdminDashboardPage = () => {
                     onClick={() => fileInputRef.current?.click()}
                     disabled={!bannerForm.type}
                   >
-                    {bannerForm.type === 'home' ? 'Choose images' : 'Choose image'}
+                    {bannerForm.type === "home" ? "Choose images" : "Choose image"}
                   </Button>
                   <Typography variant="caption" color="text.secondary">
                     {!bannerForm.type
-                      ? 'Select a banner type to enable image selection. Home supports multiple images; other types use a single image.'
-                      : bannerForm.type === 'home'
-                        ? 'Home banners allow selecting multiple images for the slider.'
-                        : 'Other banner types accept a single image.'}
+                      ? "Select a banner type to enable image selection. Home supports multiple images; other types use a single image."
+                      : bannerForm.type === "home"
+                      ? "Home banners allow selecting multiple images for the slider."
+                      : "Other banner types accept a single image."}
                   </Typography>
 
                   <Button variant="contained" onClick={handleAddOrUpdateBanner}>
-                    {editingBannerId ? 'Update banner' : 'Add banner'}
+                    {editingBannerId ? "Update banner" : "Add banner"}
                   </Button>
                 </Stack>
               </Stack>
@@ -1237,12 +1663,12 @@ const AdminDashboardPage = () => {
                 <TableBody>
                   {paginatedBanners.map((item) => (
                     <TableRow key={item.id} hover>
-                      <TableCell sx={{ textTransform: 'capitalize' }}>{item.type}</TableCell>
+                      <TableCell sx={{ textTransform: "capitalize" }}>{item.type}</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                       <TableCell sx={{ maxWidth: 320 }}>
-                        {item.type === 'home' ? (
+                        {item.type === "home" ? (
                           item.images?.length ? (
-                            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto' }}>
+                            <Stack direction="row" spacing={1} sx={{ overflowX: "auto" }}>
                               {item.images.map((src, index) => (
                                 <Box
                                   key={index}
@@ -1253,9 +1679,9 @@ const AdminDashboardPage = () => {
                                     width: 120,
                                     height: 60,
                                     borderRadius: 1,
-                                    objectFit: 'cover',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
+                                    objectFit: "cover",
+                                    border: "1px solid",
+                                    borderColor: "divider",
                                   }}
                                 />
                               ))}
@@ -1265,7 +1691,7 @@ const AdminDashboardPage = () => {
                               No images selected
                             </Typography>
                           )
-                        ) : (
+                        ) : item.image ? (
                           <Box
                             component="img"
                             src={item.image}
@@ -1274,11 +1700,15 @@ const AdminDashboardPage = () => {
                               width: 140,
                               height: 60,
                               borderRadius: 1,
-                              objectFit: 'cover',
-                              border: '1px solid',
-                              borderColor: 'divider',
+                              objectFit: "cover",
+                              border: "1px solid",
+                              borderColor: "divider",
                             }}
                           />
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            -
+                          </Typography>
                         )}
                       </TableCell>
                       <TableCell align="right">
@@ -1317,7 +1747,7 @@ const AdminDashboardPage = () => {
                 <Pagination
                   count={Math.max(1, Math.ceil(banners.length / rowsPerPage))}
                   page={bannerPage}
-                  onChange={(event, page) => setBannerPage(page)}
+                  onChange={(_, page) => setBannerPage(page)}
                   color="primary"
                   size="small"
                 />
@@ -1327,8 +1757,8 @@ const AdminDashboardPage = () => {
         )}
 
         {/* PROCESS TAB */}
-        {activeTab === 'process' && (
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+        {activeTab === "process" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
             <CardHeader title="Process" subheader="Capture key delivery steps." />
             <Divider />
             <CardContent>
@@ -1361,14 +1791,14 @@ const AdminDashboardPage = () => {
                           <Box
                             component="img"
                             src={item.image}
-                            alt={item.title || 'Process preview'}
+                            alt={item.title || "Process preview"}
                             sx={{
                               width: 88,
                               height: 56,
-                              objectFit: 'cover',
+                              objectFit: "cover",
                               borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'divider',
+                              border: "1px solid",
+                              borderColor: "divider",
                             }}
                           />
                         ) : (
@@ -1380,7 +1810,7 @@ const AdminDashboardPage = () => {
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                       <TableCell sx={{ maxWidth: 320 }}>
                         <Typography variant="body2" color="text.secondary" noWrap>
-                          {item.description || '-'}
+                          {item.description || "-"}
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
@@ -1419,7 +1849,7 @@ const AdminDashboardPage = () => {
                 <Pagination
                   count={Math.max(1, Math.ceil(processList.length / rowsPerPage))}
                   page={processPage}
-                  onChange={(event, page) => setProcessPage(page)}
+                  onChange={(_, page) => setProcessPage(page)}
                   color="primary"
                   size="small"
                 />
@@ -1429,8 +1859,8 @@ const AdminDashboardPage = () => {
         )}
 
         {/* OUR SERVICES TAB */}
-        {activeTab === 'our-services' && (
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+        {activeTab === "our-services" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
             <CardHeader
               title="Our services"
               subheader="Manage slider title/description and the list of showcased services."
@@ -1438,13 +1868,12 @@ const AdminDashboardPage = () => {
             <Divider />
             <CardContent>
               <Stack spacing={3}>
-
                 {/* Slider list */}
                 <Box>
                   <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
+                    direction={{ xs: "column", sm: "row" }}
                     justifyContent="space-between"
-                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    alignItems={{ xs: "flex-start", sm: "center" }}
                     mb={1}
                   >
                     <Box>
@@ -1485,10 +1914,10 @@ const AdminDashboardPage = () => {
                                   sx={{
                                     width: 88,
                                     height: 56,
-                                    objectFit: 'cover',
+                                    objectFit: "cover",
                                     borderRadius: 1,
-                                    border: '1px solid',
-                                    borderColor: 'divider',
+                                    border: "1px solid",
+                                    borderColor: "divider",
                                   }}
                                 />
                               ) : (
@@ -1502,7 +1931,7 @@ const AdminDashboardPage = () => {
                             </TableCell>
                             <TableCell sx={{ maxWidth: 360 }}>
                               <Typography variant="body2" color="text.secondary" noWrap>
-                                {slider.sliderDescription || '-'}
+                                {slider.sliderDescription || "-"}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
@@ -1545,27 +1974,36 @@ const AdminDashboardPage = () => {
 
                   <Stack mt={2} alignItems="flex-end">
                     <Pagination
-                      count={Math.max(1, Math.ceil(ourServicesSliders.length / rowsPerPage))}
+                      count={Math.max(
+                        1,
+                        Math.ceil(ourServicesSliders.length / rowsPerPage)
+                      )}
                       page={ourServicesSliderPage}
-                      onChange={(event, page) => setOurServicesSliderPage(page)}
+                      onChange={(_, page) => setOurServicesSliderPage(page)}
                       color="primary"
                       size="small"
                     />
                   </Stack>
+                  {ourHeaderSaved && (
+                    <Typography mt={1} variant="body2" color="success.main">
+                      Slider saved
+                    </Typography>
+                  )}
                 </Box>
 
                 <Divider />
 
                 {/* Service cards */}
                 <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
+                  direction={{ xs: "column", sm: "row" }}
                   justifyContent="space-between"
-                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                  alignItems={{ xs: "flex-start", sm: "center" }}
                 >
                   <Box>
                     <Typography variant="h6">Service cards</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Add the services that appear in the carousel with titles and slider mapping.
+                      Add the services that appear in the carousel with titles and slider
+                      mapping.
                     </Typography>
                   </Box>
                   <Button
@@ -1591,13 +2029,15 @@ const AdminDashboardPage = () => {
                     <TableBody>
                       {paginatedServices.map((item) => {
                         const slider =
-                          ourServicesSliders.find((s) => s.id === item.sliderId) || null;
+                          item.slider ??
+                          ourServicesSliders.find((s) => s.id === item.sliderId) ??
+                          null;
                         return (
                           <TableRow key={item.id} hover>
                             <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                             <TableCell>
                               <Typography variant="body2" color="text.secondary">
-                                {slider?.sliderTitle || '-'}
+                                {slider?.sliderTitle || "-"}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
@@ -1642,7 +2082,7 @@ const AdminDashboardPage = () => {
                   <Pagination
                     count={Math.max(1, Math.ceil(services.length / rowsPerPage))}
                     page={ourServicePage}
-                    onChange={(event, page) => setOurServicePage(page)}
+                    onChange={(_, page) => setOurServicePage(page)}
                     color="primary"
                     size="small"
                   />
@@ -1653,8 +2093,8 @@ const AdminDashboardPage = () => {
         )}
 
         {/* INDUSTRIES TAB */}
-        {activeTab === 'industries' && (
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+        {activeTab === "industries" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
             <CardHeader
               title="Industries we serve"
               subheader="Set the headline and list of industries with descriptions."
@@ -1664,22 +2104,25 @@ const AdminDashboardPage = () => {
               <Stack
                 spacing={2}
                 mb={3}
-                direction={{ xs: 'column', md: 'row' }}
-                alignItems={{ xs: 'stretch', md: 'flex-end' }}
+                direction={{ xs: "column", md: "row" }}
+                alignItems={{ xs: "stretch", md: "flex-end" }}
               >
                 <TextField
                   label="Title"
-                  value={industries.title}
+                  value={industriesConfig.title}
                   onChange={(event) =>
-                    setIndustries((prev) => ({ ...prev, title: event.target.value }))
+                    setIndustriesConfig((prev) => ({
+                      ...prev,
+                      title: event.target.value,
+                    }))
                   }
                   fullWidth
                 />
                 <TextField
                   label="Description"
-                  value={industries.description}
+                  value={industriesConfig.description}
                   onChange={(event) =>
-                    setIndustries((prev) => ({
+                    setIndustriesConfig((prev) => ({
                       ...prev,
                       description: event.target.value,
                     }))
@@ -1737,10 +2180,10 @@ const AdminDashboardPage = () => {
                             sx={{
                               width: 96,
                               height: 56,
-                              objectFit: 'cover',
+                              objectFit: "cover",
                               borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'divider',
+                              border: "1px solid",
+                              borderColor: "divider",
                             }}
                           />
                         ) : (
@@ -1769,7 +2212,7 @@ const AdminDashboardPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {!industries.items.length && (
+                  {!industriesItems.length && (
                     <TableRow>
                       <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
@@ -1783,9 +2226,9 @@ const AdminDashboardPage = () => {
 
               <Stack mt={2} alignItems="flex-end">
                 <Pagination
-                  count={Math.max(1, Math.ceil(industries.items.length / rowsPerPage))}
+                  count={Math.max(1, Math.ceil(industriesItems.length / rowsPerPage))}
                   page={industryPage}
-                  onChange={(event, page) => setIndustryPage(page)}
+                  onChange={(_, page) => setIndustryPage(page)}
                   color="primary"
                   size="small"
                 />
@@ -1795,8 +2238,8 @@ const AdminDashboardPage = () => {
         )}
 
         {/* TECH SOLUTIONS TAB */}
-        {activeTab === 'tech-solutions' && (
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+        {activeTab === "tech-solutions" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
             <CardHeader
               title="Tech solutions for all business types"
               subheader="Control heading, copy, and business-type specific solutions."
@@ -1806,22 +2249,25 @@ const AdminDashboardPage = () => {
               <Stack
                 spacing={2}
                 mb={3}
-                direction={{ xs: 'column', md: 'row' }}
-                alignItems={{ xs: 'stretch', md: 'flex-end' }}
+                direction={{ xs: "column", md: "row" }}
+                alignItems={{ xs: "stretch", md: "flex-end" }}
               >
                 <TextField
                   label="Title"
-                  value={techSolutions.title}
+                  value={techSolutionsConfig.title}
                   onChange={(event) =>
-                    setTechSolutions((prev) => ({ ...prev, title: event.target.value }))
+                    setTechSolutionsConfig((prev) => ({
+                      ...prev,
+                      title: event.target.value,
+                    }))
                   }
                   fullWidth
                 />
                 <TextField
                   label="Description"
-                  value={techSolutions.description}
+                  value={techSolutionsConfig.description}
                   onChange={(event) =>
-                    setTechSolutions((prev) => ({
+                    setTechSolutionsConfig((prev) => ({
                       ...prev,
                       description: event.target.value,
                     }))
@@ -1885,7 +2331,7 @@ const AdminDashboardPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {!techSolutions.solutions.length && (
+                  {!techSolutionsList.length && (
                     <TableRow>
                       <TableCell colSpan={3}>
                         <Typography variant="body2" color="text.secondary" align="center">
@@ -1899,9 +2345,9 @@ const AdminDashboardPage = () => {
 
               <Stack mt={2} alignItems="flex-end">
                 <Pagination
-                  count={Math.max(1, Math.ceil(techSolutions.solutions.length / rowsPerPage))}
+                  count={Math.max(1, Math.ceil(techSolutionsList.length / rowsPerPage))}
                   page={techSolutionPage}
-                  onChange={(event, page) => setTechSolutionPage(page)}
+                  onChange={(_, page) => setTechSolutionPage(page)}
                   color="primary"
                   size="small"
                 />
@@ -1911,8 +2357,8 @@ const AdminDashboardPage = () => {
         )}
 
         {/* EXPERTISE TAB */}
-        {activeTab === 'expertise' && (
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+        {activeTab === "expertise" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
             <CardHeader
               title="Ways to choose our expertise"
               subheader="Manage collaboration models and proof points."
@@ -1922,22 +2368,25 @@ const AdminDashboardPage = () => {
               <Stack
                 spacing={2}
                 mb={3}
-                direction={{ xs: 'column', md: 'row' }}
-                alignItems={{ xs: 'stretch', md: 'flex-end' }}
+                direction={{ xs: "column", md: "row" }}
+                alignItems={{ xs: "stretch", md: "flex-end" }}
               >
                 <TextField
                   label="Title"
-                  value={expertise.title}
+                  value={expertiseConfig.title}
                   onChange={(event) =>
-                    setExpertise((prev) => ({ ...prev, title: event.target.value }))
+                    setExpertiseConfig((prev) => ({
+                      ...prev,
+                      title: event.target.value,
+                    }))
                   }
                   fullWidth
                 />
                 <TextField
                   label="Description"
-                  value={expertise.description}
+                  value={expertiseConfig.description}
                   onChange={(event) =>
-                    setExpertise((prev) => ({
+                    setExpertiseConfig((prev) => ({
                       ...prev,
                       description: event.target.value,
                     }))
@@ -1972,7 +2421,7 @@ const AdminDashboardPage = () => {
                     startIcon={<AddCircleOutlineIcon />}
                     onClick={() => openExpertiseDialog()}
                   >
-                    Add industry
+                    Add expertise
                   </Button>
                 </Stack>
               </Stack>
@@ -1994,14 +2443,14 @@ const AdminDashboardPage = () => {
                           <Box
                             component="img"
                             src={item.image}
-                            alt={item.title || 'Expertise preview'}
+                            alt={item.title || "Expertise preview"}
                             sx={{
                               width: 88,
                               height: 56,
-                              objectFit: 'cover',
+                              objectFit: "cover",
                               borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'divider',
+                              border: "1px solid",
+                              borderColor: "divider",
                             }}
                           />
                         ) : (
@@ -2034,7 +2483,7 @@ const AdminDashboardPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {!expertise.items.length && (
+                  {!expertiseItems.length && (
                     <TableRow>
                       <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
@@ -2048,9 +2497,9 @@ const AdminDashboardPage = () => {
 
               <Stack mt={2} alignItems="flex-end">
                 <Pagination
-                  count={Math.max(1, Math.ceil(expertise.items.length / rowsPerPage))}
+                  count={Math.max(1, Math.ceil(expertiseItems.length / rowsPerPage))}
                   page={expertisePage}
-                  onChange={(event, page) => setExpertisePage(page)}
+                  onChange={(_, page) => setExpertisePage(page)}
                   color="primary"
                   size="small"
                 />
@@ -2059,14 +2508,124 @@ const AdminDashboardPage = () => {
           </Card>
         )}
 
+        {/* HIRE DEVELOPERS TAB */}
+        {activeTab === "hire" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+            <CardHeader
+              title="Hire developers"
+              subheader="Maintain categories (Mobile, Web, etc.) and their subcategories."
+            />
+            <Divider />
+            <CardContent>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                justifyContent="space-between"
+                alignItems={{ xs: "flex-start", sm: "center" }}
+                mb={2}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Configure what types of developers you highlight on the marketing site.
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() => openHireCategoryDialog()}
+                >
+                  Add category
+                </Button>
+              </Stack>
 
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Subcategories</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedHireCategories.map((category) => (
+                    <TableRow key={category.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{category.title}</TableCell>
+                      <TableCell sx={{ maxWidth: 280 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {category.description || "-"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 260 }}>
+                        {category.subcategories?.length ? (
+                          <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                            {category.subcategories.map((sub) => (
+                              <Chip key={sub.id} size="small" label={sub.title} />
+                            ))}
+                          </Stack>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No subcategories
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Manage subcategories">
+                            <IconButton
+                              size="small"
+                              onClick={() => openSubcategoryDialog(category)}
+                            >
+                              <Typography variant="caption">Subs</Typography>
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit category">
+                            <IconButton
+                              size="small"
+                              onClick={() => openHireCategoryDialog(category)}
+                            >
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete category">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteHireCategory(category.id)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!hireCategories.length && (
+                    <TableRow>
+                      <TableCell colSpan={4}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No categories configured yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
 
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(hireCategories.length / rowsPerPage))}
+                  page={hireCategoryPage}
+                  onChange={(_, page) => setHireCategoryPage(page)}
+                  color="primary"
+                  size="small"
+                />
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
       </Stack>
-
 
       {/* Our services slider dialog */}
       <Dialog open={sliderDialogOpen} onClose={closeSliderDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editingSliderId ? 'Edit slider' : 'Add slider'}</DialogTitle>
+        <DialogTitle>{editingSliderId ? "Edit slider" : "Add slider"}</DialogTitle>
         <DialogContent dividers>
           <Box component="form" onSubmit={handleOurServicesHeroSave} sx={{ mt: 1 }}>
             <Grid container spacing={2}>
@@ -2075,7 +2634,7 @@ const AdminDashboardPage = () => {
                   label="Slider title"
                   value={ourServicesHeroForm.sliderTitle}
                   onChange={(event) =>
-                    handleOurServicesHeroChange('sliderTitle', event.target.value)
+                    handleOurServicesHeroChange("sliderTitle", event.target.value)
                   }
                   fullWidth
                   required
@@ -2086,7 +2645,7 @@ const AdminDashboardPage = () => {
                   label="Slider description"
                   value={ourServicesHeroForm.sliderDescription}
                   onChange={(event) =>
-                    handleOurServicesHeroChange('sliderDescription', event.target.value)
+                    handleOurServicesHeroChange("sliderDescription", event.target.value)
                   }
                   fullWidth
                   multiline
@@ -2097,7 +2656,7 @@ const AdminDashboardPage = () => {
                 <ImageUpload
                   label="Slider image"
                   value={ourServicesHeroForm.sliderImage}
-                  onChange={(value) => handleOurServicesHeroChange('sliderImage', value)}
+                  onChange={(value) => handleOurServicesHeroChange("sliderImage", value)}
                   required
                 />
               </Grid>
@@ -2109,12 +2668,12 @@ const AdminDashboardPage = () => {
             Cancel
           </Button>
           <Button onClick={handleOurServicesHeroSave} variant="contained">
-            {editingSliderId ? 'Save slider' : 'Add slider'}
+            {editingSliderId ? "Save slider" : "Add slider"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Our services dialog - now includes slider dropdown + image-wise picker */}
+      {/* Our services dialog - service */}
       <Dialog
         open={ourServiceDialogOpen}
         onClose={closeOurServiceDialog}
@@ -2122,15 +2681,15 @@ const AdminDashboardPage = () => {
         fullWidth
       >
         <DialogTitle>
-          {editingOurServiceId ? 'Edit service card' : 'Add service card'}
+          {editingOurServiceId ? "Edit service card" : "Add service card"}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {/* slider selection row */}
             <Stack
-              direction={{ xs: 'column', sm: 'row' }}
+              direction={{ xs: "column", sm: "row" }}
               spacing={1.5}
-              alignItems={{ xs: 'stretch', sm: 'flex-end' }}
+              alignItems={{ xs: "stretch", sm: "flex-end" }}
             >
               <TextField
                 select
@@ -2138,7 +2697,10 @@ const AdminDashboardPage = () => {
                 required
                 value={ourServiceForm.sliderId}
                 onChange={(event) =>
-                  setOurServiceForm((prev) => ({ ...prev, sliderId: event.target.value }))
+                  setOurServiceForm((prev) => ({
+                    ...prev,
+                    sliderId: Number(event.target.value),
+                  }))
                 }
                 fullWidth
                 helperText="Choose which slider this service belongs to"
@@ -2152,7 +2714,7 @@ const AdminDashboardPage = () => {
               <Button
                 variant="outlined"
                 onClick={() => setSliderPickerOpen(true)}
-                sx={{ minWidth: { xs: '100%', sm: 160 } }}
+                sx={{ minWidth: { xs: "100%", sm: 160 } }}
                 disabled={!ourServicesSliders.length}
               >
                 Choose by image
@@ -2163,13 +2725,13 @@ const AdminDashboardPage = () => {
             {selectedSliderForServiceDialog && (
               <Box
                 sx={{
-                  border: '1px dashed',
-                  borderColor: 'divider',
+                  border: "1px dashed",
+                  borderColor: "divider",
                   borderRadius: 1,
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
+                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
                   p: 1,
                 }}
               >
@@ -2181,10 +2743,10 @@ const AdminDashboardPage = () => {
                     sx={{
                       width: 96,
                       height: 64,
-                      objectFit: 'cover',
+                      objectFit: "cover",
                       borderRadius: 1,
-                      border: '1px solid',
-                      borderColor: 'divider',
+                      border: "1px solid",
+                      borderColor: "divider",
                       mr: 2,
                     }}
                   />
@@ -2222,12 +2784,12 @@ const AdminDashboardPage = () => {
             variant="contained"
             disabled={!ourServiceForm.sliderId}
           >
-            {editingOurServiceId ? 'Update service' : 'Add service'}
+            {editingOurServiceId ? "Update service" : "Add service"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Slider picker dialog - image-wise selection */}
+      {/* Slider picker dialog */}
       <Dialog
         open={sliderPickerOpen}
         onClose={() => setSliderPickerOpen(false)}
@@ -2245,11 +2807,13 @@ const AdminDashboardPage = () => {
                     setSliderPickerOpen(false);
                   }}
                   sx={{
-                    cursor: 'pointer',
+                    cursor: "pointer",
                     border:
-                      slider.id === ourServiceForm.sliderId ? '2px solid' : '1px solid',
+                      slider.id === ourServiceForm.sliderId ? "2px solid" : "1px solid",
                     borderColor:
-                      slider.id === ourServiceForm.sliderId ? 'primary.main' : 'divider',
+                      slider.id === ourServiceForm.sliderId
+                        ? "primary.main"
+                        : "divider",
                   }}
                 >
                   {slider.sliderImage && (
@@ -2258,9 +2822,9 @@ const AdminDashboardPage = () => {
                       src={slider.sliderImage}
                       alt={slider.sliderTitle}
                       sx={{
-                        width: '100%',
+                        width: "100%",
                         height: 120,
-                        objectFit: 'cover',
+                        objectFit: "cover",
                       }}
                     />
                   )}
@@ -2301,8 +2865,8 @@ const AdminDashboardPage = () => {
         <DialogTitle>Delete service card</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary">
-            Are you sure you want to delete &quot;{ourServicePendingDelete?.title}&quot;? This
-            action cannot be undone.
+            Are you sure you want to delete &quot;{ourServicePendingDelete?.title}
+            &quot;? This action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -2322,7 +2886,7 @@ const AdminDashboardPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingIndustryId ? 'Edit industry' : 'Add industry'}</DialogTitle>
+        <DialogTitle>{editingIndustryId ? "Edit industry" : "Add industry"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
@@ -2350,16 +2914,16 @@ const AdminDashboardPage = () => {
             />
             <Box
               sx={{
-                border: '1px dashed',
-                borderColor: 'divider',
+                border: "1px dashed",
+                borderColor: "divider",
                 borderRadius: 1,
                 minHeight: 140,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: 'background.default',
-                overflow: 'hidden',
-                cursor: 'pointer',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "background.default",
+                overflow: "hidden",
+                cursor: "pointer",
               }}
               onClick={() => industryFileInputRef.current?.click()}
             >
@@ -2367,12 +2931,13 @@ const AdminDashboardPage = () => {
                 <Box
                   component="img"
                   src={industryForm.image}
-                  alt={industryForm.title || 'Industry preview'}
-                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  alt={industryForm.title || "Industry preview"}
+                  sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
                 <Typography variant="body2" color="text.secondary" align="center" px={2}>
-                  Banner preview will appear here once you add a title and choose an image.
+                  Banner preview will appear here once you add a title and choose an
+                  image.
                 </Typography>
               )}
             </Box>
@@ -2398,7 +2963,7 @@ const AdminDashboardPage = () => {
             Cancel
           </Button>
           <Button onClick={handleIndustrySubmit} variant="contained">
-            {editingIndustryId ? 'Update industry' : 'Add industry'}
+            {editingIndustryId ? "Update industry" : "Add industry"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -2410,7 +2975,7 @@ const AdminDashboardPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingTechSolutionId ? 'Edit solution' : 'Add solution'}</DialogTitle>
+        <DialogTitle>{editingTechSolutionId ? "Edit solution" : "Add solution"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
@@ -2443,7 +3008,7 @@ const AdminDashboardPage = () => {
             Cancel
           </Button>
           <Button onClick={handleTechSolutionSave} variant="contained">
-            {editingTechSolutionId ? 'Update solution' : 'Add solution'}
+            {editingTechSolutionId ? "Update solution" : "Add solution"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -2455,7 +3020,7 @@ const AdminDashboardPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingExpertiseId ? 'Edit industry' : 'Add industry'}</DialogTitle>
+        <DialogTitle>{editingExpertiseId ? "Edit expertise" : "Add expertise"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
@@ -2483,16 +3048,16 @@ const AdminDashboardPage = () => {
             />
             <Box
               sx={{
-                border: '1px dashed',
-                borderColor: 'divider',
+                border: "1px dashed",
+                borderColor: "divider",
                 borderRadius: 1,
                 minHeight: 140,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: 'background.default',
-                overflow: 'hidden',
-                cursor: 'pointer',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "background.default",
+                overflow: "hidden",
+                cursor: "pointer",
               }}
               onClick={() => expertiseFileInputRef.current?.click()}
             >
@@ -2500,12 +3065,13 @@ const AdminDashboardPage = () => {
                 <Box
                   component="img"
                   src={expertiseForm.image}
-                  alt={expertiseForm.title || 'Expertise preview'}
-                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  alt={expertiseForm.title || "Expertise preview"}
+                  sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
                 <Typography variant="body2" color="text.secondary" align="center" px={2}>
-                  Banner preview will appear here once you add a title and choose an image.
+                  Banner preview will appear here once you add a title and choose an
+                  image.
                 </Typography>
               )}
             </Box>
@@ -2535,7 +3101,7 @@ const AdminDashboardPage = () => {
             Cancel
           </Button>
           <Button onClick={handleExpertiseSubmit} variant="contained">
-            {editingExpertiseId ? 'Update industry' : 'Add industry'}
+            {editingExpertiseId ? "Update expertise" : "Add expertise"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -2547,7 +3113,7 @@ const AdminDashboardPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingProcessId ? 'Edit process step' : 'Add process step'}</DialogTitle>
+        <DialogTitle>{editingProcessId ? "Edit process step" : "Add process step"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
@@ -2575,16 +3141,16 @@ const AdminDashboardPage = () => {
             />
             <Box
               sx={{
-                border: '1px dashed',
-                borderColor: 'divider',
+                border: "1px dashed",
+                borderColor: "divider",
                 borderRadius: 1,
                 minHeight: 140,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: 'background.default',
-                overflow: 'hidden',
-                cursor: 'pointer',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "background.default",
+                overflow: "hidden",
+                cursor: "pointer",
               }}
               onClick={() => processFileInputRef.current?.click()}
             >
@@ -2592,12 +3158,13 @@ const AdminDashboardPage = () => {
                 <Box
                   component="img"
                   src={processForm.image}
-                  alt={processForm.title || 'Process preview'}
-                  sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  alt={processForm.title || "Process preview"}
+                  sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
                 <Typography variant="body2" color="text.secondary" align="center" px={2}>
-                  Banner preview will appear here once you add a title and choose an image.
+                  Banner preview will appear here once you add a title and choose an
+                  image.
                 </Typography>
               )}
             </Box>
@@ -2627,7 +3194,139 @@ const AdminDashboardPage = () => {
             Cancel
           </Button>
           <Button onClick={handleProcessSave} variant="contained">
-            {editingProcessId ? 'Update step' : 'Add step'}
+            {editingProcessId ? "Update step" : "Add step"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Hire category dialog */}
+      <Dialog
+        open={hireCategoryDialogOpen}
+        onClose={closeHireCategoryDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {editingHireCategoryId ? "Edit hire category" : "Add hire category"}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Category title"
+              required
+              value={hireCategoryForm.title}
+              onChange={(e) =>
+                setHireCategoryForm((prev) => ({ ...prev, title: e.target.value }))
+              }
+              fullWidth
+              error={Boolean(hireCategoryError)}
+              helperText={hireCategoryError || "Example: Mobile app developers"}
+            />
+            <TextField
+              label="Description"
+              value={hireCategoryForm.description}
+              onChange={(e) =>
+                setHireCategoryForm((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              fullWidth
+              multiline
+              minRows={3}
+              placeholder="Optional short description of this category"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeHireCategoryDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveHireCategory} variant="contained">
+            {editingHireCategoryId ? "Update category" : "Add category"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Hire subcategory dialog */}
+      <Dialog
+        open={subcategoryDialogOpen}
+        onClose={closeSubcategoryDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {activeHireCategory
+            ? `Subcategories for "${activeHireCategory.title}"`
+            : "Subcategories"}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Subcategory title"
+              required
+              value={hireSubcategoryForm.title}
+              onChange={(e) =>
+                setHireSubcategoryForm((prev) => ({ ...prev, title: e.target.value }))
+              }
+              fullWidth
+              error={Boolean(hireSubcategoryError)}
+              helperText={
+                hireSubcategoryError ||
+                "Example: Android developers, iOS developers, React Native developers"
+              }
+            />
+
+            {activeHireCategory?.subcategories?.length ? (
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Existing subcategories</Typography>
+                {activeHireCategory.subcategories.map((sub) => (
+                  <Stack
+                    key={sub.id}
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      px: 1,
+                      py: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">{sub.title}</Typography>
+                    <Stack direction="row" spacing={0.5}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEditHireSubcategory(sub)}
+                      >
+                        <EditOutlinedIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteHireSubcategory(sub.id)}
+                      >
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+                ))}
+              </Stack>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No subcategories yet. Add your first one using the input above.
+              </Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeSubcategoryDialog} color="inherit">
+            Close
+          </Button>
+          <Button onClick={handleSaveHireSubcategory} variant="contained">
+            {editingHireSubcategoryId ? "Update subcategory" : "Add subcategory"}
           </Button>
         </DialogActions>
       </Dialog>
