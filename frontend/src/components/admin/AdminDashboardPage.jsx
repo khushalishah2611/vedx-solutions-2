@@ -260,12 +260,12 @@ const AdminDashboardPage = () => {
       try {
         await Promise.all([
           loadBanners(),
-          loadProcessSteps(),
-          loadOurServices(),
-          loadIndustries(),
-          loadTechSolutions(),
-          loadExpertise(),
-          loadHireCategories(),
+          // loadProcessSteps(),
+          // loadOurServices(),
+          // loadIndustries(),
+          // loadTechSolutions(),
+          // loadExpertise(),
+          // loadHireCategories(),
         ]);
       } catch (err) {
         console.error("Initial load error", err);
