@@ -391,7 +391,7 @@ const AdminDashboardPage = () => {
 
   const loadHireCategories = async () => {
     try {
-      const res = await fetch(apiUrl("/api/hire/categories"));
+      const res = await fetch(apiUrl("/api/admin/hire-categories"));
       if (!res.ok) throw new Error("Failed to fetch hire categories");
       const data = await res.json();
       setHireCategories(data);
@@ -1260,7 +1260,7 @@ const AdminDashboardPage = () => {
 
     try {
       if (editingHireCategoryId != null) {
-        const res = await fetch(apiUrl(`/api/hire/categories/${editingHireCategoryId}`), {
+        const res = await fetch(apiUrl(`/api/admin/hire-categories${editingHireCategoryId}`), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -1271,7 +1271,7 @@ const AdminDashboardPage = () => {
           prev.map((category) => (category.id === updated.id ? updated : category))
         );
       } else {
-        const res = await fetch(apiUrl("/api/hire/categories"), {
+        const res = await fetch(apiUrl("/api/admin/hire-categories"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -1290,7 +1290,7 @@ const AdminDashboardPage = () => {
 
   const handleDeleteHireCategory = async (id) => {
     try {
-      const res = await fetch(apiUrl(`/api/hire/categories/${id}`), { method: "DELETE" });
+      const res = await fetch(apiUrl(`/api/admin/hire-categories/${id}`), { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete category");
       setHireCategories((prev) => {
         const updated = prev.filter((category) => category.id !== id);
