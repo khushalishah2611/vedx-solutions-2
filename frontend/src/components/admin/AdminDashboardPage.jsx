@@ -444,8 +444,8 @@ const AdminDashboardPage = () => {
         ? bannerForm.images.length
           ? bannerForm.images
           : bannerForm.image
-          ? [bannerForm.image]
-          : []
+            ? [bannerForm.image]
+            : []
         : [];
     setBannerForm((prev) => ({
       ...prev,
@@ -788,43 +788,34 @@ const AdminDashboardPage = () => {
   };
 
   const handleSaveOurService = async () => {
-    if (!ourServiceForm.title.trim() || !ourServiceForm.sliderId) return;
+    console.log("SUBMIT → current form =", ourServiceForm);
 
     const payload = {
-      title: ourServiceForm.title.trim(),
-      sliderId: Number(ourServiceForm.sliderId),
+      title: ourServiceForm.title,
+      sliderId: ourServiceForm.sliderId,
     };
 
-    try {
-      if (editingOurServiceId != null) {
-        const res = await fetch(
-          apiUrl(`/api/our-services/services/${editingOurServiceId}`),
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          }
-        );
-        if (!res.ok) throw new Error("Failed to update service");
-        const updated = await res.json();
-        setServices((prev) =>
-          prev.map((item) => (item.id === updated.id ? updated : item))
-        );
-      } else {
-        const res = await fetch(apiUrl("/api/our-services/services"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error("Failed to create service");
-        const created = await res.json();
-        setServices((prev) => [created, ...prev]);
-        setOurServicePage(1);
-      }
+    console.log("SUBMIT → sending payload =", payload);
 
-      closeOurServiceDialog();
-    } catch (err) {
-      console.error("handleSaveOurService error", err);
+    const url = editingOurServiceId
+      ? `${apiUrl}/our-services/services/${editingOurServiceId}`
+      : `${apiUrl}/our-services/services`;
+
+    console.log("SUBMIT → API URL =", url);
+
+    const method = editingOurServiceId ? "PUT" : "POST";
+
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    console.log("SUBMIT → server response =", response.status);
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error("SUBMIT → ERROR RESP =", err);
     }
   };
 
@@ -1641,8 +1632,8 @@ const AdminDashboardPage = () => {
                     {!bannerForm.type
                       ? "Select a banner type to enable image selection. Home supports multiple images; other types use a single image."
                       : bannerForm.type === "home"
-                      ? "Home banners allow selecting multiple images for the slider."
-                      : "Other banner types accept a single image."}
+                        ? "Home banners allow selecting multiple images for the slider."
+                        : "Other banner types accept a single image."}
                   </Typography>
 
                   <Button variant="contained" onClick={handleAddOrUpdateBanner}>
@@ -2693,24 +2684,30 @@ const AdminDashboardPage = () => {
             >
               <TextField
                 select
-                label="Slider"
-                required
-                value={ourServiceForm.sliderId}
-                onChange={(event) =>
-                  setOurServiceForm((prev) => ({
-                    ...prev,
-                    sliderId: Number(event.target.value),
-                  }))
-                }
                 fullWidth
-                helperText="Choose which slider this service belongs to"
+                label="Slider"
+                margin="normal"
+                value={ourServiceForm.sliderId ?? ""}
+                onChange={(event) => {
+                  console.log("Raw event.target.value =", event.target.value);
+
+                  const parsed = event.target.value === "" ? null : Number(event.target.value);
+                  console.log("Parsed sliderId (Number) =", parsed);
+
+                  setOurServiceForm((prev) => {
+                    const updated = { ...prev, sliderId: parsed };
+                    console.log("Updated ourServiceForm =", updated);
+                    return updated;
+                  });
+                }}
               >
-                {ourServicesSliders.map((slider) => (
-                  <MenuItem key={slider.id} value={slider.id}>
-                    {slider.sliderTitle}
+                {ourServicesSliders.map((s) => (
+                  <MenuItem key={s.id} value={s.id}>
+                    {s.sliderTitle}
                   </MenuItem>
                 ))}
               </TextField>
+
               <Button
                 variant="outlined"
                 onClick={() => setSliderPickerOpen(true)}
