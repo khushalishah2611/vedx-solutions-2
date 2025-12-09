@@ -788,34 +788,43 @@ const AdminDashboardPage = () => {
   };
 
   const handleSaveOurService = async () => {
-    console.log("SUBMIT → current form =", ourServiceForm);
+    if (!ourServiceForm.title.trim() || !ourServiceForm.sliderId) return;
 
     const payload = {
-      title: ourServiceForm.title,
-      sliderId: ourServiceForm.sliderId,
+      title: ourServiceForm.title.trim(),
+      sliderId: Number(ourServiceForm.sliderId),
     };
 
-    console.log("SUBMIT → sending payload =", payload);
+    try {
+      if (editingOurServiceId != null) {
+        const res = await fetch(
+          apiUrl(`/api/our-services/services/${editingOurServiceId}`),
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+        if (!res.ok) throw new Error("Failed to update service");
+        const updated = await res.json();
+        setServices((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item))
+        );
+      } else {
+        const res = await fetch(apiUrl("/api/our-services/services"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create service");
+        const created = await res.json();
+        setServices((prev) => [created, ...prev]);
+        setOurServicePage(1);
+      }
 
-    const url = editingOurServiceId
-      ? `${apiUrl}/our-services/services/${editingOurServiceId}`
-      : `${apiUrl}/our-services/services`;
-
-    console.log("SUBMIT → API URL =", url);
-
-    const method = editingOurServiceId ? "PUT" : "POST";
-
-    const response = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    console.log("SUBMIT → server response =", response.status);
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("SUBMIT → ERROR RESP =", err);
+      closeOurServiceDialog();
+    } catch (err) {
+      console.error("handleSaveOurService error", err);
     }
   };
 
