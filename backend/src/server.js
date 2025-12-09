@@ -4772,6 +4772,1376 @@ app.delete('/api/why-vedx-reasons/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete why VEDX reason' });
   }
 });
+
+/* ============================================================
+ * HIRE DEVELOPER – APIS
+ * ============================================================
+ */
+
+/* ------------------------------
+ * Helpers
+ * ------------------------------ */
+const requireIdParam = (req, res) => {
+  const id = req.params.id?.trim();
+  if (!id) {
+    res.status(400).json({ error: 'Valid id is required' });
+    return null;
+  }
+  return id;
+};
+
+/* ============================================================
+ * 1. HireDeveloperService
+ * ============================================================
+ */
+
+// GET all hire developer services (optional category filter)
+app.get('/api/hire-developer/services', async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    const services = await prisma.hireDeveloperService.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(services);
+  } catch (err) {
+    console.error('GET /api/hire-developer/services error', err);
+    res.status(500).json({ error: 'Failed to fetch hire developer services' });
+  }
+});
+
+// CREATE hire developer service
+app.post('/api/hire-developer/services', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      category,
+      subcategories,
+      bannerTitle,
+      bannerSubtitle,
+      bannerImage,
+      totalServices,
+      totalProjects,
+      totalClients,
+      description,
+      faqs,
+    } = req.body;
+
+    if (!category || !String(category).trim()) {
+      return res.status(400).json({ error: 'Category is required' });
+    }
+
+    const service = await prisma.hireDeveloperService.create({
+      data: {
+        category: String(category).trim(),
+        subcategories: subcategories ?? [],
+        bannerTitle: bannerTitle?.trim() || null,
+        bannerSubtitle: bannerSubtitle?.trim() || null,
+        bannerImage: bannerImage?.trim() || null,
+        totalServices: Number(totalServices) || 0,
+        totalProjects: Number(totalProjects) || 0,
+        totalClients: Number(totalClients) || 0,
+        description: description?.trim() || null,
+        faqs: faqs ?? null,
+      },
+    });
+
+    res.status(201).json(service);
+  } catch (err) {
+    console.error('POST /api/hire-developer/services error', err);
+    res.status(500).json({ error: 'Failed to create hire developer service' });
+  }
+});
+
+// UPDATE hire developer service
+app.put('/api/hire-developer/services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const {
+      category,
+      subcategories,
+      bannerTitle,
+      bannerSubtitle,
+      bannerImage,
+      totalServices,
+      totalProjects,
+      totalClients,
+      description,
+      faqs,
+    } = req.body;
+
+    const updated = await prisma.hireDeveloperService.update({
+      where: { id },
+      data: {
+        ...(category !== undefined && { category: String(category).trim() }),
+        ...(subcategories !== undefined && { subcategories }),
+        bannerTitle: bannerTitle?.trim() || null,
+        bannerSubtitle: bannerSubtitle?.trim() || null,
+        bannerImage: bannerImage?.trim() || null,
+        ...(totalServices !== undefined && {
+          totalServices: Number(totalServices) || 0,
+        }),
+        ...(totalProjects !== undefined && {
+          totalProjects: Number(totalProjects) || 0,
+        }),
+        ...(totalClients !== undefined && {
+          totalClients: Number(totalClients) || 0,
+        }),
+        description: description?.trim() || null,
+        ...(faqs !== undefined && { faqs }),
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/services/:id error', err);
+    res.status(500).json({ error: 'Failed to update hire developer service' });
+  }
+});
+
+// DELETE hire developer service
+app.delete('/api/hire-developer/services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperService.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/services/:id error', err);
+    res.status(500).json({ error: 'Failed to delete hire developer service' });
+  }
+});
+
+/* ============================================================
+ * 2. HireDeveloperTechnology
+ * ============================================================
+ */
+
+// GET technologies (optional category / subcategory)
+app.get('/api/hire-developer/technologies', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const technologies = await prisma.hireDeveloperTechnology.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(technologies);
+  } catch (err) {
+    console.error('GET /api/hire-developer/technologies error', err);
+    res.status(500).json({ error: 'Failed to fetch technologies' });
+  }
+});
+
+// CREATE technology
+app.post('/api/hire-developer/technologies', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { category, subcategory, title, image, items } = req.body;
+
+    if (!category || !String(category).trim() || !title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Category and title are required' });
+    }
+    if (!image || !String(image).trim()) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const technology = await prisma.hireDeveloperTechnology.create({
+      data: {
+        category: String(category).trim(),
+        subcategory: subcategory?.trim() || null,
+        title: String(title).trim(),
+        image: String(image).trim(),
+        items: items ?? [],
+      },
+    });
+
+    res.status(201).json(technology);
+  } catch (err) {
+    console.error('POST /api/hire-developer/technologies error', err);
+    res.status(500).json({ error: 'Failed to create technology' });
+  }
+});
+
+// UPDATE technology
+app.put('/api/hire-developer/technologies/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const { category, subcategory, title, image, items } = req.body;
+
+    const updated = await prisma.hireDeveloperTechnology.update({
+      where: { id },
+      data: {
+        ...(category !== undefined && { category: String(category).trim() }),
+        subcategory: subcategory?.trim() || null,
+        ...(title !== undefined && { title: String(title).trim() }),
+        ...(image !== undefined && { image: String(image).trim() }),
+        ...(items !== undefined && { items }),
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/technologies/:id error', err);
+    res.status(500).json({ error: 'Failed to update technology' });
+  }
+});
+
+// DELETE technology
+app.delete('/api/hire-developer/technologies/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperTechnology.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/technologies/:id error', err);
+    res.status(500).json({ error: 'Failed to delete technology' });
+  }
+});
+
+/* ============================================================
+ * 3. HireDeveloperBenefit
+ * ============================================================
+ */
+
+// GET benefits (optional category / subcategory)
+app.get('/api/hire-developer/benefits', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const benefits = await prisma.hireDeveloperBenefit.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(benefits);
+  } catch (err) {
+    console.error('GET /api/hire-developer/benefits error', err);
+    res.status(500).json({ error: 'Failed to fetch benefits' });
+  }
+});
+
+// CREATE benefit
+app.post('/api/hire-developer/benefits', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, category, subcategory, description, image } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    if (!image || !String(image).trim()) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const benefit = await prisma.hireDeveloperBenefit.create({
+      data: {
+        title: String(title).trim(),
+        category: category?.trim() || null,
+        subcategory: subcategory?.trim() || null,
+        description: description?.trim() || null,
+        image: String(image).trim(),
+      },
+    });
+
+    res.status(201).json(benefit);
+  } catch (err) {
+    console.error('POST /api/hire-developer/benefits error', err);
+    res.status(500).json({ error: 'Failed to create benefit' });
+  }
+});
+
+// UPDATE benefit
+app.put('/api/hire-developer/benefits/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const { title, category, subcategory, description, image } = req.body;
+
+    const updated = await prisma.hireDeveloperBenefit.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: String(title).trim() }),
+        category: category?.trim() || null,
+        subcategory: subcategory?.trim() || null,
+        description: description?.trim() || null,
+        ...(image !== undefined && { image: String(image).trim() }),
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/benefits/:id error', err);
+    res.status(500).json({ error: 'Failed to update benefit' });
+  }
+});
+
+// DELETE benefit
+app.delete('/api/hire-developer/benefits/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperBenefit.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/benefits/:id error', err);
+    res.status(500).json({ error: 'Failed to delete benefit' });
+  }
+});
+
+/* ============================================================
+ * 4. HireDeveloperPricing
+ * ============================================================
+ */
+
+// GET pricing (usually single or few entries)
+app.get('/api/hire-developer/pricing', async (_req, res) => {
+  try {
+    const pricing = await prisma.hireDeveloperPricing.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(pricing);
+  } catch (err) {
+    console.error('GET /api/hire-developer/pricing error', err);
+    res.status(500).json({ error: 'Failed to fetch pricing' });
+  }
+});
+
+// CREATE pricing
+app.post('/api/hire-developer/pricing', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      title,
+      subtitle,
+      description,
+      price,
+      services,
+      heroTitle,
+      heroDescription,
+      heroImage,
+    } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    if (!price || !String(price).trim()) {
+      return res.status(400).json({ error: 'Price is required' });
+    }
+
+    const pricing = await prisma.hireDeveloperPricing.create({
+      data: {
+        title: String(title).trim(),
+        subtitle: subtitle?.trim() || null,
+        description: description?.trim() || null,
+        price: String(price).trim(),
+        services: services ?? [],
+        heroTitle: heroTitle?.trim() || null,
+        heroDescription: heroDescription?.trim() || null,
+        heroImage: heroImage?.trim() || null,
+      },
+    });
+
+    res.status(201).json(pricing);
+  } catch (err) {
+    console.error('POST /api/hire-developer/pricing error', err);
+    res.status(500).json({ error: 'Failed to create pricing' });
+  }
+});
+
+// UPDATE pricing
+app.put('/api/hire-developer/pricing/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const {
+      title,
+      subtitle,
+      description,
+      price,
+      services,
+      heroTitle,
+      heroDescription,
+      heroImage,
+    } = req.body;
+
+    const updated = await prisma.hireDeveloperPricing.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: String(title).trim() }),
+        subtitle: subtitle?.trim() || null,
+        description: description?.trim() || null,
+        ...(price !== undefined && { price: String(price).trim() }),
+        ...(services !== undefined && { services }),
+        heroTitle: heroTitle?.trim() || null,
+        heroDescription: heroDescription?.trim() || null,
+        heroImage: heroImage?.trim() || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/pricing/:id error', err);
+    res.status(500).json({ error: 'Failed to update pricing' });
+  }
+});
+
+// DELETE pricing
+app.delete('/api/hire-developer/pricing/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperPricing.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/pricing/:id error', err);
+    res.status(500).json({ error: 'Failed to delete pricing' });
+  }
+});
+
+/* ============================================================
+ * 5. HireDeveloperHireService
+ * ============================================================
+ */
+
+// GET hire services (optional category / subcategory)
+app.get('/api/hire-developer/hire-services', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const services = await prisma.hireDeveloperHireService.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(services);
+  } catch (err) {
+    console.error('GET /api/hire-developer/hire-services error', err);
+    res.status(500).json({ error: 'Failed to fetch hire services' });
+  }
+});
+
+// CREATE hire service
+app.post('/api/hire-developer/hire-services', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      category,
+      subcategory,
+      title,
+      description,
+      image,
+      heroTitle,
+      heroDescription,
+      heroImage,
+    } = req.body;
+
+    if (!category || !String(category).trim() || !title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Category and title are required' });
+    }
+    if (!image || !String(image).trim()) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const service = await prisma.hireDeveloperHireService.create({
+      data: {
+        category: String(category).trim(),
+        subcategory: subcategory?.trim() || null,
+        title: String(title).trim(),
+        description: description?.trim() || null,
+        image: String(image).trim(),
+        heroTitle: heroTitle?.trim() || null,
+        heroDescription: heroDescription?.trim() || null,
+        heroImage: heroImage?.trim() || null,
+      },
+    });
+
+    res.status(201).json(service);
+  } catch (err) {
+    console.error('POST /api/hire-developer/hire-services error', err);
+    res.status(500).json({ error: 'Failed to create hire service' });
+  }
+});
+
+// UPDATE hire service
+app.put('/api/hire-developer/hire-services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const {
+      category,
+      subcategory,
+      title,
+      description,
+      image,
+      heroTitle,
+      heroDescription,
+      heroImage,
+    } = req.body;
+
+    const updated = await prisma.hireDeveloperHireService.update({
+      where: { id },
+      data: {
+        ...(category !== undefined && { category: String(category).trim() }),
+        subcategory: subcategory?.trim() || null,
+        ...(title !== undefined && { title: String(title).trim() }),
+        description: description?.trim() || null,
+        ...(image !== undefined && { image: String(image).trim() }),
+        heroTitle: heroTitle?.trim() || null,
+        heroDescription: heroDescription?.trim() || null,
+        heroImage: heroImage?.trim() || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/hire-services/:id error', err);
+    res.status(500).json({ error: 'Failed to update hire service' });
+  }
+});
+
+// DELETE hire service
+app.delete('/api/hire-developer/hire-services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperHireService.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/hire-services/:id error', err);
+    res.status(500).json({ error: 'Failed to delete hire service' });
+  }
+});
+
+/* ============================================================
+ * 6. HireDeveloperProcess
+ * ============================================================
+ */
+
+// GET processes (optional category / subcategory)
+app.get('/api/hire-developer/processes', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const processes = await prisma.hireDeveloperProcess.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(processes);
+  } catch (err) {
+    console.error('GET /api/hire-developer/processes error', err);
+    res.status(500).json({ error: 'Failed to fetch processes' });
+  }
+});
+
+// CREATE process
+app.post('/api/hire-developer/processes', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, category, subcategory, image } = req.body;
+
+    if (!title || !String(title).trim() || !category || !String(category).trim()) {
+      return res.status(400).json({ error: 'Title and category are required' });
+    }
+    if (!image || !String(image).trim()) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+    if (!subcategory || !String(subcategory).trim()) {
+      return res.status(400).json({ error: 'Subcategory is required' });
+    }
+
+    const process = await prisma.hireDeveloperProcess.create({
+      data: {
+        title: String(title).trim(),
+        description: description?.trim() || null,
+        category: String(category).trim(),
+        subcategory: String(subcategory).trim(),
+        image: String(image).trim(),
+      },
+    });
+
+    res.status(201).json(process);
+  } catch (err) {
+    console.error('POST /api/hire-developer/processes error', err);
+    res.status(500).json({ error: 'Failed to create process' });
+  }
+});
+
+// UPDATE process
+app.put('/api/hire-developer/processes/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const { title, description, category, subcategory, image } = req.body;
+
+    const updated = await prisma.hireDeveloperProcess.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: String(title).trim() }),
+        description: description?.trim() || null,
+        ...(category !== undefined && { category: String(category).trim() }),
+        ...(subcategory !== undefined && { subcategory: String(subcategory).trim() }),
+        ...(image !== undefined && { image: String(image).trim() }),
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/processes/:id error', err);
+    res.status(500).json({ error: 'Failed to update process' });
+  }
+});
+
+// DELETE process
+app.delete('/api/hire-developer/processes/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperProcess.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/processes/:id error', err);
+    res.status(500).json({ error: 'Failed to delete process' });
+  }
+});
+
+/* ============================================================
+ * 7. HireDeveloperWhyVedx
+ * ============================================================
+ */
+
+// GET why vedx items
+app.get('/api/hire-developer/why-vedx', async (_req, res) => {
+  try {
+    const items = await prisma.hireDeveloperWhyVedx.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(items);
+  } catch (err) {
+    console.error('GET /api/hire-developer/why-vedx error', err);
+    res.status(500).json({ error: 'Failed to fetch why VedX items' });
+  }
+});
+
+// CREATE why vedx
+app.post('/api/hire-developer/why-vedx', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      title,
+      description,
+      image,
+      heroTitle,
+      heroDescription,
+      heroImage,
+    } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    if (!image || !String(image).trim()) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const item = await prisma.hireDeveloperWhyVedx.create({
+      data: {
+        title: String(title).trim(),
+        description: description?.trim() || null,
+        image: String(image).trim(),
+        heroTitle: heroTitle?.trim() || null,
+        heroDescription: heroDescription?.trim() || null,
+        heroImage: heroImage?.trim() || null,
+      },
+    });
+
+    res.status(201).json(item);
+  } catch (err) {
+    console.error('POST /api/hire-developer/why-vedx error', err);
+    res.status(500).json({ error: 'Failed to create why VedX item' });
+  }
+});
+
+// UPDATE why vedx
+app.put('/api/hire-developer/why-vedx/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const {
+      title,
+      description,
+      image,
+      heroTitle,
+      heroDescription,
+      heroImage,
+    } = req.body;
+
+    const updated = await prisma.hireDeveloperWhyVedx.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: String(title).trim() }),
+        description: description?.trim() || null,
+        ...(image !== undefined && { image: String(image).trim() }),
+        heroTitle: heroTitle?.trim() || null,
+        heroDescription: heroDescription?.trim() || null,
+        heroImage: heroImage?.trim() || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/why-vedx/:id error', err);
+    res.status(500).json({ error: 'Failed to update why VedX item' });
+  }
+});
+
+// DELETE why vedx
+app.delete('/api/hire-developer/why-vedx/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperWhyVedx.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/why-vedx/:id error', err);
+    res.status(500).json({ error: 'Failed to delete why VedX item' });
+  }
+});
+
+/* ============================================================
+ * 8. HireDeveloperWhyChoose
+ * ============================================================
+ */
+
+// GET why choose items (optional category / subcategory)
+app.get('/api/hire-developer/why-choose', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const items = await prisma.hireDeveloperWhyChoose.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(items);
+  } catch (err) {
+    console.error('GET /api/hire-developer/why-choose error', err);
+    res.status(500).json({ error: 'Failed to fetch why choose items' });
+  }
+});
+
+// CREATE why choose
+app.post('/api/hire-developer/why-choose', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      category,
+      subcategory,
+      title,
+      description,
+      heroTitle,
+      heroDescription,
+      heroImage,
+      tableTitle,
+      tableDescription,
+    } = req.body;
+
+    if (!category || !String(category).trim() || !title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Category and title are required' });
+    }
+
+    const item = await prisma.hireDeveloperWhyChoose.create({
+      data: {
+        category: String(category).trim(),
+        subcategory: subcategory?.trim() || null,
+        title: String(title).trim(),
+        description: description?.trim() || null,
+        heroTitle: heroTitle?.trim() || null,
+        heroDescription: heroDescription?.trim() || null,
+        heroImage: heroImage?.trim() || null,
+        tableTitle: tableTitle?.trim() || null,
+        tableDescription: tableDescription?.trim() || null,
+      },
+    });
+
+    res.status(201).json(item);
+  } catch (err) {
+    console.error('POST /api/hire-developer/why-choose error', err);
+    res.status(500).json({ error: 'Failed to create why choose item' });
+  }
+});
+
+// UPDATE why choose
+app.put('/api/hire-developer/why-choose/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const {
+      category,
+      subcategory,
+      title,
+      description,
+      heroTitle,
+      heroDescription,
+      heroImage,
+      tableTitle,
+      tableDescription,
+    } = req.body;
+
+    const updated = await prisma.hireDeveloperWhyChoose.update({
+      where: { id },
+      data: {
+        ...(category !== undefined && { category: String(category).trim() }),
+        subcategory: subcategory?.trim() || null,
+        ...(title !== undefined && { title: String(title).trim() }),
+        description: description?.trim() || null,
+        heroTitle: heroTitle?.trim() || null,
+        heroDescription: heroDescription?.trim() || null,
+        heroImage: heroImage?.trim() || null,
+        tableTitle: tableTitle?.trim() || null,
+        tableDescription: tableDescription?.trim() || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/why-choose/:id error', err);
+    res.status(500).json({ error: 'Failed to update why choose item' });
+  }
+});
+
+// DELETE why choose
+app.delete('/api/hire-developer/why-choose/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperWhyChoose.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/why-choose/:id error', err);
+    res.status(500).json({ error: 'Failed to delete why choose item' });
+  }
+});
+
+/* ============================================================
+ * 9. HireDeveloperIndustry
+ * ============================================================
+ */
+
+// GET industries
+app.get('/api/hire-developer/industries', async (_req, res) => {
+  try {
+    const industries = await prisma.hireDeveloperIndustry.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(industries);
+  } catch (err) {
+    console.error('GET /api/hire-developer/industries error', err);
+    res.status(500).json({ error: 'Failed to fetch industries' });
+  }
+});
+
+// CREATE industry
+app.post('/api/hire-developer/industries', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      title,
+      description,
+      image,
+      sectionTitle,
+      sectionDescription,
+    } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    if (!image || !String(image).trim()) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const industry = await prisma.hireDeveloperIndustry.create({
+      data: {
+        title: String(title).trim(),
+        description: description?.trim() || null,
+        image: String(image).trim(),
+        sectionTitle: sectionTitle?.trim() || null,
+        sectionDescription: sectionDescription?.trim() || null,
+      },
+    });
+
+    res.status(201).json(industry);
+  } catch (err) {
+    console.error('POST /api/hire-developer/industries error', err);
+    res.status(500).json({ error: 'Failed to create industry' });
+  }
+});
+
+// UPDATE industry
+app.put('/api/hire-developer/industries/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const {
+      title,
+      description,
+      image,
+      sectionTitle,
+      sectionDescription,
+    } = req.body;
+
+    const updated = await prisma.hireDeveloperIndustry.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: String(title).trim() }),
+        description: description?.trim() || null,
+        ...(image !== undefined && { image: String(image).trim() }),
+        sectionTitle: sectionTitle?.trim() || null,
+        sectionDescription: sectionDescription?.trim() || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/industries/:id error', err);
+    res.status(500).json({ error: 'Failed to update industry' });
+  }
+});
+
+// DELETE industry
+app.delete('/api/hire-developer/industries/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperIndustry.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/industries/:id error', err);
+    res.status(500).json({ error: 'Failed to delete industry' });
+  }
+});
+
+/* ============================================================
+ * 10. HireDeveloperTechSolution
+ * ============================================================
+ */
+
+// GET tech solutions
+app.get('/api/hire-developer/tech-solutions', async (_req, res) => {
+  try {
+    const solutions = await prisma.hireDeveloperTechSolution.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(solutions);
+  } catch (err) {
+    console.error('GET /api/hire-developer/tech-solutions error', err);
+    res.status(500).json({ error: 'Failed to fetch tech solutions' });
+  }
+});
+
+// CREATE tech solution
+app.post('/api/hire-developer/tech-solutions', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, sectionTitle, sectionDescription } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+
+    const solution = await prisma.hireDeveloperTechSolution.create({
+      data: {
+        title: String(title).trim(),
+        description: description?.trim() || null,
+        sectionTitle: sectionTitle?.trim() || null,
+        sectionDescription: sectionDescription?.trim() || null,
+      },
+    });
+
+    res.status(201).json(solution);
+  } catch (err) {
+    console.error('POST /api/hire-developer/tech-solutions error', err);
+    res.status(500).json({ error: 'Failed to create tech solution' });
+  }
+});
+
+// UPDATE tech solution
+app.put('/api/hire-developer/tech-solutions/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const { title, description, sectionTitle, sectionDescription } = req.body;
+
+    const updated = await prisma.hireDeveloperTechSolution.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: String(title).trim() }),
+        description: description?.trim() || null,
+        sectionTitle: sectionTitle?.trim() || null,
+        sectionDescription: sectionDescription?.trim() || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/tech-solutions/:id error', err);
+    res.status(500).json({ error: 'Failed to update tech solution' });
+  }
+});
+
+// DELETE tech solution
+app.delete('/api/hire-developer/tech-solutions/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperTechSolution.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/tech-solutions/:id error', err);
+    res.status(500).json({ error: 'Failed to delete tech solution' });
+  }
+});
+
+/* ============================================================
+ * 11. HireDeveloperExpertise
+ * ============================================================
+ */
+
+// GET expertise items
+app.get('/api/hire-developer/expertise', async (_req, res) => {
+  try {
+    const expertise = await prisma.hireDeveloperExpertise.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(expertise);
+  } catch (err) {
+    console.error('GET /api/hire-developer/expertise error', err);
+    res.status(500).json({ error: 'Failed to fetch expertise items' });
+  }
+});
+
+// CREATE expertise
+app.post('/api/hire-developer/expertise', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      title,
+      description,
+      image,
+      sectionTitle,
+      sectionDescription,
+    } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    if (!image || !String(image).trim()) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const expertise = await prisma.hireDeveloperExpertise.create({
+      data: {
+        title: String(title).trim(),
+        description: description?.trim() || null,
+        image: String(image).trim(),
+        sectionTitle: sectionTitle?.trim() || null,
+        sectionDescription: sectionDescription?.trim() || null,
+      },
+    });
+
+    res.status(201).json(expertise);
+  } catch (err) {
+    console.error('POST /api/hire-developer/expertise error', err);
+    res.status(500).json({ error: 'Failed to create expertise item' });
+  }
+});
+
+// UPDATE expertise
+app.put('/api/hire-developer/expertise/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const {
+      title,
+      description,
+      image,
+      sectionTitle,
+      sectionDescription,
+    } = req.body;
+
+    const updated = await prisma.hireDeveloperExpertise.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: String(title).trim() }),
+        description: description?.trim() || null,
+        ...(image !== undefined && { image: String(image).trim() }),
+        sectionTitle: sectionTitle?.trim() || null,
+        sectionDescription: sectionDescription?.trim() || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/expertise/:id error', err);
+    res.status(500).json({ error: 'Failed to update expertise item' });
+  }
+});
+
+// DELETE expertise
+app.delete('/api/hire-developer/expertise/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperExpertise.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/expertise/:id error', err);
+    res.status(500).json({ error: 'Failed to delete expertise item' });
+  }
+});
+
+/* ============================================================
+ * 12. HireDeveloperOurService (Slider)
+ * ============================================================
+ */
+
+// GET our services (slider)
+app.get('/api/hire-developer/our-services', async (_req, res) => {
+  try {
+    const services = await prisma.hireDeveloperOurService.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(services);
+  } catch (err) {
+    console.error('GET /api/hire-developer/our-services error', err);
+    res.status(500).json({ error: 'Failed to fetch our services' });
+  }
+});
+
+// CREATE our service
+app.post('/api/hire-developer/our-services', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      title,
+      image,
+      sliderTitle,
+      sliderDescription,
+      sliderImage,
+    } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    if (!image || !String(image).trim()) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const service = await prisma.hireDeveloperOurService.create({
+      data: {
+        title: String(title).trim(),
+        image: String(image).trim(),
+        sliderTitle: sliderTitle?.trim() || null,
+        sliderDescription: sliderDescription?.trim() || null,
+        sliderImage: sliderImage?.trim() || null,
+      },
+    });
+
+    res.status(201).json(service);
+  } catch (err) {
+    console.error('POST /api/hire-developer/our-services error', err);
+    res.status(500).json({ error: 'Failed to create our service' });
+  }
+});
+
+// UPDATE our service
+app.put('/api/hire-developer/our-services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    const {
+      title,
+      image,
+      sliderTitle,
+      sliderDescription,
+      sliderImage,
+    } = req.body;
+
+    const updated = await prisma.hireDeveloperOurService.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title: String(title).trim() }),
+        ...(image !== undefined && { image: String(image).trim() }),
+        sliderTitle: sliderTitle?.trim() || null,
+        sliderDescription: sliderDescription?.trim() || null,
+        sliderImage: sliderImage?.trim() || null,
+      },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/hire-developer/our-services/:id error', err);
+    res.status(500).json({ error: 'Failed to update our service' });
+  }
+});
+
+// DELETE our service
+app.delete('/api/hire-developer/our-services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = requireIdParam(req, res);
+    if (!id) return;
+
+    await prisma.hireDeveloperOurService.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/our-services/:id error', err);
+    res.status(500).json({ error: 'Failed to delete our service' });
+  }
+});
+
+
 /* -----------------------------------
  * ROOT + GRACEFUL SHUTDOWN
  * ----------------------------------- */
