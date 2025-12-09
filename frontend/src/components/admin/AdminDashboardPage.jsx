@@ -166,7 +166,7 @@ const AdminDashboardPage = () => {
   const [services, setServices] = useState([]);
   const [ourServiceForm, setOurServiceForm] = useState({
     title: "",
-    sliderId: "",
+    sliderId: null,
   });
   const [ourServiceDialogOpen, setOurServiceDialogOpen] = useState(false);
   const [ourServiceDeleteDialogOpen, setOurServiceDeleteDialogOpen] = useState(false);
@@ -306,6 +306,7 @@ const AdminDashboardPage = () => {
         fetch(apiUrl("/api/our-services/sliders")),
         fetch(apiUrl("/api/our-services/services")),
       ]);
+
       if (!slidersRes.ok) throw new Error("Failed to fetch sliders");
       if (!servicesRes.ok) throw new Error("Failed to fetch services");
 
@@ -315,7 +316,8 @@ const AdminDashboardPage = () => {
       setOurServicesSliders(slidersData);
       setServices(servicesData);
 
-      if (slidersData.length && ourServiceForm.sliderId === "") {
+      // ✅ FIXED: Check for null instead of ""
+      if (ourServiceForm.sliderId === null && slidersData.length) {
         setOurServiceForm((prev) => ({ ...prev, sliderId: slidersData[0].id }));
       }
     } catch (err) {
@@ -765,12 +767,11 @@ const AdminDashboardPage = () => {
    * Our services – SERVICE handlers
    * ----------------------------------- */
   const openOurServiceCreateDialog = () => {
-    const defaultSliderId = editingSliderId ?? ourServicesSliders[0]?.id ?? "";
+    const defaultSliderId = editingSliderId ?? ourServicesSliders[0]?.id ?? null; // ✅ Changed "" to null
     setOurServiceForm({ title: "", sliderId: defaultSliderId });
     setEditingOurServiceId(null);
     setOurServiceDialogOpen(true);
   };
-
   const openOurServiceEditDialog = (item) => {
     setOurServiceForm({
       title: item.title || "",
@@ -783,17 +784,22 @@ const AdminDashboardPage = () => {
   const closeOurServiceDialog = () => {
     setOurServiceDialogOpen(false);
     setEditingOurServiceId(null);
-    const defaultSliderId = editingSliderId ?? ourServicesSliders[0]?.id ?? "";
+    const defaultSliderId = editingSliderId ?? ourServicesSliders[0]?.id ?? null; // ✅ Changed "" to null
     setOurServiceForm({ title: "", sliderId: defaultSliderId });
   };
-
   const handleSaveOurService = async () => {
-    if (!ourServiceForm.title.trim() || !ourServiceForm.sliderId) return;
+    // ✅ ADDED: Better validation with logging
+    if (!ourServiceForm.title.trim() || !ourServiceForm.sliderId) {
+      console.error("Validation failed:", ourServiceForm);
+      return;
+    }
 
     const payload = {
       title: ourServiceForm.title.trim(),
       sliderId: Number(ourServiceForm.sliderId),
     };
+
+    console.log("Sending payload:", payload); // ✅ ADDED: Debug log
 
     try {
       if (editingOurServiceId != null) {
@@ -2698,9 +2704,11 @@ const AdminDashboardPage = () => {
                 margin="normal"
                 value={ourServiceForm.sliderId ?? ""}
                 onChange={(event) => {
-                  console.log("Raw event.target.value =", event.target.value);
+                  const rawValue = event.target.value;
+                  console.log("Raw event.target.value =", rawValue);
 
-                  const parsed = event.target.value === "" ? null : Number(event.target.value);
+                  // ✅ FIXED: Properly handle empty string conversion
+                  const parsed = rawValue === "" ? null : Number(rawValue);
                   console.log("Parsed sliderId (Number) =", parsed);
 
                   setOurServiceForm((prev) => {
@@ -2709,14 +2717,13 @@ const AdminDashboardPage = () => {
                     return updated;
                   });
                 }}
+                helperText={
+                  !ourServicesSliders.length
+                    ? "No sliders available. Please create a slider first."
+                    : "Select which slider this service belongs to"
+                }
               >
-                {ourServicesSliders.map((s) => (
-                  <MenuItem key={s.id} value={s.id}>
-                    {s.sliderTitle}
-                  </MenuItem>
-                ))}
               </TextField>
-
               <Button
                 variant="outlined"
                 onClick={() => setSliderPickerOpen(true)}
@@ -2788,7 +2795,7 @@ const AdminDashboardPage = () => {
           <Button
             onClick={handleSaveOurService}
             variant="contained"
-            disabled={!ourServiceForm.sliderId}
+            disabled={!ourServiceForm.title.trim() || !ourServiceForm.sliderId} // ✅ Check both conditions
           >
             {editingOurServiceId ? "Update service" : "Add service"}
           </Button>
