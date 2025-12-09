@@ -2666,8 +2666,8 @@ const mapBannerToResponse = (banner) => {
 
   const images = isHome && Array.isArray(banner.images)
     ? [...banner.images]
-        .sort((a, b) => a.sortOrder - b.sortOrder)
-        .map((img) => img.imageUrl)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((img) => img.imageUrl)
     : [];
 
   return {
@@ -2834,11 +2834,11 @@ app.post('/api/banners', async (req, res) => {
         images:
           isHome && imageList.length
             ? {
-                create: imageList.map((url, index) => ({
-                  imageUrl: url,
-                  sortOrder: index,
-                })),
-              }
+              create: imageList.map((url, index) => ({
+                imageUrl: url,
+                sortOrder: index,
+              })),
+            }
             : undefined,
       },
       include: { images: true },
@@ -2882,8 +2882,8 @@ app.put('/api/banners/:id', async (req, res) => {
         imageUrl: isHome
           ? null
           : typeof image === 'string'
-          ? image
-          : existing.imageUrl,
+            ? image
+            : existing.imageUrl,
       },
     });
 
@@ -3582,6 +3582,1196 @@ app.delete('/api/expertise/:id', async (req, res) => {
   }
 });
 
+
+// Add these endpoints to your existing server.js file after the Expertise routes
+
+/* ===============================================
+ * SERVICE MENU APIs
+ * =============================================== */
+
+// Helper functions
+const mapServiceMenuToResponse = (menu) => ({
+  id: menu.id,
+  category: menu.category,
+  bannerTitle: menu.bannerTitle,
+  bannerSubtitle: menu.bannerSubtitle,
+  bannerImage: menu.bannerImage,
+  totalServices: menu.totalServices,
+  totalProjects: menu.totalProjects,
+  totalClients: menu.totalClients,
+  description: menu.description || '',
+  subcategories: menu.subcategories?.map(s => ({
+    id: s.id,
+    name: s.name,
+  })) || [],
+  faqs: menu.faqs?.map(f => ({
+    id: f.id,
+    question: f.question,
+    answer: f.answer,
+  })) || [],
+  createdAt: menu.createdAt,
+  updatedAt: menu.updatedAt,
+});
+
+// GET all service menus
+app.get('/api/service-menus', async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    const menus = await prisma.serviceMenu.findMany({
+      where: category ? { category } : {},
+      include: {
+        subcategories: true,
+        faqs: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(menus.map(mapServiceMenuToResponse));
+  } catch (err) {
+    console.error('GET /api/service-menus error', err);
+    res.status(500).json({ error: 'Failed to fetch service menus' });
+  }
+});
+
+// GET single service menu
+app.get('/api/service-menus/:id', async (req, res) => {
+  try {
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid service menu id required' });
+    }
+
+    const menu = await prisma.serviceMenu.findUnique({
+      where: { id },
+      include: {
+        subcategories: true,
+        faqs: true,
+      },
+    });
+
+    if (!menu) {
+      return res.status(404).json({ error: 'Service menu not found' });
+    }
+
+    res.json(mapServiceMenuToResponse(menu));
+  } catch (err) {
+    console.error('GET /api/service-menus/:id error', err);
+    res.status(500).json({ error: 'Failed to fetch service menu' });
+  }
+});
+
+// CREATE service menu
+app.post('/api/service-menus', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      category,
+      bannerTitle,
+      bannerSubtitle,
+      bannerImage,
+      totalServices,
+      totalProjects,
+      totalClients,
+      description,
+      subcategories,
+      faqs,
+    } = req.body ?? {};
+
+    if (!category || !bannerTitle || !bannerSubtitle || !bannerImage) {
+      return res.status(400).json({
+        error: 'category, bannerTitle, bannerSubtitle, and bannerImage are required'
+      });
+    }
+
+    const created = await prisma.serviceMenu.create({
+      data: {
+        category,
+        bannerTitle,
+        bannerSubtitle,
+        bannerImage,
+        totalServices: totalServices || 0,
+        totalProjects: totalProjects || 0,
+        totalClients: totalClients || 0,
+        description: description || null,
+        subcategories: subcategories?.length ? {
+          create: subcategories.map(s => ({ name: s.name })),
+        } : undefined,
+        faqs: faqs?.length ? {
+          create: faqs.map(f => ({
+            question: f.question,
+            answer: f.answer
+          })),
+        } : undefined,
+      },
+      include: {
+        subcategories: true,
+        faqs: true,
+      },
+    });
+
+    res.status(201).json(mapServiceMenuToResponse(created));
+  } catch (err) {
+    console.error('POST /api/service-menus error', err);
+    res.status(500).json({ error: 'Failed to create service menu' });
+  }
+});
+
+// UPDATE service menu
+app.put('/api/service-menus/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid service menu id required' });
+    }
+
+    const {
+      category,
+      bannerTitle,
+      bannerSubtitle,
+      bannerImage,
+      totalServices,
+      totalProjects,
+      totalClients,
+      description,
+      subcategories,
+      faqs,
+    } = req.body ?? {};
+
+    // Update main menu
+    const updated = await prisma.serviceMenu.update({
+      where: { id },
+      data: {
+        category,
+        bannerTitle,
+        bannerSubtitle,
+        bannerImage,
+        totalServices,
+        totalProjects,
+        totalClients,
+        description,
+      },
+    });
+
+    // Update subcategories if provided
+    if (Array.isArray(subcategories)) {
+      await prisma.serviceMenuSubcategory.deleteMany({ where: { serviceId: id } });
+      if (subcategories.length) {
+        await prisma.serviceMenuSubcategory.createMany({
+          data: subcategories.map(s => ({
+            name: s.name,
+            serviceId: id
+          })),
+        });
+      }
+    }
+
+    // Update FAQs if provided
+    if (Array.isArray(faqs)) {
+      await prisma.serviceMenuFaq.deleteMany({ where: { serviceId: id } });
+      if (faqs.length) {
+        await prisma.serviceMenuFaq.createMany({
+          data: faqs.map(f => ({
+            question: f.question,
+            answer: f.answer,
+            serviceId: id
+          })),
+        });
+      }
+    }
+
+    const final = await prisma.serviceMenu.findUnique({
+      where: { id },
+      include: {
+        subcategories: true,
+        faqs: true,
+      },
+    });
+
+    res.json(mapServiceMenuToResponse(final));
+  } catch (err) {
+    console.error('PUT /api/service-menus/:id error', err);
+    res.status(500).json({ error: 'Failed to update service menu' });
+  }
+});
+
+// DELETE service menu
+app.delete('/api/service-menus/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid service menu id required' });
+    }
+
+    await prisma.$transaction([
+      prisma.serviceMenuSubcategory.deleteMany({ where: { serviceId: id } }),
+      prisma.serviceMenuFaq.deleteMany({ where: { serviceId: id } }),
+      prisma.serviceProcess.updateMany({
+        where: { serviceId: id },
+        data: { serviceId: null }
+      }),
+      prisma.serviceMenu.delete({ where: { id } }),
+    ]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/service-menus/:id error', err);
+    res.status(500).json({ error: 'Failed to delete service menu' });
+  }
+});
+
+/* ===============================================
+ * TECHNOLOGY APIs
+ * =============================================== */
+
+const mapTechnologyToResponse = (tech) => ({
+  id: tech.id,
+  category: tech.category,
+  subcategory: tech.subcategory || '',
+  title: tech.title,
+  image: tech.image,
+  items: tech.items || [],
+  createdAt: tech.createdAt,
+  updatedAt: tech.updatedAt,
+});
+
+// GET all technologies
+app.get('/api/technologies', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const technologies = await prisma.technology.findMany({
+      where: {
+        ...(category && { category }),
+        ...(subcategory && { subcategory }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(technologies.map(mapTechnologyToResponse));
+  } catch (err) {
+    console.error('GET /api/technologies error', err);
+    res.status(500).json({ error: 'Failed to fetch technologies' });
+  }
+});
+
+// CREATE technology
+app.post('/api/technologies', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { category, subcategory, title, image, items } = req.body ?? {};
+
+    if (!category || !title || !image) {
+      return res.status(400).json({
+        error: 'category, title, and image are required'
+      });
+    }
+
+    const created = await prisma.technology.create({
+      data: {
+        category,
+        subcategory: subcategory || null,
+        title,
+        image,
+        items: Array.isArray(items) ? items : [],
+      },
+    });
+
+    res.status(201).json(mapTechnologyToResponse(created));
+  } catch (err) {
+    console.error('POST /api/technologies error', err);
+    res.status(500).json({ error: 'Failed to create technology' });
+  }
+});
+
+// UPDATE technology
+app.put('/api/technologies/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid technology id required' });
+    }
+
+    const { category, subcategory, title, image, items } = req.body ?? {};
+
+    const updated = await prisma.technology.update({
+      where: { id },
+      data: {
+        category,
+        subcategory,
+        title,
+        image,
+        items: Array.isArray(items) ? items : undefined,
+      },
+    });
+
+    res.json(mapTechnologyToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/technologies/:id error', err);
+    res.status(500).json({ error: 'Failed to update technology' });
+  }
+});
+
+// DELETE technology
+app.delete('/api/technologies/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid technology id required' });
+    }
+
+    await prisma.technology.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/technologies/:id error', err);
+    res.status(500).json({ error: 'Failed to delete technology' });
+  }
+});
+
+/* ===============================================
+ * BENEFITS APIs
+ * =============================================== */
+
+const mapBenefitToResponse = (benefit) => ({
+  id: benefit.id,
+  title: benefit.title,
+  category: benefit.category || '',
+  subcategory: benefit.subcategory || '',
+  description: benefit.description,
+  image: benefit.image,
+  createdAt: benefit.createdAt,
+  updatedAt: benefit.updatedAt,
+});
+
+// GET all benefits
+app.get('/api/benefits', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const benefits = await prisma.benefit.findMany({
+      where: {
+        ...(category && { category }),
+        ...(subcategory && { subcategory }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(benefits.map(mapBenefitToResponse));
+  } catch (err) {
+    console.error('GET /api/benefits error', err);
+    res.status(500).json({ error: 'Failed to fetch benefits' });
+  }
+});
+
+// CREATE benefit
+app.post('/api/benefits', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, category, subcategory, description, image } = req.body ?? {};
+
+    if (!title || !description || !image) {
+      return res.status(400).json({
+        error: 'title, description, and image are required'
+      });
+    }
+
+    const created = await prisma.benefit.create({
+      data: {
+        title,
+        category: category || null,
+        subcategory: subcategory || null,
+        description,
+        image,
+      },
+    });
+
+    res.status(201).json(mapBenefitToResponse(created));
+  } catch (err) {
+    console.error('POST /api/benefits error', err);
+    res.status(500).json({ error: 'Failed to create benefit' });
+  }
+});
+
+// UPDATE benefit
+app.put('/api/benefits/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid benefit id required' });
+    }
+
+    const { title, category, subcategory, description, image } = req.body ?? {};
+
+    const updated = await prisma.benefit.update({
+      where: { id },
+      data: {
+        title,
+        category,
+        subcategory,
+        description,
+        image,
+      },
+    });
+
+    res.json(mapBenefitToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/benefits/:id error', err);
+    res.status(500).json({ error: 'Failed to update benefit' });
+  }
+});
+
+// DELETE benefit
+app.delete('/api/benefits/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid benefit id required' });
+    }
+
+    await prisma.benefit.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/benefits/:id error', err);
+    res.status(500).json({ error: 'Failed to delete benefit' });
+  }
+});
+
+/* ===============================================
+ * SERVICE PROCESS APIs
+ * =============================================== */
+
+const mapServiceProcessToResponse = (process) => ({
+  id: process.id,
+  title: process.title,
+  description: process.description,
+  category: process.category,
+  subcategory: process.subcategory || '',
+  image: process.image,
+  serviceId: process.serviceId || null,
+  createdAt: process.createdAt,
+  updatedAt: process.updatedAt,
+});
+
+// GET all service processes
+app.get('/api/service-processes', async (req, res) => {
+  try {
+    const { category, subcategory, serviceId } = req.query;
+
+    const processes = await prisma.serviceProcess.findMany({
+      where: {
+        ...(category && { category }),
+        ...(subcategory && { subcategory }),
+        ...(serviceId && { serviceId }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(processes.map(mapServiceProcessToResponse));
+  } catch (err) {
+    console.error('GET /api/service-processes error', err);
+    res.status(500).json({ error: 'Failed to fetch service processes' });
+  }
+});
+
+// CREATE service process
+app.post('/api/service-processes', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, category, subcategory, image, serviceId } = req.body ?? {};
+
+    if (!title || !description || !category || !image) {
+      return res.status(400).json({
+        error: 'title, description, category, and image are required'
+      });
+    }
+
+    if (serviceId) {
+      const serviceExists = await prisma.serviceMenu.findUnique({
+        where: { id: serviceId }
+      });
+      if (!serviceExists) {
+        return res.status(404).json({ error: 'Related service not found' });
+      }
+    }
+
+    const created = await prisma.serviceProcess.create({
+      data: {
+        title,
+        description,
+        category,
+        subcategory: subcategory || null,
+        image,
+        serviceId: serviceId || null,
+      },
+    });
+
+    res.status(201).json(mapServiceProcessToResponse(created));
+  } catch (err) {
+    console.error('POST /api/service-processes error', err);
+    res.status(500).json({ error: 'Failed to create service process' });
+  }
+});
+
+// UPDATE service process
+app.put('/api/service-processes/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid service process id required' });
+    }
+
+    const { title, description, category, subcategory, image, serviceId } = req.body ?? {};
+
+    if (serviceId) {
+      const serviceExists = await prisma.serviceMenu.findUnique({
+        where: { id: serviceId }
+      });
+      if (!serviceExists) {
+        return res.status(404).json({ error: 'Related service not found' });
+      }
+    }
+
+    const updated = await prisma.serviceProcess.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        category,
+        subcategory,
+        image,
+        serviceId: serviceId === null ? null : serviceId,
+      },
+    });
+
+    res.json(mapServiceProcessToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/service-processes/:id error', err);
+    res.status(500).json({ error: 'Failed to update service process' });
+  }
+});
+
+// DELETE service process
+app.delete('/api/service-processes/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid service process id required' });
+    }
+
+    await prisma.serviceProcess.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/service-processes/:id error', err);
+    res.status(500).json({ error: 'Failed to delete service process' });
+  }
+});
+
+/* ===============================================
+ * HIRE DEVELOPER APIs
+ * =============================================== */
+
+const mapHireDeveloperToResponse = (hireDev) => ({
+  id: hireDev.id,
+  title: hireDev.title,
+  description: hireDev.description,
+  heroImage: hireDev.heroImage,
+  services: hireDev.services?.map(s => ({
+    id: s.id,
+    category: s.category,
+    subcategory: s.subcategory || '',
+    title: s.title,
+    description: s.description,
+    image: s.image,
+  })) || [],
+  createdAt: hireDev.createdAt,
+  updatedAt: hireDev.updatedAt,
+});
+
+// GET hire developer config
+app.get('/api/hire-developer', async (req, res) => {
+  try {
+    const hireDev = await prisma.hireDeveloper.findFirst({
+      include: { services: true },
+    });
+
+    if (!hireDev) {
+      return res.status(404).json({ error: 'Hire developer config not found' });
+    }
+
+    res.json(mapHireDeveloperToResponse(hireDev));
+  } catch (err) {
+    console.error('GET /api/hire-developer error', err);
+    res.status(500).json({ error: 'Failed to fetch hire developer config' });
+  }
+});
+
+// CREATE or UPDATE hire developer config
+app.post('/api/hire-developer', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, heroImage } = req.body ?? {};
+
+    if (!title || !description || !heroImage) {
+      return res.status(400).json({
+        error: 'title, description, and heroImage are required'
+      });
+    }
+
+    const existing = await prisma.hireDeveloper.findFirst();
+
+    let result;
+    if (existing) {
+      result = await prisma.hireDeveloper.update({
+        where: { id: existing.id },
+        data: { title, description, heroImage },
+        include: { services: true },
+      });
+    } else {
+      result = await prisma.hireDeveloper.create({
+        data: { title, description, heroImage },
+        include: { services: true },
+      });
+    }
+
+    res.json(mapHireDeveloperToResponse(result));
+  } catch (err) {
+    console.error('POST /api/hire-developer error', err);
+    res.status(500).json({ error: 'Failed to save hire developer config' });
+  }
+});
+
+/* ===============================================
+ * HIRE SERVICE APIs
+ * =============================================== */
+
+const mapHireServiceToResponse = (service) => ({
+  id: service.id,
+  category: service.category,
+  subcategory: service.subcategory || '',
+  title: service.title,
+  description: service.description,
+  image: service.image,
+  hireDeveloperId: service.hireDeveloperId,
+  createdAt: service.createdAt,
+  updatedAt: service.updatedAt,
+});
+
+// GET all hire services
+app.get('/api/hire-services', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const services = await prisma.hireService.findMany({
+      where: {
+        ...(category && { category }),
+        ...(subcategory && { subcategory }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(services.map(mapHireServiceToResponse));
+  } catch (err) {
+    console.error('GET /api/hire-services error', err);
+    res.status(500).json({ error: 'Failed to fetch hire services' });
+  }
+});
+
+// CREATE hire service
+app.post('/api/hire-services', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { category, subcategory, title, description, image, hireDeveloperId } = req.body ?? {};
+
+    if (!category || !title || !description || !image) {
+      return res.status(400).json({
+        error: 'category, title, description, and image are required'
+      });
+    }
+
+    const created = await prisma.hireService.create({
+      data: {
+        category,
+        subcategory: subcategory || null,
+        title,
+        description,
+        image,
+        hireDeveloperId: hireDeveloperId || null,
+      },
+    });
+
+    res.status(201).json(mapHireServiceToResponse(created));
+  } catch (err) {
+    console.error('POST /api/hire-services error', err);
+    res.status(500).json({ error: 'Failed to create hire service' });
+  }
+});
+
+// UPDATE hire service
+app.put('/api/hire-services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid hire service id required' });
+    }
+
+    const { category, subcategory, title, description, image, hireDeveloperId } = req.body ?? {};
+
+    const updated = await prisma.hireService.update({
+      where: { id },
+      data: {
+        category,
+        subcategory,
+        title,
+        description,
+        image,
+        hireDeveloperId: hireDeveloperId === null ? null : hireDeveloperId,
+      },
+    });
+
+    res.json(mapHireServiceToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/hire-services/:id error', err);
+    res.status(500).json({ error: 'Failed to update hire service' });
+  }
+});
+
+// DELETE hire service
+app.delete('/api/hire-services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid hire service id required' });
+    }
+
+    await prisma.hireService.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-services/:id error', err);
+    res.status(500).json({ error: 'Failed to delete hire service' });
+  }
+});
+
+/* ===============================================
+ * WHY CHOOSE APIs
+ * =============================================== */
+
+const mapWhyChooseToResponse = (whyChoose) => ({
+  id: whyChoose.id,
+  heroTitle: whyChoose.heroTitle,
+  heroDescription: whyChoose.heroDescription,
+  heroImage: whyChoose.heroImage,
+  tableTitle: whyChoose.tableTitle,
+  tableDescription: whyChoose.tableDescription,
+  services: whyChoose.services?.map(s => ({
+    id: s.id,
+    category: s.category,
+    subcategory: s.subcategory || '',
+    title: s.title,
+    description: s.description,
+  })) || [],
+  createdAt: whyChoose.createdAt,
+  updatedAt: whyChoose.updatedAt,
+});
+
+// GET why choose config
+app.get('/api/why-choose', async (req, res) => {
+  try {
+    const whyChoose = await prisma.whyChoose.findFirst({
+      include: { services: true },
+    });
+
+    if (!whyChoose) {
+      return res.status(404).json({ error: 'Why choose config not found' });
+    }
+
+    res.json(mapWhyChooseToResponse(whyChoose));
+  } catch (err) {
+    console.error('GET /api/why-choose error', err);
+    res.status(500).json({ error: 'Failed to fetch why choose config' });
+  }
+});
+
+// CREATE or UPDATE why choose config
+app.post('/api/why-choose', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const {
+      heroTitle,
+      heroDescription,
+      heroImage,
+      tableTitle,
+      tableDescription
+    } = req.body ?? {};
+
+    if (!heroTitle || !heroDescription || !heroImage || !tableTitle || !tableDescription) {
+      return res.status(400).json({
+        error: 'All hero and table fields are required'
+      });
+    }
+
+    const existing = await prisma.whyChoose.findFirst();
+
+    let result;
+    if (existing) {
+      result = await prisma.whyChoose.update({
+        where: { id: existing.id },
+        data: { heroTitle, heroDescription, heroImage, tableTitle, tableDescription },
+        include: { services: true },
+      });
+    } else {
+      result = await prisma.whyChoose.create({
+        data: { heroTitle, heroDescription, heroImage, tableTitle, tableDescription },
+        include: { services: true },
+      });
+    }
+
+    res.json(mapWhyChooseToResponse(result));
+  } catch (err) {
+    console.error('POST /api/why-choose error', err);
+    res.status(500).json({ error: 'Failed to save why choose config' });
+  }
+});
+
+/* ===============================================
+ * WHY SERVICE APIs
+ * =============================================== */
+
+const mapWhyServiceToResponse = (service) => ({
+  id: service.id,
+  category: service.category,
+  subcategory: service.subcategory || '',
+  title: service.title,
+  description: service.description,
+  whyChooseId: service.whyChooseId,
+  createdAt: service.createdAt,
+  updatedAt: service.updatedAt,
+});
+
+// GET all why services
+app.get('/api/why-services', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query;
+
+    const services = await prisma.whyService.findMany({
+      where: {
+        ...(category && { category }),
+        ...(subcategory && { subcategory }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(services.map(mapWhyServiceToResponse));
+  } catch (err) {
+    console.error('GET /api/why-services error', err);
+    res.status(500).json({ error: 'Failed to fetch why services' });
+  }
+});
+
+// CREATE why service
+app.post('/api/why-services', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
+
+    if (!category || !title || !description) {
+      return res.status(400).json({
+        error: 'category, title, and description are required'
+      });
+    }
+
+    const created = await prisma.whyService.create({
+      data: {
+        category,
+        subcategory: subcategory || null,
+        title,
+        description,
+        whyChooseId: whyChooseId || null,
+      },
+    });
+
+    res.status(201).json(mapWhyServiceToResponse(created));
+  } catch (err) {
+    console.error('POST /api/why-services error', err);
+    res.status(500).json({ error: 'Failed to create why service' });
+  }
+});
+
+// UPDATE why service
+app.put('/api/why-services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid why service id required' });
+    }
+
+    const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
+
+    const updated = await prisma.whyService.update({
+      where: { id },
+      data: {
+        category,
+        subcategory,
+        title,
+        description,
+        whyChooseId: whyChooseId === null ? null : whyChooseId,
+      },
+    });
+
+    res.json(mapWhyServiceToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/why-services/:id error', err);
+    res.status(500).json({ error: 'Failed to update why service' });
+  }
+});
+
+// DELETE why service
+app.delete('/api/why-services/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid why service id required' });
+    }
+
+    await prisma.whyService.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/why-services/:id error', err);
+    res.status(500).json({ error: 'Failed to delete why service' });
+  }
+});
+
+/* ===============================================
+ * WHY VEDX APIs
+ * =============================================== */
+
+const mapWhyVedxToResponse = (whyVedx) => ({
+  id: whyVedx.id,
+  heroTitle: whyVedx.heroTitle,
+  heroDescription: whyVedx.heroDescription,
+  heroImage: whyVedx.heroImage,
+  reasons: whyVedx.reasons?.map(r => ({
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    image: r.image,
+  })) || [],
+  createdAt: whyVedx.createdAt,
+  updatedAt: whyVedx.updatedAt,
+});
+
+// GET why vedx config
+app.get('/api/why-vedx', async (req, res) => {
+  try {
+    const whyVedx = await prisma.whyVedx.findFirst({
+      include: { reasons: true },
+    });
+
+    if (!whyVedx) {
+      return res.status(404).json({ error: 'Why VEDX config not found' });
+    }
+
+    res.json(mapWhyVedxToResponse(whyVedx));
+  } catch (err) {
+    console.error('GET /api/why-vedx error', err);
+    res.status(500).json({ error: 'Failed to fetch why VEDX config' });
+  }
+});
+
+// CREATE or UPDATE why vedx config
+app.post('/api/why-vedx', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { heroTitle, heroDescription, heroImage } = req.body ?? {};
+
+    if (!heroTitle || !heroDescription || !heroImage) {
+      return res.status(400).json({
+        error: 'heroTitle, heroDescription, and heroImage are required'
+      });
+    }
+
+    const existing = await prisma.whyVedx.findFirst();
+
+    let result;
+    if (existing) {
+      result = await prisma.whyVedx.update({
+        where: { id: existing.id },
+        data: { heroTitle, heroDescription, heroImage },
+        include: { reasons: true },
+      });
+    } else {
+      result = await prisma.whyVedx.create({
+        data: { heroTitle, heroDescription, heroImage },
+        include: { reasons: true },
+      });
+    }
+
+    res.json(mapWhyVedxToResponse(result));
+  } catch (err) {
+    console.error('POST /api/why-vedx error', err);
+    res.status(500).json({ error: 'Failed to save why VEDX config' });
+  }
+});
+
+/* ===============================================
+ * WHY VEDX REASON APIs
+ * =============================================== */
+
+const mapWhyVedxReasonToResponse = (reason) => ({
+  id: reason.id,
+  title: reason.title,
+  description: reason.description,
+  image: reason.image,
+  whyVedxId: reason.whyVedxId,
+  createdAt: reason.createdAt,
+  updatedAt: reason.updatedAt,
+});
+
+// GET all why vedx reasons
+app.get('/api/why-vedx-reasons', async (req, res) => {
+  try {
+    const reasons = await prisma.whyVedxReason.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(reasons.map(mapWhyVedxReasonToResponse));
+  } catch (err) {
+    console.error('GET /api/why-vedx-reasons error', err);
+    res.status(500).json({ error: 'Failed to fetch why VEDX reasons' });
+  }
+});
+
+// CREATE why vedx reason
+app.post('/api/why-vedx-reasons', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, image, whyVedxId } = req.body ?? {};
+
+    if (!title || !description || !image) {
+      return res.status(400).json({
+        error: 'title, description, and image are required'
+      });
+    }
+
+    const created = await prisma.whyVedxReason.create({
+      data: {
+        title,
+        description,
+        image,
+        whyVedxId: whyVedxId || null,
+      },
+    });
+
+    res.status(201).json(mapWhyVedxReasonToResponse(created));
+  } catch (err) {
+    console.error('POST /api/why-vedx-reasons error', err);
+    res.status(500).json({ error: 'Failed to create why VEDX reason' });
+  }
+});
+
+// UPDATE why vedx reason
+app.put('/api/why-vedx-reasons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid reason id required' });
+    }
+
+    const { title, description, image, whyVedxId } = req.body ?? {};
+
+    const updated = await prisma.whyVedxReason.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        image,
+        whyVedxId: whyVedxId === null ? null : whyVedxId,
+      },
+    });
+
+    res.json(mapWhyVedxReasonToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/why-vedx-reasons/:id error', err);
+    res.status(500).json({ error: 'Failed to update why VEDX reason' });
+  }
+});
+
+// DELETE why vedx reason
+app.delete('/api/why-vedx-reasons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = req.params.id?.trim();
+    if (!id) {
+      return res.status(400).json({ error: 'Valid reason id required' });
+    }
+
+    await prisma.whyVedxReason.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/why-vedx-reasons/:id error', err);
+    res.status(500).json({ error: 'Failed to delete why VEDX reason' });
+  }
+});
 /* -----------------------------------
  * ROOT + GRACEFUL SHUTDOWN
  * ----------------------------------- */

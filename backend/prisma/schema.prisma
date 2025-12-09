@@ -438,3 +438,384 @@ model OtpVerification {
 
   @@index([email])
 }
+
+model ServiceMenu {
+  id              String                    @id @map("_id") @default(auto()) @db.ObjectId
+  category        String
+  bannerTitle     String
+  bannerSubtitle  String
+  bannerImage     String
+  totalServices   Int                       @default(0)
+  totalProjects   Int                       @default(0)
+  totalClients    Int                       @default(0)
+  description     String?
+
+  subcategories   ServiceMenuSubcategory[]
+  faqs            ServiceMenuFaq[]
+
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  @@index([category])
+}
+
+model ServiceMenuSubcategory {
+  id          String        @id @map("_id") @default(auto()) @db.ObjectId
+  name        String
+  serviceId   String        @db.ObjectId
+  service     ServiceMenu   @relation(fields: [serviceId], references: [id])
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([serviceId])
+}
+
+model ServiceMenuFaq {
+  id          String        @id @map("_id") @default(auto()) @db.ObjectId
+  question    String
+  answer      String
+  serviceId   String        @db.ObjectId
+  service     ServiceMenu   @relation(fields: [serviceId], references: [id])
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([serviceId])
+}
+
+/// ===============================================
+/// TECHNOLOGIES WE SUPPORT
+/// ===============================================
+
+model Technology {
+  id            String    @id @map("_id") @default(auto()) @db.ObjectId
+  category      String
+  subcategory   String?
+  title         String
+  image         String
+  items         String[]  // Array of technology names
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([category, subcategory])
+}
+
+/// ===============================================
+/// BENEFITS
+/// ===============================================
+
+model Benefit {
+  id            String    @id @map("_id") @default(auto()) @db.ObjectId
+  title         String
+  category      String?
+  subcategory   String?
+  description   String
+  image         String
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([category, subcategory])
+}
+
+/// ===============================================
+/// PER-SERVICE PROCESS STEPS
+/// ===============================================
+
+model ServiceProcess {
+  id            String        @id @map("_id") @default(auto()) @db.ObjectId
+  title         String
+  description   String
+  category      String
+  subcategory   String?
+  image         String
+  serviceId     String?       @db.ObjectId
+  service       ServiceMenu?  @relation(fields: [serviceId], references: [id])
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([category, subcategory])
+  @@index([serviceId])
+}
+
+/// ===============================================
+/// HIRE DEVELOPERS (Landing section)
+/// ===============================================
+
+model HireDeveloper {
+  id              String        @id @map("_id") @default(auto()) @db.ObjectId
+  title           String
+  description     String
+  heroImage       String
+
+  services        HireService[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model HireService {
+  id                String         @id @map("_id") @default(auto()) @db.ObjectId
+  category          String
+  subcategory       String?
+  title             String
+  description       String
+  image             String
+  hireDeveloperId   String?        @db.ObjectId
+  hireDeveloper     HireDeveloper? @relation(fields: [hireDeveloperId], references: [id])
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([category, subcategory])
+  @@index([hireDeveloperId])
+}
+
+/// ===============================================
+/// WHY CHOOSE THIS SERVICE
+/// ===============================================
+
+model WhyChoose {
+  id                String       @id @map("_id") @default(auto()) @db.ObjectId
+  heroTitle         String
+  heroDescription   String
+  heroImage         String
+  tableTitle        String
+  tableDescription  String
+
+  services          WhyService[]
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model WhyService {
+  id            String      @id @map("_id") @default(auto()) @db.ObjectId
+  category      String
+  subcategory   String?
+  title         String
+  description   String
+  whyChooseId   String?     @db.ObjectId
+  whyChoose     WhyChoose?  @relation(fields: [whyChooseId], references: [id])
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([category, subcategory])
+  @@index([whyChooseId])
+}
+
+/// ===============================================
+/// WHY VEDX SOLUTIONS
+/// ===============================================
+
+model WhyVedx {
+  id              String        @id @map("_id") @default(auto()) @db.ObjectId
+  heroTitle       String
+  heroDescription String
+  heroImage       String
+
+  reasons         WhyVedxReason[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model WhyVedxReason {
+  id            String     @id @map("_id") @default(auto()) @db.ObjectId
+  title         String
+  description   String
+  image         String
+  whyVedxId     String?    @db.ObjectId
+  whyVedx       WhyVedx?   @relation(fields: [whyVedxId], references: [id])
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([whyVedxId])
+}
+
+model HireDeveloperService {
+  id              String   @id @default(cuid())
+  category        String
+  subcategories   Json     // Array of {name: string}
+  bannerTitle     String?
+  bannerSubtitle  String?
+  bannerImage     String?
+  totalServices   Int      @default(0)
+  totalProjects   Int      @default(0)
+  totalClients    Int      @default(0)
+  description     String?  @db.Text
+  faqs            Json?    // Array of {id: string, question: string, answer: string}
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("hire_developer_services")
+}
+
+// Technologies Table
+model HireDeveloperTechnology {
+  id           String   @id @default(cuid())
+  category     String
+  subcategory  String?
+  title        String
+  image        String
+  items        Json     // Array of strings (technology names)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("hire_developer_technologies")
+}
+
+// Benefits Table
+model HireDeveloperBenefit {
+  id          String   @id @default(cuid())
+  title       String
+  category    String?
+  subcategory String?
+  description String?  @db.Text
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("hire_developer_benefits")
+}
+
+// Hire Pricing Table
+model HireDeveloperPricing {
+  id             String   @id @default(cuid())
+  title          String
+  subtitle       String?
+  description    String?  @db.Text
+  price          String
+  services       Json?    // Array of strings (service inclusions)
+  heroTitle      String?
+  heroDescription String? @db.Text
+  heroImage      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("hire_developer_pricing")
+}
+
+// Hire Services (Development Services) Table
+model HireDeveloperHireService {
+  id          String   @id @default(cuid())
+  category    String
+  subcategory String?
+  title       String
+  description String?  @db.Text
+  image       String
+  heroTitle   String?
+  heroDescription String? @db.Text
+  heroImage   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("hire_developer_hire_services")
+}
+
+// Process Table
+model HireDeveloperProcess {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  category    String
+  subcategory String
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("hire_developer_process")
+}
+
+// Why VedX Table
+model HireDeveloperWhyVedx {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?  @db.Text
+  image           String
+  heroTitle       String?
+  heroDescription String?  @db.Text
+  heroImage       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("hire_developer_why_vedx")
+}
+
+// Why Choose Service Table
+model HireDeveloperWhyChoose {
+  id              String   @id @default(cuid())
+  category        String
+  subcategory     String?
+  title           String
+  description     String?  @db.Text
+  heroTitle       String?
+  heroDescription String?  @db.Text
+  heroImage       String?
+  tableTitle      String?
+  tableDescription String? @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("hire_developer_why_choose")
+}
+
+// Industries Table
+model HireDeveloperIndustry {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  image       String
+  sectionTitle String?
+  sectionDescription String? @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("hire_developer_industries")
+}
+
+// Tech Solutions Table
+model HireDeveloperTechSolution {
+  id               String   @id @default(cuid())
+  title            String
+  description      String?  @db.Text
+  sectionTitle     String?
+  sectionDescription String? @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("hire_developer_tech_solutions")
+}
+
+// Expertise Table
+model HireDeveloperExpertise {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  image       String
+  sectionTitle String?
+  sectionDescription String? @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("hire_developer_expertise")
+}
+
+// Our Services Slider Table
+model HireDeveloperOurService {
+  id               String   @id @default(cuid())
+  title            String
+  image            String
+  sliderTitle      String?
+  sliderDescription String? @db.Text
+  sliderImage      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("hire_developer_our_services")
+}
