@@ -452,6 +452,7 @@ model ServiceMenu {
 
   subcategories   ServiceMenuSubcategory[]
   faqs            ServiceMenuFaq[]
+  processes       ServiceProcess[]          // <-- back relation added
 
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
@@ -638,8 +639,12 @@ model WhyVedxReason {
   @@index([whyVedxId])
 }
 
+/// ===============================================
+/// HIRE DEVELOPER – NEW TABLES (Mongo style)
+/// ===============================================
+
 model HireDeveloperService {
-  id              String   @id @default(cuid())
+  id              String   @id @map("_id") @default(auto()) @db.ObjectId
   category        String
   subcategories   Json     // Array of {name: string}
   bannerTitle     String?
@@ -648,7 +653,7 @@ model HireDeveloperService {
   totalServices   Int      @default(0)
   totalProjects   Int      @default(0)
   totalClients    Int      @default(0)
-  description     String?  @db.Text
+  description     String?  // removed @db.Text
   faqs            Json?    // Array of {id: string, question: string, answer: string}
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -658,7 +663,7 @@ model HireDeveloperService {
 
 // Technologies Table
 model HireDeveloperTechnology {
-  id           String   @id @default(cuid())
+  id           String   @id @map("_id") @default(auto()) @db.ObjectId
   category     String
   subcategory  String?
   title        String
@@ -672,11 +677,11 @@ model HireDeveloperTechnology {
 
 // Benefits Table
 model HireDeveloperBenefit {
-  id          String   @id @default(cuid())
+  id          String   @id @map("_id") @default(auto()) @db.ObjectId
   title       String
   category    String?
   subcategory String?
-  description String?  @db.Text
+  description String?  // removed @db.Text
   image       String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -686,14 +691,14 @@ model HireDeveloperBenefit {
 
 // Hire Pricing Table
 model HireDeveloperPricing {
-  id             String   @id @default(cuid())
+  id             String   @id @map("_id") @default(auto()) @db.ObjectId
   title          String
   subtitle       String?
-  description    String?  @db.Text
+  description    String?  // removed @db.Text
   price          String
   services       Json?    // Array of strings (service inclusions)
   heroTitle      String?
-  heroDescription String? @db.Text
+  heroDescription String? // removed @db.Text
   heroImage      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -703,14 +708,14 @@ model HireDeveloperPricing {
 
 // Hire Services (Development Services) Table
 model HireDeveloperHireService {
-  id          String   @id @default(cuid())
+  id          String   @id @map("_id") @default(auto()) @db.ObjectId
   category    String
   subcategory String?
   title       String
-  description String?  @db.Text
+  description String?  // removed @db.Text
   image       String
   heroTitle   String?
-  heroDescription String? @db.Text
+  heroDescription String? // removed @db.Text
   heroImage   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -720,9 +725,9 @@ model HireDeveloperHireService {
 
 // Process Table
 model HireDeveloperProcess {
-  id          String   @id @default(cuid())
+  id          String   @id @map("_id") @default(auto()) @db.ObjectId
   title       String
-  description String?  @db.Text
+  description String?  // removed @db.Text
   category    String
   subcategory String
   image       String
@@ -734,12 +739,12 @@ model HireDeveloperProcess {
 
 // Why VedX Table
 model HireDeveloperWhyVedx {
-  id              String   @id @default(cuid())
+  id              String   @id @map("_id") @default(auto()) @db.ObjectId
   title           String
-  description     String?  @db.Text
+  description     String?  // removed @db.Text
   image           String
   heroTitle       String?
-  heroDescription String?  @db.Text
+  heroDescription String?  // removed @db.Text
   heroImage       String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -749,16 +754,16 @@ model HireDeveloperWhyVedx {
 
 // Why Choose Service Table
 model HireDeveloperWhyChoose {
-  id              String   @id @default(cuid())
+  id              String   @id @map("_id") @default(auto()) @db.ObjectId
   category        String
   subcategory     String?
   title           String
-  description     String?  @db.Text
+  description     String?  // removed @db.Text
   heroTitle       String?
-  heroDescription String?  @db.Text
+  heroDescription String?  // removed @db.Text
   heroImage       String?
   tableTitle      String?
-  tableDescription String? @db.Text
+  tableDescription String? // removed @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -767,12 +772,12 @@ model HireDeveloperWhyChoose {
 
 // Industries Table
 model HireDeveloperIndustry {
-  id          String   @id @default(cuid())
+  id          String   @id @map("_id") @default(auto()) @db.ObjectId
   title       String
-  description String?  @db.Text
+  description String?  // removed @db.Text
   image       String
   sectionTitle String?
-  sectionDescription String? @db.Text
+  sectionDescription String? // removed @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -781,11 +786,11 @@ model HireDeveloperIndustry {
 
 // Tech Solutions Table
 model HireDeveloperTechSolution {
-  id               String   @id @default(cuid())
+  id               String   @id @map("_id") @default(auto()) @db.ObjectId
   title            String
-  description      String?  @db.Text
+  description      String?  // removed @db.Text
   sectionTitle     String?
-  sectionDescription String? @db.Text
+  sectionDescription String? // removed @db.Text
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -794,12 +799,12 @@ model HireDeveloperTechSolution {
 
 // Expertise Table
 model HireDeveloperExpertise {
-  id          String   @id @default(cuid())
+  id          String   @id @map("_id") @default(auto()) @db.ObjectId
   title       String
-  description String?  @db.Text
+  description String?  // removed @db.Text
   image       String
   sectionTitle String?
-  sectionDescription String? @db.Text
+  sectionDescription String? // removed @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -808,11 +813,11 @@ model HireDeveloperExpertise {
 
 // Our Services Slider Table
 model HireDeveloperOurService {
-  id               String   @id @default(cuid())
+  id               String   @id @map("_id") @default(auto()) @db.ObjectId
   title            String
   image            String
   sliderTitle      String?
-  sliderDescription String? @db.Text
+  sliderDescription String? // removed @db.Text
   sliderImage      String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
