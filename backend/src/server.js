@@ -9,11 +9,25 @@ import connectDB from './lib/db.js';
 const app = express();
 const port = process.env.PORT;
 
+// Configure CORS to explicitly allow known front-end origins while still
+// keeping development ergonomics. When CORS_ORIGINS is not set, requests are
+// reflected (access granted) to simplify local testing.
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin: allowedOrigins.length ? allowedOrigins : true,
+  credentials: true,
+};
+
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
-app.use(cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(
   express.json({
