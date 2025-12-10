@@ -803,7 +803,7 @@ const AdminDashboardPage = () => {
 
     const payload = {
       title: ourServiceForm.title.trim(),
-      sliderId: Number(ourServiceForm.sliderId),
+      sliderId: ourServiceForm.sliderId,
     };
 
     try {
@@ -2712,7 +2712,7 @@ const AdminDashboardPage = () => {
                 onChange={(event) =>
                   setOurServiceForm((prev) => ({
                     ...prev,
-                    sliderId: Number(event.target.value),
+                    sliderId: event.target.value,
                   }))
                 }
                 fullWidth
