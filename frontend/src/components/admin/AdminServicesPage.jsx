@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
   Box,
@@ -624,6 +625,222 @@ const AdminServicesPage = () => {
   const [activeExpertise, setActiveExpertise] = useState(null);
   const [expertiseToDelete, setExpertiseToDelete] = useState(null);
 
+  const normalizeDate = (value) => (value ? String(value).split('T')[0] : '');
+
+  const requireToken = () => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      throw new Error('Your session expired. Please log in again.');
+    }
+    return token;
+  };
+
+  const authHeaders = () => ({
+    Authorization: `Bearer ${requireToken()}`,
+    'Content-Type': 'application/json',
+  });
+
+  const handleRequestError = (err, fallback) => {
+    console.error(fallback, err);
+    alert(err?.message || fallback);
+  };
+
+  const normalizeServiceMenu = (menu) => ({
+    ...menu,
+    createdAt: normalizeDate(menu.createdAt),
+    subcategories: menu.subcategories || [],
+    faqs: menu.faqs || [],
+  });
+
+  const normalizeTechnology = (tech) => ({
+    ...tech,
+    items: tech.items || [],
+    category: tech.category || '',
+    subcategory: tech.subcategory || '',
+  });
+
+  const normalizeBenefit = (benefit) => ({
+    ...benefit,
+    category: benefit.category || '',
+    subcategory: benefit.subcategory || '',
+  });
+
+  const normalizeProcess = (process) => ({
+    ...process,
+    createdAt: normalizeDate(process.createdAt),
+    subcategory: process.subcategory || '',
+    serviceId: process.serviceId || '',
+  });
+
+  const normalizeHireService = (service) => ({
+    ...service,
+    category: service.category || '',
+    subcategory: service.subcategory || '',
+  });
+
+  const normalizeWhyService = (service) => ({
+    ...service,
+    category: service.category || '',
+    subcategory: service.subcategory || '',
+  });
+
+  const normalizeWhyVedxReason = (reason) => ({
+    ...reason,
+    whyVedxId: reason.whyVedxId || '',
+  });
+
+  const loadServiceMenus = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/service-menus'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load service menus');
+      setServices((data || []).map(normalizeServiceMenu));
+    } catch (err) {
+      console.error('Failed to load service menus', err);
+    }
+  };
+
+  const loadTechnologies = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/technologies'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
+      setTechnologies((data || []).map(normalizeTechnology));
+    } catch (err) {
+      console.error('Failed to load technologies', err);
+    }
+  };
+
+  const loadBenefits = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/benefits'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load benefits');
+      setBenefits((data || []).map(normalizeBenefit));
+    } catch (err) {
+      console.error('Failed to load benefits', err);
+    }
+  };
+
+  const loadProcesses = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/service-processes'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load processes');
+      setProcessList((data || []).map(normalizeProcess));
+    } catch (err) {
+      console.error('Failed to load processes', err);
+    }
+  };
+
+  const loadHireContent = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/hire-developer'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || '');
+      setHireContent({
+        title: data.title || '',
+        description: data.description || '',
+        heroImage: data.heroImage || imagePlaceholder,
+        services: data.services?.map(normalizeHireService) || [],
+      });
+    } catch (err) {
+      console.error('Failed to load hire developer config', err);
+    }
+  };
+
+  const loadHireServices = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/hire-services'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load hire services');
+      setHireContent((prev) => ({ ...prev, services: (data || []).map(normalizeHireService) }));
+    } catch (err) {
+      console.error('Failed to load hire services', err);
+    }
+  };
+
+  const loadWhyChoose = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/why-choose'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || '');
+      setWhyChoose({
+        heroTitle: data.heroTitle || '',
+        heroDescription: data.heroDescription || '',
+        heroImage: data.heroImage || imagePlaceholder,
+        tableTitle: data.tableTitle || '',
+        tableDescription: data.tableDescription || '',
+        services: data.services?.map(normalizeWhyService) || [],
+      });
+      setWhyHeroForm({
+        heroTitle: data.heroTitle || '',
+        heroDescription: data.heroDescription || '',
+        heroImage: data.heroImage || imagePlaceholder,
+        tableTitle: data.tableTitle || '',
+        tableDescription: data.tableDescription || '',
+      });
+    } catch (err) {
+      console.error('Failed to load why choose config', err);
+    }
+  };
+
+  const loadWhyServices = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/why-services'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load why services');
+      setWhyChoose((prev) => ({ ...prev, services: (data || []).map(normalizeWhyService) }));
+    } catch (err) {
+      console.error('Failed to load why services', err);
+    }
+  };
+
+  const loadWhyVedx = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/why-vedx'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || '');
+      setWhyVedx({
+        heroTitle: data.heroTitle || '',
+        heroDescription: data.heroDescription || '',
+        heroImage: data.heroImage || imagePlaceholder,
+        reasons: data.reasons?.map(normalizeWhyVedxReason) || [],
+      });
+      setWhyVedxHeroForm({
+        heroTitle: data.heroTitle || '',
+        heroDescription: data.heroDescription || '',
+        heroImage: data.heroImage || imagePlaceholder,
+      });
+    } catch (err) {
+      console.error('Failed to load why VEDX config', err);
+    }
+  };
+
+  const loadWhyVedxReasons = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/why-vedx-reasons'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load reasons');
+      setWhyVedx((prev) => ({ ...prev, reasons: (data || []).map(normalizeWhyVedxReason) }));
+    } catch (err) {
+      console.error('Failed to load why VEDX reasons', err);
+    }
+  };
+
+  useEffect(() => {
+    loadServiceMenus();
+    loadTechnologies();
+    loadBenefits();
+    loadProcesses();
+    loadHireContent();
+    loadHireServices();
+    loadWhyChoose();
+    loadWhyServices();
+    loadWhyVedx();
+    loadWhyVedxReasons();
+  }, []);
+
   const rowsPerPage = 5;
   const [serviceDateFilter, setServiceDateFilter] = useState('all');
   const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
@@ -687,9 +904,26 @@ const AdminServicesPage = () => {
     setHireContent((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleHeroSave = () => {
-    setHeroSaved(true);
-    setTimeout(() => setHeroSaved(false), 3000);
+  const handleHeroSave = async (event) => {
+    event?.preventDefault();
+    try {
+      const response = await fetch(apiUrl('/api/hire-developer'), {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          title: hireContent.title,
+          description: hireContent.description,
+          heroImage: hireContent.heroImage,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save hero content');
+      setHireContent((prev) => ({ ...prev, ...data, services: prev.services }));
+      setHeroSaved(true);
+      setTimeout(() => setHeroSaved(false), 3000);
+    } catch (err) {
+      handleRequestError(err, 'Unable to save hero content');
+    }
   };
 
   const handleProcessChange = (field, value) => {
@@ -712,16 +946,26 @@ const AdminServicesPage = () => {
     setWhyHeroForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleWhyHeroSave = (event) => {
+  const handleWhyHeroSave = async (event) => {
     event?.preventDefault();
-    setWhyChoose((prev) => ({
-      ...prev,
-      heroTitle: whyHeroForm.heroTitle,
-      heroDescription: whyHeroForm.heroDescription,
-      heroImage: whyHeroForm.heroImage,
-      tableTitle: whyHeroForm.tableTitle,
-      tableDescription: whyHeroForm.tableDescription,
-    }));
+    try {
+      const response = await fetch(apiUrl('/api/why-choose'), {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          heroTitle: whyHeroForm.heroTitle,
+          heroDescription: whyHeroForm.heroDescription,
+          heroImage: whyHeroForm.heroImage,
+          tableTitle: whyHeroForm.tableTitle,
+          tableDescription: whyHeroForm.tableDescription,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save Why Choose hero');
+      setWhyChoose((prev) => ({ ...prev, ...data }));
+    } catch (err) {
+      handleRequestError(err, 'Unable to save Why Choose hero');
+    }
   };
 
   const categoryOptions = useMemo(
@@ -873,26 +1117,63 @@ const AdminServicesPage = () => {
     setActiveService(null);
   };
 
-  const handleServiceSubmit = (event) => {
+  const handleServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!serviceForm.category.trim()) return;
 
-    if (serviceDialogMode === 'edit' && activeService) {
-      setServices((prev) => prev.map((service) => (service.id === activeService.id ? { ...serviceForm } : service)));
-    } else {
-      const newService = { ...serviceForm, id: `service-${Date.now()}` };
-      setServices((prev) => [newService, ...prev]);
-    }
+    const payload = {
+      category: serviceForm.category,
+      bannerTitle: serviceForm.bannerTitle,
+      bannerSubtitle: serviceForm.bannerSubtitle,
+      bannerImage: serviceForm.bannerImage,
+      totalServices: Number(serviceForm.totalServices) || 0,
+      totalProjects: Number(serviceForm.totalProjects) || 0,
+      totalClients: Number(serviceForm.totalClients) || 0,
+      description: serviceForm.description,
+      subcategories: serviceForm.subcategories.map((subcategory) => ({ name: subcategory.name })),
+      faqs: serviceForm.faqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
+    };
 
-    closeServiceDialog();
+    const isEdit = serviceDialogMode === 'edit' && activeService;
+    const url = isEdit
+      ? apiUrl(`/api/service-menus/${activeService.id}`)
+      : apiUrl('/api/service-menus');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save service menu');
+
+      const normalized = normalizeServiceMenu(data);
+      setServices((prev) =>
+        isEdit ? prev.map((service) => (service.id === normalized.id ? normalized : service)) : [normalized, ...prev]
+      );
+      closeServiceDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save service menu');
+    }
   };
 
   const openServiceDeleteDialog = (service) => setServiceToDelete(service);
   const closeServiceDeleteDialog = () => setServiceToDelete(null);
-  const handleConfirmDeleteService = () => {
+  const handleConfirmDeleteService = async () => {
     if (!serviceToDelete) return;
-    setServices((prev) => prev.filter((service) => service.id !== serviceToDelete.id));
-    closeServiceDeleteDialog();
+    try {
+      const response = await fetch(apiUrl(`/api/service-menus/${serviceToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete service');
+      setServices((prev) => prev.filter((service) => service.id !== serviceToDelete.id));
+      closeServiceDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete service');
+    }
   };
 
   const openTechnologyCreateDialog = () => {
@@ -914,28 +1195,58 @@ const AdminServicesPage = () => {
     setActiveTechnology(null);
   };
 
-  const handleTechnologySubmit = (event) => {
+  const handleTechnologySubmit = async (event) => {
     event?.preventDefault();
     if (!technologyForm.title.trim() || !technologyForm.category.trim() || !technologyForm.image) return;
 
-    if (technologyDialogMode === 'edit' && activeTechnology) {
-      setTechnologies((prev) =>
-        prev.map((tech) => (tech.id === activeTechnology.id ? { ...technologyForm } : tech))
-      );
-    } else {
-      const newTech = { ...technologyForm, id: `tech-${Date.now()}` };
-      setTechnologies((prev) => [newTech, ...prev]);
-    }
+    const payload = {
+      category: technologyForm.category,
+      subcategory: technologyForm.subcategory || '',
+      title: technologyForm.title,
+      image: technologyForm.image,
+      items: technologyForm.items || [],
+    };
 
-    closeTechnologyDialog();
+    const isEdit = technologyDialogMode === 'edit' && activeTechnology;
+    const url = isEdit
+      ? apiUrl(`/api/technologies/${activeTechnology.id}`)
+      : apiUrl('/api/technologies');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save technology');
+
+      const normalized = normalizeTechnology(data);
+      setTechnologies((prev) =>
+        isEdit ? prev.map((tech) => (tech.id === normalized.id ? normalized : tech)) : [normalized, ...prev]
+      );
+      closeTechnologyDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save technology');
+    }
   };
 
   const openTechnologyDeleteDialog = (technology) => setTechnologyToDelete(technology);
   const closeTechnologyDeleteDialog = () => setTechnologyToDelete(null);
-  const handleConfirmDeleteTechnology = () => {
+  const handleConfirmDeleteTechnology = async () => {
     if (!technologyToDelete) return;
-    setTechnologies((prev) => prev.filter((tech) => tech.id !== technologyToDelete.id));
-    closeTechnologyDeleteDialog();
+    try {
+      const response = await fetch(apiUrl(`/api/technologies/${technologyToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete technology');
+      setTechnologies((prev) => prev.filter((tech) => tech.id !== technologyToDelete.id));
+      closeTechnologyDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete technology');
+    }
   };
 
   const openBenefitCreateDialog = () => {
@@ -957,26 +1268,58 @@ const AdminServicesPage = () => {
     setActiveBenefit(null);
   };
 
-  const handleBenefitSubmit = (event) => {
+  const handleBenefitSubmit = async (event) => {
     event?.preventDefault();
-    if (!benefitForm.title.trim()) return;
+    if (!benefitForm.title.trim() || !benefitForm.description.trim() || !benefitForm.image) return;
 
-    if (benefitDialogMode === 'edit' && activeBenefit) {
-      setBenefits((prev) => prev.map((benefit) => (benefit.id === activeBenefit.id ? { ...benefitForm } : benefit)));
-    } else {
-      const newBenefit = { ...benefitForm, id: `benefit-${Date.now()}` };
-      setBenefits((prev) => [newBenefit, ...prev]);
+    const payload = {
+      title: benefitForm.title,
+      category: benefitForm.category,
+      subcategory: benefitForm.subcategory,
+      description: benefitForm.description,
+      image: benefitForm.image,
+    };
+
+    const isEdit = benefitDialogMode === 'edit' && activeBenefit;
+    const url = isEdit
+      ? apiUrl(`/api/benefits/${activeBenefit.id}`)
+      : apiUrl('/api/benefits');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save benefit');
+
+      const normalized = normalizeBenefit(data);
+      setBenefits((prev) =>
+        isEdit ? prev.map((benefit) => (benefit.id === normalized.id ? normalized : benefit)) : [normalized, ...prev]
+      );
+      closeBenefitDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save benefit');
     }
-
-    closeBenefitDialog();
   };
 
   const openBenefitDeleteDialog = (benefit) => setBenefitToDelete(benefit);
   const closeBenefitDeleteDialog = () => setBenefitToDelete(null);
-  const handleConfirmDeleteBenefit = () => {
+  const handleConfirmDeleteBenefit = async () => {
     if (!benefitToDelete) return;
-    setBenefits((prev) => prev.filter((benefit) => benefit.id !== benefitToDelete.id));
-    closeBenefitDeleteDialog();
+    try {
+      const response = await fetch(apiUrl(`/api/benefits/${benefitToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete benefit');
+      setBenefits((prev) => prev.filter((benefit) => benefit.id !== benefitToDelete.id));
+      closeBenefitDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete benefit');
+    }
   };
 
   const openWhyServiceCreateDialog = () => {
@@ -998,34 +1341,63 @@ const AdminServicesPage = () => {
     setActiveWhyService(null);
   };
 
-  const handleWhyServiceSubmit = (event) => {
+  const handleWhyServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!whyServiceForm.title.trim() || !whyServiceForm.category.trim()) return;
 
-    if (whyServiceDialogMode === 'edit' && activeWhyService) {
+    const payload = {
+      category: whyServiceForm.category,
+      subcategory: whyServiceForm.subcategory,
+      title: whyServiceForm.title,
+      description: whyServiceForm.description,
+    };
+
+    const isEdit = whyServiceDialogMode === 'edit' && activeWhyService;
+    const url = isEdit
+      ? apiUrl(`/api/why-services/${activeWhyService.id}`)
+      : apiUrl('/api/why-services');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save Why Choose service');
+
+      const normalized = normalizeWhyService(data);
       setWhyChoose((prev) => ({
         ...prev,
-        services: prev.services.map((service) =>
-          service.id === activeWhyService.id ? { ...whyServiceForm } : service
-        ),
+        services: isEdit
+          ? prev.services.map((service) => (service.id === normalized.id ? normalized : service))
+          : [normalized, ...prev.services],
       }));
-    } else {
-      const newWhyService = { ...whyServiceForm, id: `why-${Date.now()}` };
-      setWhyChoose((prev) => ({ ...prev, services: [newWhyService, ...prev.services] }));
+      closeWhyServiceDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save Why Choose service');
     }
-
-    closeWhyServiceDialog();
   };
 
   const openWhyServiceDeleteDialog = (service) => setWhyServiceToDelete(service);
   const closeWhyServiceDeleteDialog = () => setWhyServiceToDelete(null);
-  const handleConfirmDeleteWhyService = () => {
+  const handleConfirmDeleteWhyService = async () => {
     if (!whyServiceToDelete) return;
-    setWhyChoose((prev) => ({
-      ...prev,
-      services: prev.services.filter((service) => service.id !== whyServiceToDelete.id),
-    }));
-    closeWhyServiceDeleteDialog();
+    try {
+      const response = await fetch(apiUrl(`/api/why-services/${whyServiceToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete Why Choose service');
+      setWhyChoose((prev) => ({
+        ...prev,
+        services: prev.services.filter((service) => service.id !== whyServiceToDelete.id),
+      }));
+      closeWhyServiceDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete Why Choose service');
+    }
   };
 
   const openHireServiceCreateDialog = () => {
@@ -1047,34 +1419,65 @@ const AdminServicesPage = () => {
     setActiveHireService(null);
   };
 
-  const handleHireServiceSubmit = (event) => {
+  const handleHireServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!hireServiceForm.title.trim() || !hireServiceForm.category.trim() || !hireServiceForm.image) return;
 
-    if (hireServiceDialogMode === 'edit' && activeHireService) {
+    const payload = {
+      category: hireServiceForm.category,
+      subcategory: hireServiceForm.subcategory,
+      title: hireServiceForm.title,
+      description: hireServiceForm.description,
+      image: hireServiceForm.image,
+      hireDeveloperId: hireServiceForm.hireDeveloperId || null,
+    };
+
+    const isEdit = hireServiceDialogMode === 'edit' && activeHireService;
+    const url = isEdit
+      ? apiUrl(`/api/hire-services/${activeHireService.id}`)
+      : apiUrl('/api/hire-services');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save hire service');
+
+      const normalized = normalizeHireService(data);
       setHireContent((prev) => ({
         ...prev,
-        services: prev.services.map((service) =>
-          service.id === activeHireService.id ? { ...hireServiceForm } : service
-        ),
+        services: isEdit
+          ? prev.services.map((service) => (service.id === normalized.id ? normalized : service))
+          : [normalized, ...prev.services],
       }));
-    } else {
-      const newHireService = { ...hireServiceForm, id: `hire-${Date.now()}` };
-      setHireContent((prev) => ({ ...prev, services: [newHireService, ...prev.services] }));
+      closeHireServiceDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save hire service');
     }
-
-    closeHireServiceDialog();
   };
 
   const openHireServiceDeleteDialog = (service) => setHireServiceToDelete(service);
   const closeHireServiceDeleteDialog = () => setHireServiceToDelete(null);
-  const handleConfirmDeleteHireService = () => {
+  const handleConfirmDeleteHireService = async () => {
     if (!hireServiceToDelete) return;
-    setHireContent((prev) => ({
-      ...prev,
-      services: prev.services.filter((service) => service.id !== hireServiceToDelete.id),
-    }));
-    closeHireServiceDeleteDialog();
+    try {
+      const response = await fetch(apiUrl(`/api/hire-services/${hireServiceToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete hire service');
+      setHireContent((prev) => ({
+        ...prev,
+        services: prev.services.filter((service) => service.id !== hireServiceToDelete.id),
+      }));
+      closeHireServiceDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete hire service');
+    }
   };
 
   const openProcessCreateDialog = () => {
@@ -1096,36 +1499,79 @@ const AdminServicesPage = () => {
     setActiveProcess(null);
   };
 
-  const handleProcessSubmit = (event) => {
+  const handleProcessSubmit = async (event) => {
     event?.preventDefault();
-    if (!processForm.title.trim() || !processForm.image || !processForm.category || !processForm.subcategory) return;
+    if (!processForm.title.trim() || !processForm.image || !processForm.category) return;
 
-    if (processDialogMode === 'edit' && activeProcess) {
-      setProcessList((prev) => prev.map((item) => (item.id === activeProcess.id ? { ...processForm } : item)));
-    } else {
-      const newItem = { ...processForm, id: `process-${Date.now()}` };
-      setProcessList((prev) => [newItem, ...prev]);
+    const payload = {
+      title: processForm.title,
+      description: processForm.description,
+      category: processForm.category,
+      subcategory: processForm.subcategory,
+      image: processForm.image,
+      serviceId: processForm.serviceId || null,
+    };
+
+    const isEdit = processDialogMode === 'edit' && activeProcess;
+    const url = isEdit
+      ? apiUrl(`/api/service-processes/${activeProcess.id}`)
+      : apiUrl('/api/service-processes');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save process');
+
+      const normalized = normalizeProcess(data);
+      setProcessList((prev) =>
+        isEdit ? prev.map((item) => (item.id === normalized.id ? normalized : item)) : [normalized, ...prev]
+      );
+      closeProcessDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save process');
     }
-
-    closeProcessDialog();
   };
 
   const openProcessDeleteDialog = (item) => setProcessToDelete(item);
   const closeProcessDeleteDialog = () => setProcessToDelete(null);
-  const handleConfirmDeleteProcess = () => {
+  const handleConfirmDeleteProcess = async () => {
     if (!processToDelete) return;
-    setProcessList((prev) => prev.filter((item) => item.id !== processToDelete.id));
-    closeProcessDeleteDialog();
+    try {
+      const response = await fetch(apiUrl(`/api/service-processes/${processToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete process');
+      setProcessList((prev) => prev.filter((item) => item.id !== processToDelete.id));
+      closeProcessDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete process');
+    }
   };
 
-  const handleWhyVedxHeroSave = (event) => {
+  const handleWhyVedxHeroSave = async (event) => {
     event?.preventDefault();
-    setWhyVedx((prev) => ({
-      ...prev,
-      heroTitle: whyVedxHeroForm.heroTitle,
-      heroDescription: whyVedxHeroForm.heroDescription,
-      heroImage: whyVedxHeroForm.heroImage,
-    }));
+    try {
+      const response = await fetch(apiUrl('/api/why-vedx'), {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          heroTitle: whyVedxHeroForm.heroTitle,
+          heroDescription: whyVedxHeroForm.heroDescription,
+          heroImage: whyVedxHeroForm.heroImage,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save Why VEDX hero');
+      setWhyVedx((prev) => ({ ...prev, ...data }));
+    } catch (err) {
+      handleRequestError(err, 'Unable to save Why VEDX hero');
+    }
   };
 
   const handleOurServicesHeroSave = (event) => {
@@ -1157,32 +1603,63 @@ const AdminServicesPage = () => {
     setActiveWhyVedx(null);
   };
 
-  const handleWhyVedxSubmit = (event) => {
+  const handleWhyVedxSubmit = async (event) => {
     event?.preventDefault();
-    if (!whyVedxForm.title.trim() || !whyVedxForm.image) return;
+    if (!whyVedxForm.title.trim() || !whyVedxForm.description.trim() || !whyVedxForm.image) return;
 
-    if (whyVedxDialogMode === 'edit' && activeWhyVedx) {
+    const payload = {
+      title: whyVedxForm.title,
+      description: whyVedxForm.description,
+      image: whyVedxForm.image,
+      whyVedxId: whyVedxForm.whyVedxId || null,
+    };
+
+    const isEdit = whyVedxDialogMode === 'edit' && activeWhyVedx;
+    const url = isEdit
+      ? apiUrl(`/api/why-vedx-reasons/${activeWhyVedx.id}`)
+      : apiUrl('/api/why-vedx-reasons');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save reason');
+
+      const normalized = normalizeWhyVedxReason(data);
       setWhyVedx((prev) => ({
         ...prev,
-        reasons: prev.reasons.map((item) => (item.id === activeWhyVedx.id ? { ...whyVedxForm } : item)),
+        reasons: isEdit
+          ? prev.reasons.map((item) => (item.id === normalized.id ? normalized : item))
+          : [normalized, ...prev.reasons],
       }));
-    } else {
-      const newItem = { ...whyVedxForm, id: `why-vedx-${Date.now()}` };
-      setWhyVedx((prev) => ({ ...prev, reasons: [newItem, ...prev.reasons] }));
+      closeWhyVedxDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save reason');
     }
-
-    closeWhyVedxDialog();
   };
 
   const openWhyVedxDeleteDialog = (item) => setWhyVedxToDelete(item);
   const closeWhyVedxDeleteDialog = () => setWhyVedxToDelete(null);
-  const handleConfirmDeleteWhyVedx = () => {
+  const handleConfirmDeleteWhyVedx = async () => {
     if (!whyVedxToDelete) return;
-    setWhyVedx((prev) => ({
-      ...prev,
-      reasons: prev.reasons.filter((item) => item.id !== whyVedxToDelete.id),
-    }));
-    closeWhyVedxDeleteDialog();
+    try {
+      const response = await fetch(apiUrl(`/api/why-vedx-reasons/${whyVedxToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete reason');
+      setWhyVedx((prev) => ({
+        ...prev,
+        reasons: prev.reasons.filter((item) => item.id !== whyVedxToDelete.id),
+      }));
+      closeWhyVedxDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete reason');
+    }
   };
 
   const openOurServiceCreateDialog = () => {
