@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
   Box,
@@ -454,6 +455,125 @@ const emptyExpertiseForm = {
   image: imageLibrary[2].value,
 };
 
+const normalizeService = (service) => ({
+  id: service.id,
+  category: service.category || '',
+  subcategories: service.subcategories || [],
+  bannerTitle: service.bannerTitle || '',
+  bannerSubtitle: service.bannerSubtitle || '',
+  bannerImage: service.bannerImage || imagePlaceholder,
+  createdAt: service.createdAt ? service.createdAt.slice(0, 10) : '',
+  totalServices: service.totalServices ?? 0,
+  totalProjects: service.totalProjects ?? 0,
+  totalClients: service.totalClients ?? 0,
+  faqs: service.faqs || [],
+  description: service.description || '',
+});
+
+const normalizeTechnology = (tech) => ({
+  id: tech.id,
+  category: tech.category || '',
+  subcategory: tech.subcategory || '',
+  title: tech.title || '',
+  image: tech.image || imagePlaceholder,
+  items: tech.items || [],
+});
+
+const normalizeBenefit = (benefit) => ({
+  id: benefit.id,
+  title: benefit.title || '',
+  category: benefit.category || '',
+  subcategory: benefit.subcategory || '',
+  description: benefit.description || '',
+  image: benefit.image || imagePlaceholder,
+});
+
+const normalizePricingPlan = (plan) => ({
+  id: plan.id,
+  title: plan.title || '',
+  subtitle: plan.subtitle || '',
+  description: plan.description || '',
+  price: plan.price || '',
+  services: plan.services || [],
+  heroTitle: plan.heroTitle || '',
+  heroDescription: plan.heroDescription || '',
+  heroImage: plan.heroImage || imagePlaceholder,
+});
+
+const normalizeHireService = (service) => ({
+  id: service.id,
+  category: service.category || '',
+  subcategory: service.subcategory || '',
+  title: service.title || '',
+  description: service.description || '',
+  image: service.image || imagePlaceholder,
+  heroTitle: service.heroTitle || '',
+  heroDescription: service.heroDescription || '',
+  heroImage: service.heroImage || imagePlaceholder,
+});
+
+const normalizeProcess = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  image: item.image || imagePlaceholder,
+});
+
+const normalizeWhyVedx = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  heroTitle: item.heroTitle || '',
+  heroDescription: item.heroDescription || '',
+  heroImage: item.heroImage || imagePlaceholder,
+});
+
+const normalizeWhyChoose = (item) => ({
+  id: item.id,
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  title: item.title || '',
+  description: item.description || '',
+  heroTitle: item.heroTitle || '',
+  heroDescription: item.heroDescription || '',
+  heroImage: item.heroImage || imagePlaceholder,
+  tableTitle: item.tableTitle || '',
+  tableDescription: item.tableDescription || '',
+});
+
+const normalizeIndustry = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+});
+
+const normalizeTechSolution = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+  sliderTitle: item.sliderTitle || '',
+  sliderDescription: item.sliderDescription || '',
+  sliderImage: item.sliderImage || imagePlaceholder,
+});
+
+const normalizeExpertise = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+});
+
 const initialWhyChoose = {
   heroTitle: 'Why choose our services',
   heroDescription:
@@ -714,6 +834,224 @@ const AdminHiredeveloperPage = () => {
   const [techSolutionPage, setTechSolutionPage] = useState(1);
   const [expertisePage, setExpertisePage] = useState(1);
 
+  const fetchJson = async (path, options = {}) => {
+    const response = await fetch(apiUrl(path), {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.error || 'Request failed');
+    }
+    return data;
+  };
+
+  const loadServices = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/services');
+      setServices((data || []).map(normalizeService));
+    } catch (error) {
+      console.error('Failed to load hire developer services', error);
+    }
+  };
+
+  const loadTechnologies = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/technologies');
+      setTechnologies((data || []).map(normalizeTechnology));
+    } catch (error) {
+      console.error('Failed to load hire developer technologies', error);
+    }
+  };
+
+  const loadBenefits = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/benefits');
+      setBenefits((data || []).map(normalizeBenefit));
+    } catch (error) {
+      console.error('Failed to load hire developer benefits', error);
+    }
+  };
+
+  const loadHirePricing = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/pricing');
+      const plans = (data || []).map(normalizePricingPlan);
+      const heroSource = plans[0] || {};
+      setHirePricing({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+        plans,
+      });
+      setHirePricingHeroForm({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+      });
+    } catch (error) {
+      console.error('Failed to load hire pricing', error);
+    }
+  };
+
+  const loadHireServices = async () => {
+    try {
+      const [heroData, servicesData] = await Promise.all([
+        fetchJson('/api/hire-developer').catch(() => null),
+        fetchJson('/api/hire-developer/hire-services'),
+      ]);
+
+      setHireContent({
+        title: heroData?.title || '',
+        description: heroData?.description || '',
+        heroImage: heroData?.heroImage || imagePlaceholder,
+        services: (servicesData || []).map(normalizeHireService),
+      });
+    } catch (error) {
+      console.error('Failed to load hire services', error);
+    }
+  };
+
+  const loadProcesses = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/processes');
+      setProcessList((data || []).map(normalizeProcess));
+    } catch (error) {
+      console.error('Failed to load hire developer processes', error);
+    }
+  };
+
+  const loadWhyVedx = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/why-vedx');
+      const reasons = (data || []).map(normalizeWhyVedx);
+      const heroSource = reasons[0] || {};
+      setWhyVedx({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+        reasons,
+      });
+      setWhyVedxHeroForm({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+      });
+    } catch (error) {
+      console.error('Failed to load why VedX items', error);
+    }
+  };
+
+  const loadWhyChoose = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/why-choose');
+      const services = (data || []).map(normalizeWhyChoose);
+      const heroSource = services[0] || {};
+      setWhyChoose({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+        tableTitle: heroSource.tableTitle || '',
+        tableDescription: heroSource.tableDescription || '',
+        services,
+      });
+      setWhyHeroForm({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+        tableTitle: heroSource.tableTitle || '',
+        tableDescription: heroSource.tableDescription || '',
+      });
+    } catch (error) {
+      console.error('Failed to load why choose items', error);
+    }
+  };
+
+  const loadIndustries = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/industries');
+      const items = (data || []).map(normalizeIndustry);
+      const heroSource = items[0] || {};
+      setIndustries({
+        title: heroSource.sectionTitle || '',
+        description: heroSource.sectionDescription || '',
+        items,
+      });
+    } catch (error) {
+      console.error('Failed to load industries', error);
+    }
+  };
+
+  const loadTechSolutions = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/tech-solutions');
+      const solutions = (data || []).map(normalizeTechSolution);
+      const heroSource = solutions[0] || {};
+      setTechSolutions({
+        title: heroSource.sectionTitle || '',
+        description: heroSource.sectionDescription || '',
+        solutions,
+      });
+    } catch (error) {
+      console.error('Failed to load tech solutions', error);
+    }
+  };
+
+  const loadExpertise = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/expertise');
+      const items = (data || []).map(normalizeExpertise);
+      const heroSource = items[0] || {};
+      setExpertise({
+        title: heroSource.sectionTitle || '',
+        description: heroSource.sectionDescription || '',
+        items,
+      });
+      setExpertiseHeroForm({
+        title: heroSource.sectionTitle || '',
+        description: heroSource.sectionDescription || '',
+      });
+    } catch (error) {
+      console.error('Failed to load expertise items', error);
+    }
+  };
+
+  const loadOurServices = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/our-services');
+      const services = (data || []).map(normalizeTechSolution);
+      const heroSource = data?.[0] || {};
+      setOurServices({
+        sliderTitle: heroSource.sliderTitle || '',
+        sliderDescription: heroSource.sliderDescription || '',
+        sliderImage: heroSource.sliderImage || imagePlaceholder,
+        services,
+      });
+      setOurServicesHeroForm({
+        sliderTitle: heroSource.sliderTitle || '',
+        sliderDescription: heroSource.sliderDescription || '',
+        sliderImage: heroSource.sliderImage || imagePlaceholder,
+      });
+    } catch (error) {
+      console.error('Failed to load hire developer our services', error);
+    }
+  };
+
+  useEffect(() => {
+    loadServices();
+    loadTechnologies();
+    loadBenefits();
+    loadHirePricing();
+    loadHireServices();
+    loadProcesses();
+    loadWhyVedx();
+    loadWhyChoose();
+    loadIndustries();
+    loadTechSolutions();
+    loadExpertise();
+    loadOurServices();
+  }, []);
+
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
   const resetTechnologyForm = () => setTechnologyForm(emptyTechnologyForm);
@@ -770,14 +1108,37 @@ const AdminHiredeveloperPage = () => {
     setHireContent((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleHirePricingHeroSave = () => {
-    setHirePricing((prev) => ({
-      ...prev,
-      heroTitle: hirePricingHeroForm.heroTitle,
-      heroDescription: hirePricingHeroForm.heroDescription,
-    }));
-    setHirePricingHeroSaved(true);
-    setTimeout(() => setHirePricingHeroSaved(false), 2500);
+  const handleHirePricingHeroSave = async () => {
+    if (!hirePricing.plans.length) return;
+
+    const primaryPlan = hirePricing.plans[0];
+
+    try {
+      const updated = await fetchJson(`/api/hire-developer/pricing/${primaryPlan.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...primaryPlan,
+          heroTitle: hirePricingHeroForm.heroTitle,
+          heroDescription: hirePricingHeroForm.heroDescription,
+          heroImage: hirePricingHeroForm.heroImage,
+        }),
+      });
+
+      const normalized = normalizePricingPlan(updated);
+
+      setHirePricing((prev) => ({
+        ...prev,
+        heroTitle: normalized.heroTitle,
+        heroDescription: normalized.heroDescription,
+        heroImage: normalized.heroImage,
+        plans: prev.plans.map((plan) => (plan.id === normalized.id ? normalized : plan)),
+      }));
+
+      setHirePricingHeroSaved(true);
+      setTimeout(() => setHirePricingHeroSaved(false), 2500);
+    } catch (error) {
+      console.error('Failed to save hire pricing hero content', error);
+    }
   };
 
   const addHirePricingService = () => {
@@ -832,9 +1193,29 @@ const AdminHiredeveloperPage = () => {
     closeHirePricingServiceDeleteDialog();
   };
 
-  const handleHeroSave = () => {
-    setHeroSaved(true);
-    setTimeout(() => setHeroSaved(false), 3000);
+  const handleHeroSave = async () => {
+    try {
+      const saved = await fetchJson('/api/hire-developer', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: hireContent.title,
+          description: hireContent.description,
+          heroImage: hireContent.heroImage,
+        }),
+      });
+
+      setHireContent((prev) => ({
+        ...prev,
+        title: saved?.title || prev.title,
+        description: saved?.description || prev.description,
+        heroImage: saved?.heroImage || prev.heroImage,
+      }));
+
+      setHeroSaved(true);
+      setTimeout(() => setHeroSaved(false), 3000);
+    } catch (error) {
+      console.error('Failed to save hire developer hero', error);
+    }
   };
 
   const handleProcessChange = (field, value) => {
@@ -857,16 +1238,38 @@ const AdminHiredeveloperPage = () => {
     setWhyHeroForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleWhyHeroSave = (event) => {
+  const handleWhyHeroSave = async (event) => {
     event?.preventDefault();
-    setWhyChoose((prev) => ({
-      ...prev,
-      heroTitle: whyHeroForm.heroTitle,
-      heroDescription: whyHeroForm.heroDescription,
-      heroImage: whyHeroForm.heroImage,
-      tableTitle: whyHeroForm.tableTitle,
-      tableDescription: whyHeroForm.tableDescription,
-    }));
+    if (!whyChoose.services.length) return;
+
+    const primary = whyChoose.services[0];
+
+    try {
+      const updated = await fetchJson(`/api/hire-developer/why-choose/${primary.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...primary,
+          heroTitle: whyHeroForm.heroTitle,
+          heroDescription: whyHeroForm.heroDescription,
+          heroImage: whyHeroForm.heroImage,
+          tableTitle: whyHeroForm.tableTitle,
+          tableDescription: whyHeroForm.tableDescription,
+        }),
+      });
+
+      const normalized = normalizeWhyChoose(updated);
+
+      setWhyChoose((prev) => ({
+        heroTitle: normalized.heroTitle,
+        heroDescription: normalized.heroDescription,
+        heroImage: normalized.heroImage,
+        tableTitle: normalized.tableTitle,
+        tableDescription: normalized.tableDescription,
+        services: prev.services.map((item) => (item.id === normalized.id ? normalized : item)),
+      }));
+    } catch (error) {
+      console.error('Failed to save why choose hero content', error);
+    }
   };
 
   const categoryOptions = useMemo(
@@ -1330,24 +1733,64 @@ const AdminHiredeveloperPage = () => {
     closeProcessDeleteDialog();
   };
 
-  const handleWhyVedxHeroSave = (event) => {
+  const handleWhyVedxHeroSave = async (event) => {
     event?.preventDefault();
-    setWhyVedx((prev) => ({
-      ...prev,
-      heroTitle: whyVedxHeroForm.heroTitle,
-      heroDescription: whyVedxHeroForm.heroDescription,
-      heroImage: whyVedxHeroForm.heroImage,
-    }));
+    if (!whyVedx.reasons.length) return;
+
+    const primary = whyVedx.reasons[0];
+
+    try {
+      const updated = await fetchJson(`/api/hire-developer/why-vedx/${primary.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...primary,
+          heroTitle: whyVedxHeroForm.heroTitle,
+          heroDescription: whyVedxHeroForm.heroDescription,
+          heroImage: whyVedxHeroForm.heroImage,
+        }),
+      });
+
+      const normalized = normalizeWhyVedx(updated);
+
+      setWhyVedx((prev) => ({
+        heroTitle: normalized.heroTitle,
+        heroDescription: normalized.heroDescription,
+        heroImage: normalized.heroImage,
+        reasons: prev.reasons.map((item) => (item.id === normalized.id ? normalized : item)),
+      }));
+    } catch (error) {
+      console.error('Failed to save why VedX hero content', error);
+    }
   };
 
-  const handleOurServicesHeroSave = (event) => {
+  const handleOurServicesHeroSave = async (event) => {
     event?.preventDefault();
-    setOurServices((prev) => ({
-      ...prev,
-      sliderTitle: ourServicesHeroForm.sliderTitle,
-      sliderDescription: ourServicesHeroForm.sliderDescription,
-      sliderImage: ourServicesHeroForm.sliderImage,
-    }));
+    if (!ourServices.services.length) return;
+
+    const primary = ourServices.services[0];
+
+    try {
+      const updated = await fetchJson(`/api/hire-developer/our-services/${primary.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...primary,
+          sliderTitle: ourServicesHeroForm.sliderTitle,
+          sliderDescription: ourServicesHeroForm.sliderDescription,
+          sliderImage: ourServicesHeroForm.sliderImage,
+        }),
+      });
+
+      const normalized = normalizeTechSolution(updated);
+
+      setOurServices((prev) => ({
+        sliderTitle: normalized.sliderTitle,
+        sliderDescription: normalized.sliderDescription,
+        sliderImage: normalized.sliderImage,
+        services: prev.services.map((item) => (item.id === normalized.id ? normalized : item)),
+      }));
+    } catch (error) {
+      console.error('Failed to save our services hero content', error);
+    }
   };
 
   const openWhyVedxCreateDialog = () => {
