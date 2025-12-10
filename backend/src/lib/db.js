@@ -1,7 +1,8 @@
 import { MongoClient } from "mongodb";
 
-const uri = process.env.DATABASE_URL;
-export const hasMongoConfig = Boolean(uri);
+const uri = process.env.DATABASE_URL?.trim();
+const hasValidMongoUri = Boolean(uri) && /^mongodb(\+srv)?:\/\//i.test(uri);
+export const hasMongoConfig = hasValidMongoUri;
 
 let client;
 let clientPromise;
@@ -22,7 +23,10 @@ if (hasMongoConfig) {
     clientPromise = client.connect();
   }
 } else {
-  console.warn("DATABASE_URL is missing; MongoDB features are disabled.");
+  const warning = uri
+    ? "DATABASE_URL is set but is not a valid MongoDB URI (expected to start with mongodb:// or mongodb+srv://); MongoDB features are disabled."
+    : "DATABASE_URL is missing; MongoDB features are disabled.";
+  console.warn(warning);
 }
 
 export default async function connectDB() {
