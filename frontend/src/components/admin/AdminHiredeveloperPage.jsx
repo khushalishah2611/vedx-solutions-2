@@ -35,320 +35,61 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
-const imageLibrary = [
-  {
-    label: 'Team collaboration',
-    value:
-      'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1600&q=80',
-  },
-  {
-    label: 'Developers at work',
-    value:
-      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80',
-  },
-  {
-    label: 'Modern workspace',
-    value:
-      'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1600&q=80',
-  },
-  {
-    label: 'Product presentation',
-    value:
-      'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1600&q=80',
-  },
-];
+const imagePlaceholder = '';
 
-const imagePlaceholder =
-  'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=60';
-
-const initialServices = [
-  {
-    id: 'full-stack',
-    category: 'Full Stack Development',
-    subcategories: [
-      { name: 'Frontend' },
-      { name: 'Backend' },
-      { name: 'DevOps' },
-    ],
-    bannerTitle: 'Launch cohesive products faster',
-    bannerSubtitle: 'Unified squads that own discovery to deployment.',
-    bannerImage: imageLibrary[0].value,
-    createdAt: '2024-07-05',
-    totalServices: 12,
-    totalProjects: 120,
-    totalClients: 65,
-    faqs: [
-      {
-        id: 'faq-fs-1',
-        question: 'How quickly can teams start?',
-        answer: 'Most squads begin delivery within 2 weeks after scope alignment.',
-      },
-      {
-        id: 'faq-fs-2',
-        question: 'Do you handle discovery?',
-        answer: 'Yes—product discovery, UX, and architecture are embedded with engineering.',
-      },
-    ],
-    description:
-      'Control your entire delivery lifecycle with pods that combine engineers, designers, and product owners ready to ship.',
-  },
-  {
-    id: 'mobile',
-    category: 'Mobile App Development',
-    subcategories: [
-      { name: 'Android' },
-      { name: 'iOS' },
-      { name: 'Flutter' },
-      { name: 'React Native' },
-    ],
-    bannerTitle: 'Build premium mobile experiences',
-    bannerSubtitle: 'Native performance, consistent design systems, and automated releases.',
-    bannerImage: imageLibrary[1].value,
-    createdAt: '2024-07-08',
-    totalServices: 9,
-    totalProjects: 85,
-    totalClients: 40,
-    faqs: [
-      {
-        id: 'faq-mobile-1',
-        question: 'Can you migrate existing apps?',
-        answer: 'We refresh legacy apps with modern stacks and CI/CD without downtime.',
-      },
-    ],
-    description:
-      'From ideation to app store launch, keep every device covered with engineers fluent in modern mobile stacks.',
-  },
-];
-
-const initialTechnologies = [
-  {
-    id: 'frontend-tech',
-    category: 'Full Stack Development',
-    subcategory: 'Frontend',
-    title: 'Frontend',
-    image: imageLibrary[2].value,
-    items: ['React', 'Angular', 'Vue', 'Next.js', 'TypeScript'],
-  },
-  {
-    id: 'backend-tech',
-    category: 'Full Stack Development',
-    subcategory: 'Backend',
-    title: 'Backend',
-    image: imageLibrary[3].value,
-    items: ['Node.js', 'Django', 'Laravel', 'Golang', 'PostgreSQL'],
-  },
-];
-
-const initialBenefits = [
-  {
-    id: 'benefit-1',
-    title: 'Outcome-first delivery',
-    category: 'Full Stack Development',
-    subcategory: 'Frontend',
-    description: 'Every roadmap is mapped to measurable impact and transparent milestones.',
-    image: imageLibrary[0].value,
-  },
-  {
-    id: 'benefit-2',
-    title: 'Embedded governance',
-    category: 'Mobile App Development',
-    subcategory: 'Android',
-    description: 'Security, QA, and documentation are standard across every engagement.',
-    image: imageLibrary[1].value,
-  }
-];
-
-const initialHireDevelopers = {
-  title: 'Development services on-demand',
-  description:
-    'Shape squads with the exact capabilities you need—from product discovery to release engineering—without long ramp-up times.',
-  heroImage: imageLibrary[2].value,
-  services: [
-    {
-      id: 'android-team',
-      category: 'Mobile App Development',
-      subcategory: 'Android',
-      title: 'Android team',
-      description: 'Compose-first Android engineers ready for feature pods.',
-      image: imageLibrary[0].value,
-    },
-    {
-      id: 'ios-team',
-      category: 'Mobile App Development',
-      subcategory: 'iOS',
-      title: 'iOS team',
-      description: 'Swift and SwiftUI experts with App Store release experience.',
-      image: imageLibrary[1].value,
-    },
-    {
-      id: 'full-stack-team',
-      category: 'Full Stack Development',
-      subcategory: 'Backend',
-      title: 'Full stack team',
-      description: 'API, web, and DevOps engineers aligned to your roadmap.',
-      image: imageLibrary[2].value,
-    },
-  ]
+const initialHirePricingState = {
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  plans: [],
 };
 
-const initialHirePricing = {
-  heroTitle: 'Predictable pricing for hiring developers',
-  heroDescription:
-    'Pick the engagement model that matches your roadmap. Every plan includes governance, QA, and product stewardship.',
-  heroImage: imageLibrary[3].value,
-  plans: [
-    {
-      id: 'pricing-monthly',
-      title: 'Monthly cost',
-      subtitle: 'Flexible monthly billing with continuous delivery',
-      description: 'Best for startups aligning new initiatives with adaptable velocity and on-demand support.',
-      price: '$2,400*',
-      services: [
-        'Best for startups running new initiatives',
-        '2–3 engineers per pod with QA support',
-        'Product Manager included for prioritization',
-        'Sprint planning, demos, and retros each week',
-      ],
-    },
-    {
-      id: 'pricing-half-yearly',
-      title: 'Half yearly',
-      subtitle: 'Discounted commitment with predictable velocity',
-      description: 'Ideal for scaling product teams with stable squads and time-zone aligned delivery.',
-      price: '$13,500',
-      services: [
-        'Agile product squads with design support',
-        '4+ years of experience per engineer',
-        'Time zone overlap coverage',
-        '960 hours over 6 months',
-      ],
-    },
-    {
-      id: 'pricing-annual',
-      title: 'Annual retainers',
-      subtitle: 'Strategic partnership for enterprise-grade delivery',
-      description: 'For companies needing architecture, security, and release management baked into every sprint.',
-      price: '$24,000',
-      services: [
-        'Enterprise-ready frameworks and automation',
-        'Dedicated QA automation and documentation',
-        'Architecture reviews and observability setup',
-        '1920 hours / 12 months',
-      ],
-    },
-  ],
+const initialHireContentState = {
+  title: '',
+  description: '',
+  heroImage: imagePlaceholder,
+  services: [],
 };
 
-const initialProcess = [
-  {
-    id: 'process-1',
-    title: 'Discovery and planning',
-    description: 'Align goals, scope, and delivery milestones with stakeholder workshops.',
-    category: 'Full Stack Development',
-    subcategory: 'Frontend',
-    image: imageLibrary[3].value,
-  },
-  {
-    id: 'process-2',
-    title: 'Release and measurement',
-    description: 'Ship builds, monitor analytics, and optimise through iterative releases.',
-    category: 'Mobile App Development',
-    subcategory: 'Android',
-    image: imageLibrary[0].value,
-  },
-];
-
-const initialWhyVedx = {
-  heroTitle: 'Why choose VedX Solutions',
-  heroDescription: 'Pair proven delivery methods with industry focus and transparent engagement.',
-  heroImage: imageLibrary[1].value,
-  reasons: [
-    {
-      id: 'why-vedx-1',
-      title: 'Outcome obsessed',
-      description: 'Every engagement is mapped to measurable business impact with proactive reporting.',
-      image: imageLibrary[2].value,
-    },
-    {
-      id: 'why-vedx-2',
-      title: 'Specialists per domain',
-      description: 'Category and sub-category owners ensure the right SMEs guide delivery.',
-      image: imageLibrary[0].value,
-    },
-  ],
+const initialWhyChooseState = {
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  tableTitle: '',
+  tableDescription: '',
+  services: [],
 };
 
-const initialOurServices = {
-  sliderTitle: 'Our Services',
-  sliderDescription: 'Showcase priority services with visuals, titles, and taxonomy tags.',
-  sliderImage: imageLibrary[0].value,
-  services: [
-    {
-      id: 'os-1',
-      title: 'Cloud native engineering',
-      image: imageLibrary[1].value,
-    },
-    {
-      id: 'os-2',
-      title: 'Data and AI accelerators',
-      image: imageLibrary[2].value,
-    },
-  ],
+const initialWhyVedxState = {
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  reasons: [],
 };
 
-const initialIndustries = {
-  title: 'Industries we serve',
-  description: 'Tailored solutions for digital-first leaders across sectors.',
-  items: [
-    {
-      id: 'ind-1',
-      title: 'Fintech',
-      description: 'Regulatory-ready delivery with robust security practices.',
-      image: imageLibrary[3].value,
-    },
-    {
-      id: 'ind-2',
-      title: 'Healthtech',
-      description: 'Compliant experiences with patient-first design.',
-      image: imageLibrary[0].value,
-    },
-  ],
+const initialOurServicesState = {
+  sliderTitle: '',
+  sliderDescription: '',
+  sliderImage: imagePlaceholder,
+  services: [],
 };
 
-const initialTechSolutions = {
-  title: 'Tech solutions for all business types',
-  description: 'Reusable solution kits that scale with growth and compliance needs.',
-  solutions: [
-    {
-      id: 'ts-1',
-      title: 'SMB accelerators',
-      description: 'Launch quickly with curated starter kits and managed services.',
-    },
-    {
-      id: 'ts-2',
-      title: 'Enterprise modernization',
-      description: 'Refactor, cloud migrate, and govern change with confidence.',
-    },
-  ],
+const initialIndustriesState = {
+  title: '',
+  description: '',
+  items: [],
 };
 
-const initialExpertise = {
-  title: 'Ways to choose our expertise',
-  description: 'Pick the collaboration model and focus area that best fits your roadmap.',
-  items: [
-    {
-      id: 'exp-1',
-      title: 'Dedicated pods',
-      description: 'Long-running pods aligned to a business unit with steady velocity.',
-      image: imageLibrary[1].value,
-    },
-    {
-      id: 'exp-2',
-      title: 'Outcome squads',
-      description: 'Cross-functional teams focused on a single measurable outcome.',
-      image: imageLibrary[0].value,
-    },
-  ],
+const initialTechSolutionsState = {
+  title: '',
+  description: '',
+  solutions: [],
+};
+
+const initialExpertiseState = {
+  title: '',
+  description: '',
+  items: [],
 };
 
 const emptyServiceForm = {
@@ -357,7 +98,7 @@ const emptyServiceForm = {
   subcategories: [],
   bannerTitle: '',
   bannerSubtitle: '',
-  bannerImage: imageLibrary[0].value,
+  bannerImage: imagePlaceholder,
   createdAt: new Date().toISOString().split('T')[0],
   totalServices: 0,
   totalProjects: 0,
@@ -371,7 +112,7 @@ const emptyTechnologyForm = {
   category: '',
   subcategory: '',
   title: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
   items: [],
 };
 
@@ -381,7 +122,7 @@ const emptyBenefitForm = {
   category: '',
   subcategory: '',
   description: '',
-  image: imageLibrary[1].value,
+  image: imagePlaceholder,
 };
 
 const emptyHirePricingForm = {
@@ -399,7 +140,7 @@ const emptyHireServiceForm = {
   subcategory: '',
   title: '',
   description: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyProcessForm = {
@@ -408,33 +149,33 @@ const emptyProcessForm = {
   description: '',
   category: '',
   subcategory: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyWhyVedxHero = {
   heroTitle: '',
   heroDescription: '',
-  heroImage: imageLibrary[0].value,
+  heroImage: imagePlaceholder,
 };
 
 const emptyWhyVedxForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyOurServiceForm = {
   id: '',
   title: '',
-  image: imageLibrary[2].value,
+  image: imagePlaceholder,
 };
 
 const emptyIndustryForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[3].value,
+  image: imagePlaceholder,
 };
 
 const emptyTechSolutionForm = {
@@ -452,7 +193,7 @@ const emptyExpertiseForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[2].value,
+  image: imagePlaceholder,
 };
 
 const normalizeService = (service) => ({
@@ -574,30 +315,124 @@ const normalizeExpertise = (item) => ({
   sectionDescription: item.sectionDescription || '',
 });
 
-const initialWhyChoose = {
-  heroTitle: 'Why choose our services',
-  heroDescription:
-    'Reassure visitors with outcomes, trusted delivery, and transparent engagement models backed by our teams.',
-  heroImage: imageLibrary[0].value,
-  tableTitle: 'Service highlights',
-  tableDescription: 'Spotlight capabilities by category and sub-category so clients can pick the right path.',
-  services: [
-    {
-      id: 'why-fs-front',
-      category: 'Full Stack Development',
-      subcategory: 'Frontend',
-      title: 'Product-minded engineers',
-      description: 'Frontend specialists who pair with UX and back-end teams to ship cohesive experiences.',
-    },
-    {
-      id: 'why-mobile-ios',
-      category: 'Mobile App Development',
-      subcategory: 'iOS',
-      title: 'Release-ready iOS pods',
-      description: 'Swift and SwiftUI teams who manage App Store releases, QA, and observability.',
-    },
-  ],
-};
+const normalizeService = (service) => ({
+  id: service.id,
+  category: service.category || '',
+  subcategories: service.subcategories || [],
+  bannerTitle: service.bannerTitle || '',
+  bannerSubtitle: service.bannerSubtitle || '',
+  bannerImage: service.bannerImage || imagePlaceholder,
+  createdAt: service.createdAt ? service.createdAt.slice(0, 10) : '',
+  totalServices: service.totalServices ?? 0,
+  totalProjects: service.totalProjects ?? 0,
+  totalClients: service.totalClients ?? 0,
+  faqs: service.faqs || [],
+  description: service.description || '',
+});
+
+const normalizeTechnology = (tech) => ({
+  id: tech.id,
+  category: tech.category || '',
+  subcategory: tech.subcategory || '',
+  title: tech.title || '',
+  image: tech.image || imagePlaceholder,
+  items: tech.items || [],
+});
+
+const normalizeBenefit = (benefit) => ({
+  id: benefit.id,
+  title: benefit.title || '',
+  category: benefit.category || '',
+  subcategory: benefit.subcategory || '',
+  description: benefit.description || '',
+  image: benefit.image || imagePlaceholder,
+});
+
+const normalizePricingPlan = (plan) => ({
+  id: plan.id,
+  title: plan.title || '',
+  subtitle: plan.subtitle || '',
+  description: plan.description || '',
+  price: plan.price || '',
+  services: plan.services || [],
+  heroTitle: plan.heroTitle || '',
+  heroDescription: plan.heroDescription || '',
+  heroImage: plan.heroImage || imagePlaceholder,
+});
+
+const normalizeHireService = (service) => ({
+  id: service.id,
+  category: service.category || '',
+  subcategory: service.subcategory || '',
+  title: service.title || '',
+  description: service.description || '',
+  image: service.image || imagePlaceholder,
+  heroTitle: service.heroTitle || '',
+  heroDescription: service.heroDescription || '',
+  heroImage: service.heroImage || imagePlaceholder,
+});
+
+const normalizeProcess = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  image: item.image || imagePlaceholder,
+});
+
+const normalizeWhyVedx = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  heroTitle: item.heroTitle || '',
+  heroDescription: item.heroDescription || '',
+  heroImage: item.heroImage || imagePlaceholder,
+});
+
+const normalizeWhyChoose = (item) => ({
+  id: item.id,
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  title: item.title || '',
+  description: item.description || '',
+  heroTitle: item.heroTitle || '',
+  heroDescription: item.heroDescription || '',
+  heroImage: item.heroImage || imagePlaceholder,
+  tableTitle: item.tableTitle || '',
+  tableDescription: item.tableDescription || '',
+});
+
+const normalizeIndustry = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+});
+
+const normalizeTechSolution = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+  sliderTitle: item.sliderTitle || '',
+  sliderDescription: item.sliderDescription || '',
+  sliderImage: item.sliderImage || imagePlaceholder,
+});
+
+const normalizeExpertise = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+});
 
 const emptyWhyServiceForm = {
   id: '',
@@ -717,7 +552,7 @@ const ImageUpload = ({ label, value, onChange, required }) => {
 const AdminHiredeveloperPage = () => {
   const [activeTab, setActiveTab] = useState('services');
 
-  const [services, setServices] = useState(initialServices);
+  const [services, setServices] = useState([]);
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
   const [serviceDialogMode, setServiceDialogMode] = useState('create');
   const [activeService, setActiveService] = useState(null);
@@ -726,24 +561,25 @@ const AdminHiredeveloperPage = () => {
   const [viewService, setViewService] = useState(null);
   const [faqDraft, setFaqDraft] = useState({ question: '', answer: '' });
 
-  const [technologies, setTechnologies] = useState(initialTechnologies);
+  const [technologies, setTechnologies] = useState([]);
   const [technologyDialogOpen, setTechnologyDialogOpen] = useState(false);
   const [technologyDialogMode, setTechnologyDialogMode] = useState('create');
   const [technologyForm, setTechnologyForm] = useState(emptyTechnologyForm);
   const [activeTechnology, setActiveTechnology] = useState(null);
   const [technologyToDelete, setTechnologyToDelete] = useState(null);
 
-  const [benefits, setBenefits] = useState(initialBenefits);
+  const [benefits, setBenefits] = useState([]);
   const [benefitDialogOpen, setBenefitDialogOpen] = useState(false);
   const [benefitDialogMode, setBenefitDialogMode] = useState('create');
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
   const [activeBenefit, setActiveBenefit] = useState(null);
   const [benefitToDelete, setBenefitToDelete] = useState(null);
 
-  const [hirePricing, setHirePricing] = useState(initialHirePricing);
+  const [hirePricing, setHirePricing] = useState(initialHirePricingState);
   const [hirePricingHeroForm, setHirePricingHeroForm] = useState({
-    heroTitle: initialHirePricing.heroTitle,
-    heroDescription: initialHirePricing.heroDescription,
+    heroTitle: '',
+    heroDescription: '',
+    heroImage: imagePlaceholder,
   });
   const [hirePricingHeroSaved, setHirePricingHeroSaved] = useState(false);
   const [hirePricingDialogOpen, setHirePricingDialogOpen] = useState(false);
@@ -756,7 +592,7 @@ const AdminHiredeveloperPage = () => {
   const [hirePricingServiceEditValue, setHirePricingServiceEditValue] = useState('');
   const [hirePricingServiceToDelete, setHirePricingServiceToDelete] = useState(null);
 
-  const [hireContent, setHireContent] = useState(initialHireDevelopers);
+  const [hireContent, setHireContent] = useState(initialHireContentState);
   const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
   const [hireServiceDialogMode, setHireServiceDialogMode] = useState('create');
   const [hireServiceForm, setHireServiceForm] = useState(emptyHireServiceForm);
@@ -764,53 +600,53 @@ const AdminHiredeveloperPage = () => {
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
 
-  const [whyChoose, setWhyChoose] = useState(initialWhyChoose);
-  const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChoose);
+  const [whyChoose, setWhyChoose] = useState(initialWhyChooseState);
+  const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChooseState);
   const [whyServiceDialogOpen, setWhyServiceDialogOpen] = useState(false);
   const [whyServiceDialogMode, setWhyServiceDialogMode] = useState('create');
   const [whyServiceForm, setWhyServiceForm] = useState(emptyWhyServiceForm);
   const [activeWhyService, setActiveWhyService] = useState(null);
   const [whyServiceToDelete, setWhyServiceToDelete] = useState(null);
 
-  const [processList, setProcessList] = useState(initialProcess);
+  const [processList, setProcessList] = useState([]);
   const [processDialogOpen, setProcessDialogOpen] = useState(false);
   const [processDialogMode, setProcessDialogMode] = useState('create');
   const [processForm, setProcessForm] = useState(emptyProcessForm);
   const [activeProcess, setActiveProcess] = useState(null);
   const [processToDelete, setProcessToDelete] = useState(null);
 
-  const [whyVedx, setWhyVedx] = useState(initialWhyVedx);
-  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState(initialWhyVedx);
+  const [whyVedx, setWhyVedx] = useState(initialWhyVedxState);
+  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState(initialWhyVedxState);
   const [whyVedxDialogOpen, setWhyVedxDialogOpen] = useState(false);
   const [whyVedxDialogMode, setWhyVedxDialogMode] = useState('create');
   const [whyVedxForm, setWhyVedxForm] = useState(emptyWhyVedxForm);
   const [activeWhyVedx, setActiveWhyVedx] = useState(null);
   const [whyVedxToDelete, setWhyVedxToDelete] = useState(null);
 
-  const [ourServices, setOurServices] = useState(initialOurServices);
-  const [ourServicesHeroForm, setOurServicesHeroForm] = useState(initialOurServices);
+  const [ourServices, setOurServices] = useState(initialOurServicesState);
+  const [ourServicesHeroForm, setOurServicesHeroForm] = useState(initialOurServicesState);
   const [ourServiceDialogOpen, setOurServiceDialogOpen] = useState(false);
   const [ourServiceDialogMode, setOurServiceDialogMode] = useState('create');
   const [ourServiceForm, setOurServiceForm] = useState(emptyOurServiceForm);
   const [activeOurService, setActiveOurService] = useState(null);
   const [ourServiceToDelete, setOurServiceToDelete] = useState(null);
 
-  const [industries, setIndustries] = useState(initialIndustries);
+  const [industries, setIndustries] = useState(initialIndustriesState);
   const [industryDialogOpen, setIndustryDialogOpen] = useState(false);
   const [industryDialogMode, setIndustryDialogMode] = useState('create');
   const [industryForm, setIndustryForm] = useState(emptyIndustryForm);
   const [activeIndustry, setActiveIndustry] = useState(null);
   const [industryToDelete, setIndustryToDelete] = useState(null);
 
-  const [techSolutions, setTechSolutions] = useState(initialTechSolutions);
+  const [techSolutions, setTechSolutions] = useState(initialTechSolutionsState);
   const [techSolutionDialogOpen, setTechSolutionDialogOpen] = useState(false);
   const [techSolutionDialogMode, setTechSolutionDialogMode] = useState('create');
   const [techSolutionForm, setTechSolutionForm] = useState(emptyTechSolutionForm);
   const [activeTechSolution, setActiveTechSolution] = useState(null);
   const [techSolutionToDelete, setTechSolutionToDelete] = useState(null);
 
-  const [expertise, setExpertise] = useState(initialExpertise);
-  const [expertiseHeroForm, setExpertiseHeroForm] = useState(initialExpertise);
+  const [expertise, setExpertise] = useState(initialExpertiseState);
+  const [expertiseHeroForm, setExpertiseHeroForm] = useState(initialExpertiseState);
   const [expertiseDialogOpen, setExpertiseDialogOpen] = useState(false);
   const [expertiseDialogMode, setExpertiseDialogMode] = useState('create');
   const [expertiseForm, setExpertiseForm] = useState(emptyExpertiseForm);
