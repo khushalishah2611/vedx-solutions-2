@@ -24,9 +24,9 @@ if (hasMongoConfig) {
   }
 } else {
   const warning = uri
-    ? "DATABASE_URL is set but is not a valid MongoDB URI (expected to start with mongodb:// or mongodb+srv://); MongoDB features are disabled."
+    ? "DATABASE_URL is set to a non-Mongo URI (for example, a MySQL connection string); MongoDB-specific features are disabled."
     : "DATABASE_URL is missing; MongoDB features are disabled.";
-  console.warn(warning);
+  console.info(warning);
 }
 
 export default async function connectDB() {

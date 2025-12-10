@@ -78,7 +78,7 @@ if (hasMongoConfig) {
       process.exit(1);
     });
 } else {
-  console.warn('Skipping MongoDB initialization because DATABASE_URL is not set.');
+  console.info('Skipping MongoDB initialization because DATABASE_URL is not a Mongo connection string.');
 }
 
 const hashPassword = (value) =>

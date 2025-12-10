@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -46,7 +46,7 @@ enum EmploymentType {
 /// DASHBOARD BANNER
 /// ----------------------------------------------------------
 model Banner {
-  id        String        @id @map("_id") @default(auto()) @db.ObjectId
+  id        Int @id @default(autoincrement())
   title     String
   type      BannerType
   /// Non-home banners (about/blogs/contact/career) ek image
@@ -59,8 +59,8 @@ model Banner {
 }
 
 model BannerImage {
-  id        String   @id @map("_id") @default(auto()) @db.ObjectId
-  bannerId  String   @db.ObjectId
+  id        Int @id @default(autoincrement())
+  bannerId  Int
   banner    Banner   @relation(fields: [bannerId], references: [id])
 
   imageUrl  String
@@ -74,7 +74,7 @@ model BannerImage {
 /// PROCESS TAB (steps)
 /// ----------------------------------------------------------
 model ProcessStep {
-  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   description String?
   imageUrl    String?
@@ -91,7 +91,7 @@ model ProcessStep {
 /// ----------------------------------------------------------
 /// Slider = hero section (title + description + image)
 model ServiceSlider {
-  id                String        @id @map("_id") @default(auto()) @db.ObjectId
+  id                Int @id @default(autoincrement())
   sliderTitle       String
   sliderDescription String?
   sliderImageUrl    String?
@@ -105,14 +105,14 @@ model ServiceSlider {
 
 /// Individual service cards, mapped to a slider
 model ServiceCard {
-  id           String        @id @map("_id") @default(auto()) @db.ObjectId
+  id           Int @id @default(autoincrement())
   title        String
   /// Optional, future ma use kari shakay
   subtitle     String?
   description  String?
   imageUrl     String?
 
-  sliderId     String        @db.ObjectId
+  sliderId     Int
   slider       ServiceSlider @relation(fields: [sliderId], references: [id])
 
   sortOrder    Int           @default(0)
@@ -127,7 +127,7 @@ model ServiceCard {
 /// ----------------------------------------------------------
 /// Header (Title + Description) – singleton type section
 model IndustriesConfig {
-  id          String     @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   description String?
 
@@ -139,8 +139,8 @@ model IndustriesConfig {
 
 /// List items (Fintech, Healthtech, etc.)
 model Industry {
-  id          String           @id @map("_id") @default(auto()) @db.ObjectId
-  sectionId   String           @db.ObjectId
+  id          Int @id @default(autoincrement())
+  sectionId   Int
   section     IndustriesConfig @relation(fields: [sectionId], references: [id])
 
   title       String
@@ -162,7 +162,7 @@ model Industry {
 /// ----------------------------------------------------------
 /// Header content
 model TechSolutionsConfig {
-  id          String         @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   description String?
 
@@ -174,8 +174,8 @@ model TechSolutionsConfig {
 
 /// Solutions list (SMB accelerators, Enterprise modernization)
 model TechSolution {
-  id          String              @id @map("_id") @default(auto()) @db.ObjectId
-  sectionId   String              @db.ObjectId
+  id          Int @id @default(autoincrement())
+  sectionId   Int
   section     TechSolutionsConfig @relation(fields: [sectionId], references: [id])
 
   title       String
@@ -192,7 +192,7 @@ model TechSolution {
 /// EXPERTISE MODELS
 /// ----------------------------------------------------------
 model ExpertiseConfig {
-  id          String         @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   description String?
 
@@ -203,8 +203,8 @@ model ExpertiseConfig {
 }
 
 model ExpertiseItem {
-  id          String          @id @map("_id") @default(auto()) @db.ObjectId
-  sectionId   String          @db.ObjectId
+  id          Int @id @default(autoincrement())
+  sectionId   Int
   section     ExpertiseConfig @relation(fields: [sectionId], references: [id])
 
   title       String
@@ -223,7 +223,7 @@ model ExpertiseItem {
 /// ----------------------------------------------------------
 
 model AdminUser {
-  id           String        @id @map("_id") @default(auto()) @db.ObjectId
+  id           Int @id @default(autoincrement())
   email        String        @unique
   passwordHash String
   name         String
@@ -235,29 +235,29 @@ model AdminUser {
 }
 
 model AdminSession {
-  id        String     @id @map("_id") @default(auto()) @db.ObjectId
+  id        Int @id @default(autoincrement())
   token     String     @unique
-  adminId   String     @db.ObjectId
+  adminId   Int
   admin     AdminUser  @relation(fields: [adminId], references: [id])
   expiresAt DateTime
   createdAt DateTime   @default(now())
 }
 
 model NavigationItem {
-  id        String              @id @map("_id") @default(auto()) @db.ObjectId
+  id        Int @id @default(autoincrement())
   label     String
   path      String
   slug      String              @unique
   visible   Boolean             @default(true)
   order     Int                 @default(0)
-  parentId  String?             @db.ObjectId
+  parentId  Int?
   parent    NavigationItem?     @relation("NavigationHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children  NavigationItem[]    @relation("NavigationHierarchy")
   seo       PageSeo?
 }
 
 model PageSeo {
-  id              String           @id @map("_id") @default(auto()) @db.ObjectId
+  id              Int @id @default(autoincrement())
   pageKey         String           @unique
   metaTitle       String
   metaDescription String?
@@ -266,7 +266,7 @@ model PageSeo {
   canonicalUrl    String?
   noIndex         Boolean          @default(false)
 
-  navigationId    String?          @unique @db.ObjectId
+  navigationId    Int?          @unique
   navigation      NavigationItem?  @relation(fields: [navigationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   createdAt       DateTime         @default(now())
@@ -274,7 +274,7 @@ model PageSeo {
 }
 
 model ServiceCategory {
-  id            String                @id @map("_id") @default(auto()) @db.ObjectId
+  id            Int @id @default(autoincrement())
   name          String
   slug          String                @unique
   description   String?
@@ -284,24 +284,24 @@ model ServiceCategory {
 }
 
 model Service {
-  id            String              @id @map("_id") @default(auto()) @db.ObjectId
+  id            Int @id @default(autoincrement())
   title         String
   slug          String              @unique
   summary       String?
   imageUrl      String?
   tags          Json?
-  subCategoryId String?             @db.ObjectId
+  subCategoryId Int?
   subCategory   ServiceSubCategory? @relation(fields: [subCategoryId], references: [id])
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 }
 
 model ServiceSubCategory {
-  id           String          @id @map("_id") @default(auto()) @db.ObjectId
+  id           Int @id @default(autoincrement())
   name         String
   slug         String          @unique
   description  String?
-  categoryId   String          @db.ObjectId
+  categoryId   Int
   category     ServiceCategory @relation(fields: [categoryId], references: [id])
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
@@ -309,7 +309,7 @@ model ServiceSubCategory {
 }
 
 model BlogPost {
-  id           String        @id @map("_id") @default(auto()) @db.ObjectId
+  id           Int @id @default(autoincrement())
   title        String
   slug         String        @unique
   summary      String?
@@ -322,12 +322,12 @@ model BlogPost {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  categoryId   String?       @db.ObjectId
+  categoryId   Int?
   category     BlogCategory? @relation(fields: [categoryId], references: [id])
 }
 
 model BlogCategory {
-  id        String     @id @map("_id") @default(auto()) @db.ObjectId
+  id        Int @id @default(autoincrement())
   name      String     @unique
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -335,7 +335,7 @@ model BlogCategory {
 }
 
 model CareerOpening {
-  id               String         @id @map("_id") @default(auto()) @db.ObjectId
+  id               Int @id @default(autoincrement())
   title            String
   slug             String         @unique
   position         String?
@@ -355,7 +355,7 @@ model CareerOpening {
 }
 
 model CareerApplication {
-  id             String         @id @map("_id") @default(auto()) @db.ObjectId
+  id             Int @id @default(autoincrement())
   name           String
   email          String
   contact        String?
@@ -364,14 +364,14 @@ model CareerApplication {
   appliedOn      DateTime?      @default(now())
   resumeUrl      String?
   notes          String?
-  jobId          String?        @db.ObjectId
+  jobId          Int?
   job            CareerOpening? @relation(fields: [jobId], references: [id])
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
 
 model ContactMessage {
-  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   name        String
   email       String
   phone       String?
@@ -387,14 +387,14 @@ model ContactMessage {
 }
 
 model ProjectType {
-  id        String   @id @map("_id") @default(auto()) @db.ObjectId
+  id        Int @id @default(autoincrement())
   name      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model ClientFeedback {
-  id        String   @id @map("_id") @default(auto()) @db.ObjectId
+  id        Int @id @default(autoincrement())
   client    String
   role      String?
   quote     String
@@ -407,7 +407,7 @@ model ClientFeedback {
 /// NOTE: HireCategory / HireRole already exists for "Hire developers" flows.
 /// (Mara pela Int-based HireCategory/HireSubcategory models hata – e hataavi didha.)
 model HireCategory {
-  id          String     @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   slug        String     @unique
   description String?
@@ -417,18 +417,18 @@ model HireCategory {
 }
 
 model HireRole {
-  id             String       @id @map("_id") @default(auto()) @db.ObjectId
+  id             Int @id @default(autoincrement())
   title          String
   slug           String       @unique
   description    String?
-  hireCategoryId String       @db.ObjectId
+  hireCategoryId Int
   hireCategory   HireCategory @relation(fields: [hireCategoryId], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
 
 model OtpVerification {
-  id          String     @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   email       String
   code        String
   expiresAt   DateTime
@@ -440,7 +440,7 @@ model OtpVerification {
 }
 
 model ServiceMenu {
-  id              String                    @id @map("_id") @default(auto()) @db.ObjectId
+  id              Int @id @default(autoincrement())
   category        String
   bannerTitle     String
   bannerSubtitle  String
@@ -461,9 +461,9 @@ model ServiceMenu {
 }
 
 model ServiceMenuSubcategory {
-  id          String        @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   name        String
-  serviceId   String        @db.ObjectId
+  serviceId   Int
   service     ServiceMenu   @relation(fields: [serviceId], references: [id])
 
   createdAt   DateTime      @default(now())
@@ -473,10 +473,10 @@ model ServiceMenuSubcategory {
 }
 
 model ServiceMenuFaq {
-  id          String        @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   question    String
   answer      String
-  serviceId   String        @db.ObjectId
+  serviceId   Int
   service     ServiceMenu   @relation(fields: [serviceId], references: [id])
 
   createdAt   DateTime      @default(now())
@@ -490,7 +490,7 @@ model ServiceMenuFaq {
 /// ===============================================
 
 model Technology {
-  id            String    @id @map("_id") @default(auto()) @db.ObjectId
+  id            Int @id @default(autoincrement())
   category      String
   subcategory   String?
   title         String
@@ -508,7 +508,7 @@ model Technology {
 /// ===============================================
 
 model Benefit {
-  id            String    @id @map("_id") @default(auto()) @db.ObjectId
+  id            Int @id @default(autoincrement())
   title         String
   category      String?
   subcategory   String?
@@ -526,13 +526,13 @@ model Benefit {
 /// ===============================================
 
 model ServiceProcess {
-  id            String        @id @map("_id") @default(auto()) @db.ObjectId
+  id            Int @id @default(autoincrement())
   title         String
   description   String
   category      String
   subcategory   String?
   image         String
-  serviceId     String?       @db.ObjectId
+  serviceId     Int?
   service       ServiceMenu?  @relation(fields: [serviceId], references: [id])
 
   createdAt     DateTime      @default(now())
@@ -547,7 +547,7 @@ model ServiceProcess {
 /// ===============================================
 
 model HireDeveloper {
-  id              String        @id @map("_id") @default(auto()) @db.ObjectId
+  id              Int @id @default(autoincrement())
   title           String
   description     String
   heroImage       String
@@ -559,13 +559,13 @@ model HireDeveloper {
 }
 
 model HireService {
-  id                String         @id @map("_id") @default(auto()) @db.ObjectId
+  id                Int @id @default(autoincrement())
   category          String
   subcategory       String?
   title             String
   description       String
   image             String
-  hireDeveloperId   String?        @db.ObjectId
+  hireDeveloperId   Int?
   hireDeveloper     HireDeveloper? @relation(fields: [hireDeveloperId], references: [id])
 
   createdAt         DateTime       @default(now())
@@ -580,7 +580,7 @@ model HireService {
 /// ===============================================
 
 model WhyChoose {
-  id                String       @id @map("_id") @default(auto()) @db.ObjectId
+  id                Int @id @default(autoincrement())
   heroTitle         String
   heroDescription   String
   heroImage         String
@@ -594,12 +594,12 @@ model WhyChoose {
 }
 
 model WhyService {
-  id            String      @id @map("_id") @default(auto()) @db.ObjectId
+  id            Int @id @default(autoincrement())
   category      String
   subcategory   String?
   title         String
   description   String
-  whyChooseId   String?     @db.ObjectId
+  whyChooseId   Int?
   whyChoose     WhyChoose?  @relation(fields: [whyChooseId], references: [id])
 
   createdAt     DateTime    @default(now())
@@ -614,7 +614,7 @@ model WhyService {
 /// ===============================================
 
 model WhyVedx {
-  id              String        @id @map("_id") @default(auto()) @db.ObjectId
+  id              Int @id @default(autoincrement())
   heroTitle       String
   heroDescription String
   heroImage       String
@@ -626,11 +626,11 @@ model WhyVedx {
 }
 
 model WhyVedxReason {
-  id            String     @id @map("_id") @default(auto()) @db.ObjectId
+  id            Int @id @default(autoincrement())
   title         String
   description   String
   image         String
-  whyVedxId     String?    @db.ObjectId
+  whyVedxId     Int?
   whyVedx       WhyVedx?   @relation(fields: [whyVedxId], references: [id])
 
   createdAt     DateTime   @default(now())
@@ -644,7 +644,7 @@ model WhyVedxReason {
 /// ===============================================
 
 model HireDeveloperService {
-  id              String   @id @map("_id") @default(auto()) @db.ObjectId
+  id              Int @id @default(autoincrement())
   category        String
   subcategories   Json     // Array of {name: string}
   bannerTitle     String?
@@ -663,7 +663,7 @@ model HireDeveloperService {
 
 // Technologies Table
 model HireDeveloperTechnology {
-  id           String   @id @map("_id") @default(auto()) @db.ObjectId
+  id           Int @id @default(autoincrement())
   category     String
   subcategory  String?
   title        String
@@ -677,7 +677,7 @@ model HireDeveloperTechnology {
 
 // Benefits Table
 model HireDeveloperBenefit {
-  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   category    String?
   subcategory String?
@@ -691,7 +691,7 @@ model HireDeveloperBenefit {
 
 // Hire Pricing Table
 model HireDeveloperPricing {
-  id             String   @id @map("_id") @default(auto()) @db.ObjectId
+  id             Int @id @default(autoincrement())
   title          String
   subtitle       String?
   description    String?  // removed @db.Text
@@ -708,7 +708,7 @@ model HireDeveloperPricing {
 
 // Hire Services (Development Services) Table
 model HireDeveloperHireService {
-  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   category    String
   subcategory String?
   title       String
@@ -725,7 +725,7 @@ model HireDeveloperHireService {
 
 // Process Table
 model HireDeveloperProcess {
-  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   description String?  // removed @db.Text
   category    String
@@ -739,7 +739,7 @@ model HireDeveloperProcess {
 
 // Why VedX Table
 model HireDeveloperWhyVedx {
-  id              String   @id @map("_id") @default(auto()) @db.ObjectId
+  id              Int @id @default(autoincrement())
   title           String
   description     String?  // removed @db.Text
   image           String
@@ -754,7 +754,7 @@ model HireDeveloperWhyVedx {
 
 // Why Choose Service Table
 model HireDeveloperWhyChoose {
-  id              String   @id @map("_id") @default(auto()) @db.ObjectId
+  id              Int @id @default(autoincrement())
   category        String
   subcategory     String?
   title           String
@@ -772,7 +772,7 @@ model HireDeveloperWhyChoose {
 
 // Industries Table
 model HireDeveloperIndustry {
-  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   description String?  // removed @db.Text
   image       String
@@ -786,7 +786,7 @@ model HireDeveloperIndustry {
 
 // Tech Solutions Table
 model HireDeveloperTechSolution {
-  id               String   @id @map("_id") @default(auto()) @db.ObjectId
+  id               Int @id @default(autoincrement())
   title            String
   description      String?  // removed @db.Text
   sectionTitle     String?
@@ -799,7 +799,7 @@ model HireDeveloperTechSolution {
 
 // Expertise Table
 model HireDeveloperExpertise {
-  id          String   @id @map("_id") @default(auto()) @db.ObjectId
+  id          Int @id @default(autoincrement())
   title       String
   description String?  // removed @db.Text
   image       String
@@ -813,7 +813,7 @@ model HireDeveloperExpertise {
 
 // Our Services Slider Table
 model HireDeveloperOurService {
-  id               String   @id @map("_id") @default(auto()) @db.ObjectId
+  id               Int @id @default(autoincrement())
   title            String
   image            String
   sliderTitle      String?
