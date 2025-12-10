@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
   Box,
@@ -34,320 +35,61 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
-const imageLibrary = [
-  {
-    label: 'Team collaboration',
-    value:
-      'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1600&q=80',
-  },
-  {
-    label: 'Developers at work',
-    value:
-      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80',
-  },
-  {
-    label: 'Modern workspace',
-    value:
-      'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1600&q=80',
-  },
-  {
-    label: 'Product presentation',
-    value:
-      'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1600&q=80',
-  },
-];
+const imagePlaceholder = '';
 
-const imagePlaceholder =
-  'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=60';
-
-const initialServices = [
-  {
-    id: 'full-stack',
-    category: 'Full Stack Development',
-    subcategories: [
-      { name: 'Frontend' },
-      { name: 'Backend' },
-      { name: 'DevOps' },
-    ],
-    bannerTitle: 'Launch cohesive products faster',
-    bannerSubtitle: 'Unified squads that own discovery to deployment.',
-    bannerImage: imageLibrary[0].value,
-    createdAt: '2024-07-05',
-    totalServices: 12,
-    totalProjects: 120,
-    totalClients: 65,
-    faqs: [
-      {
-        id: 'faq-fs-1',
-        question: 'How quickly can teams start?',
-        answer: 'Most squads begin delivery within 2 weeks after scope alignment.',
-      },
-      {
-        id: 'faq-fs-2',
-        question: 'Do you handle discovery?',
-        answer: 'Yes—product discovery, UX, and architecture are embedded with engineering.',
-      },
-    ],
-    description:
-      'Control your entire delivery lifecycle with pods that combine engineers, designers, and product owners ready to ship.',
-  },
-  {
-    id: 'mobile',
-    category: 'Mobile App Development',
-    subcategories: [
-      { name: 'Android' },
-      { name: 'iOS' },
-      { name: 'Flutter' },
-      { name: 'React Native' },
-    ],
-    bannerTitle: 'Build premium mobile experiences',
-    bannerSubtitle: 'Native performance, consistent design systems, and automated releases.',
-    bannerImage: imageLibrary[1].value,
-    createdAt: '2024-07-08',
-    totalServices: 9,
-    totalProjects: 85,
-    totalClients: 40,
-    faqs: [
-      {
-        id: 'faq-mobile-1',
-        question: 'Can you migrate existing apps?',
-        answer: 'We refresh legacy apps with modern stacks and CI/CD without downtime.',
-      },
-    ],
-    description:
-      'From ideation to app store launch, keep every device covered with engineers fluent in modern mobile stacks.',
-  },
-];
-
-const initialTechnologies = [
-  {
-    id: 'frontend-tech',
-    category: 'Full Stack Development',
-    subcategory: 'Frontend',
-    title: 'Frontend',
-    image: imageLibrary[2].value,
-    items: ['React', 'Angular', 'Vue', 'Next.js', 'TypeScript'],
-  },
-  {
-    id: 'backend-tech',
-    category: 'Full Stack Development',
-    subcategory: 'Backend',
-    title: 'Backend',
-    image: imageLibrary[3].value,
-    items: ['Node.js', 'Django', 'Laravel', 'Golang', 'PostgreSQL'],
-  },
-];
-
-const initialBenefits = [
-  {
-    id: 'benefit-1',
-    title: 'Outcome-first delivery',
-    category: 'Full Stack Development',
-    subcategory: 'Frontend',
-    description: 'Every roadmap is mapped to measurable impact and transparent milestones.',
-    image: imageLibrary[0].value,
-  },
-  {
-    id: 'benefit-2',
-    title: 'Embedded governance',
-    category: 'Mobile App Development',
-    subcategory: 'Android',
-    description: 'Security, QA, and documentation are standard across every engagement.',
-    image: imageLibrary[1].value,
-  }
-];
-
-const initialHireDevelopers = {
-  title: 'Development services on-demand',
-  description:
-    'Shape squads with the exact capabilities you need—from product discovery to release engineering—without long ramp-up times.',
-  heroImage: imageLibrary[2].value,
-  services: [
-    {
-      id: 'android-team',
-      category: 'Mobile App Development',
-      subcategory: 'Android',
-      title: 'Android team',
-      description: 'Compose-first Android engineers ready for feature pods.',
-      image: imageLibrary[0].value,
-    },
-    {
-      id: 'ios-team',
-      category: 'Mobile App Development',
-      subcategory: 'iOS',
-      title: 'iOS team',
-      description: 'Swift and SwiftUI experts with App Store release experience.',
-      image: imageLibrary[1].value,
-    },
-    {
-      id: 'full-stack-team',
-      category: 'Full Stack Development',
-      subcategory: 'Backend',
-      title: 'Full stack team',
-      description: 'API, web, and DevOps engineers aligned to your roadmap.',
-      image: imageLibrary[2].value,
-    },
-  ]
+const initialHirePricingState = {
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  plans: [],
 };
 
-const initialHirePricing = {
-  heroTitle: 'Predictable pricing for hiring developers',
-  heroDescription:
-    'Pick the engagement model that matches your roadmap. Every plan includes governance, QA, and product stewardship.',
-  heroImage: imageLibrary[3].value,
-  plans: [
-    {
-      id: 'pricing-monthly',
-      title: 'Monthly cost',
-      subtitle: 'Flexible monthly billing with continuous delivery',
-      description: 'Best for startups aligning new initiatives with adaptable velocity and on-demand support.',
-      price: '$2,400*',
-      services: [
-        'Best for startups running new initiatives',
-        '2–3 engineers per pod with QA support',
-        'Product Manager included for prioritization',
-        'Sprint planning, demos, and retros each week',
-      ],
-    },
-    {
-      id: 'pricing-half-yearly',
-      title: 'Half yearly',
-      subtitle: 'Discounted commitment with predictable velocity',
-      description: 'Ideal for scaling product teams with stable squads and time-zone aligned delivery.',
-      price: '$13,500',
-      services: [
-        'Agile product squads with design support',
-        '4+ years of experience per engineer',
-        'Time zone overlap coverage',
-        '960 hours over 6 months',
-      ],
-    },
-    {
-      id: 'pricing-annual',
-      title: 'Annual retainers',
-      subtitle: 'Strategic partnership for enterprise-grade delivery',
-      description: 'For companies needing architecture, security, and release management baked into every sprint.',
-      price: '$24,000',
-      services: [
-        'Enterprise-ready frameworks and automation',
-        'Dedicated QA automation and documentation',
-        'Architecture reviews and observability setup',
-        '1920 hours / 12 months',
-      ],
-    },
-  ],
+const initialHireContentState = {
+  title: '',
+  description: '',
+  heroImage: imagePlaceholder,
+  services: [],
 };
 
-const initialProcess = [
-  {
-    id: 'process-1',
-    title: 'Discovery and planning',
-    description: 'Align goals, scope, and delivery milestones with stakeholder workshops.',
-    category: 'Full Stack Development',
-    subcategory: 'Frontend',
-    image: imageLibrary[3].value,
-  },
-  {
-    id: 'process-2',
-    title: 'Release and measurement',
-    description: 'Ship builds, monitor analytics, and optimise through iterative releases.',
-    category: 'Mobile App Development',
-    subcategory: 'Android',
-    image: imageLibrary[0].value,
-  },
-];
-
-const initialWhyVedx = {
-  heroTitle: 'Why choose VedX Solutions',
-  heroDescription: 'Pair proven delivery methods with industry focus and transparent engagement.',
-  heroImage: imageLibrary[1].value,
-  reasons: [
-    {
-      id: 'why-vedx-1',
-      title: 'Outcome obsessed',
-      description: 'Every engagement is mapped to measurable business impact with proactive reporting.',
-      image: imageLibrary[2].value,
-    },
-    {
-      id: 'why-vedx-2',
-      title: 'Specialists per domain',
-      description: 'Category and sub-category owners ensure the right SMEs guide delivery.',
-      image: imageLibrary[0].value,
-    },
-  ],
+const initialWhyChooseState = {
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  tableTitle: '',
+  tableDescription: '',
+  services: [],
 };
 
-const initialOurServices = {
-  sliderTitle: 'Our Services',
-  sliderDescription: 'Showcase priority services with visuals, titles, and taxonomy tags.',
-  sliderImage: imageLibrary[0].value,
-  services: [
-    {
-      id: 'os-1',
-      title: 'Cloud native engineering',
-      image: imageLibrary[1].value,
-    },
-    {
-      id: 'os-2',
-      title: 'Data and AI accelerators',
-      image: imageLibrary[2].value,
-    },
-  ],
+const initialWhyVedxState = {
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  reasons: [],
 };
 
-const initialIndustries = {
-  title: 'Industries we serve',
-  description: 'Tailored solutions for digital-first leaders across sectors.',
-  items: [
-    {
-      id: 'ind-1',
-      title: 'Fintech',
-      description: 'Regulatory-ready delivery with robust security practices.',
-      image: imageLibrary[3].value,
-    },
-    {
-      id: 'ind-2',
-      title: 'Healthtech',
-      description: 'Compliant experiences with patient-first design.',
-      image: imageLibrary[0].value,
-    },
-  ],
+const initialOurServicesState = {
+  sliderTitle: '',
+  sliderDescription: '',
+  sliderImage: imagePlaceholder,
+  services: [],
 };
 
-const initialTechSolutions = {
-  title: 'Tech solutions for all business types',
-  description: 'Reusable solution kits that scale with growth and compliance needs.',
-  solutions: [
-    {
-      id: 'ts-1',
-      title: 'SMB accelerators',
-      description: 'Launch quickly with curated starter kits and managed services.',
-    },
-    {
-      id: 'ts-2',
-      title: 'Enterprise modernization',
-      description: 'Refactor, cloud migrate, and govern change with confidence.',
-    },
-  ],
+const initialIndustriesState = {
+  title: '',
+  description: '',
+  items: [],
 };
 
-const initialExpertise = {
-  title: 'Ways to choose our expertise',
-  description: 'Pick the collaboration model and focus area that best fits your roadmap.',
-  items: [
-    {
-      id: 'exp-1',
-      title: 'Dedicated pods',
-      description: 'Long-running pods aligned to a business unit with steady velocity.',
-      image: imageLibrary[1].value,
-    },
-    {
-      id: 'exp-2',
-      title: 'Outcome squads',
-      description: 'Cross-functional teams focused on a single measurable outcome.',
-      image: imageLibrary[0].value,
-    },
-  ],
+const initialTechSolutionsState = {
+  title: '',
+  description: '',
+  solutions: [],
+};
+
+const initialExpertiseState = {
+  title: '',
+  description: '',
+  items: [],
 };
 
 const emptyServiceForm = {
@@ -356,7 +98,7 @@ const emptyServiceForm = {
   subcategories: [],
   bannerTitle: '',
   bannerSubtitle: '',
-  bannerImage: imageLibrary[0].value,
+  bannerImage: imagePlaceholder,
   createdAt: new Date().toISOString().split('T')[0],
   totalServices: 0,
   totalProjects: 0,
@@ -370,7 +112,7 @@ const emptyTechnologyForm = {
   category: '',
   subcategory: '',
   title: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
   items: [],
 };
 
@@ -380,7 +122,7 @@ const emptyBenefitForm = {
   category: '',
   subcategory: '',
   description: '',
-  image: imageLibrary[1].value,
+  image: imagePlaceholder,
 };
 
 const emptyHirePricingForm = {
@@ -398,7 +140,7 @@ const emptyHireServiceForm = {
   subcategory: '',
   title: '',
   description: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyProcessForm = {
@@ -407,33 +149,33 @@ const emptyProcessForm = {
   description: '',
   category: '',
   subcategory: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyWhyVedxHero = {
   heroTitle: '',
   heroDescription: '',
-  heroImage: imageLibrary[0].value,
+  heroImage: imagePlaceholder,
 };
 
 const emptyWhyVedxForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyOurServiceForm = {
   id: '',
   title: '',
-  image: imageLibrary[2].value,
+  image: imagePlaceholder,
 };
 
 const emptyIndustryForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[3].value,
+  image: imagePlaceholder,
 };
 
 const emptyTechSolutionForm = {
@@ -451,33 +193,127 @@ const emptyExpertiseForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[2].value,
+  image: imagePlaceholder,
 };
 
-const initialWhyChoose = {
-  heroTitle: 'Why choose our services',
-  heroDescription:
-    'Reassure visitors with outcomes, trusted delivery, and transparent engagement models backed by our teams.',
-  heroImage: imageLibrary[0].value,
-  tableTitle: 'Service highlights',
-  tableDescription: 'Spotlight capabilities by category and sub-category so clients can pick the right path.',
-  services: [
-    {
-      id: 'why-fs-front',
-      category: 'Full Stack Development',
-      subcategory: 'Frontend',
-      title: 'Product-minded engineers',
-      description: 'Frontend specialists who pair with UX and back-end teams to ship cohesive experiences.',
-    },
-    {
-      id: 'why-mobile-ios',
-      category: 'Mobile App Development',
-      subcategory: 'iOS',
-      title: 'Release-ready iOS pods',
-      description: 'Swift and SwiftUI teams who manage App Store releases, QA, and observability.',
-    },
-  ],
-};
+const normalizeService = (service) => ({
+  id: service.id,
+  category: service.category || '',
+  subcategories: service.subcategories || [],
+  bannerTitle: service.bannerTitle || '',
+  bannerSubtitle: service.bannerSubtitle || '',
+  bannerImage: service.bannerImage || imagePlaceholder,
+  createdAt: service.createdAt ? service.createdAt.slice(0, 10) : '',
+  totalServices: service.totalServices ?? 0,
+  totalProjects: service.totalProjects ?? 0,
+  totalClients: service.totalClients ?? 0,
+  faqs: service.faqs || [],
+  description: service.description || '',
+});
+
+const normalizeTechnology = (tech) => ({
+  id: tech.id,
+  category: tech.category || '',
+  subcategory: tech.subcategory || '',
+  title: tech.title || '',
+  image: tech.image || imagePlaceholder,
+  items: tech.items || [],
+});
+
+const normalizeBenefit = (benefit) => ({
+  id: benefit.id,
+  title: benefit.title || '',
+  category: benefit.category || '',
+  subcategory: benefit.subcategory || '',
+  description: benefit.description || '',
+  image: benefit.image || imagePlaceholder,
+});
+
+const normalizePricingPlan = (plan) => ({
+  id: plan.id,
+  title: plan.title || '',
+  subtitle: plan.subtitle || '',
+  description: plan.description || '',
+  price: plan.price || '',
+  services: plan.services || [],
+  heroTitle: plan.heroTitle || '',
+  heroDescription: plan.heroDescription || '',
+  heroImage: plan.heroImage || imagePlaceholder,
+});
+
+const normalizeHireService = (service) => ({
+  id: service.id,
+  category: service.category || '',
+  subcategory: service.subcategory || '',
+  title: service.title || '',
+  description: service.description || '',
+  image: service.image || imagePlaceholder,
+  heroTitle: service.heroTitle || '',
+  heroDescription: service.heroDescription || '',
+  heroImage: service.heroImage || imagePlaceholder,
+});
+
+const normalizeProcess = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  image: item.image || imagePlaceholder,
+});
+
+const normalizeWhyVedx = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  heroTitle: item.heroTitle || '',
+  heroDescription: item.heroDescription || '',
+  heroImage: item.heroImage || imagePlaceholder,
+});
+
+const normalizeWhyChoose = (item) => ({
+  id: item.id,
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  title: item.title || '',
+  description: item.description || '',
+  heroTitle: item.heroTitle || '',
+  heroDescription: item.heroDescription || '',
+  heroImage: item.heroImage || imagePlaceholder,
+  tableTitle: item.tableTitle || '',
+  tableDescription: item.tableDescription || '',
+});
+
+const normalizeIndustry = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+});
+
+const normalizeTechSolution = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+  sliderTitle: item.sliderTitle || '',
+  sliderDescription: item.sliderDescription || '',
+  sliderImage: item.sliderImage || imagePlaceholder,
+});
+
+const normalizeExpertise = (item) => ({
+  id: item.id,
+  title: item.title || '',
+  description: item.description || '',
+  image: item.image || imagePlaceholder,
+  sectionTitle: item.sectionTitle || '',
+  sectionDescription: item.sectionDescription || '',
+});
 
 const emptyWhyServiceForm = {
   id: '',
@@ -597,7 +433,7 @@ const ImageUpload = ({ label, value, onChange, required }) => {
 const AdminHiredeveloperPage = () => {
   const [activeTab, setActiveTab] = useState('services');
 
-  const [services, setServices] = useState(initialServices);
+  const [services, setServices] = useState([]);
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
   const [serviceDialogMode, setServiceDialogMode] = useState('create');
   const [activeService, setActiveService] = useState(null);
@@ -606,24 +442,25 @@ const AdminHiredeveloperPage = () => {
   const [viewService, setViewService] = useState(null);
   const [faqDraft, setFaqDraft] = useState({ question: '', answer: '' });
 
-  const [technologies, setTechnologies] = useState(initialTechnologies);
+  const [technologies, setTechnologies] = useState([]);
   const [technologyDialogOpen, setTechnologyDialogOpen] = useState(false);
   const [technologyDialogMode, setTechnologyDialogMode] = useState('create');
   const [technologyForm, setTechnologyForm] = useState(emptyTechnologyForm);
   const [activeTechnology, setActiveTechnology] = useState(null);
   const [technologyToDelete, setTechnologyToDelete] = useState(null);
 
-  const [benefits, setBenefits] = useState(initialBenefits);
+  const [benefits, setBenefits] = useState([]);
   const [benefitDialogOpen, setBenefitDialogOpen] = useState(false);
   const [benefitDialogMode, setBenefitDialogMode] = useState('create');
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
   const [activeBenefit, setActiveBenefit] = useState(null);
   const [benefitToDelete, setBenefitToDelete] = useState(null);
 
-  const [hirePricing, setHirePricing] = useState(initialHirePricing);
+  const [hirePricing, setHirePricing] = useState(initialHirePricingState);
   const [hirePricingHeroForm, setHirePricingHeroForm] = useState({
-    heroTitle: initialHirePricing.heroTitle,
-    heroDescription: initialHirePricing.heroDescription,
+    heroTitle: '',
+    heroDescription: '',
+    heroImage: imagePlaceholder,
   });
   const [hirePricingHeroSaved, setHirePricingHeroSaved] = useState(false);
   const [hirePricingDialogOpen, setHirePricingDialogOpen] = useState(false);
@@ -636,7 +473,7 @@ const AdminHiredeveloperPage = () => {
   const [hirePricingServiceEditValue, setHirePricingServiceEditValue] = useState('');
   const [hirePricingServiceToDelete, setHirePricingServiceToDelete] = useState(null);
 
-  const [hireContent, setHireContent] = useState(initialHireDevelopers);
+  const [hireContent, setHireContent] = useState(initialHireContentState);
   const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
   const [hireServiceDialogMode, setHireServiceDialogMode] = useState('create');
   const [hireServiceForm, setHireServiceForm] = useState(emptyHireServiceForm);
@@ -644,53 +481,53 @@ const AdminHiredeveloperPage = () => {
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
 
-  const [whyChoose, setWhyChoose] = useState(initialWhyChoose);
-  const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChoose);
+  const [whyChoose, setWhyChoose] = useState(initialWhyChooseState);
+  const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChooseState);
   const [whyServiceDialogOpen, setWhyServiceDialogOpen] = useState(false);
   const [whyServiceDialogMode, setWhyServiceDialogMode] = useState('create');
   const [whyServiceForm, setWhyServiceForm] = useState(emptyWhyServiceForm);
   const [activeWhyService, setActiveWhyService] = useState(null);
   const [whyServiceToDelete, setWhyServiceToDelete] = useState(null);
 
-  const [processList, setProcessList] = useState(initialProcess);
+  const [processList, setProcessList] = useState([]);
   const [processDialogOpen, setProcessDialogOpen] = useState(false);
   const [processDialogMode, setProcessDialogMode] = useState('create');
   const [processForm, setProcessForm] = useState(emptyProcessForm);
   const [activeProcess, setActiveProcess] = useState(null);
   const [processToDelete, setProcessToDelete] = useState(null);
 
-  const [whyVedx, setWhyVedx] = useState(initialWhyVedx);
-  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState(initialWhyVedx);
+  const [whyVedx, setWhyVedx] = useState(initialWhyVedxState);
+  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState(initialWhyVedxState);
   const [whyVedxDialogOpen, setWhyVedxDialogOpen] = useState(false);
   const [whyVedxDialogMode, setWhyVedxDialogMode] = useState('create');
   const [whyVedxForm, setWhyVedxForm] = useState(emptyWhyVedxForm);
   const [activeWhyVedx, setActiveWhyVedx] = useState(null);
   const [whyVedxToDelete, setWhyVedxToDelete] = useState(null);
 
-  const [ourServices, setOurServices] = useState(initialOurServices);
-  const [ourServicesHeroForm, setOurServicesHeroForm] = useState(initialOurServices);
+  const [ourServices, setOurServices] = useState(initialOurServicesState);
+  const [ourServicesHeroForm, setOurServicesHeroForm] = useState(initialOurServicesState);
   const [ourServiceDialogOpen, setOurServiceDialogOpen] = useState(false);
   const [ourServiceDialogMode, setOurServiceDialogMode] = useState('create');
   const [ourServiceForm, setOurServiceForm] = useState(emptyOurServiceForm);
   const [activeOurService, setActiveOurService] = useState(null);
   const [ourServiceToDelete, setOurServiceToDelete] = useState(null);
 
-  const [industries, setIndustries] = useState(initialIndustries);
+  const [industries, setIndustries] = useState(initialIndustriesState);
   const [industryDialogOpen, setIndustryDialogOpen] = useState(false);
   const [industryDialogMode, setIndustryDialogMode] = useState('create');
   const [industryForm, setIndustryForm] = useState(emptyIndustryForm);
   const [activeIndustry, setActiveIndustry] = useState(null);
   const [industryToDelete, setIndustryToDelete] = useState(null);
 
-  const [techSolutions, setTechSolutions] = useState(initialTechSolutions);
+  const [techSolutions, setTechSolutions] = useState(initialTechSolutionsState);
   const [techSolutionDialogOpen, setTechSolutionDialogOpen] = useState(false);
   const [techSolutionDialogMode, setTechSolutionDialogMode] = useState('create');
   const [techSolutionForm, setTechSolutionForm] = useState(emptyTechSolutionForm);
   const [activeTechSolution, setActiveTechSolution] = useState(null);
   const [techSolutionToDelete, setTechSolutionToDelete] = useState(null);
 
-  const [expertise, setExpertise] = useState(initialExpertise);
-  const [expertiseHeroForm, setExpertiseHeroForm] = useState(initialExpertise);
+  const [expertise, setExpertise] = useState(initialExpertiseState);
+  const [expertiseHeroForm, setExpertiseHeroForm] = useState(initialExpertiseState);
   const [expertiseDialogOpen, setExpertiseDialogOpen] = useState(false);
   const [expertiseDialogMode, setExpertiseDialogMode] = useState('create');
   const [expertiseForm, setExpertiseForm] = useState(emptyExpertiseForm);
@@ -713,6 +550,224 @@ const AdminHiredeveloperPage = () => {
   const [industryPage, setIndustryPage] = useState(1);
   const [techSolutionPage, setTechSolutionPage] = useState(1);
   const [expertisePage, setExpertisePage] = useState(1);
+
+  const fetchJson = async (path, options = {}) => {
+    const response = await fetch(apiUrl(path), {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.error || 'Request failed');
+    }
+    return data;
+  };
+
+  const loadServices = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/services');
+      setServices((data || []).map(normalizeService));
+    } catch (error) {
+      console.error('Failed to load hire developer services', error);
+    }
+  };
+
+  const loadTechnologies = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/technologies');
+      setTechnologies((data || []).map(normalizeTechnology));
+    } catch (error) {
+      console.error('Failed to load hire developer technologies', error);
+    }
+  };
+
+  const loadBenefits = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/benefits');
+      setBenefits((data || []).map(normalizeBenefit));
+    } catch (error) {
+      console.error('Failed to load hire developer benefits', error);
+    }
+  };
+
+  const loadHirePricing = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/pricing');
+      const plans = (data || []).map(normalizePricingPlan);
+      const heroSource = plans[0] || {};
+      setHirePricing({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+        plans,
+      });
+      setHirePricingHeroForm({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+      });
+    } catch (error) {
+      console.error('Failed to load hire pricing', error);
+    }
+  };
+
+  const loadHireServices = async () => {
+    try {
+      const [heroData, servicesData] = await Promise.all([
+        fetchJson('/api/hire-developer').catch(() => null),
+        fetchJson('/api/hire-developer/hire-services'),
+      ]);
+
+      setHireContent({
+        title: heroData?.title || '',
+        description: heroData?.description || '',
+        heroImage: heroData?.heroImage || imagePlaceholder,
+        services: (servicesData || []).map(normalizeHireService),
+      });
+    } catch (error) {
+      console.error('Failed to load hire services', error);
+    }
+  };
+
+  const loadProcesses = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/processes');
+      setProcessList((data || []).map(normalizeProcess));
+    } catch (error) {
+      console.error('Failed to load hire developer processes', error);
+    }
+  };
+
+  const loadWhyVedx = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/why-vedx');
+      const reasons = (data || []).map(normalizeWhyVedx);
+      const heroSource = reasons[0] || {};
+      setWhyVedx({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+        reasons,
+      });
+      setWhyVedxHeroForm({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+      });
+    } catch (error) {
+      console.error('Failed to load why VedX items', error);
+    }
+  };
+
+  const loadWhyChoose = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/why-choose');
+      const services = (data || []).map(normalizeWhyChoose);
+      const heroSource = services[0] || {};
+      setWhyChoose({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+        tableTitle: heroSource.tableTitle || '',
+        tableDescription: heroSource.tableDescription || '',
+        services,
+      });
+      setWhyHeroForm({
+        heroTitle: heroSource.heroTitle || '',
+        heroDescription: heroSource.heroDescription || '',
+        heroImage: heroSource.heroImage || imagePlaceholder,
+        tableTitle: heroSource.tableTitle || '',
+        tableDescription: heroSource.tableDescription || '',
+      });
+    } catch (error) {
+      console.error('Failed to load why choose items', error);
+    }
+  };
+
+  const loadIndustries = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/industries');
+      const items = (data || []).map(normalizeIndustry);
+      const heroSource = items[0] || {};
+      setIndustries({
+        title: heroSource.sectionTitle || '',
+        description: heroSource.sectionDescription || '',
+        items,
+      });
+    } catch (error) {
+      console.error('Failed to load industries', error);
+    }
+  };
+
+  const loadTechSolutions = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/tech-solutions');
+      const solutions = (data || []).map(normalizeTechSolution);
+      const heroSource = solutions[0] || {};
+      setTechSolutions({
+        title: heroSource.sectionTitle || '',
+        description: heroSource.sectionDescription || '',
+        solutions,
+      });
+    } catch (error) {
+      console.error('Failed to load tech solutions', error);
+    }
+  };
+
+  const loadExpertise = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/expertise');
+      const items = (data || []).map(normalizeExpertise);
+      const heroSource = items[0] || {};
+      setExpertise({
+        title: heroSource.sectionTitle || '',
+        description: heroSource.sectionDescription || '',
+        items,
+      });
+      setExpertiseHeroForm({
+        title: heroSource.sectionTitle || '',
+        description: heroSource.sectionDescription || '',
+      });
+    } catch (error) {
+      console.error('Failed to load expertise items', error);
+    }
+  };
+
+  const loadOurServices = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/our-services');
+      const services = (data || []).map(normalizeTechSolution);
+      const heroSource = data?.[0] || {};
+      setOurServices({
+        sliderTitle: heroSource.sliderTitle || '',
+        sliderDescription: heroSource.sliderDescription || '',
+        sliderImage: heroSource.sliderImage || imagePlaceholder,
+        services,
+      });
+      setOurServicesHeroForm({
+        sliderTitle: heroSource.sliderTitle || '',
+        sliderDescription: heroSource.sliderDescription || '',
+        sliderImage: heroSource.sliderImage || imagePlaceholder,
+      });
+    } catch (error) {
+      console.error('Failed to load hire developer our services', error);
+    }
+  };
+
+  useEffect(() => {
+    loadServices();
+    loadTechnologies();
+    loadBenefits();
+    loadHirePricing();
+    loadHireServices();
+    loadProcesses();
+    loadWhyVedx();
+    loadWhyChoose();
+    loadIndustries();
+    loadTechSolutions();
+    loadExpertise();
+    loadOurServices();
+  }, []);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
@@ -770,14 +825,37 @@ const AdminHiredeveloperPage = () => {
     setHireContent((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleHirePricingHeroSave = () => {
-    setHirePricing((prev) => ({
-      ...prev,
-      heroTitle: hirePricingHeroForm.heroTitle,
-      heroDescription: hirePricingHeroForm.heroDescription,
-    }));
-    setHirePricingHeroSaved(true);
-    setTimeout(() => setHirePricingHeroSaved(false), 2500);
+  const handleHirePricingHeroSave = async () => {
+    if (!hirePricing.plans.length) return;
+
+    const primaryPlan = hirePricing.plans[0];
+
+    try {
+      const updated = await fetchJson(`/api/hire-developer/pricing/${primaryPlan.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...primaryPlan,
+          heroTitle: hirePricingHeroForm.heroTitle,
+          heroDescription: hirePricingHeroForm.heroDescription,
+          heroImage: hirePricingHeroForm.heroImage,
+        }),
+      });
+
+      const normalized = normalizePricingPlan(updated);
+
+      setHirePricing((prev) => ({
+        ...prev,
+        heroTitle: normalized.heroTitle,
+        heroDescription: normalized.heroDescription,
+        heroImage: normalized.heroImage,
+        plans: prev.plans.map((plan) => (plan.id === normalized.id ? normalized : plan)),
+      }));
+
+      setHirePricingHeroSaved(true);
+      setTimeout(() => setHirePricingHeroSaved(false), 2500);
+    } catch (error) {
+      console.error('Failed to save hire pricing hero content', error);
+    }
   };
 
   const addHirePricingService = () => {
@@ -832,9 +910,29 @@ const AdminHiredeveloperPage = () => {
     closeHirePricingServiceDeleteDialog();
   };
 
-  const handleHeroSave = () => {
-    setHeroSaved(true);
-    setTimeout(() => setHeroSaved(false), 3000);
+  const handleHeroSave = async () => {
+    try {
+      const saved = await fetchJson('/api/hire-developer', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: hireContent.title,
+          description: hireContent.description,
+          heroImage: hireContent.heroImage,
+        }),
+      });
+
+      setHireContent((prev) => ({
+        ...prev,
+        title: saved?.title || prev.title,
+        description: saved?.description || prev.description,
+        heroImage: saved?.heroImage || prev.heroImage,
+      }));
+
+      setHeroSaved(true);
+      setTimeout(() => setHeroSaved(false), 3000);
+    } catch (error) {
+      console.error('Failed to save hire developer hero', error);
+    }
   };
 
   const handleProcessChange = (field, value) => {
@@ -857,16 +955,38 @@ const AdminHiredeveloperPage = () => {
     setWhyHeroForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleWhyHeroSave = (event) => {
+  const handleWhyHeroSave = async (event) => {
     event?.preventDefault();
-    setWhyChoose((prev) => ({
-      ...prev,
-      heroTitle: whyHeroForm.heroTitle,
-      heroDescription: whyHeroForm.heroDescription,
-      heroImage: whyHeroForm.heroImage,
-      tableTitle: whyHeroForm.tableTitle,
-      tableDescription: whyHeroForm.tableDescription,
-    }));
+    if (!whyChoose.services.length) return;
+
+    const primary = whyChoose.services[0];
+
+    try {
+      const updated = await fetchJson(`/api/hire-developer/why-choose/${primary.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...primary,
+          heroTitle: whyHeroForm.heroTitle,
+          heroDescription: whyHeroForm.heroDescription,
+          heroImage: whyHeroForm.heroImage,
+          tableTitle: whyHeroForm.tableTitle,
+          tableDescription: whyHeroForm.tableDescription,
+        }),
+      });
+
+      const normalized = normalizeWhyChoose(updated);
+
+      setWhyChoose((prev) => ({
+        heroTitle: normalized.heroTitle,
+        heroDescription: normalized.heroDescription,
+        heroImage: normalized.heroImage,
+        tableTitle: normalized.tableTitle,
+        tableDescription: normalized.tableDescription,
+        services: prev.services.map((item) => (item.id === normalized.id ? normalized : item)),
+      }));
+    } catch (error) {
+      console.error('Failed to save why choose hero content', error);
+    }
   };
 
   const categoryOptions = useMemo(
@@ -1330,24 +1450,64 @@ const AdminHiredeveloperPage = () => {
     closeProcessDeleteDialog();
   };
 
-  const handleWhyVedxHeroSave = (event) => {
+  const handleWhyVedxHeroSave = async (event) => {
     event?.preventDefault();
-    setWhyVedx((prev) => ({
-      ...prev,
-      heroTitle: whyVedxHeroForm.heroTitle,
-      heroDescription: whyVedxHeroForm.heroDescription,
-      heroImage: whyVedxHeroForm.heroImage,
-    }));
+    if (!whyVedx.reasons.length) return;
+
+    const primary = whyVedx.reasons[0];
+
+    try {
+      const updated = await fetchJson(`/api/hire-developer/why-vedx/${primary.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...primary,
+          heroTitle: whyVedxHeroForm.heroTitle,
+          heroDescription: whyVedxHeroForm.heroDescription,
+          heroImage: whyVedxHeroForm.heroImage,
+        }),
+      });
+
+      const normalized = normalizeWhyVedx(updated);
+
+      setWhyVedx((prev) => ({
+        heroTitle: normalized.heroTitle,
+        heroDescription: normalized.heroDescription,
+        heroImage: normalized.heroImage,
+        reasons: prev.reasons.map((item) => (item.id === normalized.id ? normalized : item)),
+      }));
+    } catch (error) {
+      console.error('Failed to save why VedX hero content', error);
+    }
   };
 
-  const handleOurServicesHeroSave = (event) => {
+  const handleOurServicesHeroSave = async (event) => {
     event?.preventDefault();
-    setOurServices((prev) => ({
-      ...prev,
-      sliderTitle: ourServicesHeroForm.sliderTitle,
-      sliderDescription: ourServicesHeroForm.sliderDescription,
-      sliderImage: ourServicesHeroForm.sliderImage,
-    }));
+    if (!ourServices.services.length) return;
+
+    const primary = ourServices.services[0];
+
+    try {
+      const updated = await fetchJson(`/api/hire-developer/our-services/${primary.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...primary,
+          sliderTitle: ourServicesHeroForm.sliderTitle,
+          sliderDescription: ourServicesHeroForm.sliderDescription,
+          sliderImage: ourServicesHeroForm.sliderImage,
+        }),
+      });
+
+      const normalized = normalizeTechSolution(updated);
+
+      setOurServices((prev) => ({
+        sliderTitle: normalized.sliderTitle,
+        sliderDescription: normalized.sliderDescription,
+        sliderImage: normalized.sliderImage,
+        services: prev.services.map((item) => (item.id === normalized.id ? normalized : item)),
+      }));
+    } catch (error) {
+      console.error('Failed to save our services hero content', error);
+    }
   };
 
   const openWhyVedxCreateDialog = () => {
