@@ -15,7 +15,7 @@ const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
 const allowedOrigins = [
   'https://vedx-solutions-2.vercel.app',
-  'https://vedx-solutions-2-9ij5.vercel.app',
+  'https://vedx-solutions-2-q1tn.vercel.app',
   ...(process.env.CORS_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()).filter(Boolean) || []),
 ];
 

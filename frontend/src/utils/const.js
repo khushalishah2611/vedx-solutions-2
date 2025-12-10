@@ -1,4 +1,4 @@
-const normalizedBase = ("https://vedx-solutions-2-9ij5.vercel.app/" ?? '').trim().replace(/\/$/, '');
+const normalizedBase = ("https://vedx-solutions-2-q1tn.vercel.app/" ?? '').trim().replace(/\/$/, '');
 
 export const API_BASE = normalizedBase;
 // Helper to build API URLs that works with or without a configured base
