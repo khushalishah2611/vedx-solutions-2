@@ -799,11 +799,13 @@ const AdminDashboardPage = () => {
 
 
   const handleSaveOurService = async () => {
-    if (!ourServiceForm.title.trim() || !ourServiceForm.sliderId) return;
+    const title = ourServiceForm.title.trim();
+    const sliderId = ourServiceForm.sliderId?.toString().trim();
+    if (!title || !sliderId) return;
 
     const payload = {
-      title: ourServiceForm.title.trim(),
-      sliderId: ourServiceForm.sliderId,
+      title,
+      sliderId,
     };
 
     try {
@@ -1271,7 +1273,7 @@ const AdminDashboardPage = () => {
 
     try {
       if (editingHireCategoryId != null) {
-        const res = await fetch(apiUrl(`/api/admin/hire-categories${editingHireCategoryId}`), {
+        const res = await fetch(apiUrl(`/api/admin/hire-categories/${editingHireCategoryId}`), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
