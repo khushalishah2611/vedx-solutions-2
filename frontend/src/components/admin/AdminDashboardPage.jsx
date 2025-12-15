@@ -266,7 +266,6 @@ const AdminDashboardPage = () => {
           loadIndustries(),
           loadTechSolutions(),
           loadExpertise(),
-          loadHireCategories(),
         ]);
       } catch (err) {
         console.error("Initial load error", err);
@@ -390,16 +389,6 @@ const AdminDashboardPage = () => {
     }
   };
 
-  const loadHireCategories = async () => {
-    try {
-      const res = await fetch(apiUrl("/api/admin/hire-categories"));
-      if (!res.ok) throw new Error("Failed to fetch hire categories");
-      const data = await res.json();
-      setHireCategories(data);
-    } catch (err) {
-      console.error("loadHireCategories error", err);
-    }
-  };
 
   /* -----------------------------------
    * BANNER handlers
@@ -1528,7 +1517,7 @@ const AdminDashboardPage = () => {
             <Tab value="industries" label="Industries we serve" />
             <Tab value="tech-solutions" label="Tech solutions" />
             <Tab value="expertise" label="Expertise models" />
-            <Tab value="hire" label="Hire developers" />
+         
           </Tabs>
         </Box>
 
@@ -2522,118 +2511,7 @@ const AdminDashboardPage = () => {
         )}
 
         {/* HIRE DEVELOPERS TAB */}
-        {activeTab === "hire" && (
-          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
-            <CardHeader
-              title="Hire developers"
-              subheader="Maintain categories (Mobile, Web, etc.) and their subcategories."
-            />
-            <Divider />
-            <CardContent>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                justifyContent="space-between"
-                alignItems={{ xs: "flex-start", sm: "center" }}
-                mb={2}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  Configure what types of developers you highlight on the marketing site.
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => openHireCategoryDialog()}
-                >
-                  Add category
-                </Button>
-              </Stack>
-
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Subcategories</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {paginatedHireCategories.map((category) => (
-                    <TableRow key={category.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{category.title}</TableCell>
-                      <TableCell sx={{ maxWidth: 280 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {category.description || "-"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 260 }}>
-                        {category.subcategories?.length ? (
-                          <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                            {category.subcategories.map((sub) => (
-                              <Chip key={sub.id} size="small" label={sub.title} />
-                            ))}
-                          </Stack>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            No subcategories
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Manage subcategories">
-                            <IconButton
-                              size="small"
-                              onClick={() => openSubcategoryDialog(category)}
-                            >
-                              <Typography variant="caption">Subs</Typography>
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Edit category">
-                            <IconButton
-                              size="small"
-                              onClick={() => openHireCategoryDialog(category)}
-                            >
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete category">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleDeleteHireCategory(category.id)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {!hireCategories.length && (
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No categories configured yet.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-
-              <Stack mt={2} alignItems="flex-end">
-                <Pagination
-                  count={Math.max(1, Math.ceil(hireCategories.length / rowsPerPage))}
-                  page={hireCategoryPage}
-                  onChange={(_, page) => setHireCategoryPage(page)}
-                  color="primary"
-                  size="small"
-                />
-              </Stack>
-            </CardContent>
-          </Card>
-        )}
+       
       </Stack>
 
       {/* Our services slider dialog */}
