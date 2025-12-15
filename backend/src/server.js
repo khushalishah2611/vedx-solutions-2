@@ -2696,11 +2696,8 @@ const validateImageUrl = (url) => {
     return 'Image URL must be a string.';
   }
 
-  if (isBase64Image(url)) {
-    return 'Image URL must be a hosted URL (base64 data is not supported).';
-  }
-
-  if (url.length > 2048) {
+  // Allow base64 images (size already guarded globally) and only validate length for hosted URLs
+  if (!isBase64Image(url) && url.length > 2048) {
     return 'Image URL is too long (max 2048 characters).';
   }
 
@@ -3046,7 +3043,7 @@ app.post('/api/process-steps', async (req, res) => {
         title,
         description: description || null,
         imageUrl: image || null,
-        sortOrder: Number.isInteger(sortOrder) ? sortOrder : 0,
+        sortOrder: Number.isInteger(Number(sortOrder)) ? Number(sortOrder) : 0,
         isActive: typeof isActive === 'boolean' ? isActive : true,
       },
     });
@@ -3078,7 +3075,7 @@ app.put('/api/process-steps/:id', async (req, res) => {
         title,
         description,
         imageUrl: image,
-        sortOrder,
+        sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
         isActive,
       },
     });
