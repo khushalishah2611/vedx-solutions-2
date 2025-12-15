@@ -118,6 +118,14 @@ const AdminDashboardPage = () => {
   );
   const rowsPerPage = 5;
 
+  const getAdminAuthHeaders = () => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      throw new Error("Your session expired. Please log in again.");
+    }
+    return { Authorization: `Bearer ${token}` };
+  };
+
   const fileInputRef = useRef(null);
   const industryFileInputRef = useRef(null);
   const processFileInputRef = useRef(null);
@@ -248,30 +256,6 @@ const AdminDashboardPage = () => {
   const [hireSubcategoryError, setHireSubcategoryError] = useState("");
 
   /* --------------------------
-   * WHY VEDX SOLUTIONS
-   * -------------------------- */
-  const [whyVedxHero, setWhyVedxHero] = useState({
-    id: null,
-    heroTitle: "",
-    heroDescription: "",
-    heroImage: "",
-  });
-  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState({
-    heroTitle: "",
-    heroDescription: "",
-    heroImage: "",
-  });
-  const [whyVedxReasons, setWhyVedxReasons] = useState([]);
-  const [whyVedxReasonForm, setWhyVedxReasonForm] = useState({
-    title: "",
-    description: "",
-    image: "",
-  });
-  const [whyVedxReasonDialogOpen, setWhyVedxReasonDialogOpen] = useState(false);
-  const [editingWhyVedxReasonId, setEditingWhyVedxReasonId] = useState(null);
-  const [whyVedxPage, setWhyVedxPage] = useState(1);
-
-  /* --------------------------
    * Derived selections
    * -------------------------- */
   const selectedSliderForServiceDialog =
@@ -291,8 +275,6 @@ const AdminDashboardPage = () => {
           loadTechSolutions(),
           loadExpertise(),
           loadHireCategories(),
-          loadWhyVedx(),
-          loadWhyVedxReasons(),
         ]);
       } catch (err) {
         console.error("Initial load error", err);
@@ -396,9 +378,10 @@ const AdminDashboardPage = () => {
 
   const loadExpertise = async () => {
     try {
+      const headers = getAdminAuthHeaders();
       const [configRes, itemsRes] = await Promise.all([
-        fetch(apiUrl("/api/expertise/config")),
-        fetch(apiUrl("/api/expertise")),
+        fetch(apiUrl("/api/expertise/config"), { headers }),
+        fetch(apiUrl("/api/expertise"), { headers }),
       ]);
       if (!configRes.ok) throw new Error("Failed to fetch expertise config");
       if (!itemsRes.ok) throw new Error("Failed to fetch expertise");
@@ -413,6 +396,19 @@ const AdminDashboardPage = () => {
       setExpertiseItems(items);
     } catch (err) {
       console.error("loadExpertise error", err);
+    }
+  };
+
+  const loadHireCategories = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/admin/hire-categories"), {
+        headers: getAdminAuthHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to fetch hire categories");
+      const data = await res.json();
+      setHireCategories(data);
+    } catch (err) {
+      console.error("loadHireCategories error", err);
     }
   };
 
@@ -1121,7 +1117,10 @@ const AdminDashboardPage = () => {
     try {
       const res = await fetch(apiUrl("/api/expertise/config"), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAdminAuthHeaders(),
+        },
         body: JSON.stringify({
           title: expertiseConfig.title,
           description: expertiseConfig.description,
@@ -1190,7 +1189,10 @@ const AdminDashboardPage = () => {
       if (editingExpertiseId != null) {
         const res = await fetch(apiUrl(`/api/expertise/${editingExpertiseId}`), {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...getAdminAuthHeaders(),
+          },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to update expertise");
@@ -1201,7 +1203,10 @@ const AdminDashboardPage = () => {
       } else {
         const res = await fetch(apiUrl("/api/expertise"), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...getAdminAuthHeaders(),
+          },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create expertise");
@@ -1218,7 +1223,10 @@ const AdminDashboardPage = () => {
 
   const handleDeleteExpertise = async (id) => {
     try {
-      const res = await fetch(apiUrl(`/api/expertise/${id}`), { method: "DELETE" });
+      const res = await fetch(apiUrl(`/api/expertise/${id}`), {
+        method: "DELETE",
+        headers: getAdminAuthHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to delete expertise");
       setExpertiseItems((prev) => {
         const updated = prev.filter((item) => item.id !== id);
@@ -1290,7 +1298,10 @@ const AdminDashboardPage = () => {
       if (editingHireCategoryId != null) {
         const res = await fetch(apiUrl(`/api/admin/hire-categories/${editingHireCategoryId}`), {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...getAdminAuthHeaders(),
+          },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to update hire category");
@@ -1301,7 +1312,10 @@ const AdminDashboardPage = () => {
       } else {
         const res = await fetch(apiUrl("/api/admin/hire-categories"), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...getAdminAuthHeaders(),
+          },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create category");
@@ -1318,7 +1332,10 @@ const AdminDashboardPage = () => {
 
   const handleDeleteHireCategory = async (id) => {
     try {
-      const res = await fetch(apiUrl(`/api/admin/hire-categories/${id}`), { method: "DELETE" });
+      const res = await fetch(apiUrl(`/api/admin/hire-categories/${id}`), {
+        method: "DELETE",
+        headers: getAdminAuthHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to delete category");
       setHireCategories((prev) => {
         const updated = prev.filter((category) => category.id !== id);
@@ -1468,116 +1485,6 @@ const AdminDashboardPage = () => {
   };
 
   /* -----------------------------------
-   * WHY VEDX handlers
-   * ----------------------------------- */
-  const handleWhyVedxHeroSave = async () => {
-    const { heroTitle, heroDescription, heroImage } = whyVedxHeroForm;
-
-    if (!heroTitle.trim() || !heroDescription.trim() || !heroImage) return;
-
-    try {
-      const res = await fetch(apiUrl("/api/why-vedx"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          heroTitle: heroTitle.trim(),
-          heroDescription: heroDescription.trim(),
-          heroImage,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to save why VEDX hero");
-      const data = await res.json();
-      setWhyVedxHero({
-        id: data.id || whyVedxHero.id || null,
-        heroTitle: data.heroTitle || "",
-        heroDescription: data.heroDescription || "",
-        heroImage: data.heroImage || "",
-      });
-      setWhyVedxHeroForm({
-        heroTitle: data.heroTitle || "",
-        heroDescription: data.heroDescription || "",
-        heroImage: data.heroImage || "",
-      });
-      setWhyVedxReasons(data.reasons || []);
-    } catch (err) {
-      console.error("handleWhyVedxHeroSave error", err);
-    }
-  };
-
-  const openWhyVedxReasonDialog = (reason = null) => {
-    if (reason) {
-      setEditingWhyVedxReasonId(reason.id);
-      setWhyVedxReasonForm({
-        title: reason.title || "",
-        description: reason.description || "",
-        image: reason.image || "",
-      });
-    } else {
-      setEditingWhyVedxReasonId(null);
-      setWhyVedxReasonForm({ title: "", description: "", image: "" });
-    }
-    setWhyVedxReasonDialogOpen(true);
-  };
-
-  const closeWhyVedxReasonDialog = () => {
-    setWhyVedxReasonDialogOpen(false);
-    setEditingWhyVedxReasonId(null);
-    setWhyVedxReasonForm({ title: "", description: "", image: "" });
-  };
-
-  const handleSaveWhyVedxReason = async () => {
-    const payload = {
-      title: whyVedxReasonForm.title.trim(),
-      description: whyVedxReasonForm.description.trim(),
-      image: whyVedxReasonForm.image,
-      whyVedxId: whyVedxHero?.id || null,
-    };
-
-    if (!payload.title || !payload.description || !payload.image) return;
-
-    try {
-      const res = await fetch(
-        editingWhyVedxReasonId
-          ? apiUrl(`/api/why-vedx-reasons/${editingWhyVedxReasonId}`)
-          : apiUrl("/api/why-vedx-reasons"),
-        {
-          method: editingWhyVedxReasonId ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to save why VEDX reason");
-      const data = await res.json();
-
-      setWhyVedxReasons((prev) => {
-        if (editingWhyVedxReasonId) {
-          return prev.map((reason) => (reason.id === data.id ? data : reason));
-        }
-        return [data, ...prev];
-      });
-      setWhyVedxPage(1);
-      closeWhyVedxReasonDialog();
-    } catch (err) {
-      console.error("handleSaveWhyVedxReason error", err);
-    }
-  };
-
-  const handleDeleteWhyVedxReason = async (id) => {
-    try {
-      const res = await fetch(apiUrl(`/api/why-vedx-reasons/${id}`), { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete reason");
-      setWhyVedxReasons((prev) => prev.filter((reason) => reason.id !== id));
-      setWhyVedxPage((prevPage) => {
-        const totalPages = Math.max(1, Math.ceil((whyVedxReasons.length - 1) / rowsPerPage));
-        return Math.min(prevPage, totalPages);
-      });
-    } catch (err) {
-      console.error("handleDeleteWhyVedxReason error", err);
-    }
-  };
-
-  /* -----------------------------------
    * Pagination slices
    * ----------------------------------- */
   const paginatedBanners = banners.slice(
@@ -1611,10 +1518,6 @@ const AdminDashboardPage = () => {
   const paginatedHireCategories = hireCategories.slice(
     (hireCategoryPage - 1) * rowsPerPage,
     hireCategoryPage * rowsPerPage
-  );
-  const paginatedWhyVedxReasons = whyVedxReasons.slice(
-    (whyVedxPage - 1) * rowsPerPage,
-    whyVedxPage * rowsPerPage
   );
   const activeHireCategory =
     hireCategories.find((category) => category.id === activeHireCategoryId) || null;
@@ -1657,7 +1560,6 @@ const AdminDashboardPage = () => {
             <Tab value="industries" label="Industries we serve" />
             <Tab value="tech-solutions" label="Tech solutions" />
             <Tab value="expertise" label="Expertise models" />
-            <Tab value="why-vedx" label="Why VedX solutions" />
             <Tab value="hire" label="Hire developers" />
           </Tabs>
         </Box>
@@ -2651,220 +2553,6 @@ const AdminDashboardPage = () => {
           </Card>
         )}
 
-        {/* WHY VEDX TAB */}
-        {activeTab === "why-vedx" && (
-          <Stack spacing={2}>
-            <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
-              <CardHeader
-                title="Why VedX solutions"
-                subheader="Set the hero content for the Why VedX section."
-              />
-              <Divider />
-              <CardContent>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={7}>
-                    <Stack spacing={2}>
-                      <TextField
-                        label="Hero title"
-                        value={whyVedxHeroForm.heroTitle}
-                        onChange={(event) =>
-                          setWhyVedxHeroForm((prev) => ({
-                            ...prev,
-                            heroTitle: event.target.value,
-                          }))
-                        }
-                        fullWidth
-                      />
-                      <TextField
-                        label="Hero description"
-                        value={whyVedxHeroForm.heroDescription}
-                        onChange={(event) =>
-                          setWhyVedxHeroForm((prev) => ({
-                            ...prev,
-                            heroDescription: event.target.value,
-                          }))
-                        }
-                        fullWidth
-                        minRows={3}
-                        multiline
-                      />
-                      <Button
-                        variant="contained"
-                        onClick={handleWhyVedxHeroSave}
-                        disabled={
-                          !whyVedxHeroForm.heroTitle.trim() ||
-                          !whyVedxHeroForm.heroDescription.trim() ||
-                          !whyVedxHeroForm.heroImage
-                        }
-                      >
-                        Save hero
-                      </Button>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={5}>
-                    <ImageUpload
-                      label="Hero image"
-                      value={whyVedxHeroForm.heroImage}
-                      onChange={(value) =>
-                        setWhyVedxHeroForm((prev) => ({ ...prev, heroImage: value }))
-                      }
-                      required
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-
-            <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
-              <CardHeader
-                title="Why VedX reasons"
-                subheader="Manage the supporting reasons with titles, descriptions, and imagery."
-                action={
-                  <Button
-                    variant="contained"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={() => openWhyVedxReasonDialog(null)}
-                  >
-                    Add reason
-                  </Button>
-                }
-              />
-              <Divider />
-              <CardContent>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {paginatedWhyVedxReasons.map((reason) => (
-                      <TableRow key={reason.id} hover>
-                        <TableCell sx={{ fontWeight: 700 }}>{reason.title}</TableCell>
-                        <TableCell sx={{ maxWidth: 360 }}>
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {reason.description}
-                          </Typography>
-                        </TableCell>
-                        <TableCell width={140}>
-                          {reason.image ? (
-                            <Box
-                              component="img"
-                              src={reason.image}
-                              alt={reason.title || "Reason"}
-                              sx={{
-                                width: 88,
-                                height: 56,
-                                objectFit: "cover",
-                                borderRadius: 1,
-                                border: "1px solid",
-                                borderColor: "divider",
-                              }}
-                            />
-                          ) : (
-                            <Typography variant="caption" color="text.secondary">
-                              No image
-                            </Typography>
-                          )}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => openWhyVedxReasonDialog(reason)}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              color="error"
-                              size="small"
-                              onClick={() => handleDeleteWhyVedxReason(reason.id)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {!whyVedxReasons.length && (
-                      <TableRow>
-                        <TableCell colSpan={4}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No reasons added yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-
-                <Stack mt={2} alignItems="flex-end">
-                  <Pagination
-                    count={Math.max(1, Math.ceil(whyVedxReasons.length / rowsPerPage))}
-                    page={whyVedxPage}
-                    onChange={(_, page) => setWhyVedxPage(page)}
-                    color="primary"
-                    size="small"
-                  />
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Dialog open={whyVedxReasonDialogOpen} onClose={closeWhyVedxReasonDialog} maxWidth="sm" fullWidth>
-              <DialogTitle>{editingWhyVedxReasonId ? "Edit reason" : "Add reason"}</DialogTitle>
-              <DialogContent dividers>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Title"
-                    value={whyVedxReasonForm.title}
-                    onChange={(event) =>
-                      setWhyVedxReasonForm((prev) => ({ ...prev, title: event.target.value }))
-                    }
-                    fullWidth
-                  />
-                  <TextField
-                    label="Description"
-                    value={whyVedxReasonForm.description}
-                    onChange={(event) =>
-                      setWhyVedxReasonForm((prev) => ({
-                        ...prev,
-                        description: event.target.value,
-                      }))
-                    }
-                    fullWidth
-                    multiline
-                    minRows={3}
-                  />
-                  <ImageUpload
-                    label="Image"
-                    value={whyVedxReasonForm.image}
-                    onChange={(value) =>
-                      setWhyVedxReasonForm((prev) => ({ ...prev, image: value }))
-                    }
-                    required
-                  />
-                </Stack>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={closeWhyVedxReasonDialog}>Cancel</Button>
-                <Button
-                  variant="contained"
-                  onClick={handleSaveWhyVedxReason}
-                  disabled={
-                    !whyVedxReasonForm.title.trim() ||
-                    !whyVedxReasonForm.description.trim() ||
-                    !whyVedxReasonForm.image
-                  }
-                >
-                  {editingWhyVedxReasonId ? "Update" : "Create"}
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </Stack>
-        )}
-
         {/* HIRE DEVELOPERS TAB */}
         {activeTab === "hire" && (
           <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
@@ -2892,158 +2580,92 @@ const AdminDashboardPage = () => {
                 </Button>
               </Stack>
 
-            <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
-              <CardHeader
-                title="Why VedX reasons"
-                subheader="Manage the supporting reasons with titles, descriptions, and imagery."
-                action={
-                  <Button
-                    variant="contained"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={() => openWhyVedxReasonDialog(null)}
-                  >
-                    Add reason
-                  </Button>
-                }
-              />
-              <Divider />
-              <CardContent>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {paginatedWhyVedxReasons.map((reason) => (
-                      <TableRow key={reason.id} hover>
-                        <TableCell sx={{ fontWeight: 700 }}>{reason.title}</TableCell>
-                        <TableCell sx={{ maxWidth: 360 }}>
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {reason.description}
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Subcategories</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedHireCategories.map((category) => (
+                    <TableRow key={category.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{category.title}</TableCell>
+                      <TableCell sx={{ maxWidth: 280 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {category.description || "-"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 260 }}>
+                        {category.subcategories?.length ? (
+                          <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                            {category.subcategories.map((sub) => (
+                              <Chip key={sub.id} size="small" label={sub.title} />
+                            ))}
+                          </Stack>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No subcategories
                           </Typography>
-                        </TableCell>
-                        <TableCell width={140}>
-                          {reason.image ? (
-                            <Box
-                              component="img"
-                              src={reason.image}
-                              alt={reason.title || "Reason"}
-                              sx={{
-                                width: 88,
-                                height: 56,
-                                objectFit: "cover",
-                                borderRadius: 1,
-                                border: "1px solid",
-                                borderColor: "divider",
-                              }}
-                            />
-                          ) : (
-                            <Typography variant="caption" color="text.secondary">
-                              No image
-                            </Typography>
-                          )}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => openWhyVedxReasonDialog(reason)}>
+                        )}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Manage subcategories">
+                            <IconButton
+                              size="small"
+                              onClick={() => openSubcategoryDialog(category)}
+                            >
+                              <Typography variant="caption">Subs</Typography>
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit category">
+                            <IconButton
+                              size="small"
+                              onClick={() => openHireCategoryDialog(category)}
+                            >
                               <EditOutlinedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Delete">
+                          <Tooltip title="Delete category">
                             <IconButton
-                              color="error"
                               size="small"
-                              onClick={() => handleDeleteWhyVedxReason(reason.id)}
+                              color="error"
+                              onClick={() => handleDeleteHireCategory(category.id)}
                             >
                               <DeleteOutlineIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {!whyVedxReasons.length && (
-                      <TableRow>
-                        <TableCell colSpan={4}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No reasons added yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!hireCategories.length && (
+                    <TableRow>
+                      <TableCell colSpan={4}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No categories configured yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
 
-                <Stack mt={2} alignItems="flex-end">
-                  <Pagination
-                    count={Math.max(1, Math.ceil(whyVedxReasons.length / rowsPerPage))}
-                    page={whyVedxPage}
-                    onChange={(_, page) => setWhyVedxPage(page)}
-                    color="primary"
-                    size="small"
-                  />
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Dialog open={whyVedxReasonDialogOpen} onClose={closeWhyVedxReasonDialog} maxWidth="sm" fullWidth>
-              <DialogTitle>{editingWhyVedxReasonId ? "Edit reason" : "Add reason"}</DialogTitle>
-              <DialogContent dividers>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Title"
-                    value={whyVedxReasonForm.title}
-                    onChange={(event) =>
-                      setWhyVedxReasonForm((prev) => ({ ...prev, title: event.target.value }))
-                    }
-                    fullWidth
-                  />
-                  <TextField
-                    label="Description"
-                    value={whyVedxReasonForm.description}
-                    onChange={(event) =>
-                      setWhyVedxReasonForm((prev) => ({
-                        ...prev,
-                        description: event.target.value,
-                      }))
-                    }
-                    fullWidth
-                    multiline
-                    minRows={3}
-                  />
-                  <ImageUpload
-                    label="Image"
-                    value={whyVedxReasonForm.image}
-                    onChange={(value) =>
-                      setWhyVedxReasonForm((prev) => ({ ...prev, image: value }))
-                    }
-                    required
-                  />
-                </Stack>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={closeWhyVedxReasonDialog}>Cancel</Button>
-                <Button
-                  variant="contained"
-                  onClick={handleSaveWhyVedxReason}
-                  disabled={
-                    !whyVedxReasonForm.title.trim() ||
-                    !whyVedxReasonForm.description.trim() ||
-                    !whyVedxReasonForm.image
-                  }
-                >
-                  {editingWhyVedxReasonId ? "Update" : "Create"}
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </Stack>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(hireCategories.length / rowsPerPage))}
+                  page={hireCategoryPage}
+                  onChange={(_, page) => setHireCategoryPage(page)}
+                  color="primary"
+                  size="small"
+                />
+              </Stack>
+            </CardContent>
+          </Card>
         )}
-
-        {/* HIRE DEVELOPERS TAB */}
-       
       </Stack>
 
       {/* Our services slider dialog */}
