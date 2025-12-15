@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Box,
   Button,
   Card,
   CardContent,
@@ -29,6 +30,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { apiUrl } from '../../utils/const.js';
+import { fileToDataUrl } from '../../utils/files.js';
 
 const normalizeDateInput = (value) => {
   const parsed = value ? new Date(value) : new Date();
@@ -106,6 +108,31 @@ const matchesDateFilter = (value, filter, range) => {
 const defaultBlogFilters = { category: 'all', status: 'all', date: 'all', start: '', end: '' };
 const statusOptions = ['Draft', 'Published', 'Scheduled'];
 
+const ImageUpload = ({ label, value, onChange }) => {
+  const handleChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await fileToDataUrl(file);
+    onChange?.(dataUrl);
+  };
+
+  return (
+    <Stack spacing={1}>
+      <Button component="label" variant="outlined">
+        {value ? 'Change cover image' : 'Upload cover image'}
+        <input type="file" hidden accept="image/*" onChange={handleChange} />
+      </Button>
+      {value && (
+        <img
+          src={value}
+          alt="Selected cover"
+          style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 8 }}
+        />
+      )}
+    </Stack>
+  );
+};
+
 const mapApiBlogToRow = (blog) => ({
   id: blog.id,
   title: blog.title,
@@ -115,6 +142,7 @@ const mapApiBlogToRow = (blog) => ({
   description: blog.description || '',
   conclusion: blog.conclusion || '',
   status: deriveStatusFromDate(blog.status, blog.publishDate),
+  coverImage: blog.coverImage || '',
 });
 
 const AdminBlogsPage = () => {
@@ -146,6 +174,7 @@ const AdminBlogsPage = () => {
     description: '',
     conclusion: '',
     status: 'Draft',
+    coverImage: '',
   });
 
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -370,6 +399,7 @@ const AdminBlogsPage = () => {
       description: '',
       conclusion: '',
       status: 'Draft',
+      coverImage: '',
     });
   };
 
@@ -432,6 +462,7 @@ const AdminBlogsPage = () => {
     const trimmedTitle = formState.title.trim();
     const trimmedDescription = formState.description.trim();
     const trimmedConclusion = formState.conclusion.trim();
+    const trimmedCoverImage = formState.coverImage.trim();
 
     const requiredField = [
       { key: trimmedTitle, label: 'Title' },
@@ -440,6 +471,7 @@ const AdminBlogsPage = () => {
       { key: formState.status, label: 'Status' },
       { key: trimmedDescription, label: 'Description' },
       { key: trimmedConclusion, label: 'Conclusion' },
+      { key: trimmedCoverImage, label: 'Cover image' },
     ].find((entry) => !entry.key);
 
     if (requiredField) {
@@ -457,6 +489,7 @@ const AdminBlogsPage = () => {
         description: trimmedDescription,
         conclusion: trimmedConclusion,
         status: formState.status,
+        coverImage: trimmedCoverImage,
       };
 
       const response = await fetch(
@@ -952,6 +985,11 @@ const AdminBlogsPage = () => {
                 </MenuItem>
               ))}
             </TextField>
+            <ImageUpload
+              label="Cover image"
+              value={formState.coverImage}
+              onChange={(value) => handleFormChange('coverImage', value)}
+            />
             <TextField
               label="Description"
               placeholder="Write a short description for the blog post"
@@ -1005,6 +1043,14 @@ const AdminBlogsPage = () => {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {viewBlog.title}
               </Typography>
+              {viewBlog.coverImage && (
+                <Box
+                  component="img"
+                  src={viewBlog.coverImage}
+                  alt="Blog cover"
+                  sx={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 1 }}
+                />
+              )}
               <Stack direction="row" spacing={1} alignItems="center">
                 <Chip
                   label={viewBlog.category}

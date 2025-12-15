@@ -3475,42 +3475,42 @@ const AdminServicesPage = () => {
         <DialogTitle>{technologyDialogMode === 'edit' ? 'Edit technology block' : 'Add technology block'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleTechnologySubmit}>
-            <Autocomplete
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
+            <TextField
+              select
+              label="Category"
               value={technologyForm.category}
-              onInputChange={(event, newValue) =>
+              onChange={(event) =>
                 setTechnologyForm((prev) => ({
                   ...prev,
-                  category: newValue || '',
-                  subcategory: newValue === prev.category ? prev.subcategory : '',
+                  category: event.target.value,
+                  subcategory: '',
                 }))
               }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Category"
-                  required
-                  helperText="Match the service category for this technology block"
-                />
-              )}
-            />
-            <Autocomplete
-              freeSolo
-              options={technologySubcategoryOptions}
+              fullWidth
+              required
+              helperText="Match the service category for this technology block"
+            >
+              {categoryOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Sub-category"
               value={technologyForm.subcategory}
-              onInputChange={(event, newValue) =>
-                handleTechnologyFormChange('subcategory', newValue || '')
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category"
-                  helperText="Keep stacks aligned to category and sub-category"
-                />
-              )}
-              disabled={!technologyForm.category && technologySubcategoryOptions.length === 0}
-            />
+              onChange={(event) => handleTechnologyFormChange('subcategory', event.target.value)}
+              fullWidth
+              disabled={!technologyForm.category || technologySubcategoryOptions.length === 0}
+              helperText="Keep stacks aligned to category and sub-category"
+            >
+              {technologySubcategoryOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               label="Title"
               value={technologyForm.title}
@@ -3578,31 +3578,36 @@ const AdminServicesPage = () => {
               fullWidth
               required
             />
-            <Autocomplete
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
+            <TextField
+              select
+              label="Category"
               value={benefitForm.category}
-              onInputChange={(event, newValue) =>
-                handleBenefitFormChange('category', newValue || '')
+              onChange={(event) =>
+                handleBenefitFormChange('category', event.target.value)
               }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Category"
-                  helperText="Link the benefit to a service category"
-                />
-              )}
-            />
-            <Autocomplete
-              freeSolo
-              options={benefitSubcategoryOptions}
+              helperText="Link the benefit to a service category"
+              fullWidth
+            >
+              {categoryOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Sub-category"
               value={benefitForm.subcategory}
-              onInputChange={(event, newValue) =>
-                handleBenefitFormChange('subcategory', newValue || '')
-              }
-              renderInput={(params) => <TextField {...params} label="Sub-category" />}
+              onChange={(event) => handleBenefitFormChange('subcategory', event.target.value)}
               disabled={!benefitForm.category && benefitSubcategoryOptions.length === 0}
-            />
+              fullWidth
+            >
+              {benefitSubcategoryOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
             <ImageUpload
               label="Image"
               value={benefitForm.image}
@@ -3990,42 +3995,42 @@ const AdminServicesPage = () => {
         <DialogTitle>{hireServiceDialogMode === 'edit' ? 'Edit hire service' : 'Add hire service'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleHireServiceSubmit}>
-            <Autocomplete
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
+            <TextField
+              select
+              label="Service category"
               value={hireServiceForm.category}
-              onInputChange={(event, newValue) =>
+              onChange={(event) =>
                 setHireServiceForm((prev) => ({
                   ...prev,
-                  category: newValue || '',
-                  subcategory: newValue === prev.category ? prev.subcategory : '',
+                  category: event.target.value,
+                  subcategory: '',
                 }))
               }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Service category"
-                  required
-                  helperText="Link hire cards to a service category"
-                />
-              )}
-            />
-            <Autocomplete
-              freeSolo
-              options={hireSubcategoryOptions}
+              required
+              helperText="Link hire cards to a service category"
+              fullWidth
+            >
+              {categoryOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Sub-category"
               value={hireServiceForm.subcategory}
-              onInputChange={(event, newValue) =>
-                handleHireServiceFormChange('subcategory', newValue || '')
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category"
-                  helperText="Pick the sub-category for this hire option"
-                />
-              )}
+              onChange={(event) => handleHireServiceFormChange('subcategory', event.target.value)}
+              helperText="Pick the sub-category for this hire option"
               disabled={!hireServiceForm.category && hireSubcategoryOptions.length === 0}
-            />
+              fullWidth
+            >
+              {hireSubcategoryOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               label="Title"
               value={hireServiceForm.title}

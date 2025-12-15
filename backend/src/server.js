@@ -213,6 +213,7 @@ const formatBlogPostResponse = (post) => {
     id: post.id,
     title: post.title,
     slug: post.slug,
+    coverImage: post.coverImage || '',
     categoryId: post.categoryId || '',
     category: post.category ? formatBlogCategoryResponse(post.category) : null,
     publishDate,
@@ -374,6 +375,7 @@ const validateBlogPostInput = (body) => {
   const title = normalizeText(body?.title);
   const description = normalizeText(body?.description);
   const conclusion = normalizeText(body?.conclusion);
+  const coverImage = normalizeText(body?.coverImage) || null;
   const slugInput = normalizeText(body?.slug || body?.title);
   const slug = normalizeSlug(slugInput) || `post-${Date.now()}`;
   const publishDate = normalizePublishDate(body?.publishDate);
@@ -383,7 +385,7 @@ const validateBlogPostInput = (body) => {
   if (!title) return { error: 'Title is required.' };
   if (!description) return { error: 'Description is required.' };
 
-  return { title, description, conclusion, slug, publishDate, status, categoryId };
+  return { title, description, conclusion, coverImage, slug, publishDate, status, categoryId };
 };
 
 const validateCareerOpeningInput = (body) => {
@@ -1946,7 +1948,7 @@ app.post('/api/admin/blog-posts', async (req, res) => {
     const validation = validateBlogPostInput(req.body || {});
     if (validation.error) return res.status(400).json({ message: validation.error });
 
-    const { title, description, conclusion, slug, publishDate, status: uiStatus, categoryId } = validation;
+    const { title, description, conclusion, coverImage, slug, publishDate, status: uiStatus, categoryId } = validation;
 
     if (categoryId) {
       const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
@@ -1959,6 +1961,7 @@ app.post('/api/admin/blog-posts', async (req, res) => {
         slug,
         summary: description,
         content: conclusion || description,
+        coverImage,
         status: mapUiStatusToPublishStatus(uiStatus),
         publishedAt: publishDate,
         categoryId: categoryId || null,
@@ -1993,7 +1996,7 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
     const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
     if (!existing) return res.status(404).json({ message: 'Blog post not found.' });
 
-    const { title, description, conclusion, slug, publishDate, status: uiStatus, categoryId } = validation;
+    const { title, description, conclusion, coverImage, slug, publishDate, status: uiStatus, categoryId } = validation;
 
     if (categoryId) {
       const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
@@ -2007,6 +2010,7 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
         slug,
         summary: description,
         content: conclusion || description,
+        coverImage,
         status: mapUiStatusToPublishStatus(uiStatus),
         publishedAt: publishDate,
         categoryId: categoryId || null,

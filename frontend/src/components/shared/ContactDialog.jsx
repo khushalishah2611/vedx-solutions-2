@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -9,6 +9,7 @@ import {
   IconButton,
   InputAdornment,
   MenuItem,
+  FormHelperText,
   Stack,
   TextField,
   Typography,
@@ -17,18 +18,113 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { contactProjectTypes } from '../../data/servicesPage.js';
+import { apiUrl } from '../../utils/const.js';
+import { fileToDataUrl } from '../../utils/files.js';
 
 const ContactDialog = ({ open, onClose }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
 
-  const handleApplicationSubmit = (event) => {
+  const employmentTypes = useMemo(() => ['Full-time', 'Part-time', 'Contract'], []);
+
+  const [formState, setFormState] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    projectType: contactProjectTypes[0],
+    experience: '',
+    employmentType: employmentTypes[0],
+    notes: '',
+    resume: null,
+  });
+  const [resumeError, setResumeError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const resetForm = () => {
+    setFormState({
+      name: '',
+      email: '',
+      phone: '',
+      projectType: contactProjectTypes[0],
+      experience: '',
+      employmentType: employmentTypes[0],
+      notes: '',
+      resume: null,
+    });
+    setResumeError('');
+    setSubmitError('');
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setFormState((prev) => ({ ...prev, resume: null }));
+      setResumeError('');
+      return;
+    }
+
+    if (file.type !== 'application/pdf') {
+      setResumeError('Only PDF resumes are supported.');
+      return;
+    }
+
+    setResumeError('');
+    setFormState((prev) => ({ ...prev, resume: { file, name: file.name } }));
+  };
+
+  const handleFieldChange = (field, value) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleApplicationSubmit = async (event) => {
     event.preventDefault();
+    setSubmitError('');
 
-    // TODO: add your API call / logic here
+    const trimmedName = formState.name.trim();
+    const trimmedEmail = formState.email.trim();
+    const trimmedPhone = formState.phone.trim();
+    const trimmedExperience = formState.experience.trim();
+    const trimmedNotes = formState.notes.trim();
 
-    onClose?.();
+    if (!trimmedName || !trimmedEmail) {
+      setSubmitError('Name and email are required.');
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const resumeUrl = formState.resume?.file ? await fileToDataUrl(formState.resume.file) : '';
+
+      const response = await fetch(apiUrl('/api/careers/applications'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          contact: trimmedPhone,
+          experience: trimmedExperience,
+          employmentType: formState.employmentType,
+          appliedOn: new Date().toISOString().split('T')[0],
+          resumeUrl,
+          notes: trimmedNotes || `Project type: ${formState.projectType}`,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message || 'Unable to submit application.');
+
+      resetForm();
+      onClose?.();
+    } catch (error) {
+      console.error('Contact dialog submit failed', error);
+      setSubmitError(error?.message || 'Unable to submit application right now.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -69,10 +165,25 @@ const ContactDialog = ({ open, onClose }) => {
           id="application-form"
           onSubmit={handleApplicationSubmit}
         >
-          <TextField label="Name" required fullWidth />
-          <TextField label="Email" type="email" required fullWidth />
+          <TextField
+            label="Name"
+            value={formState.name}
+            onChange={(event) => handleFieldChange('name', event.target.value)}
+            required
+            fullWidth
+          />
+          <TextField
+            label="Email"
+            type="email"
+            value={formState.email}
+            onChange={(event) => handleFieldChange('email', event.target.value)}
+            required
+            fullWidth
+          />
           <TextField
             label="Mobile Number"
+            value={formState.phone}
+            onChange={(event) => handleFieldChange('phone', event.target.value)}
             fullWidth
             InputProps={{
               startAdornment: (
@@ -85,8 +196,9 @@ const ContactDialog = ({ open, onClose }) => {
           <TextField
             select
             label="Project Type"
+            value={formState.projectType}
+            onChange={(event) => handleFieldChange('projectType', event.target.value)}
             fullWidth
-            defaultValue={contactProjectTypes[0]}
           >
             {contactProjectTypes.map((type) => (
               <MenuItem key={type} value={type}>
@@ -94,7 +206,49 @@ const ContactDialog = ({ open, onClose }) => {
               </MenuItem>
             ))}
           </TextField>
-          <TextField label="Description" fullWidth multiline minRows={4} />
+          <TextField
+            label="Experience"
+            placeholder="e.g. 3 years"
+            value={formState.experience}
+            onChange={(event) => handleFieldChange('experience', event.target.value)}
+            fullWidth
+          />
+          <TextField
+            select
+            label="Employment type"
+            value={formState.employmentType}
+            onChange={(event) => handleFieldChange('employmentType', event.target.value)}
+            fullWidth
+          >
+            {employmentTypes.map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Stack spacing={0.5}>
+            <Button component="label" variant="outlined">
+              {formState.resume ? 'Change resume (PDF)' : 'Upload resume (PDF)'}
+              <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
+            </Button>
+            <Typography variant="body2" color="text.secondary">
+              {formState.resume ? `Selected: ${formState.resume.name}` : 'Upload your resume to speed up review.'}
+            </Typography>
+            {resumeError && <FormHelperText error>{resumeError}</FormHelperText>}
+          </Stack>
+          <TextField
+            label="Notes"
+            value={formState.notes}
+            onChange={(event) => handleFieldChange('notes', event.target.value)}
+            fullWidth
+            multiline
+            minRows={4}
+          />
+          {submitError && (
+            <Typography color="error" variant="body2">
+              {submitError}
+            </Typography>
+          )}
         </Stack>
       </DialogContent>
 
@@ -106,6 +260,7 @@ const ContactDialog = ({ open, onClose }) => {
             type="submit"
             variant="contained"
             size="large"
+            disabled={submitting}
             sx={{
               background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
               color: '#fff',
