@@ -818,6 +818,20 @@ app.get('/api/service-categories', async (_req, res) => {
   }
 });
 
+app.get('/api/service-subcategories', async (_req, res) => {
+  try {
+    const subCategories = await prisma.serviceSubCategory.findMany({
+      include: { category: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ subCategories });
+  } catch (error) {
+    console.error('Public service subcategories fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load service subcategories.' });
+  }
+});
+
 app.get('/api/services', async (_req, res) => {
   try {
     const services = await prisma.service.findMany({

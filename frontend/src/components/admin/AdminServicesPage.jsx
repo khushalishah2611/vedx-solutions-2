@@ -542,6 +542,8 @@ const AdminServicesPage = () => {
   const [activeTab, setActiveTab] = useState('services');
 
   const [services, setServices] = useState(initialServices);
+  const [serviceCategories, setServiceCategories] = useState([]);
+  const [serviceSubcategories, setServiceSubcategories] = useState([]);
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
   const [serviceDialogMode, setServiceDialogMode] = useState('create');
   const [activeService, setActiveService] = useState(null);
@@ -665,6 +667,19 @@ const AdminServicesPage = () => {
     subcategory: benefit.subcategory || '',
   });
 
+  const normalizeServiceCategory = (category) => ({
+    id: category.id,
+    name: category.name || '',
+    subCategories: category.subCategories || [],
+  });
+
+  const normalizeServiceSubcategory = (subcategory) => ({
+    id: subcategory.id,
+    name: subcategory.name || '',
+    categoryId: subcategory.categoryId,
+    categoryName: subcategory.category?.name || '',
+  });
+
   const normalizeProcess = (process) => ({
     ...process,
     createdAt: normalizeDate(process.createdAt),
@@ -708,6 +723,28 @@ const AdminServicesPage = () => {
       setTechnologies((data || []).map(normalizeTechnology));
     } catch (err) {
       console.error('Failed to load technologies', err);
+    }
+  };
+
+  const loadServiceCategories = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/service-categories'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load categories');
+      setServiceCategories((data.categories || []).map(normalizeServiceCategory));
+    } catch (err) {
+      console.error('Failed to load service categories', err);
+    }
+  };
+
+  const loadServiceSubcategories = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/service-subcategories'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load sub-categories');
+      setServiceSubcategories((data.subCategories || []).map(normalizeServiceSubcategory));
+    } catch (err) {
+      console.error('Failed to load service subcategories', err);
     }
   };
 
@@ -830,6 +867,8 @@ const AdminServicesPage = () => {
 
   useEffect(() => {
     loadServiceMenus();
+    loadServiceCategories();
+    loadServiceSubcategories();
     loadTechnologies();
     loadBenefits();
     loadProcesses();
@@ -969,30 +1008,54 @@ const AdminServicesPage = () => {
   };
 
   const categoryOptions = useMemo(
-    () => Array.from(new Set(services.map((service) => service.category))).map((category) => ({
-      value: category,
-      label: category,
-    })),
-    [services]
+    () =>
+      Array.from(
+        new Set(
+          (serviceCategories || [])
+            .map((category) => category.name)
+            .filter((name) => Boolean(name && name.trim()))
+        )
+      ).map((category) => ({
+        value: category,
+        label: category,
+      })),
+    [serviceCategories]
   );
 
   const subcategoryLookup = useMemo(() => {
     const lookup = new Map();
-    services.forEach((service) => {
-      lookup.set(
-        service.category,
-        Array.from(new Set(service.subcategories.map((subcategory) => subcategory.name)))
-      );
+
+    serviceCategories.forEach((category) => {
+      if (category.name) {
+        lookup.set(category.name, []);
+      }
     });
+
+    serviceSubcategories.forEach((subcategory) => {
+      if (!subcategory.name) return;
+
+      const categoryName =
+        serviceCategories.find((category) => category.id === subcategory.categoryId)?.name ||
+        subcategory.categoryName ||
+        '';
+
+      if (!categoryName) return;
+
+      const existing = lookup.get(categoryName) || [];
+      if (!existing.includes(subcategory.name)) {
+        lookup.set(categoryName, [...existing, subcategory.name]);
+      }
+    });
+
     return lookup;
-  }, [services]);
+  }, [serviceCategories, serviceSubcategories]);
 
   const allSubcategoryOptions = useMemo(
     () =>
       Array.from(
-        new Set(services.flatMap((service) => service.subcategories.map((subcategory) => subcategory.name)))
+        new Set(serviceSubcategories.map((subcategory) => subcategory.name).filter((name) => Boolean(name)))
       ),
-    [services]
+    [serviceSubcategories]
   );
 
   const filteredServices = useMemo(

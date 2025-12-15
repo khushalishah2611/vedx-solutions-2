@@ -416,45 +416,6 @@ const AdminDashboardPage = () => {
     }
   };
 
-
-  const loadWhyVedx = async () => {
-    try {
-      const res = await fetch(apiUrl("/api/why-vedx"));
-      if (res.status === 404) {
-        setWhyVedxHero({ id: null, heroTitle: "", heroDescription: "", heroImage: "" });
-        setWhyVedxHeroForm({ heroTitle: "", heroDescription: "", heroImage: "" });
-        return;
-      }
-      if (!res.ok) throw new Error("Failed to fetch why VEDX config");
-      const data = await res.json();
-      setWhyVedxHero({
-        id: data.id || null,
-        heroTitle: data.heroTitle || "",
-        heroDescription: data.heroDescription || "",
-        heroImage: data.heroImage || "",
-      });
-      setWhyVedxHeroForm({
-        heroTitle: data.heroTitle || "",
-        heroDescription: data.heroDescription || "",
-        heroImage: data.heroImage || "",
-      });
-      setWhyVedxReasons(data.reasons || []);
-    } catch (err) {
-      console.error("loadWhyVedx error", err);
-    }
-  };
-
-  const loadWhyVedxReasons = async () => {
-    try {
-      const res = await fetch(apiUrl("/api/why-vedx-reasons"));
-      if (!res.ok) throw new Error("Failed to fetch why VEDX reasons");
-      const data = await res.json();
-      setWhyVedxReasons(data || []);
-    } catch (err) {
-      console.error("loadWhyVedxReasons error", err);
-    }
-  };
-
   /* -----------------------------------
    * BANNER handlers
    * ----------------------------------- */
@@ -2753,6 +2714,183 @@ const AdminDashboardPage = () => {
                 </Grid>
               </CardContent>
             </Card>
+
+            <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+              <CardHeader
+                title="Why VedX reasons"
+                subheader="Manage the supporting reasons with titles, descriptions, and imagery."
+                action={
+                  <Button
+                    variant="contained"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={() => openWhyVedxReasonDialog(null)}
+                  >
+                    Add reason
+                  </Button>
+                }
+              />
+              <Divider />
+              <CardContent>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {paginatedWhyVedxReasons.map((reason) => (
+                      <TableRow key={reason.id} hover>
+                        <TableCell sx={{ fontWeight: 700 }}>{reason.title}</TableCell>
+                        <TableCell sx={{ maxWidth: 360 }}>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {reason.description}
+                          </Typography>
+                        </TableCell>
+                        <TableCell width={140}>
+                          {reason.image ? (
+                            <Box
+                              component="img"
+                              src={reason.image}
+                              alt={reason.title || "Reason"}
+                              sx={{
+                                width: 88,
+                                height: 56,
+                                objectFit: "cover",
+                                borderRadius: 1,
+                                border: "1px solid",
+                                borderColor: "divider",
+                              }}
+                            />
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              No image
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => openWhyVedxReasonDialog(reason)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              color="error"
+                              size="small"
+                              onClick={() => handleDeleteWhyVedxReason(reason.id)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!whyVedxReasons.length && (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <Typography variant="body2" color="text.secondary" align="center">
+                            No reasons added yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+
+                <Stack mt={2} alignItems="flex-end">
+                  <Pagination
+                    count={Math.max(1, Math.ceil(whyVedxReasons.length / rowsPerPage))}
+                    page={whyVedxPage}
+                    onChange={(_, page) => setWhyVedxPage(page)}
+                    color="primary"
+                    size="small"
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+
+            <Dialog open={whyVedxReasonDialogOpen} onClose={closeWhyVedxReasonDialog} maxWidth="sm" fullWidth>
+              <DialogTitle>{editingWhyVedxReasonId ? "Edit reason" : "Add reason"}</DialogTitle>
+              <DialogContent dividers>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Title"
+                    value={whyVedxReasonForm.title}
+                    onChange={(event) =>
+                      setWhyVedxReasonForm((prev) => ({ ...prev, title: event.target.value }))
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Description"
+                    value={whyVedxReasonForm.description}
+                    onChange={(event) =>
+                      setWhyVedxReasonForm((prev) => ({
+                        ...prev,
+                        description: event.target.value,
+                      }))
+                    }
+                    fullWidth
+                    multiline
+                    minRows={3}
+                  />
+                  <ImageUpload
+                    label="Image"
+                    value={whyVedxReasonForm.image}
+                    onChange={(value) =>
+                      setWhyVedxReasonForm((prev) => ({ ...prev, image: value }))
+                    }
+                    required
+                  />
+                </Stack>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={closeWhyVedxReasonDialog}>Cancel</Button>
+                <Button
+                  variant="contained"
+                  onClick={handleSaveWhyVedxReason}
+                  disabled={
+                    !whyVedxReasonForm.title.trim() ||
+                    !whyVedxReasonForm.description.trim() ||
+                    !whyVedxReasonForm.image
+                  }
+                >
+                  {editingWhyVedxReasonId ? "Update" : "Create"}
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </Stack>
+        )}
+
+        {/* HIRE DEVELOPERS TAB */}
+        {activeTab === "hire" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+            <CardHeader
+              title="Hire developers"
+              subheader="Maintain categories (Mobile, Web, etc.) and their subcategories."
+            />
+            <Divider />
+            <CardContent>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                justifyContent="space-between"
+                alignItems={{ xs: "flex-start", sm: "center" }}
+                mb={2}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Configure what types of developers you highlight on the marketing site.
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() => openHireCategoryDialog()}
+                >
+                  Add category
+                </Button>
+              </Stack>
 
             <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
               <CardHeader
