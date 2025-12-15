@@ -3036,6 +3036,11 @@ app.post('/api/process-steps', async (req, res) => {
       return res.status(400).json({ error: 'title is required' });
     }
 
+    const imageError = validateImageUrl(image);
+    if (imageError) {
+      return res.status(400).json({ error: imageError });
+    }
+
     const created = await prisma.processStep.create({
       data: {
         title,
@@ -3061,6 +3066,11 @@ app.put('/api/process-steps/:id', async (req, res) => {
     }
 
     const { title, description, image, sortOrder, isActive } = req.body ?? {};
+
+    const imageError = validateImageUrl(image);
+    if (imageError) {
+      return res.status(400).json({ error: imageError });
+    }
 
     const updated = await prisma.processStep.update({
       where: { id },
