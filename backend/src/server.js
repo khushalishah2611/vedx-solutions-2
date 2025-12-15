@@ -4,58 +4,19 @@ import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { sendOtpEmail } from './utils/email.js';
 
-
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
-const allowedOrigins = (process.env.CORS_ORIGIN || '*')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-// When "*" is present, fall back to the default permissive mode that correctly
-// sets the Access-Control-Allow-Origin header for preflight requests. Passing
-// an array with "*" does not add the header and causes the browser to block
-// requests.
-const corsOptions = {
-  origin: allowedOrigins.includes('*') ? true : allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+const OtpPurpose = {
+  PASSWORD_RESET: 'PASSWORD_RESET',
 };
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-
-// Explicit CORS headers to ensure preflight responses always include the
-// required Access-Control-Allow-Origin header. Some environments may bypass
-// the cors() handler for OPTIONS requests, so we add a lightweight fallback
-// that mirrors the request origin when allowed and returns early for OPTIONS.
-app.use((req, res, next) => {
-  const requestOrigin = req.headers.origin;
-  const isWildcard = allowedOrigins.includes('*');
-  const isAllowedOrigin = isWildcard || allowedOrigins.includes(requestOrigin);
-
-  if (isAllowedOrigin) {
-    res.header('Access-Control-Allow-Origin', requestOrigin || '*');
-    res.header('Vary', 'Origin');
-  }
-
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.header(
-    'Access-Control-Allow-Headers',
-    req.header('Access-Control-Request-Headers') || 'Content-Type, Authorization'
-  );
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-
-  next();
-});
+app.use(cors());
+app.use(express.json());
 
 app.use(
   express.json({
@@ -69,25 +30,6 @@ app.use(
     limit: '10mb',      // form-data urlencoded ma pan 10MB
   })
 );
-
-/**
- * Request / Response logger middleware
- * Logs method, path, params, query, body and final response status.
- */
-app.use((req, res, next) => {
-  const start = Date.now();
-  console.log(`--> ${req.method} ${req.originalUrl}`);
-  console.log('    params:', req.params);
-  console.log('    query: ', req.query);
-  console.log('    body:  ', req.body);
-
-  res.on('finish', () => {
-    const ms = Date.now() - start;
-    console.log(`<-- ${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`);
-  });
-
-  next();
-});
 
 const hashPassword = (value) =>
   crypto.createHash('sha256').update(String(value ?? '')).digest('hex');
