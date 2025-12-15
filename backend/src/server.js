@@ -12,17 +12,50 @@ const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
+const allowedOrigins = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+// When "*" is present, fall back to the default permissive mode that correctly
+// sets the Access-Control-Allow-Origin header for preflight requests. Passing
+// an array with "*" does not add the header and causes the browser to block
+// requests.
 const corsOptions = {
-  origin: (process.env.CORS_ORIGIN || '*')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean),
+  origin: allowedOrigins.includes('*') ? true : allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+
+// Explicit CORS headers to ensure preflight responses always include the
+// required Access-Control-Allow-Origin header. Some environments may bypass
+// the cors() handler for OPTIONS requests, so we add a lightweight fallback
+// that mirrors the request origin when allowed and returns early for OPTIONS.
+app.use((req, res, next) => {
+  const requestOrigin = req.headers.origin;
+  const isWildcard = allowedOrigins.includes('*');
+  const isAllowedOrigin = isWildcard || allowedOrigins.includes(requestOrigin);
+
+  if (isAllowedOrigin) {
+    res.header('Access-Control-Allow-Origin', requestOrigin || '*');
+    res.header('Vary', 'Origin');
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    req.header('Access-Control-Request-Headers') || 'Content-Type, Authorization'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 app.use(
   express.json({
