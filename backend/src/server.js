@@ -30,6 +30,33 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
+// Explicit CORS headers to ensure preflight responses always include the
+// required Access-Control-Allow-Origin header. Some environments may bypass
+// the cors() handler for OPTIONS requests, so we add a lightweight fallback
+// that mirrors the request origin when allowed and returns early for OPTIONS.
+app.use((req, res, next) => {
+  const requestOrigin = req.headers.origin;
+  const isWildcard = allowedOrigins.includes('*');
+  const isAllowedOrigin = isWildcard || allowedOrigins.includes(requestOrigin);
+
+  if (isAllowedOrigin) {
+    res.header('Access-Control-Allow-Origin', requestOrigin || '*');
+    res.header('Vary', 'Origin');
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    req.header('Access-Control-Request-Headers') || 'Content-Type, Authorization'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
 app.use(
   express.json({
     limit: '10mb',      // JSON body max ~10MB
