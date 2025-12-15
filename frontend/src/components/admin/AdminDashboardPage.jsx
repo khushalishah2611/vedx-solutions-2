@@ -378,9 +378,10 @@ const AdminDashboardPage = () => {
 
   const loadExpertise = async () => {
     try {
+      const headers = getAdminAuthHeaders();
       const [configRes, itemsRes] = await Promise.all([
-        fetch(apiUrl("/api/expertise/config")),
-        fetch(apiUrl("/api/expertise")),
+        fetch(apiUrl("/api/expertise/config"), { headers }),
+        fetch(apiUrl("/api/expertise"), { headers }),
       ]);
       if (!configRes.ok) throw new Error("Failed to fetch expertise config");
       if (!itemsRes.ok) throw new Error("Failed to fetch expertise");
