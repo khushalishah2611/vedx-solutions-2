@@ -118,14 +118,6 @@ const AdminDashboardPage = () => {
   );
   const rowsPerPage = 5;
 
-  const getAdminAuthHeaders = () => {
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-      throw new Error("Your session expired. Please log in again.");
-    }
-    return { Authorization: `Bearer ${token}` };
-  };
-
   const fileInputRef = useRef(null);
   const industryFileInputRef = useRef(null);
   const processFileInputRef = useRef(null);
@@ -378,10 +370,9 @@ const AdminDashboardPage = () => {
 
   const loadExpertise = async () => {
     try {
-      const headers = getAdminAuthHeaders();
       const [configRes, itemsRes] = await Promise.all([
-        fetch(apiUrl("/api/expertise/config"), { headers }),
-        fetch(apiUrl("/api/expertise"), { headers }),
+        fetch(apiUrl("/api/expertise/config")),
+        fetch(apiUrl("/api/expertise")),
       ]);
       if (!configRes.ok) throw new Error("Failed to fetch expertise config");
       if (!itemsRes.ok) throw new Error("Failed to fetch expertise");
@@ -401,9 +392,7 @@ const AdminDashboardPage = () => {
 
   const loadHireCategories = async () => {
     try {
-      const res = await fetch(apiUrl("/api/admin/hire-categories"), {
-        headers: getAdminAuthHeaders(),
-      });
+      const res = await fetch(apiUrl("/api/admin/hire-categories"));
       if (!res.ok) throw new Error("Failed to fetch hire categories");
       const data = await res.json();
       setHireCategories(data);
@@ -1117,10 +1106,7 @@ const AdminDashboardPage = () => {
     try {
       const res = await fetch(apiUrl("/api/expertise/config"), {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAdminAuthHeaders(),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: expertiseConfig.title,
           description: expertiseConfig.description,
@@ -1189,10 +1175,7 @@ const AdminDashboardPage = () => {
       if (editingExpertiseId != null) {
         const res = await fetch(apiUrl(`/api/expertise/${editingExpertiseId}`), {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAdminAuthHeaders(),
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to update expertise");
@@ -1203,10 +1186,7 @@ const AdminDashboardPage = () => {
       } else {
         const res = await fetch(apiUrl("/api/expertise"), {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAdminAuthHeaders(),
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create expertise");
@@ -1223,10 +1203,7 @@ const AdminDashboardPage = () => {
 
   const handleDeleteExpertise = async (id) => {
     try {
-      const res = await fetch(apiUrl(`/api/expertise/${id}`), {
-        method: "DELETE",
-        headers: getAdminAuthHeaders(),
-      });
+      const res = await fetch(apiUrl(`/api/expertise/${id}`), { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete expertise");
       setExpertiseItems((prev) => {
         const updated = prev.filter((item) => item.id !== id);
@@ -1298,10 +1275,7 @@ const AdminDashboardPage = () => {
       if (editingHireCategoryId != null) {
         const res = await fetch(apiUrl(`/api/admin/hire-categories/${editingHireCategoryId}`), {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAdminAuthHeaders(),
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to update hire category");
@@ -1312,10 +1286,7 @@ const AdminDashboardPage = () => {
       } else {
         const res = await fetch(apiUrl("/api/admin/hire-categories"), {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAdminAuthHeaders(),
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create category");
@@ -1332,10 +1303,7 @@ const AdminDashboardPage = () => {
 
   const handleDeleteHireCategory = async (id) => {
     try {
-      const res = await fetch(apiUrl(`/api/admin/hire-categories/${id}`), {
-        method: "DELETE",
-        headers: getAdminAuthHeaders(),
-      });
+      const res = await fetch(apiUrl(`/api/admin/hire-categories/${id}`), { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete category");
       setHireCategories((prev) => {
         const updated = prev.filter((category) => category.id !== id);
