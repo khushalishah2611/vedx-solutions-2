@@ -543,6 +543,7 @@ const AdminServicesPage = () => {
 
   const [services, setServices] = useState(initialServices);
   const [serviceCategories, setServiceCategories] = useState([]);
+  const [serviceSubcategories, setServiceSubcategories] = useState([]);
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
   const [serviceDialogMode, setServiceDialogMode] = useState('create');
   const [activeService, setActiveService] = useState(null);
@@ -672,6 +673,13 @@ const AdminServicesPage = () => {
     subCategories: category.subCategories || [],
   });
 
+  const normalizeServiceSubcategory = (subcategory) => ({
+    id: subcategory.id,
+    name: subcategory.name || '',
+    categoryId: subcategory.categoryId,
+    categoryName: subcategory.category?.name || '',
+  });
+
   const normalizeProcess = (process) => ({
     ...process,
     createdAt: normalizeDate(process.createdAt),
@@ -726,6 +734,17 @@ const AdminServicesPage = () => {
       setServiceCategories((data.categories || []).map(normalizeServiceCategory));
     } catch (err) {
       console.error('Failed to load service categories', err);
+    }
+  };
+
+  const loadServiceSubcategories = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/service-subcategories'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load sub-categories');
+      setServiceSubcategories((data.subCategories || []).map(normalizeServiceSubcategory));
+    } catch (err) {
+      console.error('Failed to load service subcategories', err);
     }
   };
 
@@ -849,6 +868,7 @@ const AdminServicesPage = () => {
   useEffect(() => {
     loadServiceMenus();
     loadServiceCategories();
+    loadServiceSubcategories();
     loadTechnologies();
     loadBenefits();
     loadProcesses();
@@ -1004,33 +1024,38 @@ const AdminServicesPage = () => {
 
   const subcategoryLookup = useMemo(() => {
     const lookup = new Map();
+
     serviceCategories.forEach((category) => {
-      lookup.set(
-        category.name,
-        Array.from(
-          new Set(
-            (category.subCategories || [])
-              .map((subcategory) => subcategory.name)
-              .filter((name) => Boolean(name && name.trim()))
-          )
-        )
-      );
+      if (category.name) {
+        lookup.set(category.name, []);
+      }
     });
+
+    serviceSubcategories.forEach((subcategory) => {
+      if (!subcategory.name) return;
+
+      const categoryName =
+        serviceCategories.find((category) => category.id === subcategory.categoryId)?.name ||
+        subcategory.categoryName ||
+        '';
+
+      if (!categoryName) return;
+
+      const existing = lookup.get(categoryName) || [];
+      if (!existing.includes(subcategory.name)) {
+        lookup.set(categoryName, [...existing, subcategory.name]);
+      }
+    });
+
     return lookup;
-  }, [serviceCategories]);
+  }, [serviceCategories, serviceSubcategories]);
 
   const allSubcategoryOptions = useMemo(
     () =>
       Array.from(
-        new Set(
-          serviceCategories.flatMap((category) =>
-            (category.subCategories || [])
-              .map((subcategory) => subcategory.name)
-              .filter((name) => Boolean(name && name.trim()))
-          )
-        )
+        new Set(serviceSubcategories.map((subcategory) => subcategory.name).filter((name) => Boolean(name)))
       ),
-    [serviceCategories]
+    [serviceSubcategories]
   );
 
   const filteredServices = useMemo(
