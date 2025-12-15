@@ -12,11 +12,17 @@ const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
+const allowedOrigins = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+// When "*" is present, fall back to the default permissive mode that correctly
+// sets the Access-Control-Allow-Origin header for preflight requests. Passing
+// an array with "*" does not add the header and causes the browser to block
+// requests.
 const corsOptions = {
-  origin: (process.env.CORS_ORIGIN || '*')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean),
+  origin: allowedOrigins.includes('*') ? true : allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
