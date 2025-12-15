@@ -3210,14 +3210,17 @@ app.post('/api/our-services/services', async (req, res) => {
   try {
     const { title, subtitle, description, image, sliderId, isFeatured, sortOrder } = req.body ?? {};
 
-    if (!title || !sliderId) {
+    const sliderIdInt = parseIntegerId(sliderId);
+    if (!title || !sliderIdInt) {
       return res.status(400).json({ error: 'title and sliderId are required' });
     }
 
-    const slider = await prisma.serviceSlider.findUnique({ where: { id: sliderId } });
+    const slider = await prisma.serviceSlider.findUnique({ where: { id: sliderIdInt } });
     if (!slider) {
       return res.status(404).json({ error: 'Related slider not found' });
     }
+
+    const sortOrderInt = Number.isInteger(Number(sortOrder)) ? Number(sortOrder) : 0;
 
     const created = await prisma.serviceCard.create({
       data: {
@@ -3225,8 +3228,8 @@ app.post('/api/our-services/services', async (req, res) => {
         subtitle: subtitle || null,
         description: description || null,
         imageUrl: image || null,
-        sliderId,
-        sortOrder: Number.isInteger(sortOrder) ? sortOrder : 0,
+        sliderId: sliderIdInt,
+        sortOrder: sortOrderInt,
         isFeatured: !!isFeatured,
       },
       include: { slider: true },
@@ -3248,12 +3251,17 @@ app.put('/api/our-services/services/:id', async (req, res) => {
 
     const { title, subtitle, description, image, sliderId, isFeatured, sortOrder } = req.body ?? {};
 
-    if (sliderId) {
-      const slider = await prisma.serviceSlider.findUnique({ where: { id: sliderId } });
+    const sliderIdInt = sliderId !== undefined ? parseIntegerId(sliderId) : undefined;
+
+    if (sliderIdInt) {
+      const slider = await prisma.serviceSlider.findUnique({ where: { id: sliderIdInt } });
       if (!slider) {
         return res.status(404).json({ error: 'Related slider not found' });
       }
     }
+
+    const sortOrderInt =
+      sortOrder !== undefined && Number.isInteger(Number(sortOrder)) ? Number(sortOrder) : undefined;
 
     const updated = await prisma.serviceCard.update({
       where: { id },
@@ -3262,9 +3270,9 @@ app.put('/api/our-services/services/:id', async (req, res) => {
         subtitle,
         description,
         imageUrl: image,
-        sliderId,
+        sliderId: sliderIdInt,
         isFeatured,
-        sortOrder,
+        sortOrder: sortOrderInt,
       },
       include: { slider: true },
     });
