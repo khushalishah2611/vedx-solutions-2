@@ -6,13 +6,20 @@ import { sendOtpEmail } from './utils/email.js';
 
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
-
+const corsOptions = {
+  origin: (process.env.CORS_ORIGIN || '*')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
@@ -48,18 +55,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-// Initialize MongoDB connection
-let mongoClient;
-connectDB()
-  .then((client) => {
-    mongoClient = client;
-    console.log('MongoDB client ready for use');
-  })
-  .catch((err) => {
-    console.error('Failed to initialize MongoDB:', err);
-    process.exit(1);
-  });
 
 const hashPassword = (value) =>
   crypto.createHash('sha256').update(String(value ?? '')).digest('hex');
@@ -6156,13 +6151,6 @@ app.get('/', (_req, res) =>
 process.on('SIGINT', async () => {
   console.log('Shutting down gracefully...');
   await prisma.$disconnect();
-  if (mongoClient) {
-    try {
-      await mongoClient.close();
-    } catch (err) {
-      console.error('Error closing mongo client', err);
-    }
-  }
   process.exit(0);
 });
 
