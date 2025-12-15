@@ -248,6 +248,30 @@ const AdminDashboardPage = () => {
   const [hireSubcategoryError, setHireSubcategoryError] = useState("");
 
   /* --------------------------
+   * WHY VEDX SOLUTIONS
+   * -------------------------- */
+  const [whyVedxHero, setWhyVedxHero] = useState({
+    id: null,
+    heroTitle: "",
+    heroDescription: "",
+    heroImage: "",
+  });
+  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState({
+    heroTitle: "",
+    heroDescription: "",
+    heroImage: "",
+  });
+  const [whyVedxReasons, setWhyVedxReasons] = useState([]);
+  const [whyVedxReasonForm, setWhyVedxReasonForm] = useState({
+    title: "",
+    description: "",
+    image: "",
+  });
+  const [whyVedxReasonDialogOpen, setWhyVedxReasonDialogOpen] = useState(false);
+  const [editingWhyVedxReasonId, setEditingWhyVedxReasonId] = useState(null);
+  const [whyVedxPage, setWhyVedxPage] = useState(1);
+
+  /* --------------------------
    * Derived selections
    * -------------------------- */
   const selectedSliderForServiceDialog =
@@ -266,6 +290,9 @@ const AdminDashboardPage = () => {
           loadIndustries(),
           loadTechSolutions(),
           loadExpertise(),
+          loadHireCategories(),
+          loadWhyVedx(),
+          loadWhyVedxReasons(),
         ]);
       } catch (err) {
         console.error("Initial load error", err);
@@ -389,6 +416,44 @@ const AdminDashboardPage = () => {
     }
   };
 
+
+  const loadWhyVedx = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/why-vedx"));
+      if (res.status === 404) {
+        setWhyVedxHero({ id: null, heroTitle: "", heroDescription: "", heroImage: "" });
+        setWhyVedxHeroForm({ heroTitle: "", heroDescription: "", heroImage: "" });
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to fetch why VEDX config");
+      const data = await res.json();
+      setWhyVedxHero({
+        id: data.id || null,
+        heroTitle: data.heroTitle || "",
+        heroDescription: data.heroDescription || "",
+        heroImage: data.heroImage || "",
+      });
+      setWhyVedxHeroForm({
+        heroTitle: data.heroTitle || "",
+        heroDescription: data.heroDescription || "",
+        heroImage: data.heroImage || "",
+      });
+      setWhyVedxReasons(data.reasons || []);
+    } catch (err) {
+      console.error("loadWhyVedx error", err);
+    }
+  };
+
+  const loadWhyVedxReasons = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/why-vedx-reasons"));
+      if (!res.ok) throw new Error("Failed to fetch why VEDX reasons");
+      const data = await res.json();
+      setWhyVedxReasons(data || []);
+    } catch (err) {
+      console.error("loadWhyVedxReasons error", err);
+    }
+  };
 
   /* -----------------------------------
    * BANNER handlers
@@ -1442,6 +1507,116 @@ const AdminDashboardPage = () => {
   };
 
   /* -----------------------------------
+   * WHY VEDX handlers
+   * ----------------------------------- */
+  const handleWhyVedxHeroSave = async () => {
+    const { heroTitle, heroDescription, heroImage } = whyVedxHeroForm;
+
+    if (!heroTitle.trim() || !heroDescription.trim() || !heroImage) return;
+
+    try {
+      const res = await fetch(apiUrl("/api/why-vedx"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          heroTitle: heroTitle.trim(),
+          heroDescription: heroDescription.trim(),
+          heroImage,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save why VEDX hero");
+      const data = await res.json();
+      setWhyVedxHero({
+        id: data.id || whyVedxHero.id || null,
+        heroTitle: data.heroTitle || "",
+        heroDescription: data.heroDescription || "",
+        heroImage: data.heroImage || "",
+      });
+      setWhyVedxHeroForm({
+        heroTitle: data.heroTitle || "",
+        heroDescription: data.heroDescription || "",
+        heroImage: data.heroImage || "",
+      });
+      setWhyVedxReasons(data.reasons || []);
+    } catch (err) {
+      console.error("handleWhyVedxHeroSave error", err);
+    }
+  };
+
+  const openWhyVedxReasonDialog = (reason = null) => {
+    if (reason) {
+      setEditingWhyVedxReasonId(reason.id);
+      setWhyVedxReasonForm({
+        title: reason.title || "",
+        description: reason.description || "",
+        image: reason.image || "",
+      });
+    } else {
+      setEditingWhyVedxReasonId(null);
+      setWhyVedxReasonForm({ title: "", description: "", image: "" });
+    }
+    setWhyVedxReasonDialogOpen(true);
+  };
+
+  const closeWhyVedxReasonDialog = () => {
+    setWhyVedxReasonDialogOpen(false);
+    setEditingWhyVedxReasonId(null);
+    setWhyVedxReasonForm({ title: "", description: "", image: "" });
+  };
+
+  const handleSaveWhyVedxReason = async () => {
+    const payload = {
+      title: whyVedxReasonForm.title.trim(),
+      description: whyVedxReasonForm.description.trim(),
+      image: whyVedxReasonForm.image,
+      whyVedxId: whyVedxHero?.id || null,
+    };
+
+    if (!payload.title || !payload.description || !payload.image) return;
+
+    try {
+      const res = await fetch(
+        editingWhyVedxReasonId
+          ? apiUrl(`/api/why-vedx-reasons/${editingWhyVedxReasonId}`)
+          : apiUrl("/api/why-vedx-reasons"),
+        {
+          method: editingWhyVedxReasonId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to save why VEDX reason");
+      const data = await res.json();
+
+      setWhyVedxReasons((prev) => {
+        if (editingWhyVedxReasonId) {
+          return prev.map((reason) => (reason.id === data.id ? data : reason));
+        }
+        return [data, ...prev];
+      });
+      setWhyVedxPage(1);
+      closeWhyVedxReasonDialog();
+    } catch (err) {
+      console.error("handleSaveWhyVedxReason error", err);
+    }
+  };
+
+  const handleDeleteWhyVedxReason = async (id) => {
+    try {
+      const res = await fetch(apiUrl(`/api/why-vedx-reasons/${id}`), { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete reason");
+      setWhyVedxReasons((prev) => prev.filter((reason) => reason.id !== id));
+      setWhyVedxPage((prevPage) => {
+        const totalPages = Math.max(1, Math.ceil((whyVedxReasons.length - 1) / rowsPerPage));
+        return Math.min(prevPage, totalPages);
+      });
+    } catch (err) {
+      console.error("handleDeleteWhyVedxReason error", err);
+    }
+  };
+
+  /* -----------------------------------
    * Pagination slices
    * ----------------------------------- */
   const paginatedBanners = banners.slice(
@@ -1475,6 +1650,10 @@ const AdminDashboardPage = () => {
   const paginatedHireCategories = hireCategories.slice(
     (hireCategoryPage - 1) * rowsPerPage,
     hireCategoryPage * rowsPerPage
+  );
+  const paginatedWhyVedxReasons = whyVedxReasons.slice(
+    (whyVedxPage - 1) * rowsPerPage,
+    whyVedxPage * rowsPerPage
   );
   const activeHireCategory =
     hireCategories.find((category) => category.id === activeHireCategoryId) || null;
@@ -1517,7 +1696,8 @@ const AdminDashboardPage = () => {
             <Tab value="industries" label="Industries we serve" />
             <Tab value="tech-solutions" label="Tech solutions" />
             <Tab value="expertise" label="Expertise models" />
-         
+            <Tab value="why-vedx" label="Why VedX solutions" />
+            <Tab value="hire" label="Hire developers" />
           </Tabs>
         </Box>
 
@@ -2508,6 +2688,220 @@ const AdminDashboardPage = () => {
               </Stack>
             </CardContent>
           </Card>
+        )}
+
+        {/* WHY VEDX TAB */}
+        {activeTab === "why-vedx" && (
+          <Stack spacing={2}>
+            <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+              <CardHeader
+                title="Why VedX solutions"
+                subheader="Set the hero content for the Why VedX section."
+              />
+              <Divider />
+              <CardContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={7}>
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Hero title"
+                        value={whyVedxHeroForm.heroTitle}
+                        onChange={(event) =>
+                          setWhyVedxHeroForm((prev) => ({
+                            ...prev,
+                            heroTitle: event.target.value,
+                          }))
+                        }
+                        fullWidth
+                      />
+                      <TextField
+                        label="Hero description"
+                        value={whyVedxHeroForm.heroDescription}
+                        onChange={(event) =>
+                          setWhyVedxHeroForm((prev) => ({
+                            ...prev,
+                            heroDescription: event.target.value,
+                          }))
+                        }
+                        fullWidth
+                        minRows={3}
+                        multiline
+                      />
+                      <Button
+                        variant="contained"
+                        onClick={handleWhyVedxHeroSave}
+                        disabled={
+                          !whyVedxHeroForm.heroTitle.trim() ||
+                          !whyVedxHeroForm.heroDescription.trim() ||
+                          !whyVedxHeroForm.heroImage
+                        }
+                      >
+                        Save hero
+                      </Button>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={5}>
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyVedxHeroForm.heroImage}
+                      onChange={(value) =>
+                        setWhyVedxHeroForm((prev) => ({ ...prev, heroImage: value }))
+                      }
+                      required
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+              <CardHeader
+                title="Why VedX reasons"
+                subheader="Manage the supporting reasons with titles, descriptions, and imagery."
+                action={
+                  <Button
+                    variant="contained"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={() => openWhyVedxReasonDialog(null)}
+                  >
+                    Add reason
+                  </Button>
+                }
+              />
+              <Divider />
+              <CardContent>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {paginatedWhyVedxReasons.map((reason) => (
+                      <TableRow key={reason.id} hover>
+                        <TableCell sx={{ fontWeight: 700 }}>{reason.title}</TableCell>
+                        <TableCell sx={{ maxWidth: 360 }}>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {reason.description}
+                          </Typography>
+                        </TableCell>
+                        <TableCell width={140}>
+                          {reason.image ? (
+                            <Box
+                              component="img"
+                              src={reason.image}
+                              alt={reason.title || "Reason"}
+                              sx={{
+                                width: 88,
+                                height: 56,
+                                objectFit: "cover",
+                                borderRadius: 1,
+                                border: "1px solid",
+                                borderColor: "divider",
+                              }}
+                            />
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              No image
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => openWhyVedxReasonDialog(reason)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              color="error"
+                              size="small"
+                              onClick={() => handleDeleteWhyVedxReason(reason.id)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!whyVedxReasons.length && (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <Typography variant="body2" color="text.secondary" align="center">
+                            No reasons added yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+
+                <Stack mt={2} alignItems="flex-end">
+                  <Pagination
+                    count={Math.max(1, Math.ceil(whyVedxReasons.length / rowsPerPage))}
+                    page={whyVedxPage}
+                    onChange={(_, page) => setWhyVedxPage(page)}
+                    color="primary"
+                    size="small"
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+
+            <Dialog open={whyVedxReasonDialogOpen} onClose={closeWhyVedxReasonDialog} maxWidth="sm" fullWidth>
+              <DialogTitle>{editingWhyVedxReasonId ? "Edit reason" : "Add reason"}</DialogTitle>
+              <DialogContent dividers>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Title"
+                    value={whyVedxReasonForm.title}
+                    onChange={(event) =>
+                      setWhyVedxReasonForm((prev) => ({ ...prev, title: event.target.value }))
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Description"
+                    value={whyVedxReasonForm.description}
+                    onChange={(event) =>
+                      setWhyVedxReasonForm((prev) => ({
+                        ...prev,
+                        description: event.target.value,
+                      }))
+                    }
+                    fullWidth
+                    multiline
+                    minRows={3}
+                  />
+                  <ImageUpload
+                    label="Image"
+                    value={whyVedxReasonForm.image}
+                    onChange={(value) =>
+                      setWhyVedxReasonForm((prev) => ({ ...prev, image: value }))
+                    }
+                    required
+                  />
+                </Stack>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={closeWhyVedxReasonDialog}>Cancel</Button>
+                <Button
+                  variant="contained"
+                  onClick={handleSaveWhyVedxReason}
+                  disabled={
+                    !whyVedxReasonForm.title.trim() ||
+                    !whyVedxReasonForm.description.trim() ||
+                    !whyVedxReasonForm.image
+                  }
+                >
+                  {editingWhyVedxReasonId ? "Update" : "Create"}
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </Stack>
         )}
 
         {/* HIRE DEVELOPERS TAB */}
