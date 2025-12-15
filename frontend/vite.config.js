@@ -7,7 +7,7 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: "https://vedx-solutions-2-q1tn.vercel.app",
+        target: "http://localhost:5000/",
         changeOrigin: true
       }
     }

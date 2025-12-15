@@ -3,8 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { sendOtpEmail } from './utils/email.js';
-import 'dotenv/config';
-import connectDB from './lib/db.js';
+
 
 const app = express();
 const port = process.env.PORT;
@@ -13,22 +12,7 @@ const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
-const allowedOrigins = [
-  'https://vedx-solutions-2.vercel.app',
-  'https://vedx-solutions-2-q1tn.vercel.app',
-  ...(process.env.CORS_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()).filter(Boolean) || []),
-];
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
