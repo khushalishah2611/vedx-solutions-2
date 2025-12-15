@@ -9,7 +9,11 @@ const port = process.env.PORT || 5000;
 
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+const parsedOtpExpiryMinutes = Number.parseInt(process.env.OTP_EXPIRY_MINUTES ?? '10', 10);
+const OTP_EXPIRY_MINUTES = Number.isFinite(parsedOtpExpiryMinutes) && parsedOtpExpiryMinutes > 0
+  ? parsedOtpExpiryMinutes
+  : 10;
+const OTP_EXPIRY_MS = OTP_EXPIRY_MINUTES * 60 * 1000; // default 10 minutes
 
 const OtpPurpose = {
   PASSWORD_RESET: 'PASSWORD_RESET',
