@@ -48,6 +48,16 @@ const normalizeSlug = (value) => {
     .replace(/(^-|-$)+/g, '');
 };
 
+const parseIntegerId = (value) => {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return parsed;
+};
+
 const isValidEmail = (email) =>
   typeof email === 'string' &&
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
@@ -322,7 +332,7 @@ const validateBlogPostInput = (body) => {
   const slug = normalizeSlug(slugInput) || `post-${Date.now()}`;
   const publishDate = normalizePublishDate(body?.publishDate);
   const status = normalizeBlogStatus(body?.status);
-  const categoryId = normalizeText(body?.categoryId) || null;
+  const categoryId = parseIntegerId(body?.categoryId) ?? null;
 
   if (!title) return { error: 'Title is required.' };
   if (!description) return { error: 'Description is required.' };
@@ -356,7 +366,7 @@ const validateCareerApplicationInput = (body) => {
   const appliedOn = normalizeDateOnly(body?.appliedOn) || new Date();
   const resumeUrl = normalizeText(body?.resumeUrl) || null;
   const notes = normalizeText(body?.notes) || null;
-  const jobId = normalizeText(body?.jobId) || null;
+  const jobId = parseIntegerId(body?.jobId) ?? null;
 
   if (!name) return { error: 'Name is required.' };
   if (!email || !isValidEmail(email)) return { error: 'A valid email is required.' };
@@ -850,7 +860,7 @@ app.put('/api/admin/service-categories/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const categoryId = req.params.id?.trim();
+    const categoryId = parseIntegerId(req.params.id);
 
     if (!categoryId) {
       return res.status(400).json({ message: 'A valid category id is required.' });
@@ -898,7 +908,7 @@ app.delete('/api/admin/service-categories/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const categoryId = req.params.id?.trim();
+    const categoryId = parseIntegerId(req.params.id);
 
     if (!categoryId) {
       return res.status(400).json({ message: 'A valid category id is required.' });
@@ -1018,7 +1028,7 @@ app.put('/api/admin/service-subcategories/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const subCategoryId = req.params.id?.trim();
+    const subCategoryId = parseIntegerId(req.params.id);
 
     if (!subCategoryId) {
       return res.status(400).json({ message: 'A valid subcategory id is required.' });
@@ -1072,7 +1082,7 @@ app.delete('/api/admin/service-subcategories/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const subCategoryId = req.params.id?.trim();
+    const subCategoryId = parseIntegerId(req.params.id);
 
     if (!subCategoryId) {
       return res.status(400).json({ message: 'A valid subcategory id is required.' });
@@ -1186,7 +1196,7 @@ app.put('/api/admin/services/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const serviceId = req.params.id?.trim();
+    const serviceId = parseIntegerId(req.params.id);
 
     if (!serviceId) {
       return res.status(400).json({ message: 'A valid service id is required.' });
@@ -1242,7 +1252,7 @@ app.delete('/api/admin/services/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const serviceId = req.params.id?.trim();
+    const serviceId = parseIntegerId(req.params.id);
 
     if (!serviceId) {
       return res.status(400).json({ message: 'A valid service id is required.' });
@@ -1372,7 +1382,7 @@ app.put('/api/admin/hire-categories/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const categoryId = req.params.id?.trim();
+    const categoryId = parseIntegerId(req.params.id);
 
     if (!categoryId) {
       return res.status(400).json({ message: 'A valid hire category id is required.' });
@@ -1420,7 +1430,7 @@ app.delete('/api/admin/hire-categories/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const categoryId = req.params.id?.trim();
+    const categoryId = parseIntegerId(req.params.id);
 
     if (!categoryId) {
       return res.status(400).json({ message: 'A valid hire category id is required.' });
@@ -1516,7 +1526,7 @@ app.put('/api/admin/hire-roles/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const roleId = req.params.id?.trim();
+    const roleId = parseIntegerId(req.params.id);
 
     if (!roleId) {
       return res.status(400).json({ message: 'A valid hire sub-category id is required.' });
@@ -1570,7 +1580,7 @@ app.delete('/api/admin/hire-roles/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const roleId = req.params.id?.trim();
+    const roleId = parseIntegerId(req.params.id);
 
     if (!roleId) {
       return res.status(400).json({ message: 'A valid hire sub-category id is required.' });
@@ -1665,7 +1675,7 @@ app.put('/api/admin/project-types/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const projectTypeId = req.params.id?.trim();
+    const projectTypeId = parseIntegerId(req.params.id);
 
     if (!projectTypeId) {
       return res.status(400).json({ message: 'A valid project type id is required.' });
@@ -1710,7 +1720,7 @@ app.delete('/api/admin/project-types/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const projectTypeId = req.params.id?.trim();
+    const projectTypeId = parseIntegerId(req.params.id);
 
     if (!projectTypeId) {
       return res.status(400).json({ message: 'A valid project type id is required.' });
@@ -1789,7 +1799,7 @@ app.put('/api/admin/blog-categories/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const categoryId = req.params.id?.trim();
+    const categoryId = parseIntegerId(req.params.id);
     if (!categoryId) return res.status(400).json({ message: 'A valid category id is required.' });
 
     const validation = validateBlogCategoryInput(req.body || {});
@@ -1821,7 +1831,7 @@ app.delete('/api/admin/blog-categories/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const categoryId = req.params.id?.trim();
+    const categoryId = parseIntegerId(req.params.id);
     if (!categoryId) return res.status(400).json({ message: 'A valid category id is required.' });
 
     const existing = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
@@ -1928,7 +1938,7 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const postId = req.params.id?.trim();
+    const postId = parseIntegerId(req.params.id);
     if (!postId) return res.status(400).json({ message: 'A valid blog post id is required.' });
 
     const validation = validateBlogPostInput(req.body || {});
@@ -1976,7 +1986,7 @@ app.delete('/api/admin/blog-posts/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const postId = req.params.id?.trim();
+    const postId = parseIntegerId(req.params.id);
     if (!postId) return res.status(400).json({ message: 'A valid blog post id is required.' });
 
     const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
@@ -2087,7 +2097,7 @@ app.put('/api/admin/contacts/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const contactId = req.params.id?.trim();
+    const contactId = parseIntegerId(req.params.id);
 
     if (!contactId) {
       return res.status(400).json({ message: 'A valid contact id is required.' });
@@ -2137,7 +2147,7 @@ app.delete('/api/admin/contacts/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const contactId = req.params.id?.trim();
+    const contactId = parseIntegerId(req.params.id);
 
     if (!contactId) {
       return res.status(400).json({ message: 'A valid contact id is required.' });
@@ -2223,7 +2233,7 @@ app.put('/api/admin/feedbacks/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const feedbackId = req.params.id?.trim();
+    const feedbackId = parseIntegerId(req.params.id);
 
     if (!feedbackId) {
       return res.status(400).json({ message: 'A valid feedback id is required.' });
@@ -2278,7 +2288,7 @@ app.delete('/api/admin/feedbacks/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const feedbackId = req.params.id?.trim();
+    const feedbackId = parseIntegerId(req.params.id);
 
     if (!feedbackId) {
       return res.status(400).json({ message: 'A valid feedback id is required.' });
@@ -2415,7 +2425,7 @@ app.put('/api/admin/careers/jobs/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const jobId = req.params.id?.trim();
+    const jobId = parseIntegerId(req.params.id);
     if (!jobId) return res.status(400).json({ message: 'A valid job id is required.' });
 
     const validation = validateCareerOpeningInput(req.body || {});
@@ -2461,7 +2471,7 @@ app.delete('/api/admin/careers/jobs/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const jobId = req.params.id?.trim();
+    const jobId = parseIntegerId(req.params.id);
     if (!jobId) return res.status(400).json({ message: 'A valid job id is required.' });
 
     await prisma.careerOpening.delete({ where: { id: jobId } });
@@ -2547,7 +2557,7 @@ app.put('/api/admin/careers/applications/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const applicationId = req.params.id?.trim();
+    const applicationId = parseIntegerId(req.params.id);
     if (!applicationId) return res.status(400).json({ message: 'A valid application id is required.' });
 
     const validation = validateCareerApplicationInput(req.body || {});
@@ -2594,7 +2604,7 @@ app.delete('/api/admin/careers/applications/:id', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const applicationId = req.params.id?.trim();
+    const applicationId = parseIntegerId(req.params.id);
     if (!applicationId) return res.status(400).json({ message: 'A valid application id is required.' });
 
     await prisma.careerApplication.delete({ where: { id: applicationId } });
@@ -2826,7 +2836,7 @@ app.post('/api/banners', async (req, res) => {
 // UPDATE banner
 app.put('/api/banners/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid banner id is required' });
     }
@@ -2896,7 +2906,7 @@ app.put('/api/banners/:id', async (req, res) => {
 // DELETE banner
 app.delete('/api/banners/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid banner id is required' });
     }
@@ -2953,7 +2963,7 @@ app.post('/api/process-steps', async (req, res) => {
 
 app.put('/api/process-steps/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid process step id is required' });
     }
@@ -2980,7 +2990,7 @@ app.put('/api/process-steps/:id', async (req, res) => {
 
 app.delete('/api/process-steps/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid process step id is required' });
     }
@@ -3034,7 +3044,7 @@ app.post('/api/our-services/sliders', async (req, res) => {
 
 app.put('/api/our-services/sliders/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid slider id is required' });
     }
@@ -3060,7 +3070,7 @@ app.put('/api/our-services/sliders/:id', async (req, res) => {
 
 app.delete('/api/our-services/sliders/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid slider id is required' });
     }
@@ -3129,7 +3139,7 @@ app.post('/api/our-services/services', async (req, res) => {
 
 app.put('/api/our-services/services/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid service id is required' });
     }
@@ -3166,7 +3176,7 @@ app.put('/api/our-services/services/:id', async (req, res) => {
 
 app.delete('/api/our-services/services/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid service id is required' });
     }
@@ -3266,7 +3276,7 @@ app.post('/api/industries', async (req, res) => {
 
 app.put('/api/industries/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid industry id is required' });
     }
@@ -3293,7 +3303,7 @@ app.put('/api/industries/:id', async (req, res) => {
 
 app.delete('/api/industries/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid industry id is required' });
     }
@@ -3390,7 +3400,7 @@ app.post('/api/tech-solutions', async (req, res) => {
 
 app.put('/api/tech-solutions/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid tech solution id is required' });
     }
@@ -3416,7 +3426,7 @@ app.put('/api/tech-solutions/:id', async (req, res) => {
 
 app.delete('/api/tech-solutions/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid tech solution id is required' });
     }
@@ -3514,7 +3524,7 @@ app.post('/api/expertise', async (req, res) => {
 
 app.put('/api/expertise/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid expertise item id is required' });
     }
@@ -3541,7 +3551,7 @@ app.put('/api/expertise/:id', async (req, res) => {
 
 app.delete('/api/expertise/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'A valid expertise item id is required' });
     }
@@ -3609,7 +3619,7 @@ app.get('/api/service-menus', async (req, res) => {
 // GET single service menu
 app.get('/api/service-menus/:id', async (req, res) => {
   try {
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid service menu id required' });
     }
@@ -3697,7 +3707,7 @@ app.put('/api/service-menus/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid service menu id required' });
     }
@@ -3778,7 +3788,7 @@ app.delete('/api/service-menus/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid service menu id required' });
     }
@@ -3872,7 +3882,7 @@ app.put('/api/technologies/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid technology id required' });
     }
@@ -3903,7 +3913,7 @@ app.delete('/api/technologies/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid technology id required' });
     }
@@ -3988,7 +3998,7 @@ app.put('/api/benefits/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid benefit id required' });
     }
@@ -4019,7 +4029,7 @@ app.delete('/api/benefits/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid benefit id required' });
     }
@@ -4116,7 +4126,7 @@ app.put('/api/service-processes/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid service process id required' });
     }
@@ -4157,7 +4167,7 @@ app.delete('/api/service-processes/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid service process id required' });
     }
@@ -4320,7 +4330,7 @@ app.put('/api/hire-services/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid hire service id required' });
     }
@@ -4352,7 +4362,7 @@ app.delete('/api/hire-services/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid hire service id required' });
     }
@@ -4520,7 +4530,7 @@ app.put('/api/why-services/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid why service id required' });
     }
@@ -4551,7 +4561,7 @@ app.delete('/api/why-services/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid why service id required' });
     }
@@ -4702,7 +4712,7 @@ app.put('/api/why-vedx-reasons/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid reason id required' });
     }
@@ -4732,7 +4742,7 @@ app.delete('/api/why-vedx-reasons/:id', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const id = req.params.id?.trim();
+    const id = parseIntegerId(req.params.id);
     if (!id) {
       return res.status(400).json({ error: 'Valid reason id required' });
     }
@@ -4754,7 +4764,7 @@ app.delete('/api/why-vedx-reasons/:id', async (req, res) => {
  * Helpers
  * ------------------------------ */
 const requireIdParam = (req, res) => {
-  const id = req.params.id?.trim();
+  const id = parseIntegerId(req.params.id);
   if (!id) {
     res.status(400).json({ error: 'Valid id is required' });
     return null;
