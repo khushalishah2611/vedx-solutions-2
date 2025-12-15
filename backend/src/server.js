@@ -4,10 +4,10 @@ import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { sendOtpEmail } from './utils/email.js';
 import 'dotenv/config';
-import connectDB from './lib/db.js';
+import connectDB, { hasMongoConfig } from './lib/db.js';
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
 
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -67,15 +67,19 @@ app.use((req, res, next) => {
 
 // Initialize MongoDB connection
 let mongoClient;
-connectDB()
-  .then((client) => {
-    mongoClient = client;
-    console.log('MongoDB client ready for use');
-  })
-  .catch((err) => {
-    console.error('Failed to initialize MongoDB:', err);
-    process.exit(1);
-  });
+if (hasMongoConfig) {
+  connectDB()
+    .then((client) => {
+      mongoClient = client;
+      console.log('MongoDB client ready for use');
+    })
+    .catch((err) => {
+      console.error('Failed to initialize MongoDB:', err);
+      process.exit(1);
+    });
+} else {
+  console.info('Skipping MongoDB initialization because DATABASE_URL is not a Mongo connection string.');
+}
 
 const hashPassword = (value) =>
   crypto.createHash('sha256').update(String(value ?? '')).digest('hex');
