@@ -10,13 +10,13 @@ const port = process.env.PORT || 5000;
 const prisma = new PrismaClient();
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+const MAX_IMAGE_BYTES = 1 * 1024 * 1024; // 1MB
 
 const OtpPurpose = {
   PASSWORD_RESET: 'PASSWORD_RESET',
 };
 
 app.use(cors());
-app.use(express.json());
 
 app.use(
   express.json({
@@ -30,6 +30,52 @@ app.use(
     limit: '10mb',      // form-data urlencoded ma pan 10MB
   })
 );
+
+const isBase64Image = (value) =>
+  typeof value === 'string' && /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(value);
+
+const calculateBase64Bytes = (dataUrl) => {
+  const [, base64Part = ''] = String(dataUrl).split(',', 2);
+  const padding = (base64Part.match(/=*$/) ?? [''])[0].length;
+  const base64Length = base64Part.length - padding;
+
+  return Math.floor((base64Length * 3) / 4);
+};
+
+const hasOversizeImage = (value) => {
+  const stack = [value];
+  const seen = new Set();
+
+  while (stack.length) {
+    const current = stack.pop();
+
+    if (current && typeof current === 'object') {
+      if (seen.has(current)) continue;
+      seen.add(current);
+
+      if (Array.isArray(current)) {
+        stack.push(...current);
+      } else {
+        stack.push(...Object.values(current));
+      }
+      continue;
+    }
+
+    if (isBase64Image(current) && calculateBase64Bytes(current) > MAX_IMAGE_BYTES) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+app.use((req, res, next) => {
+  if (hasOversizeImage(req.body)) {
+    return res.status(413).json({ error: 'Image payload too large. Maximum allowed size is 1MB.' });
+  }
+
+  return next();
+});
 
 const hashPassword = (value) =>
   crypto.createHash('sha256').update(String(value ?? '')).digest('hex');
@@ -945,7 +991,7 @@ app.delete('/api/admin/service-categories/:id', async (req, res) => {
 const validateSubCategoryInput = (body) => {
   const name = normalizeText(body?.name);
   const description = normalizeText(body?.description) || null;
-  const categoryId = body?.categoryId?.trim();
+  const categoryId = parseIntegerId(body?.categoryId);
   const providedSlug = normalizeSlug(body?.slug);
   const slugSource = providedSlug || normalizeSlug(name);
   const slug = slugSource;
@@ -1291,7 +1337,7 @@ const validateHireCategoryInput = (body) => {
 const validateHireRoleInput = (body) => {
   const title = normalizeText(body?.title);
   const description = normalizeText(body?.description) || null;
-  const hireCategoryId = body?.hireCategoryId?.trim();
+  const hireCategoryId = parseIntegerId(body?.hireCategoryId);
   const providedSlug = normalizeSlug(body?.slug);
   const slugSource = providedSlug || normalizeSlug(title);
   const slug = slugSource;
@@ -2474,7 +2520,7 @@ app.delete('/api/admin/careers/jobs/:id', async (req, res) => {
     const jobId = parseIntegerId(req.params.id);
     if (!jobId) return res.status(400).json({ message: 'A valid job id is required.' });
 
-    await prisma.careerOpening.delete({ where: { id: jobId } });
+    await prisma.careerOpening.delete({ where: { id: Number(jobId) } });
 
     return res.json({ message: 'Job deleted.' });
   } catch (error) {
@@ -2643,6 +2689,24 @@ const normalizeBannerTypeInput = (value) => {
 const toUiBannerType = (enumValue) =>
   typeof enumValue === 'string' ? enumValue.toLowerCase() : 'home';
 
+const validateImageUrl = (url) => {
+  if (!url) return null;
+
+  if (typeof url !== 'string') {
+    return 'Image URL must be a string.';
+  }
+
+  if (isBase64Image(url)) {
+    return 'Image URL must be a hosted URL (base64 data is not supported).';
+  }
+
+  if (url.length > 2048) {
+    return 'Image URL is too long (max 2048 characters).';
+  }
+
+  return null;
+};
+
 const mapBannerToResponse = (banner) => {
   const isHome = banner.type === 'HOME';
 
@@ -2808,6 +2872,20 @@ app.post('/api/banners', async (req, res) => {
       ? images.filter(Boolean)
       : [];
 
+    if (!isHome) {
+      const imageError = validateImageUrl(image);
+      if (imageError) {
+        return res.status(400).json({ error: imageError });
+      }
+    } else {
+      for (const url of imageList) {
+        const imageError = validateImageUrl(url);
+        if (imageError) {
+          return res.status(400).json({ error: imageError });
+        }
+      }
+    }
+
     const created = await prisma.banner.create({
       data: {
         title,
@@ -2855,6 +2933,13 @@ app.put('/api/banners/:id', async (req, res) => {
     const bannerType = type ? normalizeBannerTypeInput(type) : existing.type;
     const isHome = bannerType === 'HOME';
 
+    if (!isHome) {
+      const imageError = validateImageUrl(typeof image === 'string' ? image : existing.imageUrl);
+      if (imageError) {
+        return res.status(400).json({ error: imageError });
+      }
+    }
+
     // Update main banner row
     await prisma.banner.update({
       where: { id },
@@ -2874,6 +2959,13 @@ app.put('/api/banners/:id', async (req, res) => {
       const imageList = Array.isArray(images)
         ? images.filter(Boolean)
         : existing.images.map((img) => img.imageUrl).filter(Boolean);
+
+      for (const url of imageList) {
+        const imageError = validateImageUrl(url);
+        if (imageError) {
+          return res.status(400).json({ error: imageError });
+        }
+      }
 
       await prisma.bannerImage.deleteMany({ where: { bannerId: id } });
 
@@ -2944,6 +3036,11 @@ app.post('/api/process-steps', async (req, res) => {
       return res.status(400).json({ error: 'title is required' });
     }
 
+    const imageError = validateImageUrl(image);
+    if (imageError) {
+      return res.status(400).json({ error: imageError });
+    }
+
     const created = await prisma.processStep.create({
       data: {
         title,
@@ -2969,6 +3066,11 @@ app.put('/api/process-steps/:id', async (req, res) => {
     }
 
     const { title, description, image, sortOrder, isActive } = req.body ?? {};
+
+    const imageError = validateImageUrl(image);
+    if (imageError) {
+      return res.status(400).json({ error: imageError });
+    }
 
     const updated = await prisma.processStep.update({
       where: { id },
