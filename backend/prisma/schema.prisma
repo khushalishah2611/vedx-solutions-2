@@ -50,7 +50,7 @@ model Banner {
   title     String
   type      BannerType
   /// Non-home banners (about/blogs/contact/career) ek image
-  imageUrl  String?
+  imageUrl  String?  @db.LongText
   /// Home banner mate multiple images
   images    BannerImage[]
 
@@ -63,7 +63,7 @@ model BannerImage {
   bannerId  Int
   banner    Banner   @relation(fields: [bannerId], references: [id], onDelete: Cascade)
 
-  imageUrl  String
+  imageUrl  String @db.LongText
   sortOrder Int      @default(0)
 
   createdAt DateTime @default(now())
@@ -79,7 +79,7 @@ model ProcessStep {
   id          Int      @id @default(autoincrement())
   title       String
   description String?
-  imageUrl    String?
+  imageUrl    String?  @db.LongText
 
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
@@ -95,7 +95,7 @@ model ServiceSlider {
   id                Int           @id @default(autoincrement())
   sliderTitle       String
   sliderDescription String?
-  sliderImageUrl    String?
+  sliderImageUrl    String?  @db.LongText
 
   services          ServiceCard[]
 
@@ -109,7 +109,7 @@ model ServiceCard {
   title        String
   subtitle     String?
   description  String?
-  imageUrl     String?
+  imageUrl     String?  @db.LongText
 
   sliderId     Int
   slider       ServiceSlider @relation(fields: [sliderId], references: [id], onDelete: Cascade)
@@ -144,7 +144,7 @@ model Industry {
 
   title       String
   description String?
-  imageUrl    String?
+  imageUrl    String?  @db.LongText
 
   sortOrder   Int        @default(0)
   isActive    Boolean    @default(true)
@@ -207,8 +207,8 @@ model ExpertiseItem {
   section     ExpertiseConfig @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   title       String
-  description String?
-  imageUrl    String?
+  description String?  
+  imageUrl    String?  @db.LongText
 
   sortOrder   Int        @default(0)
   isActive    Boolean    @default(true)
@@ -321,7 +321,7 @@ model Service {
   title         String
   slug          String              @unique
   summary       String?
-  imageUrl      String?
+  imageUrl      String?  @db.LongText
   tags          Json?
 
   subCategoryId Int?
@@ -350,7 +350,7 @@ model BlogPost {
   slug         String       @unique
   summary      String?
   content      String       @db.LongText
-  coverImage   String?
+  coverImage   String? @db.LongText
   author       String?
   status       PublishStatus @default(DRAFT)
   publishedAt  DateTime?
@@ -378,7 +378,7 @@ model CareerOpening {
   experience       String?
   employmentType   EmploymentType   @default(FULL_TIME)
   postedOn         DateTime?        @default(now())
-  imageUrl         String?
+  imageUrl         String? @db.LongText
   description      String?
   requirements     Json?
   isRemoteFriendly Boolean          @default(true)
@@ -502,7 +502,7 @@ model ServiceMenu {
   category       String
   bannerTitle    String
   bannerSubtitle String
-  bannerImage    String
+  bannerImage    String @db.LongText
   totalServices  Int                      @default(0)
   totalProjects  Int                      @default(0)
   totalClients   Int                      @default(0)
@@ -553,7 +553,7 @@ model Technology {
   category    String
   subcategory String?
   title       String
-  image       String
+  image       String @db.LongText
   items       Json     // MySQL: use Json instead of String[]
 
   createdAt   DateTime @default(now())
@@ -568,7 +568,7 @@ model Benefit {
   category    String?
   subcategory String?
   description String   @db.Text
-  image       String
+  image       String @db.LongText
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -585,7 +585,7 @@ model ServiceProcess {
   description String     @db.Text
   category    String
   subcategory String?
-  image       String
+  image String @db.LongText
 
   serviceId   Int?
   service     ServiceMenu? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
@@ -604,7 +604,7 @@ model HireDeveloper {
   id          Int          @id @default(autoincrement())
   title       String
   description String      @db.Text
-  heroImage   String
+  heroImage   String      @db.LongText
 
   services    HireService[]
 
@@ -618,7 +618,7 @@ model HireService {
   subcategory    String?
   title          String
   description    String        @db.Text
-  image          String
+  image          String        @db.LongText
 
   hireDeveloperId Int?
   hireDeveloper   HireDeveloper? @relation(fields: [hireDeveloperId], references: [id], onDelete: SetNull)
@@ -637,7 +637,7 @@ model WhyChoose {
   id               Int          @id @default(autoincrement())
   heroTitle        String
   heroDescription  String       @db.Text
-  heroImage        String
+  heroImage        String      @db.LongText
   tableTitle       String
   tableDescription String       @db.Text
 
@@ -671,7 +671,7 @@ model WhyVedx {
   id              Int             @id @default(autoincrement())
   heroTitle       String
   heroDescription String          @db.Text
-  heroImage       String
+  heroImage       String   @db.LongText
 
   reasons         WhyVedxReason[]
 
@@ -683,7 +683,7 @@ model WhyVedxReason {
   id        Int       @id @default(autoincrement())
   title     String
   description String  @db.Text
-  image     String
+  image     String @db.LongText
 
   whyVedxId Int?
   whyVedx   WhyVedx?  @relation(fields: [whyVedxId], references: [id], onDelete: SetNull)
@@ -703,7 +703,7 @@ model HireDeveloperService {
   subcategories  Json     // Array of {name: string}
   bannerTitle    String?
   bannerSubtitle String?
-  bannerImage    String?
+  bannerImage    String?  @db.LongText
   totalServices  Int      @default(0)
   totalProjects  Int      @default(0)
   totalClients   Int      @default(0)
@@ -720,8 +720,8 @@ model HireDeveloperTechnology {
   id          Int      @id @default(autoincrement())
   category    String
   subcategory String?
-  title       String
-  image       String
+  title       String 
+  image       String @db.LongText
   items       Json     // Array of strings
 
   createdAt   DateTime @default(now())
@@ -736,7 +736,7 @@ model HireDeveloperBenefit {
   category    String?
   subcategory String?
   description String?  @db.Text
-  image       String
+  image       String @db.LongText
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -754,7 +754,7 @@ model HireDeveloperPricing {
 
   heroTitle       String?
   heroDescription String?  @db.Text
-  heroImage       String?
+  heroImage       String?  @db.LongText
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -768,11 +768,11 @@ model HireDeveloperHireService {
   subcategory     String?
   title           String
   description     String?  @db.Text
-  image           String
+  image           String @db.LongText
 
   heroTitle       String?
   heroDescription String?  @db.Text
-  heroImage       String?
+  heroImage       String? @db.LongText
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -786,7 +786,7 @@ model HireDeveloperProcess {
   description String?  @db.Text
   category    String
   subcategory String
-  image       String
+  image       String @db.LongText
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -798,11 +798,11 @@ model HireDeveloperWhyVedx {
   id              Int      @id @default(autoincrement())
   title           String
   description     String?  @db.Text
-  image           String
+  image           String @db.LongText
 
   heroTitle       String?
   heroDescription String?  @db.Text
-  heroImage       String?
+  heroImage       String?  @db.LongText
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -819,7 +819,7 @@ model HireDeveloperWhyChoose {
 
   heroTitle        String?
   heroDescription  String?  @db.Text
-  heroImage        String?
+  heroImage        String?  @db.LongText
 
   tableTitle       String?
   tableDescription String?  @db.Text
@@ -834,7 +834,7 @@ model HireDeveloperIndustry {
   id                 Int      @id @default(autoincrement())
   title              String
   description        String?  @db.Text
-  image              String
+  image              String @db.LongText
 
   sectionTitle       String?
   sectionDescription String?  @db.Text
@@ -863,7 +863,7 @@ model HireDeveloperExpertise {
   id                 Int      @id @default(autoincrement())
   title              String
   description        String?  @db.Text
-  image              String
+  image              String @db.LongText
 
   sectionTitle       String?
   sectionDescription String?  @db.Text
@@ -877,11 +877,11 @@ model HireDeveloperExpertise {
 model HireDeveloperOurService {
   id                Int      @id @default(autoincrement())
   title             String
-  image             String
+  image             String @db.LongText
 
   sliderTitle       String?
   sliderDescription String?  @db.Text
-  sliderImage       String?
+  sliderImage       String? @db.LongText
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
