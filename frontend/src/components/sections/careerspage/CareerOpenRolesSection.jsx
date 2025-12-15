@@ -21,6 +21,8 @@ import {
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PropTypes from 'prop-types';
+import { apiUrl } from '../../../utils/const.js';
+import { fileToDataUrl } from '../../../utils/files.js';
 
 const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
   const theme = useTheme();
@@ -32,6 +34,8 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [resumeError, setResumeError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [applicationForm, setApplicationForm] = useState({
     name: '',
     email: '',
@@ -65,6 +69,7 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
       notes: '',
     });
     setResumeError('');
+    setSubmitError('');
     setApplicationDialogOpen(true);
   };
 
@@ -97,7 +102,7 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
       revokeResumeObjectUrl(prev.resumeFile);
       return {
         ...prev,
-        resumeFile: { name: file.name, url: URL.createObjectURL(file) },
+        resumeFile: { name: file.name, url: URL.createObjectURL(file), file },
       };
     });
   };
@@ -112,12 +117,59 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
 
   const handleApplicationSubmit = (event) => {
     event.preventDefault();
+    setSubmitError('');
 
-    if (!applicationForm.name.trim() || !applicationForm.email.trim()) return;
+    const trimmedName = applicationForm.name.trim();
+    const trimmedEmail = applicationForm.email.trim();
+    const trimmedContact = applicationForm.contact.trim();
+    const trimmedExperience = applicationForm.experience.trim();
+    const trimmedNotes = applicationForm.notes.trim();
 
-    // TODO: integrate with your submit API / handler here
+    if (!trimmedName || !trimmedEmail) {
+      setSubmitError('Name and email are required.');
+      return;
+    }
 
-    closeApplicationDialog();
+    setSubmitting(true);
+
+    const payload = {
+      name: trimmedName,
+      email: trimmedEmail,
+      contact: trimmedContact,
+      experience: trimmedExperience,
+      employmentType: applicationForm.employmentType,
+      appliedOn: new Date().toISOString().split('T')[0],
+      resumeUrl: '',
+      notes: trimmedNotes,
+      jobId: selectedRole?.id || null,
+    };
+
+    const submit = async () => {
+      if (applicationForm.resumeFile?.file) {
+        payload.resumeUrl = await fileToDataUrl(applicationForm.resumeFile.file);
+      }
+
+      const response = await fetch(apiUrl('/api/careers/applications'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.message || 'Unable to submit application.');
+    };
+
+    submit()
+      .then(() => {
+        closeApplicationDialog();
+      })
+      .catch((error) => {
+        console.error('Career application submit failed', error);
+        setSubmitError(error?.message || 'Unable to submit application right now.');
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
   };
 
   return (
@@ -423,6 +475,11 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
               minRows={3}
               maxRows={8}
             />
+            {submitError && (
+              <Typography color="error" variant="body2">
+                {submitError}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
 
@@ -435,6 +492,7 @@ const CareerOpenRolesSection = ({ roles = [], applyHref }) => {
             type="submit"
             variant="contained"
             size="large"
+            disabled={submitting}
             sx={{
               background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
               color: '#fff',

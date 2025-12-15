@@ -684,6 +684,8 @@ model WhyVedxReason {
   title     String
   description String  @db.Text
   image     String @db.LongText
+  category  String
+  subcategory String?
 
   whyVedxId Int?
   whyVedx   WhyVedx?  @relation(fields: [whyVedxId], references: [id], onDelete: SetNull)
