@@ -6482,30 +6482,6 @@ app.delete('/api/hire-developer/our-services/:id', async (req, res) => {
 });
 
 
-const mapHomeWhyVedxReasonToResponse = (item) => ({
-  id: item.id,
-  title: item.title,
-  description: item.description || '',
-  image: item.image || null,
-  createdAt: item.createdAt,
-  updatedAt: item.updatedAt,
-});
-
-const validateHomeWhyVedxReasonInput = (body) => {
-  const title = normalizeText(body?.title);
-  const description = normalizeText(body?.description);
-  const image = typeof body?.image === 'string' ? body.image : null;
-
-  if (!title) return { error: 'title is required' };
-  if (!description) return { error: 'description is required' };
-  if (!image) return { error: 'image is required' };
-
-  // base64 is allowed (size already guarded globally), hosted URL length validated
-  const imageError = validateImageUrl(image);
-  if (imageError) return { error: imageError };
-
-  return { title, description, image };
-};
 
 // -------- Public routes --------
 
