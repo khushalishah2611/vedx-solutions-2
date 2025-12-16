@@ -1265,34 +1265,51 @@ const AdminHiredeveloperPage = () => {
     setHirePricingServiceEditValue('');
   };
 
-  const handleHirePricingSubmit = (event) => {
+  const handleHirePricingSubmit = async (event) => {
     event?.preventDefault();
     if (!hirePricingForm.title.trim() || !hirePricingForm.price.trim()) return;
 
-    if (hirePricingDialogMode === 'edit' && activeHirePricingPlan) {
-      setHirePricing((prev) => ({
-        ...prev,
-        plans: prev.plans.map((plan) =>
-          plan.id === activeHirePricingPlan.id ? { ...hirePricingForm } : plan
-        ),
-      }));
-    } else {
-      const newPlan = { ...hirePricingForm, id: `hire-pricing-${Date.now()}` };
-      setHirePricing((prev) => ({ ...prev, plans: [newPlan, ...prev.plans] }));
-    }
+    try {
+      if (hirePricingDialogMode === 'edit' && activeHirePricingPlan) {
+        const updated = await fetchJson(`/api/hire-developer/pricing/${activeHirePricingPlan.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(hirePricingForm),
+        });
+        const normalized = normalizePricingPlan(updated);
+        setHirePricing((prev) => ({
+          ...prev,
+          plans: prev.plans.map((plan) => (plan.id === activeHirePricingPlan.id ? normalized : plan)),
+        }));
+      } else {
+        const created = await fetchJson('/api/hire-developer/pricing', {
+          method: 'POST',
+          body: JSON.stringify(hirePricingForm),
+        });
+        const normalized = normalizePricingPlan(created);
+        setHirePricing((prev) => ({ ...prev, plans: [normalized, ...prev.plans] }));
+      }
 
-    closeHirePricingDialog();
+      closeHirePricingDialog();
+    } catch (error) {
+      console.error('Failed to save hire pricing plan', error);
+    }
   };
 
   const openHirePricingDeleteDialog = (plan) => setHirePricingToDelete(plan);
   const closeHirePricingDeleteDialog = () => setHirePricingToDelete(null);
-  const handleConfirmDeleteHirePricing = () => {
+  const handleConfirmDeleteHirePricing = async () => {
     if (!hirePricingToDelete) return;
-    setHirePricing((prev) => ({
-      ...prev,
-      plans: prev.plans.filter((plan) => plan.id !== hirePricingToDelete.id),
-    }));
-    closeHirePricingDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/pricing/${hirePricingToDelete.id}`, { method: 'DELETE' });
+      setHirePricing((prev) => ({
+        ...prev,
+        plans: prev.plans.filter((plan) => plan.id !== hirePricingToDelete.id),
+      }));
+      closeHirePricingDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete hire pricing plan', error);
+    }
   };
 
   const openServiceCreateDialog = () => {
@@ -1316,26 +1333,45 @@ const AdminHiredeveloperPage = () => {
     setActiveService(null);
   };
 
-  const handleServiceSubmit = (event) => {
+  const handleServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!serviceForm.category.trim()) return;
 
-    if (serviceDialogMode === 'edit' && activeService) {
-      setServices((prev) => prev.map((service) => (service.id === activeService.id ? { ...serviceForm } : service)));
-    } else {
-      const newService = { ...serviceForm, id: `service-${Date.now()}` };
-      setServices((prev) => [newService, ...prev]);
-    }
+    try {
+      if (serviceDialogMode === 'edit' && activeService) {
+        const updated = await fetchJson(`/api/hire-developer/services/${activeService.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(serviceForm),
+        });
+        const normalized = normalizeService(updated);
+        setServices((prev) => prev.map((service) => (service.id === activeService.id ? normalized : service)));
+      } else {
+        const created = await fetchJson('/api/hire-developer/services', {
+          method: 'POST',
+          body: JSON.stringify(serviceForm),
+        });
+        const normalized = normalizeService(created);
+        setServices((prev) => [normalized, ...prev]);
+      }
 
-    closeServiceDialog();
+      closeServiceDialog();
+    } catch (error) {
+      console.error('Failed to save hire developer service', error);
+    }
   };
 
   const openServiceDeleteDialog = (service) => setServiceToDelete(service);
   const closeServiceDeleteDialog = () => setServiceToDelete(null);
-  const handleConfirmDeleteService = () => {
+  const handleConfirmDeleteService = async () => {
     if (!serviceToDelete) return;
-    setServices((prev) => prev.filter((service) => service.id !== serviceToDelete.id));
-    closeServiceDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/services/${serviceToDelete.id}`, { method: 'DELETE' });
+      setServices((prev) => prev.filter((service) => service.id !== serviceToDelete.id));
+      closeServiceDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete hire developer service', error);
+    }
   };
 
   const openTechnologyCreateDialog = () => {
@@ -1357,28 +1393,45 @@ const AdminHiredeveloperPage = () => {
     setActiveTechnology(null);
   };
 
-  const handleTechnologySubmit = (event) => {
+  const handleTechnologySubmit = async (event) => {
     event?.preventDefault();
     if (!technologyForm.title.trim() || !technologyForm.category.trim() || !technologyForm.image) return;
 
-    if (technologyDialogMode === 'edit' && activeTechnology) {
-      setTechnologies((prev) =>
-        prev.map((tech) => (tech.id === activeTechnology.id ? { ...technologyForm } : tech))
-      );
-    } else {
-      const newTech = { ...technologyForm, id: `tech-${Date.now()}` };
-      setTechnologies((prev) => [newTech, ...prev]);
-    }
+    try {
+      if (technologyDialogMode === 'edit' && activeTechnology) {
+        const updated = await fetchJson(`/api/hire-developer/technologies/${activeTechnology.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(technologyForm),
+        });
+        const normalized = normalizeTechnology(updated);
+        setTechnologies((prev) => prev.map((tech) => (tech.id === activeTechnology.id ? normalized : tech)));
+      } else {
+        const created = await fetchJson('/api/hire-developer/technologies', {
+          method: 'POST',
+          body: JSON.stringify(technologyForm),
+        });
+        const normalized = normalizeTechnology(created);
+        setTechnologies((prev) => [normalized, ...prev]);
+      }
 
-    closeTechnologyDialog();
+      closeTechnologyDialog();
+    } catch (error) {
+      console.error('Failed to save hire developer technology', error);
+    }
   };
 
   const openTechnologyDeleteDialog = (technology) => setTechnologyToDelete(technology);
   const closeTechnologyDeleteDialog = () => setTechnologyToDelete(null);
-  const handleConfirmDeleteTechnology = () => {
+  const handleConfirmDeleteTechnology = async () => {
     if (!technologyToDelete) return;
-    setTechnologies((prev) => prev.filter((tech) => tech.id !== technologyToDelete.id));
-    closeTechnologyDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/technologies/${technologyToDelete.id}`, { method: 'DELETE' });
+      setTechnologies((prev) => prev.filter((tech) => tech.id !== technologyToDelete.id));
+      closeTechnologyDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete hire developer technology', error);
+    }
   };
 
   const openBenefitCreateDialog = () => {
@@ -1400,26 +1453,45 @@ const AdminHiredeveloperPage = () => {
     setActiveBenefit(null);
   };
 
-  const handleBenefitSubmit = (event) => {
+  const handleBenefitSubmit = async (event) => {
     event?.preventDefault();
     if (!benefitForm.title.trim()) return;
 
-    if (benefitDialogMode === 'edit' && activeBenefit) {
-      setBenefits((prev) => prev.map((benefit) => (benefit.id === activeBenefit.id ? { ...benefitForm } : benefit)));
-    } else {
-      const newBenefit = { ...benefitForm, id: `benefit-${Date.now()}` };
-      setBenefits((prev) => [newBenefit, ...prev]);
-    }
+    try {
+      if (benefitDialogMode === 'edit' && activeBenefit) {
+        const updated = await fetchJson(`/api/hire-developer/benefits/${activeBenefit.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(benefitForm),
+        });
+        const normalized = normalizeBenefit(updated);
+        setBenefits((prev) => prev.map((benefit) => (benefit.id === activeBenefit.id ? normalized : benefit)));
+      } else {
+        const created = await fetchJson('/api/hire-developer/benefits', {
+          method: 'POST',
+          body: JSON.stringify(benefitForm),
+        });
+        const normalized = normalizeBenefit(created);
+        setBenefits((prev) => [normalized, ...prev]);
+      }
 
-    closeBenefitDialog();
+      closeBenefitDialog();
+    } catch (error) {
+      console.error('Failed to save hire developer benefit', error);
+    }
   };
 
   const openBenefitDeleteDialog = (benefit) => setBenefitToDelete(benefit);
   const closeBenefitDeleteDialog = () => setBenefitToDelete(null);
-  const handleConfirmDeleteBenefit = () => {
+  const handleConfirmDeleteBenefit = async () => {
     if (!benefitToDelete) return;
-    setBenefits((prev) => prev.filter((benefit) => benefit.id !== benefitToDelete.id));
-    closeBenefitDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/benefits/${benefitToDelete.id}`, { method: 'DELETE' });
+      setBenefits((prev) => prev.filter((benefit) => benefit.id !== benefitToDelete.id));
+      closeBenefitDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete hire developer benefit', error);
+    }
   };
 
   const openWhyServiceCreateDialog = () => {
@@ -1441,34 +1513,53 @@ const AdminHiredeveloperPage = () => {
     setActiveWhyService(null);
   };
 
-  const handleWhyServiceSubmit = (event) => {
+  const handleWhyServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!whyServiceForm.title.trim() || !whyServiceForm.category.trim()) return;
 
-    if (whyServiceDialogMode === 'edit' && activeWhyService) {
-      setWhyChoose((prev) => ({
-        ...prev,
-        services: prev.services.map((service) =>
-          service.id === activeWhyService.id ? { ...whyServiceForm } : service
-        ),
-      }));
-    } else {
-      const newWhyService = { ...whyServiceForm, id: `why-${Date.now()}` };
-      setWhyChoose((prev) => ({ ...prev, services: [newWhyService, ...prev.services] }));
-    }
+    try {
+      if (whyServiceDialogMode === 'edit' && activeWhyService) {
+        const updated = await fetchJson(`/api/hire-developer/why-choose/${activeWhyService.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(whyServiceForm),
+        });
+        const normalized = normalizeWhyChoose(updated);
+        setWhyChoose((prev) => ({
+          ...prev,
+          services: prev.services.map((service) =>
+            service.id === activeWhyService.id ? normalized : service
+          ),
+        }));
+      } else {
+        const created = await fetchJson('/api/hire-developer/why-choose', {
+          method: 'POST',
+          body: JSON.stringify(whyServiceForm),
+        });
+        const normalized = normalizeWhyChoose(created);
+        setWhyChoose((prev) => ({ ...prev, services: [normalized, ...prev.services] }));
+      }
 
-    closeWhyServiceDialog();
+      closeWhyServiceDialog();
+    } catch (error) {
+      console.error('Failed to save why choose item', error);
+    }
   };
 
   const openWhyServiceDeleteDialog = (service) => setWhyServiceToDelete(service);
   const closeWhyServiceDeleteDialog = () => setWhyServiceToDelete(null);
-  const handleConfirmDeleteWhyService = () => {
+  const handleConfirmDeleteWhyService = async () => {
     if (!whyServiceToDelete) return;
-    setWhyChoose((prev) => ({
-      ...prev,
-      services: prev.services.filter((service) => service.id !== whyServiceToDelete.id),
-    }));
-    closeWhyServiceDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/why-choose/${whyServiceToDelete.id}`, { method: 'DELETE' });
+      setWhyChoose((prev) => ({
+        ...prev,
+        services: prev.services.filter((service) => service.id !== whyServiceToDelete.id),
+      }));
+      closeWhyServiceDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete why choose item', error);
+    }
   };
 
   const openHireServiceCreateDialog = () => {
@@ -1490,34 +1581,53 @@ const AdminHiredeveloperPage = () => {
     setActiveHireService(null);
   };
 
-  const handleHireServiceSubmit = (event) => {
+  const handleHireServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!hireServiceForm.title.trim() || !hireServiceForm.category.trim() || !hireServiceForm.image) return;
 
-    if (hireServiceDialogMode === 'edit' && activeHireService) {
-      setHireContent((prev) => ({
-        ...prev,
-        services: prev.services.map((service) =>
-          service.id === activeHireService.id ? { ...hireServiceForm } : service
-        ),
-      }));
-    } else {
-      const newHireService = { ...hireServiceForm, id: `hire-${Date.now()}` };
-      setHireContent((prev) => ({ ...prev, services: [newHireService, ...prev.services] }));
-    }
+    try {
+      if (hireServiceDialogMode === 'edit' && activeHireService) {
+        const updated = await fetchJson(`/api/hire-developer/hire-services/${activeHireService.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(hireServiceForm),
+        });
+        const normalized = normalizeHireService(updated);
+        setHireContent((prev) => ({
+          ...prev,
+          services: prev.services.map((service) =>
+            service.id === activeHireService.id ? normalized : service
+          ),
+        }));
+      } else {
+        const created = await fetchJson('/api/hire-developer/hire-services', {
+          method: 'POST',
+          body: JSON.stringify(hireServiceForm),
+        });
+        const normalized = normalizeHireService(created);
+        setHireContent((prev) => ({ ...prev, services: [normalized, ...prev.services] }));
+      }
 
-    closeHireServiceDialog();
+      closeHireServiceDialog();
+    } catch (error) {
+      console.error('Failed to save hire service', error);
+    }
   };
 
   const openHireServiceDeleteDialog = (service) => setHireServiceToDelete(service);
   const closeHireServiceDeleteDialog = () => setHireServiceToDelete(null);
-  const handleConfirmDeleteHireService = () => {
+  const handleConfirmDeleteHireService = async () => {
     if (!hireServiceToDelete) return;
-    setHireContent((prev) => ({
-      ...prev,
-      services: prev.services.filter((service) => service.id !== hireServiceToDelete.id),
-    }));
-    closeHireServiceDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/hire-services/${hireServiceToDelete.id}`, { method: 'DELETE' });
+      setHireContent((prev) => ({
+        ...prev,
+        services: prev.services.filter((service) => service.id !== hireServiceToDelete.id),
+      }));
+      closeHireServiceDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete hire service', error);
+    }
   };
 
   const openProcessCreateDialog = () => {
@@ -1539,26 +1649,45 @@ const AdminHiredeveloperPage = () => {
     setActiveProcess(null);
   };
 
-  const handleProcessSubmit = (event) => {
+  const handleProcessSubmit = async (event) => {
     event?.preventDefault();
     if (!processForm.title.trim() || !processForm.image || !processForm.category || !processForm.subcategory) return;
 
-    if (processDialogMode === 'edit' && activeProcess) {
-      setProcessList((prev) => prev.map((item) => (item.id === activeProcess.id ? { ...processForm } : item)));
-    } else {
-      const newItem = { ...processForm, id: `process-${Date.now()}` };
-      setProcessList((prev) => [newItem, ...prev]);
-    }
+    try {
+      if (processDialogMode === 'edit' && activeProcess) {
+        const updated = await fetchJson(`/api/hire-developer/processes/${activeProcess.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(processForm),
+        });
+        const normalized = normalizeProcess(updated);
+        setProcessList((prev) => prev.map((item) => (item.id === activeProcess.id ? normalized : item)));
+      } else {
+        const created = await fetchJson('/api/hire-developer/processes', {
+          method: 'POST',
+          body: JSON.stringify(processForm),
+        });
+        const normalized = normalizeProcess(created);
+        setProcessList((prev) => [normalized, ...prev]);
+      }
 
-    closeProcessDialog();
+      closeProcessDialog();
+    } catch (error) {
+      console.error('Failed to save hire developer process', error);
+    }
   };
 
   const openProcessDeleteDialog = (item) => setProcessToDelete(item);
   const closeProcessDeleteDialog = () => setProcessToDelete(null);
-  const handleConfirmDeleteProcess = () => {
+  const handleConfirmDeleteProcess = async () => {
     if (!processToDelete) return;
-    setProcessList((prev) => prev.filter((item) => item.id !== processToDelete.id));
-    closeProcessDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/processes/${processToDelete.id}`, { method: 'DELETE' });
+      setProcessList((prev) => prev.filter((item) => item.id !== processToDelete.id));
+      closeProcessDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete hire developer process', error);
+    }
   };
 
   const handleWhyVedxHeroSave = async (event) => {
@@ -1640,32 +1769,51 @@ const AdminHiredeveloperPage = () => {
     setActiveWhyVedx(null);
   };
 
-  const handleWhyVedxSubmit = (event) => {
+  const handleWhyVedxSubmit = async (event) => {
     event?.preventDefault();
     if (!whyVedxForm.title.trim() || !whyVedxForm.image) return;
 
-    if (whyVedxDialogMode === 'edit' && activeWhyVedx) {
-      setWhyVedx((prev) => ({
-        ...prev,
-        reasons: prev.reasons.map((item) => (item.id === activeWhyVedx.id ? { ...whyVedxForm } : item)),
-      }));
-    } else {
-      const newItem = { ...whyVedxForm, id: `why-vedx-${Date.now()}` };
-      setWhyVedx((prev) => ({ ...prev, reasons: [newItem, ...prev.reasons] }));
-    }
+    try {
+      if (whyVedxDialogMode === 'edit' && activeWhyVedx) {
+        const updated = await fetchJson(`/api/hire-developer/why-vedx/${activeWhyVedx.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(whyVedxForm),
+        });
+        const normalized = normalizeWhyVedx(updated);
+        setWhyVedx((prev) => ({
+          ...prev,
+          reasons: prev.reasons.map((item) => (item.id === activeWhyVedx.id ? normalized : item)),
+        }));
+      } else {
+        const created = await fetchJson('/api/hire-developer/why-vedx', {
+          method: 'POST',
+          body: JSON.stringify(whyVedxForm),
+        });
+        const normalized = normalizeWhyVedx(created);
+        setWhyVedx((prev) => ({ ...prev, reasons: [normalized, ...prev.reasons] }));
+      }
 
-    closeWhyVedxDialog();
+      closeWhyVedxDialog();
+    } catch (error) {
+      console.error('Failed to save why VedX item', error);
+    }
   };
 
   const openWhyVedxDeleteDialog = (item) => setWhyVedxToDelete(item);
   const closeWhyVedxDeleteDialog = () => setWhyVedxToDelete(null);
-  const handleConfirmDeleteWhyVedx = () => {
+  const handleConfirmDeleteWhyVedx = async () => {
     if (!whyVedxToDelete) return;
-    setWhyVedx((prev) => ({
-      ...prev,
-      reasons: prev.reasons.filter((item) => item.id !== whyVedxToDelete.id),
-    }));
-    closeWhyVedxDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/why-vedx/${whyVedxToDelete.id}`, { method: 'DELETE' });
+      setWhyVedx((prev) => ({
+        ...prev,
+        reasons: prev.reasons.filter((item) => item.id !== whyVedxToDelete.id),
+      }));
+      closeWhyVedxDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete why VedX item', error);
+    }
   };
 
   const openOurServiceCreateDialog = () => {
@@ -1687,32 +1835,51 @@ const AdminHiredeveloperPage = () => {
     setActiveOurService(null);
   };
 
-  const handleOurServiceSubmit = (event) => {
+  const handleOurServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!ourServiceForm.title.trim() || !ourServiceForm.image) return;
 
-    if (ourServiceDialogMode === 'edit' && activeOurService) {
-      setOurServices((prev) => ({
-        ...prev,
-        services: prev.services.map((item) => (item.id === activeOurService.id ? { ...ourServiceForm } : item)),
-      }));
-    } else {
-      const newItem = { ...ourServiceForm, id: `our-service-${Date.now()}` };
-      setOurServices((prev) => ({ ...prev, services: [newItem, ...prev.services] }));
-    }
+    try {
+      if (ourServiceDialogMode === 'edit' && activeOurService) {
+        const updated = await fetchJson(`/api/hire-developer/our-services/${activeOurService.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(ourServiceForm),
+        });
+        const normalized = normalizeTechSolution(updated);
+        setOurServices((prev) => ({
+          ...prev,
+          services: prev.services.map((item) => (item.id === activeOurService.id ? normalized : item)),
+        }));
+      } else {
+        const created = await fetchJson('/api/hire-developer/our-services', {
+          method: 'POST',
+          body: JSON.stringify(ourServiceForm),
+        });
+        const normalized = normalizeTechSolution(created);
+        setOurServices((prev) => ({ ...prev, services: [normalized, ...prev.services] }));
+      }
 
-    closeOurServiceDialog();
+      closeOurServiceDialog();
+    } catch (error) {
+      console.error('Failed to save our service item', error);
+    }
   };
 
   const openOurServiceDeleteDialog = (item) => setOurServiceToDelete(item);
   const closeOurServiceDeleteDialog = () => setOurServiceToDelete(null);
-  const handleConfirmDeleteOurService = () => {
+  const handleConfirmDeleteOurService = async () => {
     if (!ourServiceToDelete) return;
-    setOurServices((prev) => ({
-      ...prev,
-      services: prev.services.filter((item) => item.id !== ourServiceToDelete.id),
-    }));
-    closeOurServiceDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/our-services/${ourServiceToDelete.id}`, { method: 'DELETE' });
+      setOurServices((prev) => ({
+        ...prev,
+        services: prev.services.filter((item) => item.id !== ourServiceToDelete.id),
+      }));
+      closeOurServiceDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete our service item', error);
+    }
   };
 
   const openIndustryCreateDialog = () => {
@@ -1734,51 +1901,83 @@ const AdminHiredeveloperPage = () => {
     setActiveIndustry(null);
   };
 
-  const handleIndustrySubmit = (event) => {
+  const handleIndustrySubmit = async (event) => {
     event?.preventDefault();
     if (!industryForm.title.trim() || !industryForm.image) return;
 
-    if (industryDialogMode === 'edit' && activeIndustry) {
-      setIndustries((prev) => ({
-        ...prev,
-        items: prev.items.map((item) => (item.id === activeIndustry.id ? { ...industryForm } : item)),
-      }));
-    } else {
-      const newItem = { ...industryForm, id: `industry-${Date.now()}` };
-      setIndustries((prev) => ({ ...prev, items: [newItem, ...prev.items] }));
-    }
+    try {
+      if (industryDialogMode === 'edit' && activeIndustry) {
+        const updated = await fetchJson(`/api/hire-developer/industries/${activeIndustry.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(industryForm),
+        });
+        const normalized = normalizeIndustry(updated);
+        setIndustries((prev) => ({
+          ...prev,
+          items: prev.items.map((item) => (item.id === activeIndustry.id ? normalized : item)),
+        }));
+      } else {
+        const created = await fetchJson('/api/hire-developer/industries', {
+          method: 'POST',
+          body: JSON.stringify(industryForm),
+        });
+        const normalized = normalizeIndustry(created);
+        setIndustries((prev) => ({ ...prev, items: [normalized, ...prev.items] }));
+      }
 
-    closeIndustryDialog();
+      closeIndustryDialog();
+    } catch (error) {
+      console.error('Failed to save industry item', error);
+    }
   };
 
   const openIndustryDeleteDialog = (item) => setIndustryToDelete(item);
   const closeIndustryDeleteDialog = () => setIndustryToDelete(null);
-  const handleConfirmDeleteIndustry = () => {
+  const handleConfirmDeleteIndustry = async () => {
     if (!industryToDelete) return;
-    setIndustries((prev) => ({
-      ...prev,
-      items: prev.items.filter((item) => item.id !== industryToDelete.id),
-    }));
-    closeIndustryDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/industries/${industryToDelete.id}`, { method: 'DELETE' });
+      setIndustries((prev) => ({
+        ...prev,
+        items: prev.items.filter((item) => item.id !== industryToDelete.id),
+      }));
+      closeIndustryDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete industry item', error);
+    }
   };
 
-  const handleTechSolutionSubmit = (event) => {
+  const handleTechSolutionSubmit = async (event) => {
     event?.preventDefault();
     if (!techSolutionForm.title.trim()) return;
 
-    if (techSolutionDialogMode === 'edit' && activeTechSolution) {
-      setTechSolutions((prev) => ({
-        ...prev,
-        solutions: prev.solutions.map((item) =>
-          item.id === activeTechSolution.id ? { ...techSolutionForm } : item
-        ),
-      }));
-    } else {
-      const newItem = { ...techSolutionForm, id: `tech-solution-${Date.now()}` };
-      setTechSolutions((prev) => ({ ...prev, solutions: [newItem, ...prev.solutions] }));
-    }
+    try {
+      if (techSolutionDialogMode === 'edit' && activeTechSolution) {
+        const updated = await fetchJson(`/api/hire-developer/tech-solutions/${activeTechSolution.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(techSolutionForm),
+        });
+        const normalized = normalizeTechSolution(updated);
+        setTechSolutions((prev) => ({
+          ...prev,
+          solutions: prev.solutions.map((item) =>
+            item.id === activeTechSolution.id ? normalized : item
+          ),
+        }));
+      } else {
+        const created = await fetchJson('/api/hire-developer/tech-solutions', {
+          method: 'POST',
+          body: JSON.stringify(techSolutionForm),
+        });
+        const normalized = normalizeTechSolution(created);
+        setTechSolutions((prev) => ({ ...prev, solutions: [normalized, ...prev.solutions] }));
+      }
 
-    closeTechSolutionDialog();
+      closeTechSolutionDialog();
+    } catch (error) {
+      console.error('Failed to save tech solution item', error);
+    }
   };
 
   const openTechSolutionCreateDialog = () => {
@@ -1802,22 +2001,44 @@ const AdminHiredeveloperPage = () => {
 
   const openTechSolutionDeleteDialog = (item) => setTechSolutionToDelete(item);
   const closeTechSolutionDeleteDialog = () => setTechSolutionToDelete(null);
-  const handleConfirmDeleteTechSolution = () => {
+  const handleConfirmDeleteTechSolution = async () => {
     if (!techSolutionToDelete) return;
-    setTechSolutions((prev) => ({
-      ...prev,
-      solutions: prev.solutions.filter((item) => item.id !== techSolutionToDelete.id),
-    }));
-    closeTechSolutionDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/tech-solutions/${techSolutionToDelete.id}`, { method: 'DELETE' });
+      setTechSolutions((prev) => ({
+        ...prev,
+        solutions: prev.solutions.filter((item) => item.id !== techSolutionToDelete.id),
+      }));
+      closeTechSolutionDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete tech solution item', error);
+    }
   };
 
-  const handleExpertiseHeroSave = (event) => {
+  const handleExpertiseHeroSave = async (event) => {
     event?.preventDefault();
-    setExpertise((prev) => ({
-      ...prev,
-      title: expertiseHeroForm.title,
-      description: expertiseHeroForm.description,
-    }));
+    try {
+      if (expertise.items.length) {
+        const primary = expertise.items[0];
+        const updated = await fetchJson(`/api/hire-developer/expertise/${primary.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            ...primary,
+            sectionTitle: expertiseHeroForm.title,
+            sectionDescription: expertiseHeroForm.description,
+          }),
+        });
+        const normalized = normalizeExpertise(updated);
+        setExpertise((prev) => ({
+          title: normalized.sectionTitle,
+          description: normalized.sectionDescription,
+          items: prev.items.map((item) => (item.id === normalized.id ? normalized : item)),
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to save expertise hero content', error);
+    }
   };
 
   const openExpertiseCreateDialog = () => {
@@ -1839,32 +2060,51 @@ const AdminHiredeveloperPage = () => {
     setActiveExpertise(null);
   };
 
-  const handleExpertiseSubmit = (event) => {
+  const handleExpertiseSubmit = async (event) => {
     event?.preventDefault();
     if (!expertiseForm.title.trim() || !expertiseForm.image) return;
 
-    if (expertiseDialogMode === 'edit' && activeExpertise) {
-      setExpertise((prev) => ({
-        ...prev,
-        items: prev.items.map((item) => (item.id === activeExpertise.id ? { ...expertiseForm } : item)),
-      }));
-    } else {
-      const newItem = { ...expertiseForm, id: `expertise-${Date.now()}` };
-      setExpertise((prev) => ({ ...prev, items: [newItem, ...prev.items] }));
-    }
+    try {
+      if (expertiseDialogMode === 'edit' && activeExpertise) {
+        const updated = await fetchJson(`/api/hire-developer/expertise/${activeExpertise.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(expertiseForm),
+        });
+        const normalized = normalizeExpertise(updated);
+        setExpertise((prev) => ({
+          ...prev,
+          items: prev.items.map((item) => (item.id === activeExpertise.id ? normalized : item)),
+        }));
+      } else {
+        const created = await fetchJson('/api/hire-developer/expertise', {
+          method: 'POST',
+          body: JSON.stringify(expertiseForm),
+        });
+        const normalized = normalizeExpertise(created);
+        setExpertise((prev) => ({ ...prev, items: [normalized, ...prev.items] }));
+      }
 
-    closeExpertiseDialog();
+      closeExpertiseDialog();
+    } catch (error) {
+      console.error('Failed to save expertise item', error);
+    }
   };
 
   const openExpertiseDeleteDialog = (item) => setExpertiseToDelete(item);
   const closeExpertiseDeleteDialog = () => setExpertiseToDelete(null);
-  const handleConfirmDeleteExpertise = () => {
+  const handleConfirmDeleteExpertise = async () => {
     if (!expertiseToDelete) return;
-    setExpertise((prev) => ({
-      ...prev,
-      items: prev.items.filter((item) => item.id !== expertiseToDelete.id),
-    }));
-    closeExpertiseDeleteDialog();
+
+    try {
+      await fetchJson(`/api/hire-developer/expertise/${expertiseToDelete.id}`, { method: 'DELETE' });
+      setExpertise((prev) => ({
+        ...prev,
+        items: prev.items.filter((item) => item.id !== expertiseToDelete.id),
+      }));
+      closeExpertiseDeleteDialog();
+    } catch (error) {
+      console.error('Failed to delete expertise item', error);
+    }
   };
 
   const formattedTechnologyItems = useMemo(
