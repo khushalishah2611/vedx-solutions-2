@@ -208,7 +208,12 @@ const normalizeHireMasterCategory = (category = {}) => ({
 const normalizeHireMasterSubcategory = (subcategory = {}) => ({
   id: subcategory.id,
   title: subcategory.title || '',
-  category: subcategory.category || subcategory.categoryTitle || subcategory.categoryName || '',
+  category:
+    subcategory.category ||
+    subcategory.categoryTitle ||
+    subcategory.categoryName ||
+    subcategory.hireCategory?.title ||
+    '',
 });
 
 const normalizeService = (service) => ({
@@ -573,10 +578,21 @@ const AdminHiredeveloperPage = () => {
       headers: { 'Content-Type': 'application/json' },
       ...options,
     });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data?.error || 'Request failed');
+
+    const text = await response.text();
+    let data;
+
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (error) {
+      data = text;
     }
+
+    if (!response.ok) {
+      const message = data?.error || data?.message || (typeof data === 'string' ? data : 'Request failed');
+      throw new Error(message);
+    }
+
     return data;
   };
 
@@ -592,8 +608,8 @@ const AdminHiredeveloperPage = () => {
 
   const loadHireMasterSubcategories = async () => {
     try {
-      const data = await fetchJson('/api/hire-subcategories');
-      setHireMasterSubcategories((data?.subcategories || data || []).map(normalizeHireMasterSubcategory));
+      const data = await fetchJson('/api/admin/hire-roles');
+      setHireMasterSubcategories((data?.roles || data || []).map(normalizeHireMasterSubcategory));
     } catch (error) {
       console.error('Failed to load hire subcategory master data', error);
       setHireMasterSubcategories([]);
