@@ -4923,6 +4923,196 @@ app.delete('/api/why-vedx-reasons/:id', async (req, res) => {
   }
 });
 
+/* ================================================
+ * HOME: WHY VEDX SOLUTION APIs
+ * ================================================ */
+
+const mapHomeWhyVedxReasonToResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description || '',
+  image: item.image || null,
+  whyVedxId: item.whyVedxId,
+  createdAt: item.createdAt,
+  updatedAt: item.updatedAt,
+});
+
+const validateHomeWhyVedxReasonInput = (body) => {
+  const title = normalizeText(body?.title);
+  const description = normalizeText(body?.description);
+  const image = typeof body?.image === 'string' ? body.image : null;
+
+  if (!title) return { error: 'title is required' };
+  if (!description) return { error: 'description is required' };
+  if (!image) return { error: 'image is required' };
+
+  const imageError = validateImageUrl(image);
+  if (imageError) return { error: imageError };
+
+  return { title, description, image };
+};
+
+// GET all reasons (public)
+app.get('/api/home/why-vedx-reasons', async (_req, res) => {
+  try {
+    const items = await prisma.whyVedxReason.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json(items.map(mapHomeWhyVedxReasonToResponse));
+  } catch (err) {
+    console.error('GET /api/home/why-vedx-reasons error', err);
+    return res.status(500).json({ error: 'Failed to fetch reasons' });
+  }
+});
+
+// GET single reason by id (public)
+app.get('/api/home/why-vedx-reasons/:id', async (req, res) => {
+  try {
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'A valid id is required' });
+
+    const item = await prisma.whyVedxReason.findUnique({ where: { id } });
+    if (!item) return res.status(404).json({ error: 'Reason not found' });
+
+    return res.json(mapHomeWhyVedxReasonToResponse(item));
+  } catch (err) {
+    console.error('GET /api/home/why-vedx-reasons/:id error', err);
+    return res.status(500).json({ error: 'Failed to fetch reason' });
+  }
+});
+
+// Admin: GET all reasons
+app.get('/api/admin/home/why-vedx-reasons', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const items = await prisma.whyVedxReason.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ reasons: items.map(mapHomeWhyVedxReasonToResponse) });
+  } catch (err) {
+    console.error('GET /api/admin/home/why-vedx-reasons error', err);
+    return res.status(500).json({ message: 'Unable to load reasons right now.' });
+  }
+});
+
+// Admin: CREATE reason
+app.post('/api/admin/home/why-vedx-reasons', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const validation = validateHomeWhyVedxReasonInput(req.body || {});
+    if (validation.error) return res.status(400).json({ error: validation.error });
+
+    const resolvedWhyVedxId = await resolveWhyVedxId(req.body?.whyVedxId);
+    if (!resolvedWhyVedxId) {
+      return res.status(400).json({
+        error: 'whyVedxId is required; please create the Why VEDX config first',
+      });
+    }
+
+    const created = await prisma.whyVedxReason.create({
+      data: {
+        title: validation.title,
+        description: validation.description,
+        image: validation.image,
+        whyVedxId: resolvedWhyVedxId,
+      },
+    });
+
+    return res.status(201).json({
+      reason: mapHomeWhyVedxReasonToResponse(created),
+      message: 'Reason created.',
+    });
+  } catch (err) {
+    console.error('POST /api/admin/home/why-vedx-reasons error', err);
+    return res.status(500).json({ error: 'Failed to create reason' });
+  }
+});
+
+// Admin: UPDATE reason
+app.put('/api/admin/home/why-vedx-reasons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'A valid id is required' });
+
+    const existing = await prisma.whyVedxReason.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ error: 'Reason not found' });
+
+    const title = typeof req.body?.title === 'string' ? normalizeText(req.body.title) : undefined;
+    const description =
+      typeof req.body?.description === 'string' ? normalizeText(req.body.description) : undefined;
+    const image = typeof req.body?.image === 'string' ? req.body.image : undefined;
+
+    if (title !== undefined && !title) return res.status(400).json({ error: 'title is required' });
+    if (description !== undefined && !description)
+      return res.status(400).json({ error: 'description is required' });
+
+    if (image !== undefined) {
+      if (!image) return res.status(400).json({ error: 'image is required' });
+      const imageError = validateImageUrl(image);
+      if (imageError) return res.status(400).json({ error: imageError });
+    }
+
+    const data = {
+      ...(title !== undefined ? { title } : {}),
+      ...(description !== undefined ? { description } : {}),
+      ...(image !== undefined ? { image } : {}),
+    };
+
+    if (req.body?.whyVedxId !== undefined) {
+      const resolvedWhyVedxId = await resolveWhyVedxId(req.body.whyVedxId);
+      if (!resolvedWhyVedxId) {
+        return res.status(400).json({
+          error: 'whyVedxId is required; please create the Why VEDX config first',
+        });
+      }
+      data.whyVedxId = resolvedWhyVedxId;
+    }
+
+    const updated = await prisma.whyVedxReason.update({
+      where: { id },
+      data,
+    });
+
+    return res.json({
+      reason: mapHomeWhyVedxReasonToResponse(updated),
+      message: 'Reason updated.',
+    });
+  } catch (err) {
+    console.error('PUT /api/admin/home/why-vedx-reasons/:id error', err);
+    return res.status(500).json({ error: 'Failed to update reason' });
+  }
+});
+
+// Admin: DELETE reason
+app.delete('/api/admin/home/why-vedx-reasons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'A valid id is required' });
+
+    const existing = await prisma.whyVedxReason.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ error: 'Reason not found' });
+
+    await prisma.whyVedxReason.delete({ where: { id } });
+
+    return res.json({ success: true, message: 'Reason deleted.' });
+  } catch (err) {
+    console.error('DELETE /api/admin/home/why-vedx-reasons/:id error', err);
+    return res.status(500).json({ error: 'Failed to delete reason' });
+  }
+});
+
 /* ============================================================
  * HIRE DEVELOPER – APIS
  * ============================================================

@@ -114,7 +114,7 @@ const ImageUpload = ({ label, value, onChange, required }) => {
 
 const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState(
-    "banner" // "banner" | "process" | "our-services" | "industries" | "tech-solutions" | "expertise" | "hire"
+    "banner" // "banner" | "process" | "our-services" | "industries" | "why-vedx" | "tech-solutions" | "expertise" | "hire"
   );
   const rowsPerPage = 5;
 
@@ -203,6 +203,21 @@ const AdminDashboardPage = () => {
   const [industryPage, setIndustryPage] = useState(1);
 
   /* --------------------------
+   * WHY VEDX SOLUTIONS
+   * -------------------------- */
+  const [whyVedxReasons, setWhyVedxReasons] = useState([]);
+  const [whyVedxReasonForm, setWhyVedxReasonForm] = useState({
+    title: "",
+    description: "",
+    image: "",
+  });
+  const [editingWhyVedxReasonId, setEditingWhyVedxReasonId] = useState(null);
+  const [whyVedxReasonDialogOpen, setWhyVedxReasonDialogOpen] = useState(false);
+  const [whyVedxReasonDeleteDialogOpen, setWhyVedxReasonDeleteDialogOpen] = useState(false);
+  const [whyVedxReasonPendingDelete, setWhyVedxReasonPendingDelete] = useState(null);
+  const [whyVedxReasonPage, setWhyVedxReasonPage] = useState(1);
+
+  /* --------------------------
    * TECH SOLUTIONS
    * -------------------------- */
   const [techSolutionsConfig, setTechSolutionsConfig] = useState({
@@ -254,6 +269,7 @@ const AdminDashboardPage = () => {
           loadProcessSteps(),
           loadOurServices(),
           loadIndustries(),
+          loadWhyVedxReasons(),
           loadTechSolutions(),
           loadExpertise(),
         ]);
@@ -332,6 +348,19 @@ const AdminDashboardPage = () => {
       setIndustriesItems(items);
     } catch (err) {
       console.error("loadIndustries error", err);
+    }
+  };
+
+  const loadWhyVedxReasons = async () => {
+    try {
+      const headers = getAdminAuthHeaders();
+      const res = await fetch(apiUrl("/api/admin/home/why-vedx-reasons"), { headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || data?.message || "Failed to fetch reasons");
+
+      setWhyVedxReasons(data?.reasons || []);
+    } catch (err) {
+      console.error("loadWhyVedxReasons error", err);
     }
   };
 
@@ -982,6 +1011,91 @@ const AdminDashboardPage = () => {
   };
 
   /* -----------------------------------
+   * Why VEDX reasons handlers
+   * ----------------------------------- */
+  const openWhyVedxReasonDialog = (item = null) => {
+    if (item) {
+      setWhyVedxReasonForm({
+        title: item.title,
+        description: item.description,
+        image: item.image,
+      });
+      setEditingWhyVedxReasonId(item.id);
+    } else {
+      setWhyVedxReasonForm({ title: "", description: "", image: "" });
+      setEditingWhyVedxReasonId(null);
+    }
+    setWhyVedxReasonDialogOpen(true);
+  };
+
+  const closeWhyVedxReasonDialog = () => {
+    setWhyVedxReasonDialogOpen(false);
+    setWhyVedxReasonForm({ title: "", description: "", image: "" });
+    setEditingWhyVedxReasonId(null);
+  };
+
+  const handleWhyVedxReasonSubmit = async () => {
+    try {
+      const headers = { "Content-Type": "application/json", ...getAdminAuthHeaders() };
+      const url = editingWhyVedxReasonId
+        ? apiUrl(`/api/admin/home/why-vedx-reasons/${editingWhyVedxReasonId}`)
+        : apiUrl("/api/admin/home/why-vedx-reasons");
+      const method = editingWhyVedxReasonId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: JSON.stringify(whyVedxReasonForm),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || data?.message || "Failed to save reason");
+
+      await loadWhyVedxReasons();
+      closeWhyVedxReasonDialog();
+    } catch (err) {
+      console.error("handleWhyVedxReasonSubmit error", err);
+    }
+  };
+
+  const openWhyVedxReasonDeleteDialog = (item) => {
+    setWhyVedxReasonPendingDelete(item);
+    setWhyVedxReasonDeleteDialogOpen(true);
+  };
+
+  const closeWhyVedxReasonDeleteDialog = () => {
+    setWhyVedxReasonDeleteDialogOpen(false);
+    setWhyVedxReasonPendingDelete(null);
+  };
+
+  const handleConfirmDeleteWhyVedxReason = async () => {
+    if (!whyVedxReasonPendingDelete) return;
+
+    try {
+      const headers = getAdminAuthHeaders();
+      const res = await fetch(
+        apiUrl(`/api/admin/home/why-vedx-reasons/${whyVedxReasonPendingDelete.id}`),
+        {
+          method: "DELETE",
+          headers,
+        }
+      );
+      if (!res.ok) throw new Error("Failed to delete reason");
+
+      setWhyVedxReasons((prev) => {
+        const updated = prev.filter((item) => item.id !== whyVedxReasonPendingDelete.id);
+        setWhyVedxReasonPage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
+      });
+      closeWhyVedxReasonDeleteDialog();
+    } catch (err) {
+      console.error("handleConfirmDeleteWhyVedxReason error", err);
+    }
+  };
+
+  /* -----------------------------------
    * Tech solutions handlers
    * ----------------------------------- */
   const handleTechSolutionsSave = async () => {
@@ -1227,6 +1341,10 @@ const AdminDashboardPage = () => {
     (industryPage - 1) * rowsPerPage,
     industryPage * rowsPerPage
   );
+  const paginatedWhyVedxReasons = whyVedxReasons.slice(
+    (whyVedxReasonPage - 1) * rowsPerPage,
+    whyVedxReasonPage * rowsPerPage
+  );
   const paginatedTechSolutions = techSolutionsList.slice(
     (techSolutionPage - 1) * rowsPerPage,
     techSolutionPage * rowsPerPage
@@ -1280,6 +1398,7 @@ const AdminDashboardPage = () => {
             <Tab value="process" label="Process" />
             <Tab value="our-services" label="Our services" />
             <Tab value="industries" label="Industries we serve" />
+            <Tab value="why-vedx" label="Why VEDX solutions" />
             <Tab value="tech-solutions" label="Tech solutions" />
             <Tab value="expertise" label="Expertise models" />
       
@@ -2004,6 +2123,109 @@ const AdminDashboardPage = () => {
           </Card>
         )}
 
+        {/* WHY VEDX TAB */}
+        {activeTab === "why-vedx" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+            <CardHeader
+              title="Why VEDX solutions"
+              subheader="Manage the reasons shown on the home page to explain why customers choose VEDX."
+            />
+            <Divider />
+            <CardContent>
+              <Stack direction="row" justifyContent="flex-end" mb={1}>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() => openWhyVedxReasonDialog()}
+                >
+                  Add reason
+                </Button>
+              </Stack>
+
+              <Table size="small" sx={{ mt: 2 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Image</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedWhyVedxReasons.map((item) => (
+                    <TableRow key={item.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                      <TableCell sx={{ maxWidth: 360 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {item.description}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 200 }}>
+                        {item.image ? (
+                          <Box
+                            component="img"
+                            src={item.image}
+                            alt={item.title}
+                            sx={{
+                              width: 96,
+                              height: 56,
+                              objectFit: "cover",
+                              borderRadius: 1,
+                              border: "1px solid",
+                              borderColor: "divider",
+                            }}
+                          />
+                        ) : (
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            -
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => openWhyVedxReasonDialog(item)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              color="error"
+                              size="small"
+                              onClick={() => openWhyVedxReasonDeleteDialog(item)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!whyVedxReasons.length && (
+                    <TableRow>
+                      <TableCell colSpan={4}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No reasons added yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(whyVedxReasons.length / rowsPerPage))}
+                  page={whyVedxReasonPage}
+                  onChange={(_, page) => setWhyVedxReasonPage(page)}
+                  color="primary"
+                  size="small"
+                />
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
+
         {/* TECH SOLUTIONS TAB */}
         {activeTab === "tech-solutions" && (
           <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
@@ -2529,11 +2751,87 @@ const AdminDashboardPage = () => {
             &quot;? This action cannot be undone.
           </Typography>
         </DialogContent>
+      <DialogActions>
+        <Button onClick={closeOurServiceDeleteDialog} color="inherit">
+          Cancel
+        </Button>
+        <Button onClick={handleConfirmDeleteOurService} color="error" variant="contained">
+          Delete
+        </Button>
+      </DialogActions>
+    </Dialog>
+
+      {/* Why VEDX reason dialog */}
+      <Dialog
+        open={whyVedxReasonDialogOpen}
+        onClose={closeWhyVedxReasonDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{editingWhyVedxReasonId ? "Edit reason" : "Add reason"}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Title"
+              required
+              value={whyVedxReasonForm.title}
+              onChange={(event) =>
+                setWhyVedxReasonForm((prev) => ({ ...prev, title: event.target.value }))
+              }
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              required
+              value={whyVedxReasonForm.description}
+              onChange={(event) =>
+                setWhyVedxReasonForm((prev) => ({
+                  ...prev,
+                  description: event.target.value,
+                }))
+              }
+              fullWidth
+              multiline
+              minRows={3}
+            />
+
+            <ImageUpload
+              label="Reason image"
+              value={whyVedxReasonForm.image}
+              onChange={(value) => setWhyVedxReasonForm((prev) => ({ ...prev, image: value }))}
+              required
+            />
+          </Stack>
+        </DialogContent>
         <DialogActions>
-          <Button onClick={closeOurServiceDeleteDialog} color="inherit">
+          <Button onClick={closeWhyVedxReasonDialog} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleConfirmDeleteOurService} color="error" variant="contained">
+          <Button onClick={handleWhyVedxReasonSubmit} variant="contained">
+            {editingWhyVedxReasonId ? "Update reason" : "Add reason"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete why VEDX reason dialog */}
+      <Dialog
+        open={whyVedxReasonDeleteDialogOpen}
+        onClose={closeWhyVedxReasonDeleteDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete reason</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{whyVedxReasonPendingDelete?.title}"? This action
+            cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeWhyVedxReasonDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteWhyVedxReason} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>
