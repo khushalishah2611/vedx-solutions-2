@@ -197,6 +197,14 @@ const emptyExpertiseForm = {
 };
 
 
+const normalizeHireMasterCategory = (category = {}) => ({
+  id: category.id,
+  title: category.title || '',
+  subcategories: Array.isArray(category.roles)
+    ? category.roles.map((role) => role.title || '').filter(Boolean)
+    : [],
+});
+
 const normalizeService = (service) => ({
   id: service.id,
   category: service.category || '',
@@ -551,6 +559,7 @@ const AdminHiredeveloperPage = () => {
   const [industryPage, setIndustryPage] = useState(1);
   const [techSolutionPage, setTechSolutionPage] = useState(1);
   const [expertisePage, setExpertisePage] = useState(1);
+  const [hireMasterCategories, setHireMasterCategories] = useState([]);
 
   const fetchJson = async (path, options = {}) => {
     const response = await fetch(apiUrl(path), {
@@ -562,6 +571,16 @@ const AdminHiredeveloperPage = () => {
       throw new Error(data?.error || 'Request failed');
     }
     return data;
+  };
+
+  const loadHireMasterCategories = async () => {
+    try {
+      const data = await fetchJson('/api/hire-categories');
+      setHireMasterCategories((data?.categories || []).map(normalizeHireMasterCategory));
+    } catch (error) {
+      console.error('Failed to load hire category master data', error);
+      setHireMasterCategories([]);
+    }
   };
 
   const loadServices = async () => {
@@ -756,6 +775,7 @@ const AdminHiredeveloperPage = () => {
   };
 
   useEffect(() => {
+    loadHireMasterCategories();
     loadServices();
     loadTechnologies();
     loadBenefits();
@@ -990,32 +1010,63 @@ const AdminHiredeveloperPage = () => {
     }
   };
 
-  const categoryOptions = useMemo(
-    () => Array.from(new Set(services.map((service) => service.category))).map((category) => ({
+  const categoryOptions = useMemo(() => {
+    if (hireMasterCategories.length) {
+      return hireMasterCategories.map((category) => ({
+        value: category.title,
+        label: category.title,
+      }));
+    }
+
+    return Array.from(new Set(services.map((service) => service.category))).map((category) => ({
       value: category,
       label: category,
-    })),
-    [services]
-  );
+    }));
+  }, [hireMasterCategories, services]);
 
   const subcategoryLookup = useMemo(() => {
+    if (hireMasterCategories.length) {
+      return new Map(
+        hireMasterCategories.map((category) => [
+          category.title,
+          Array.from(new Set(category.subcategories)),
+        ])
+      );
+    }
+
     const lookup = new Map();
     services.forEach((service) => {
       lookup.set(
         service.category,
-        Array.from(new Set(service.subcategories.map((subcategory) => subcategory.name)))
+        Array.from(
+          new Set(
+            (service.subcategories || []).map(
+              (subcategory) => subcategory?.name || subcategory || ''
+            )
+          )
+        ).filter(Boolean)
       );
     });
     return lookup;
-  }, [services]);
+  }, [hireMasterCategories, services]);
 
-  const allSubcategoryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(services.flatMap((service) => service.subcategories.map((subcategory) => subcategory.name)))
-      ),
-    [services]
-  );
+  const allSubcategoryOptions = useMemo(() => {
+    if (hireMasterCategories.length) {
+      return Array.from(
+        new Set(hireMasterCategories.flatMap((category) => category.subcategories).filter(Boolean))
+      );
+    }
+
+    return Array.from(
+      new Set(
+        services.flatMap((service) =>
+          (service.subcategories || []).map(
+            (subcategory) => subcategory?.name || subcategory || ''
+          )
+        )
+      )
+    ).filter(Boolean);
+  }, [hireMasterCategories, services]);
 
   const filteredServices = useMemo(
     () =>
@@ -1024,7 +1075,10 @@ const AdminHiredeveloperPage = () => {
           ? service.category === serviceCategoryFilter
           : true;
         const matchesSubcategory = serviceSubcategoryFilter
-          ? service.subcategories.some((subcategory) => subcategory.name === serviceSubcategoryFilter)
+          ? service.subcategories.some(
+              (subcategory) =>
+                (subcategory?.name || subcategory || '') === serviceSubcategoryFilter
+            )
           : true;
 
         return (
