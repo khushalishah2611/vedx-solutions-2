@@ -406,7 +406,17 @@ const AdminDashboardPage = () => {
       });
       if (!res.ok) throw new Error("Failed to fetch hire categories");
       const data = await res.json();
-      setHireCategories(data);
+
+      const categoriesArray = Array.isArray(data?.categories)
+        ? data.categories
+        : [];
+
+      const normalized = categoriesArray.map((category) => ({
+        ...category,
+        subcategories: category.subcategories ?? category.roles ?? [],
+      }));
+
+      setHireCategories(normalized);
     } catch (err) {
       console.error("loadHireCategories error", err);
     }
@@ -1305,9 +1315,16 @@ const AdminDashboardPage = () => {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to update hire category");
-        const updated = await res.json();
+        const { category } = await res.json();
+        if (!category) throw new Error("Invalid response when updating hire category");
+
+        const normalized = {
+          ...category,
+          subcategories: category.subcategories ?? category.roles ?? [],
+        };
+
         setHireCategories((prev) =>
-          prev.map((category) => (category.id === updated.id ? updated : category))
+          prev.map((item) => (item.id === normalized.id ? normalized : item))
         );
       } else {
         const res = await fetch(apiUrl("/api/admin/hire-categories"), {
@@ -1319,8 +1336,15 @@ const AdminDashboardPage = () => {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create category");
-        const created = await res.json();
-        setHireCategories((prev) => [created, ...prev]);
+        const { category } = await res.json();
+        if (!category) throw new Error("Invalid response when creating hire category");
+
+        const normalized = {
+          ...category,
+          subcategories: category.subcategories ?? category.roles ?? [],
+        };
+
+        setHireCategories((prev) => [normalized, ...prev]);
         setHireCategoryPage(1);
       }
 
