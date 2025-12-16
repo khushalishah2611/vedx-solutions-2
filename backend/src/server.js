@@ -4522,6 +4522,13 @@ const mapWhyChooseToResponse = (whyChoose) => ({
   updatedAt: whyChoose.updatedAt,
 });
 
+const resolveWhyChooseId = async (providedId) => {
+  if (providedId !== undefined && providedId !== null) return providedId;
+
+  const existing = await prisma.whyChoose.findFirst({ select: { id: true } });
+  return existing?.id ?? null;
+};
+
 // GET why choose config
 app.get('/api/why-choose', async (req, res) => {
   try {
@@ -4632,13 +4639,20 @@ app.post('/api/why-services', async (req, res) => {
       });
     }
 
+    const resolvedWhyChooseId = await resolveWhyChooseId(whyChooseId);
+    if (!resolvedWhyChooseId) {
+      return res.status(400).json({
+        error: 'whyChooseId is required; please create the Why Choose config first'
+      });
+    }
+
     const created = await prisma.whyService.create({
       data: {
         category,
         subcategory: subcategory || null,
         title,
         description,
-        whyChooseId: whyChooseId || null,
+        whyChooseId: resolvedWhyChooseId,
       },
     });
 
@@ -4662,15 +4676,22 @@ app.put('/api/why-services/:id', async (req, res) => {
 
     const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
 
+    const data = { category, subcategory, title, description };
+
+    if (whyChooseId !== undefined) {
+      const resolvedWhyChooseId = await resolveWhyChooseId(whyChooseId);
+      if (!resolvedWhyChooseId) {
+        return res.status(400).json({
+          error: 'whyChooseId is required; please create the Why Choose config first'
+        });
+      }
+
+      data.whyChooseId = resolvedWhyChooseId;
+    }
+
     const updated = await prisma.whyService.update({
       where: { id },
-      data: {
-        category,
-        subcategory,
-        title,
-        description,
-        whyChooseId: whyChooseId === null ? null : whyChooseId,
-      },
+      data,
     });
 
     res.json(mapWhyServiceToResponse(updated));
@@ -4717,6 +4738,13 @@ const mapWhyVedxToResponse = (whyVedx) => ({
   createdAt: whyVedx.createdAt,
   updatedAt: whyVedx.updatedAt,
 });
+
+const resolveWhyVedxId = async (providedId) => {
+  if (providedId !== undefined && providedId !== null) return providedId;
+
+  const existing = await prisma.whyVedx.findFirst({ select: { id: true } });
+  return existing?.id ?? null;
+};
 
 // GET why vedx config
 app.get('/api/why-vedx', async (req, res) => {
@@ -4815,12 +4843,19 @@ app.post('/api/why-vedx-reasons', async (req, res) => {
       });
     }
 
+    const resolvedWhyVedxId = await resolveWhyVedxId(whyVedxId);
+    if (!resolvedWhyVedxId) {
+      return res.status(400).json({
+        error: 'whyVedxId is required; please create the Why VEDX config first'
+      });
+    }
+
     const created = await prisma.whyVedxReason.create({
       data: {
         title,
         description,
         image,
-        whyVedxId: whyVedxId || null,
+        whyVedxId: resolvedWhyVedxId,
       },
     });
 
@@ -4844,14 +4879,22 @@ app.put('/api/why-vedx-reasons/:id', async (req, res) => {
 
     const { title, description, image, whyVedxId } = req.body ?? {};
 
+    const data = { title, description, image };
+
+    if (whyVedxId !== undefined) {
+      const resolvedWhyVedxId = await resolveWhyVedxId(whyVedxId);
+      if (!resolvedWhyVedxId) {
+        return res.status(400).json({
+          error: 'whyVedxId is required; please create the Why VEDX config first'
+        });
+      }
+
+      data.whyVedxId = resolvedWhyVedxId;
+    }
+
     const updated = await prisma.whyVedxReason.update({
       where: { id },
-      data: {
-        title,
-        description,
-        image,
-        whyVedxId: whyVedxId === null ? null : whyVedxId,
-      },
+      data,
     });
 
     res.json(mapWhyVedxReasonToResponse(updated));
