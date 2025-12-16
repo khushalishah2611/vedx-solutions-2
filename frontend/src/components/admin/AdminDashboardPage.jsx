@@ -406,7 +406,16 @@ const AdminDashboardPage = () => {
       });
       if (!res.ok) throw new Error("Failed to fetch hire categories");
       const data = await res.json();
-      setHireCategories(data);
+      const categories = Array.isArray(data.categories) ? data.categories : [];
+      const normalized = categories.map((category) => ({
+        ...category,
+        subcategories: Array.isArray(category.subcategories)
+          ? category.subcategories
+          : Array.isArray(category.roles)
+            ? category.roles
+            : [],
+      }));
+      setHireCategories(normalized);
     } catch (err) {
       console.error("loadHireCategories error", err);
     }
@@ -1305,7 +1314,16 @@ const AdminDashboardPage = () => {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to update hire category");
-        const updated = await res.json();
+        const data = await res.json();
+        const updatedRaw = data.category ?? data;
+        const updated = {
+          ...updatedRaw,
+          subcategories: Array.isArray(updatedRaw.subcategories)
+            ? updatedRaw.subcategories
+            : Array.isArray(updatedRaw.roles)
+              ? updatedRaw.roles
+              : [],
+        };
         setHireCategories((prev) =>
           prev.map((category) => (category.id === updated.id ? updated : category))
         );
@@ -1319,7 +1337,16 @@ const AdminDashboardPage = () => {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create category");
-        const created = await res.json();
+        const data = await res.json();
+        const createdRaw = data.category ?? data;
+        const created = {
+          ...createdRaw,
+          subcategories: Array.isArray(createdRaw.subcategories)
+            ? createdRaw.subcategories
+            : Array.isArray(createdRaw.roles)
+              ? createdRaw.roles
+              : [],
+        };
         setHireCategories((prev) => [created, ...prev]);
         setHireCategoryPage(1);
       }
