@@ -35,13 +35,34 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
+const imagePlaceholder = '';
+
+const initialServices = [];
+const initialTechnologies = [];
+const initialBenefits = [];
+const initialHireDevelopers = { title: '', description: '', heroImage: imagePlaceholder, services: [] };
+const initialWhyChoose = {
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  tableTitle: '',
+  tableDescription: '',
+  services: [],
+};
+const initialProcess = [];
+const initialWhyVedx = { heroTitle: '', heroDescription: '', heroImage: imagePlaceholder, reasons: [] };
+const initialOurServices = { sliderTitle: '', sliderDescription: '', sliderImage: imagePlaceholder, services: [] };
+const initialIndustries = [];
+const initialTechSolutions = [];
+const initialExpertise = [];
+
 const emptyServiceForm = {
   id: '',
   category: '',
   subcategories: [],
   bannerTitle: '',
   bannerSubtitle: '',
-  bannerImage: imageLibrary[0].value,
+  bannerImage: imagePlaceholder,
   createdAt: new Date().toISOString().split('T')[0],
   totalServices: 0,
   totalProjects: 0,
@@ -55,7 +76,7 @@ const emptyTechnologyForm = {
   category: '',
   subcategory: '',
   title: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
   items: [],
 };
 
@@ -65,7 +86,7 @@ const emptyBenefitForm = {
   category: '',
   subcategory: '',
   description: '',
-  image: imageLibrary[1].value,
+  image: imagePlaceholder,
 };
 
 const emptyHireServiceForm = {
@@ -74,7 +95,7 @@ const emptyHireServiceForm = {
   subcategory: '',
   title: '',
   description: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyProcessForm = {
@@ -83,33 +104,33 @@ const emptyProcessForm = {
   description: '',
   category: '',
   subcategory: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyWhyVedxHero = {
   heroTitle: '',
   heroDescription: '',
-  heroImage: imageLibrary[0].value,
+  heroImage: imagePlaceholder,
 };
 
 const emptyWhyVedxForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[0].value,
+  image: imagePlaceholder,
 };
 
 const emptyOurServiceForm = {
   id: '',
   title: '',
-  image: imageLibrary[2].value,
+  image: imagePlaceholder,
 };
 
 const emptyIndustryForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[3].value,
+  image: imagePlaceholder,
 };
 
 const emptyTechSolutionForm = {
@@ -127,7 +148,7 @@ const emptyExpertiseForm = {
   id: '',
   title: '',
   description: '',
-  image: imageLibrary[2].value,
+  image: imagePlaceholder,
 };
 
 const emptyWhyServiceForm = {
