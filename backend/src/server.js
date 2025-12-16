@@ -104,6 +104,27 @@ const parseIntegerId = (value) => {
   return parsed;
 };
 
+const parsePageNumber = (value, defaultValue) => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return defaultValue;
+  return parsed;
+};
+
+const buildPagination = (req, defaultPageSize = 10, maxPageSize = 50) => {
+  const page = parsePageNumber(req.query?.page, 1);
+  const pageSize = Math.min(
+    maxPageSize,
+    Math.max(1, parsePageNumber(req.query?.pageSize, defaultPageSize))
+  );
+
+  return {
+    page,
+    pageSize,
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  };
+};
+
 const isValidEmail = (email) =>
   typeof email === 'string' &&
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
@@ -4713,6 +4734,8 @@ const mapWhyVedxToResponse = (whyVedx) => ({
     title: r.title,
     description: r.description,
     image: r.image,
+    category: r.category,
+    subcategory: r.subcategory || '',
   })) || [],
   createdAt: whyVedx.createdAt,
   updatedAt: whyVedx.updatedAt,
@@ -4782,6 +4805,8 @@ const mapWhyVedxReasonToResponse = (reason) => ({
   title: reason.title,
   description: reason.description,
   image: reason.image,
+  category: reason.category,
+  subcategory: reason.subcategory || '',
   whyVedxId: reason.whyVedxId,
   createdAt: reason.createdAt,
   updatedAt: reason.updatedAt,
@@ -4790,11 +4815,30 @@ const mapWhyVedxReasonToResponse = (reason) => ({
 // GET all why vedx reasons
 app.get('/api/why-vedx-reasons', async (req, res) => {
   try {
-    const reasons = await prisma.whyVedxReason.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    const { page, pageSize, skip, take } = buildPagination(req, 10, 100);
+    const { category, subcategory } = req.query ?? {};
 
-    res.json(reasons.map(mapWhyVedxReasonToResponse));
+    const where = {
+      ...(category ? { category: String(category) } : {}),
+      ...(subcategory ? { subcategory: String(subcategory) } : {}),
+    };
+
+    const [total, reasons] = await Promise.all([
+      prisma.whyVedxReason.count({ where }),
+      prisma.whyVedxReason.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+    ]);
+
+    res.json({
+      items: reasons.map(mapWhyVedxReasonToResponse),
+      total,
+      page,
+      pageSize,
+    });
   } catch (err) {
     console.error('GET /api/why-vedx-reasons error', err);
     res.status(500).json({ error: 'Failed to fetch why VEDX reasons' });
@@ -4807,19 +4851,25 @@ app.post('/api/why-vedx-reasons', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, image, whyVedxId } = req.body ?? {};
+    const { title, description, image, category, subcategory, whyVedxId } = req.body ?? {};
+    const cleanTitle = normalizeText(title);
+    const cleanDescription = normalizeText(description);
+    const cleanCategory = normalizeText(category);
+    const cleanSubcategory = normalizeText(subcategory);
 
-    if (!title || !description || !image) {
+    if (!cleanTitle || !cleanDescription || !image || !cleanCategory) {
       return res.status(400).json({
-        error: 'title, description, and image are required'
+        error: 'title, description, category, and image are required'
       });
     }
 
     const created = await prisma.whyVedxReason.create({
       data: {
-        title,
-        description,
+        title: cleanTitle,
+        description: cleanDescription,
         image,
+        category: cleanCategory,
+        subcategory: cleanSubcategory || null,
         whyVedxId: whyVedxId || null,
       },
     });
@@ -4842,14 +4892,20 @@ app.put('/api/why-vedx-reasons/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid reason id required' });
     }
 
-    const { title, description, image, whyVedxId } = req.body ?? {};
+    const { title, description, image, category, subcategory, whyVedxId } = req.body ?? {};
+    const cleanTitle = normalizeText(title);
+    const cleanDescription = normalizeText(description);
+    const cleanCategory = normalizeText(category);
+    const cleanSubcategory = normalizeText(subcategory);
 
     const updated = await prisma.whyVedxReason.update({
       where: { id },
       data: {
-        title,
-        description,
-        image,
+        ...(title !== undefined && { title: cleanTitle }),
+        ...(description !== undefined && { description: cleanDescription }),
+        ...(image !== undefined && { image }),
+        ...(category !== undefined && { category: cleanCategory }),
+        ...(subcategory !== undefined && { subcategory: cleanSubcategory || null }),
         whyVedxId: whyVedxId === null ? null : whyVedxId,
       },
     });

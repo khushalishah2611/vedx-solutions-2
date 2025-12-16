@@ -364,6 +364,8 @@ const emptyWhyVedxForm = {
   id: '',
   title: '',
   description: '',
+  category: '',
+  subcategory: '',
   image: imageLibrary[0].value,
 };
 
@@ -702,6 +704,8 @@ const AdminServicesPage = () => {
   const normalizeWhyVedxReason = (reason) => ({
     ...reason,
     whyVedxId: reason.whyVedxId || '',
+    category: reason.category || '',
+    subcategory: reason.subcategory || '',
   });
 
   const loadServiceMenus = async () => {
@@ -854,12 +858,19 @@ const AdminServicesPage = () => {
     }
   };
 
-  const loadWhyVedxReasons = async () => {
+  const loadWhyVedxReasons = async (page = 1) => {
     try {
-      const response = await fetch(apiUrl('/api/why-vedx-reasons'));
+      const response = await fetch(
+        apiUrl(`/api/why-vedx-reasons?page=${page}&pageSize=${rowsPerPage}`)
+      );
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load reasons');
-      setWhyVedx((prev) => ({ ...prev, reasons: (data || []).map(normalizeWhyVedxReason) }));
+      const items = Array.isArray(data) ? data : data.items;
+      const total = Array.isArray(data) ? data.length : data.total || 0;
+
+      setWhyVedx((prev) => ({ ...prev, reasons: (items || []).map(normalizeWhyVedxReason) }));
+      setWhyVedxTotal(total);
+      setWhyVedxPage(page);
     } catch (err) {
       console.error('Failed to load why VEDX reasons', err);
     }
@@ -892,6 +903,7 @@ const AdminServicesPage = () => {
   const [hireServicePage, setHireServicePage] = useState(1);
   const [processPage, setProcessPage] = useState(1);
   const [whyVedxPage, setWhyVedxPage] = useState(1);
+  const [whyVedxTotal, setWhyVedxTotal] = useState(0);
   const [industryPage, setIndustryPage] = useState(1);
   const [techSolutionPage, setTechSolutionPage] = useState(1);
   const [expertisePage, setExpertisePage] = useState(1);
@@ -932,6 +944,14 @@ const AdminServicesPage = () => {
 
   const handleBenefitFormChange = (field, value) => {
     setBenefitForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleWhyVedxFormChange = (field, value) => {
+    setWhyVedxForm((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === 'category' ? { subcategory: '' } : null),
+    }));
   };
 
   const handleHireServiceFormChange = (field, value) => {
@@ -1668,12 +1688,20 @@ const AdminServicesPage = () => {
 
   const handleWhyVedxSubmit = async (event) => {
     event?.preventDefault();
-    if (!whyVedxForm.title.trim() || !whyVedxForm.description.trim() || !whyVedxForm.image) return;
+    if (
+      !whyVedxForm.title.trim() ||
+      !whyVedxForm.description.trim() ||
+      !whyVedxForm.image ||
+      !whyVedxForm.category.trim()
+    )
+      return;
 
     const payload = {
       title: whyVedxForm.title,
       description: whyVedxForm.description,
       image: whyVedxForm.image,
+      category: whyVedxForm.category,
+      subcategory: whyVedxForm.subcategory,
       whyVedxId: whyVedxForm.whyVedxId || null,
     };
 
@@ -1691,13 +1719,7 @@ const AdminServicesPage = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save reason');
 
-      const normalized = normalizeWhyVedxReason(data);
-      setWhyVedx((prev) => ({
-        ...prev,
-        reasons: isEdit
-          ? prev.reasons.map((item) => (item.id === normalized.id ? normalized : item))
-          : [normalized, ...prev.reasons],
-      }));
+      await loadWhyVedxReasons(isEdit ? whyVedxPage : 1);
       closeWhyVedxDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to save reason');
@@ -1715,10 +1737,12 @@ const AdminServicesPage = () => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete reason');
-      setWhyVedx((prev) => ({
-        ...prev,
-        reasons: prev.reasons.filter((item) => item.id !== whyVedxToDelete.id),
-      }));
+      const nextTotal = Math.max(0, whyVedxTotal - 1);
+      const nextPage = Math.min(
+        whyVedxPage,
+        Math.max(1, Math.ceil(nextTotal / rowsPerPage))
+      );
+      await loadWhyVedxReasons(nextPage);
       closeWhyVedxDeleteDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to delete reason');
@@ -1953,6 +1977,11 @@ const AdminServicesPage = () => {
     if (!processForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(processForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, processForm.category, subcategoryLookup]);
+
+  const whyVedxSubcategoryOptions = useMemo(() => {
+    if (!whyVedxForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(whyVedxForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, subcategoryLookup, whyVedxForm.category]);
 
   const whySubcategoryOptions = useMemo(() => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
@@ -2329,49 +2358,51 @@ const AdminServicesPage = () => {
                     <TableHead>
                       <TableRow>
                         <TableCell>Title</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Sub-category</TableCell>
                         <TableCell>Image</TableCell>
                         <TableCell>Description</TableCell>
                         <TableCell align="right">Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {whyVedx.reasons
-                        .slice((whyVedxPage - 1) * rowsPerPage, whyVedxPage * rowsPerPage)
-                        .map((item) => (
-                          <TableRow key={item.id} hover>
-                            <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                            <TableCell>
-                              <Box
-                                component="img"
-                                src={item.image || imagePlaceholder}
-                                alt={`${item.title} visual`}
-                                sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                              />
-                            </TableCell>
-                            <TableCell sx={{ maxWidth: 280 }}>
-                              <Typography variant="body2" color="text.secondary" noWrap>
-                                {item.description}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                <Tooltip title="Edit">
-                                  <IconButton size="small" color="primary" onClick={() => openWhyVedxEditDialog(item)}>
-                                    <EditOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton size="small" color="error" onClick={() => openWhyVedxDeleteDialog(item)}>
-                                    <DeleteOutlineIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Stack>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                      {whyVedx.reasons.map((item) => (
+                        <TableRow key={item.id} hover>
+                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                          <TableCell>{item.category || '—'}</TableCell>
+                          <TableCell>{item.subcategory || '—'}</TableCell>
+                          <TableCell>
+                            <Box
+                              component="img"
+                              src={item.image || imagePlaceholder}
+                              alt={`${item.title} visual`}
+                              sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 280 }}>
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {item.description}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" color="primary" onClick={() => openWhyVedxEditDialog(item)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton size="small" color="error" onClick={() => openWhyVedxDeleteDialog(item)}>
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                       {whyVedx.reasons.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={4}>
+                          <TableCell colSpan={6}>
                             <Typography variant="body2" color="text.secondary" align="center">
                               No reasons added yet.
                             </Typography>
@@ -2383,9 +2414,9 @@ const AdminServicesPage = () => {
                 </TableContainer>
                 <Stack mt={2} alignItems="flex-end">
                   <Pagination
-                    count={Math.max(1, Math.ceil(whyVedx.reasons.length / rowsPerPage))}
+                    count={Math.max(1, Math.ceil(whyVedxTotal / rowsPerPage))}
                     page={whyVedxPage}
-                    onChange={(event, page) => setWhyVedxPage(page)}
+                    onChange={(event, page) => loadWhyVedxReasons(page)}
                     color="primary"
                   />
                 </Stack>
@@ -3805,14 +3836,40 @@ const AdminServicesPage = () => {
             <TextField
               label="Title"
               value={whyVedxForm.title}
-              onChange={(event) => setWhyVedxForm((prev) => ({ ...prev, title: event.target.value }))}
+              onChange={(event) => handleWhyVedxFormChange('title', event.target.value)}
               fullWidth
               required
+            />
+            <Autocomplete
+              options={categoryOptions.map((option) => option.label)}
+              value={whyVedxForm.category}
+              onInputChange={(event, newValue) => handleWhyVedxFormChange('category', newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  placeholder="Select category"
+                  required
+                />
+              )}
+            />
+            <Autocomplete
+              options={whyVedxSubcategoryOptions}
+              value={whyVedxForm.subcategory}
+              onInputChange={(event, newValue) => handleWhyVedxFormChange('subcategory', newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sub-category"
+                  placeholder="Select sub-category"
+                />
+              )}
+              disabled={!whyVedxForm.category && whyVedxSubcategoryOptions.length === 0}
             />
             <TextField
               label="Description"
               value={whyVedxForm.description}
-              onChange={(event) => setWhyVedxForm((prev) => ({ ...prev, description: event.target.value }))}
+              onChange={(event) => handleWhyVedxFormChange('description', event.target.value)}
               fullWidth
               multiline
               minRows={3}
@@ -3820,7 +3877,7 @@ const AdminServicesPage = () => {
             <ImageUpload
               label="Reason image"
               value={whyVedxForm.image}
-              onChange={(value) => setWhyVedxForm((prev) => ({ ...prev, image: value }))}
+              onChange={(value) => handleWhyVedxFormChange('image', value)}
               required
             />
           </Stack>
