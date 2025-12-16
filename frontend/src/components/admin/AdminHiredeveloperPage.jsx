@@ -205,6 +205,12 @@ const normalizeHireMasterCategory = (category = {}) => ({
     : [],
 });
 
+const normalizeHireMasterSubcategory = (subcategory = {}) => ({
+  id: subcategory.id,
+  title: subcategory.title || '',
+  category: subcategory.category || subcategory.categoryTitle || subcategory.categoryName || '',
+});
+
 const normalizeService = (service) => ({
   id: service.id,
   category: service.category || '',
@@ -560,6 +566,7 @@ const AdminHiredeveloperPage = () => {
   const [techSolutionPage, setTechSolutionPage] = useState(1);
   const [expertisePage, setExpertisePage] = useState(1);
   const [hireMasterCategories, setHireMasterCategories] = useState([]);
+  const [hireMasterSubcategories, setHireMasterSubcategories] = useState([]);
 
   const fetchJson = async (path, options = {}) => {
     const response = await fetch(apiUrl(path), {
@@ -580,6 +587,16 @@ const AdminHiredeveloperPage = () => {
     } catch (error) {
       console.error('Failed to load hire category master data', error);
       setHireMasterCategories([]);
+    }
+  };
+
+  const loadHireMasterSubcategories = async () => {
+    try {
+      const data = await fetchJson('/api/hire-subcategories');
+      setHireMasterSubcategories((data?.subcategories || data || []).map(normalizeHireMasterSubcategory));
+    } catch (error) {
+      console.error('Failed to load hire subcategory master data', error);
+      setHireMasterSubcategories([]);
     }
   };
 
@@ -779,6 +796,7 @@ const AdminHiredeveloperPage = () => {
     loadServices();
     loadTechnologies();
     loadBenefits();
+    loadHireMasterSubcategories();
     loadHirePricing();
     loadHireServices();
     loadProcesses();
@@ -1034,6 +1052,18 @@ const AdminHiredeveloperPage = () => {
       );
     }
 
+    if (hireMasterSubcategories.length) {
+      const lookup = new Map();
+      hireMasterSubcategories.forEach((subcategory) => {
+        const category = subcategory.category || '';
+        const existing = lookup.get(category) || [];
+        if (subcategory.title) {
+          lookup.set(category, Array.from(new Set([...existing, subcategory.title])));
+        }
+      });
+      return lookup;
+    }
+
     const lookup = new Map();
     services.forEach((service) => {
       lookup.set(
@@ -1048,12 +1078,22 @@ const AdminHiredeveloperPage = () => {
       );
     });
     return lookup;
-  }, [hireMasterCategories, services]);
+  }, [hireMasterCategories, hireMasterSubcategories, services]);
 
   const allSubcategoryOptions = useMemo(() => {
     if (hireMasterCategories.length) {
       return Array.from(
         new Set(hireMasterCategories.flatMap((category) => category.subcategories).filter(Boolean))
+      );
+    }
+
+    if (hireMasterSubcategories.length) {
+      return Array.from(
+        new Set(
+          hireMasterSubcategories
+            .map((subcategory) => subcategory.title || '')
+            .filter(Boolean)
+        )
       );
     }
 
@@ -1066,7 +1106,7 @@ const AdminHiredeveloperPage = () => {
         )
       )
     ).filter(Boolean);
-  }, [hireMasterCategories, services]);
+  }, [hireMasterCategories, hireMasterSubcategories, services]);
 
   const filteredServices = useMemo(
     () =>
