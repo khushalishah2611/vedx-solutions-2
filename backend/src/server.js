@@ -6482,6 +6482,16 @@ app.delete('/api/hire-developer/our-services/:id', async (req, res) => {
 });
 
 
+const mapHomeWhyVedxReasonToResponsea = (item) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description || '',
+  image: item.image || null,
+  createdAt: item.createdAt,
+  updatedAt: item.updatedAt,
+});
+
+
 
 // -------- Public routes --------
 
@@ -6492,7 +6502,7 @@ app.get('/api/home/why-vedx-reasons', async (_req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    return res.json(items.map(mapHomeWhyVedxReasonToResponse));
+    return res.json(items.map(mapHomeWhyVedxReasonToResponsea));
   } catch (err) {
     console.error('GET /api/home/why-vedx-reasons error', err);
     return res.status(500).json({ error: 'Failed to fetch reasons' });
@@ -6508,7 +6518,7 @@ app.get('/api/home/why-vedx-reasons/:id', async (req, res) => {
     const item = await prisma.homeWhyVedxReason.findUnique({ where: { id } });
     if (!item) return res.status(404).json({ error: 'Reason not found' });
 
-    return res.json(mapHomeWhyVedxReasonToResponse(item));
+    return res.json(mapHomeWhyVedxReasonToResponsea(item));
   } catch (err) {
     console.error('GET /api/home/why-vedx-reasons/:id error', err);
     return res.status(500).json({ error: 'Failed to fetch reason' });
@@ -6527,7 +6537,7 @@ app.get('/api/admin/home/why-vedx-reasons', async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    return res.json({ reasons: items.map(mapHomeWhyVedxReasonToResponse) });
+    return res.json({ reasons: items.map(mapHomeWhyVedxReasonToResponsea) });
   } catch (err) {
     console.error('GET /api/admin/home/why-vedx-reasons error', err);
     return res.status(500).json({ message: 'Unable to load reasons right now.' });
@@ -6552,7 +6562,7 @@ app.post('/api/admin/home/why-vedx-reasons', async (req, res) => {
     });
 
     return res.status(201).json({
-      reason: mapHomeWhyVedxReasonToResponse(created),
+      reason: mapHomeWhyVedxReasonToResponsea(created),
       message: 'Reason created.',
     });
   } catch (err) {
