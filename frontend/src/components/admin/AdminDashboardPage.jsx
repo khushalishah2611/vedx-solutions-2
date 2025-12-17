@@ -354,7 +354,7 @@ const AdminDashboardPage = () => {
   const loadWhyVedxReasons = async () => {
     try {
       const headers = getAdminAuthHeaders();
-      const res = await fetch(apiUrl("/api/admin/home/why-vedx-reasons"), { headers });
+      const res = await fetch(apiUrl("/api/homes/why-vedx-reasons"), { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || data?.message || "Failed to fetch reasons");
 
@@ -1038,8 +1038,8 @@ const AdminDashboardPage = () => {
     try {
       const headers = { "Content-Type": "application/json", ...getAdminAuthHeaders() };
       const url = editingWhyVedxReasonId
-        ? apiUrl(`/api/admin/home/why-vedx-reasons/${editingWhyVedxReasonId}`)
-        : apiUrl("/api/admin/home/why-vedx-reasons");
+        ? apiUrl(`/api/homes/why-vedx-reasons/${editingWhyVedxReasonId}`)
+        : apiUrl("/api/homes/why-vedx-reasons");
       const method = editingWhyVedxReasonId ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -1073,7 +1073,7 @@ const AdminDashboardPage = () => {
     try {
       const headers = getAdminAuthHeaders();
       const res = await fetch(
-        apiUrl(`/api/admin/home/why-vedx-reasons/${whyVedxReasonPendingDelete.id}`),
+        apiUrl(`/api/homes/why-vedx-reasons/${whyVedxReasonPendingDelete.id}`),
         {
           method: "DELETE",
           headers,
