@@ -466,6 +466,7 @@ const AdminHiredeveloperPage = () => {
   const [technologyDialogOpen, setTechnologyDialogOpen] = useState(false);
   const [technologyDialogMode, setTechnologyDialogMode] = useState('create');
   const [technologyForm, setTechnologyForm] = useState(emptyTechnologyForm);
+  const [technologyItemsInput, setTechnologyItemsInput] = useState('');
   const [activeTechnology, setActiveTechnology] = useState(null);
   const [technologyToDelete, setTechnologyToDelete] = useState(null);
 
@@ -840,7 +841,10 @@ const AdminHiredeveloperPage = () => {
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
-  const resetTechnologyForm = () => setTechnologyForm(emptyTechnologyForm);
+  const resetTechnologyForm = () => {
+    setTechnologyForm(emptyTechnologyForm);
+    setTechnologyItemsInput('');
+  };
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHirePricingForm = () => setHirePricingForm(emptyHirePricingForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
@@ -1399,12 +1403,14 @@ const AdminHiredeveloperPage = () => {
     setTechnologyDialogMode('edit');
     setActiveTechnology(technology);
     setTechnologyForm({ ...technology });
+    setTechnologyItemsInput((technology.items || []).join(', '));
     setTechnologyDialogOpen(true);
   };
 
   const closeTechnologyDialog = () => {
     setTechnologyDialogOpen(false);
     setActiveTechnology(null);
+    setTechnologyItemsInput('');
   };
 
   const handleTechnologySubmit = async (event) => {
@@ -2120,11 +2126,6 @@ const AdminHiredeveloperPage = () => {
       console.error('Failed to delete expertise item', error);
     }
   };
-
-  const formattedTechnologyItems = useMemo(
-    () => (technologyForm.items?.length ? technologyForm.items.join(', ') : ''),
-    [technologyForm.items]
-  );
 
   const serviceFormSubcategoryOptions = useMemo(() => {
     if (!serviceForm.category) return allSubcategoryOptions;
@@ -4084,16 +4085,18 @@ const AdminHiredeveloperPage = () => {
             />
             <TextField
               label="Technologies (comma separated)"
-              value={formattedTechnologyItems}
-              onChange={(event) =>
+              value={technologyItemsInput}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setTechnologyItemsInput(nextValue);
                 handleTechnologyFormChange(
                   'items',
-                  event.target.value
+                  nextValue
                     .split(',')
                     .map((item) => item.trim())
                     .filter(Boolean)
-                )
-              }
+                );
+              }}
               fullWidth
             />
           </Stack>

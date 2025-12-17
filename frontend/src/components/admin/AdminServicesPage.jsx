@@ -284,6 +284,7 @@ const AdminServicesPage = () => {
   const [technologyDialogOpen, setTechnologyDialogOpen] = useState(false);
   const [technologyDialogMode, setTechnologyDialogMode] = useState('create');
   const [technologyForm, setTechnologyForm] = useState(emptyTechnologyForm);
+  const [technologyItemsInput, setTechnologyItemsInput] = useState('');
   const [activeTechnology, setActiveTechnology] = useState(null);
   const [technologyToDelete, setTechnologyToDelete] = useState(null);
 
@@ -626,7 +627,10 @@ const AdminServicesPage = () => {
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
-  const resetTechnologyForm = () => setTechnologyForm(emptyTechnologyForm);
+  const resetTechnologyForm = () => {
+    setTechnologyForm(emptyTechnologyForm);
+    setTechnologyItemsInput('');
+  };
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
   const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
@@ -978,12 +982,14 @@ const AdminServicesPage = () => {
     setTechnologyDialogMode('edit');
     setActiveTechnology(technology);
     setTechnologyForm({ ...technology });
+    setTechnologyItemsInput((technology.items || []).join(', '));
     setTechnologyDialogOpen(true);
   };
 
   const closeTechnologyDialog = () => {
     setTechnologyDialogOpen(false);
     setActiveTechnology(null);
+    setTechnologyItemsInput('');
   };
 
   const handleTechnologySubmit = async (event) => {
@@ -1651,11 +1657,6 @@ const AdminServicesPage = () => {
     }));
     closeExpertiseDeleteDialog();
   };
-
-  const formattedTechnologyItems = useMemo(
-    () => (technologyForm.items?.length ? technologyForm.items.join(', ') : ''),
-    [technologyForm.items]
-  );
 
   const serviceFormSubcategoryOptions = useMemo(() => {
     if (!serviceForm.category) return allSubcategoryOptions;
@@ -3317,16 +3318,18 @@ const AdminServicesPage = () => {
             />
             <TextField
               label="Technologies (comma separated)"
-              value={formattedTechnologyItems}
-              onChange={(event) =>
+              value={technologyItemsInput}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setTechnologyItemsInput(nextValue);
                 handleTechnologyFormChange(
                   'items',
-                  event.target.value
+                  nextValue
                     .split(',')
                     .map((item) => item.trim())
                     .filter(Boolean)
-                )
-              }
+                );
+              }}
               fullWidth
             />
           </Stack>
