@@ -1751,7 +1751,7 @@ const AdminServicesPage = () => {
                     {...params}
                     label="Category filter"
                     placeholder="All categories"
-                    helperText="Show services for a specific category"
+                  
                   />
                 )}
               />
@@ -1770,7 +1770,7 @@ const AdminServicesPage = () => {
                     {...params}
                     label="Sub-category filter"
                     placeholder="All sub-categories"
-                    helperText="Filter by specific sub-category"
+                 
                   />
                 )}
                 disabled={!serviceCategoryFilter && allSubcategoryOptions.length === 0}
@@ -2792,7 +2792,7 @@ const AdminServicesPage = () => {
 
       {activeTab === 'hire' && (
         <Stack spacing={3}>
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          {/* <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
             <CardHeader
               title="Development services hero"
               subheader="Control the title, description, and hero image used on the development services section."
@@ -2832,7 +2832,7 @@ const AdminServicesPage = () => {
                 </Stack>
               </Stack>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
             <CardHeader

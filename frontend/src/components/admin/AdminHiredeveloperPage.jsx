@@ -2207,7 +2207,7 @@ const AdminHiredeveloperPage = () => {
                     {...params}
                     label="Category filter"
                     placeholder="All categories"
-                    helperText="Show services for a specific category"
+                  
                   />
                 )}
               />
@@ -2226,7 +2226,7 @@ const AdminHiredeveloperPage = () => {
                     {...params}
                     label="Sub-category filter"
                     placeholder="All sub-categories"
-                    helperText="Filter by specific sub-category"
+                
                   />
                 )}
                 disabled={!serviceCategoryFilter && allSubcategoryOptions.length === 0}
