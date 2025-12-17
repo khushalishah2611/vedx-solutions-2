@@ -41,7 +41,6 @@ const DEFAULT_DETAIL = {
   technologies: [],
   features: [],
   screenshots: [],
-  listItems: [],
 };
 
 const emptyApproach = { title: '', subtitle: '', approachType: '', image: '' };
@@ -49,8 +48,6 @@ const emptySolution = { title: '', subtitle: '', tagsInput: '' };
 const emptyTechnology = { title: '', image: '' };
 const emptyFeature = { title: '' };
 const emptyScreenshot = { title: '', subtitle: '', image: '' };
-const emptyListItem = { title: '', subtitle: '', image: '' };
-
 const trimValue = (value) => (typeof value === 'string' ? value.trim() : String(value ?? '').trim());
 
 const ITEMS_PER_PAGE = 5;
@@ -130,17 +127,12 @@ const AdminCaseStudyDetailsPage = () => {
   const [screenshotEditIndex, setScreenshotEditIndex] = useState(-1);
   const [screenshotPage, setScreenshotPage] = useState(1);
 
-  const [listItemForm, setListItemForm] = useState(emptyListItem);
-  const [listItemEditIndex, setListItemEditIndex] = useState(-1);
-  const [listItemPage, setListItemPage] = useState(1);
-
   const resetPagination = () => {
     setApproachPage(1);
     setSolutionPage(1);
     setTechnologyPage(1);
     setFeaturePage(1);
     setScreenshotPage(1);
-    setListItemPage(1);
   };
 
   useEffect(() => {
@@ -167,11 +159,6 @@ const AdminCaseStudyDetailsPage = () => {
     const totalScreenshotPages = Math.max(1, Math.ceil(detail.screenshots.length / ITEMS_PER_PAGE) || 1);
     setScreenshotPage((prev) => Math.min(prev, totalScreenshotPages));
   }, [detail.screenshots]);
-
-  useEffect(() => {
-    const totalListPages = Math.max(1, Math.ceil(detail.listItems.length / ITEMS_PER_PAGE) || 1);
-    setListItemPage((prev) => Math.min(prev, totalListPages));
-  }, [detail.listItems]);
 
   const normalizeListItem = (item) => ({
     title: item.title || '',
@@ -210,9 +197,6 @@ const AdminCaseStudyDetailsPage = () => {
       : [],
     screenshots: Array.isArray(incomingDetail.screenshots)
       ? incomingDetail.screenshots.map(normalizeListItem)
-      : [],
-    listItems: Array.isArray(incomingDetail.listItems)
-      ? incomingDetail.listItems.map(normalizeListItem)
       : [],
   });
 
@@ -278,8 +262,6 @@ const AdminCaseStudyDetailsPage = () => {
     setFeatureEditIndex(-1);
     setScreenshotForm(emptyScreenshot);
     setScreenshotEditIndex(-1);
-    setListItemForm(emptyListItem);
-    setListItemEditIndex(-1);
   };
 
   const handleSave = async () => {
@@ -326,13 +308,6 @@ const AdminCaseStudyDetailsPage = () => {
         .map((item) => ({ title: trimValue(item.title) }))
         .filter((item) => item.title),
       screenshots: detail.screenshots
-        .map((item) => ({
-          title: trimValue(item.title),
-          subtitle: trimValue(item.subtitle),
-          image: trimValue(item.image),
-        }))
-        .filter((item) => item.title || item.subtitle || item.image),
-      listItems: detail.listItems
         .map((item) => ({
           title: trimValue(item.title),
           subtitle: trimValue(item.subtitle),
@@ -420,14 +395,6 @@ const AdminCaseStudyDetailsPage = () => {
     setScreenshotForm(emptyScreenshot);
     setScreenshotEditIndex(-1);
     setScreenshotPage(1);
-  };
-
-  const handleListItemSave = () => {
-    if (!(listItemForm.title || listItemForm.subtitle || listItemForm.image)) return;
-    updateList('listItems', { ...listItemForm }, listItemEditIndex);
-    setListItemForm(emptyListItem);
-    setListItemEditIndex(-1);
-    setListItemPage(1);
   };
 
   const renderListSection = (title, description, columns, rows, onEdit, onDelete, page, onPageChange) => {
@@ -599,7 +566,6 @@ const AdminCaseStudyDetailsPage = () => {
         <Tab label="Technologies We Support" id="tab-3" />
         <Tab label="Features" id="tab-4" />
         <Tab label="Application Screenshots" id="tab-5" />
-        <Tab label="List" id="tab-6" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
@@ -945,64 +911,6 @@ const AdminCaseStudyDetailsPage = () => {
               (index) => removeFromList('screenshots', index),
               screenshotPage,
               setScreenshotPage,
-            )}
-          </Grid>
-        </Grid>
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={6}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={5}>
-            <Card>
-              <CardHeader title={listItemEditIndex >= 0 ? 'Edit List Item' : 'Add List Item'} />
-              <CardContent>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Title"
-                    value={listItemForm.title}
-                    onChange={(e) => setListItemForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Subtitle"
-                    value={listItemForm.subtitle}
-                    onChange={(e) => setListItemForm((prev) => ({ ...prev, subtitle: e.target.value }))}
-                    fullWidth
-                  />
-                  <ImageUpload
-                    label="List Image"
-                    value={listItemForm.image}
-                    onChange={(value) => setListItemForm((prev) => ({ ...prev, image: value }))}
-                  />
-                  <Stack direction="row" spacing={1}>
-                    <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleListItemSave}>
-                      {listItemEditIndex >= 0 ? 'Update' : 'Add Item'}
-                    </Button>
-                    {listItemEditIndex >= 0 && (
-                      <Button variant="text" onClick={() => setListItemEditIndex(-1)}>
-                        Cancel
-                      </Button>
-                    )}
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={7}>
-            {renderListSection(
-              'List Items',
-              'Add supporting list content with image, title, and subtitle.',
-              ['title', 'subtitle', 'image'],
-              detail.listItems,
-              (index) => {
-                const current = detail.listItems[index];
-                setListItemForm({ ...current });
-                setListItemEditIndex(index);
-                setActiveTab(6);
-              },
-              (index) => removeFromList('listItems', index),
-              listItemPage,
-              setListItemPage,
             )}
           </Grid>
         </Grid>
