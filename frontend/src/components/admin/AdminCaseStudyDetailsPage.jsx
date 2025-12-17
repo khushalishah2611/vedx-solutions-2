@@ -501,7 +501,7 @@ const AdminCaseStudyDetailsPage = () => {
       <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={2} mb={3}>
         <Stack direction="row" spacing={1} alignItems="center">
           <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/admin/case-studies')}>
-            Back to Case Studies
+            Back
           </Button>
           <Divider orientation="vertical" flexItem />
           <Box>
