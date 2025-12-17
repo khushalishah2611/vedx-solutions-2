@@ -1416,7 +1416,10 @@ const AdminCareersPage = () => {
               )}
 
               <Box sx={{ textAlign: 'start', mt: 1 }}>
-                <Button variant="contained"
+                <Button
+                  variant="contained"
+                  type="submit"
+                  disabled={savingApplication}
                 >
                   {applicationDialogMode === 'edit' ? 'Save applicant' : 'Submit applicant'}
                 </Button>

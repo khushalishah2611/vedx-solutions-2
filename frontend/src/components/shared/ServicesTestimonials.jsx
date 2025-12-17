@@ -111,7 +111,7 @@ const ServicesTestimonials = () => {
               WebkitTextFillColor: 'transparent'
             }}
           >
-            Client Feedbacks
+            Customer Reviews
           </Box>
         </Box>
 
