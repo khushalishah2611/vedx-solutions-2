@@ -17,6 +17,7 @@ import AdminResetPasswordPage from './components/admin/AdminResetPasswordPage.js
 import AdminNavigationPage from './components/admin/AdminNavigationPage.jsx';
 import AdminFeedbacksPage from './components/admin/AdminFeedbacksPage.jsx';
 import AdminCaseStudiesPage from './components/admin/AdminCaseStudiesPage.jsx';
+import AdminCaseStudyDetailsPage from './components/admin/AdminCaseStudyDetailsPage.jsx';
 import HomePage from './components/pages/HomePage.jsx';
 import ServicesPage from './components/pages/ServicesPage.jsx';
 import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
@@ -52,6 +53,7 @@ const App = () => {
               <Route path="navigation" element={<AdminNavigationPage />} />
               <Route path="blogs" element={<AdminBlogsPage />} />
               <Route path="case-studies" element={<AdminCaseStudiesPage />} />
+              <Route path="case-studies/:caseStudyId/details" element={<AdminCaseStudyDetailsPage />} />
               <Route path="profile" element={<AdminProfilePage />} />
               <Route path="change-password" element={<AdminChangePasswordPage />} />
             </Route>

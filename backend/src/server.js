@@ -344,15 +344,6 @@ const formatCaseStudyDetailResponse = (detail) => {
     }))
     : [];
 
-  const listItems = Array.isArray(detail.listItems)
-    ? detail.listItems.map((item) => ({
-      id: item.id,
-      title: item.title,
-      subtitle: item.subtitle || '',
-      image: item.image || '',
-    }))
-    : [];
-
   return {
     projectOverview,
     approaches,
@@ -360,7 +351,6 @@ const formatCaseStudyDetailResponse = (detail) => {
     technologies,
     features,
     screenshots,
-    listItems,
   };
 };
 
@@ -2649,7 +2639,6 @@ const CASE_STUDY_DETAIL_INCLUDE = {
       technologies: true,
       features: true,
       screenshots: true,
-      listItems: true,
     },
   },
 };
@@ -2919,7 +2908,6 @@ app.put('/api/admin/case-studies/:id/details', async (req, res) => {
       prisma.caseStudyTechnology.deleteMany({ where: { detailId: detail.id } }),
       prisma.caseStudyFeature.deleteMany({ where: { detailId: detail.id } }),
       prisma.caseStudyScreenshot.deleteMany({ where: { detailId: detail.id } }),
-      prisma.caseStudyListItem.deleteMany({ where: { detailId: detail.id } }),
     ]);
 
     if (validation.approaches.length) {
@@ -2967,17 +2955,6 @@ app.put('/api/admin/case-studies/:id/details', async (req, res) => {
     if (validation.screenshots.length) {
       await prisma.caseStudyScreenshot.createMany({
         data: validation.screenshots.map((item) => ({
-          detailId: detail.id,
-          title: item.title,
-          subtitle: item.subtitle || null,
-          image: item.image || null,
-        })),
-      });
-    }
-
-    if (validation.listItems.length) {
-      await prisma.caseStudyListItem.createMany({
-        data: validation.listItems.map((item) => ({
           detailId: detail.id,
           title: item.title,
           subtitle: item.subtitle || null,
@@ -3775,27 +3752,6 @@ const validateCaseStudyDetailInput = (body = {}) => {
     }
   }
 
-  const listItems = [];
-  const listItemsInput = Array.isArray(body.listItems) ? body.listItems : [];
-  for (const item of listItemsInput) {
-    const itemTitle = normalizeText(item?.title);
-    const itemSubtitle = normalizeText(item?.subtitle);
-    const itemImage = normalizeText(item?.image);
-
-    const imageError = validateImageUrl(itemImage);
-    if (imageError) {
-      return { error: imageError };
-    }
-
-    if (itemTitle || itemSubtitle || itemImage) {
-      listItems.push({
-        title: itemTitle || 'List item',
-        subtitle: itemSubtitle,
-        image: itemImage || null,
-      });
-    }
-  }
-
   return {
     projectOverview: {
       title,
@@ -3808,7 +3764,6 @@ const validateCaseStudyDetailInput = (body = {}) => {
     technologies,
     features,
     screenshots,
-    listItems,
   };
 };
 
