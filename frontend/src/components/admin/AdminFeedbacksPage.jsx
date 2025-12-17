@@ -300,11 +300,11 @@ const AdminFeedbacksPage = () => {
     <Stack spacing={3}>
       <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
         <CardHeader
-          title="Feedbacks"
-          subheader="Track customer feedback with filters, CRUD actions, and quick previews."
+          title="Customer reviews"
+          subheader="Track customer reviews with filters, CRUD actions, and quick previews."
           action={
             <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openFeedbackCreateDialog}>
-              Add feedback
+              Add review
             </Button>
           }
         />
@@ -375,7 +375,7 @@ const AdminFeedbacksPage = () => {
                   <TableRow>
                     <TableCell colSpan={6}>
                       <Typography variant="body2" color="text.secondary" align="center">
-                        Loading feedbacks...
+                        Loading reviews...
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -416,7 +416,7 @@ const AdminFeedbacksPage = () => {
                   <TableRow>
                     <TableCell colSpan={6}>
                       <Typography variant="body2" color="text.secondary" align="center">
-                        No feedbacks found. Adjust filters or add a new record.
+                        No reviews found. Adjust filters or add a new record.
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -436,7 +436,7 @@ const AdminFeedbacksPage = () => {
       </Card>
 
       <Dialog open={feedbackDialogOpen} onClose={closeFeedbackDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{feedbackDialogMode === 'edit' ? 'Edit feedback' : 'Add feedback'}</DialogTitle>
+        <DialogTitle>{feedbackDialogMode === 'edit' ? 'Edit review' : 'Add review'}</DialogTitle>
         <DialogContent dividers>
           <Stack component="form" spacing={2} onSubmit={handleFeedbackSubmit}>
             <Grid container spacing={2}>
@@ -506,7 +506,7 @@ const AdminFeedbacksPage = () => {
                   ? 'Saving...'
                   : feedbackDialogMode === 'edit'
                     ? 'Save changes'
-                    : 'Create feedback'}
+                    : 'Create review'}
               </Button>
             </Box>
           </Stack>
@@ -514,7 +514,7 @@ const AdminFeedbacksPage = () => {
       </Dialog>
 
       <Dialog open={Boolean(viewingFeedback)} onClose={() => setViewingFeedback(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>Feedback preview</DialogTitle>
+        <DialogTitle>Review preview</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={1.5}>
             <Typography variant="subtitle1" fontWeight={700}>
@@ -532,7 +532,7 @@ const AdminFeedbacksPage = () => {
       </Dialog>
 
       <Dialog open={Boolean(feedbackToDelete)} onClose={closeDeleteDialog}>
-        <DialogTitle>Delete feedback</DialogTitle>
+        <DialogTitle>Delete review</DialogTitle>
         <DialogContent dividers>
           <Typography variant="body2">
             Are you sure you want to delete "{feedbackToDelete?.title}" from {feedbackToDelete?.name}?
