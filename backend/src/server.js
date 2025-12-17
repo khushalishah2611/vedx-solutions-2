@@ -104,6 +104,30 @@ const parseIntegerId = (value) => {
   return parsed;
 };
 
+const getPaginationParams = (query = {}, { defaultPageSize = 10, maxPageSize = 50 } = {}) => {
+  const rawPage = Number.parseInt(query.page, 10);
+  const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
+
+  const rawPageSize = query.pageSize === 'all' ? 'all' : Number.parseInt(query.pageSize, 10);
+  const hasUnlimited = rawPageSize === 'all' || rawPageSize === 0;
+
+  const pageSize = hasUnlimited
+    ? null
+    : Math.min(maxPageSize, Math.max(1, Number.isInteger(rawPageSize) ? rawPageSize : defaultPageSize));
+
+  const skip = pageSize ? (page - 1) * pageSize : 0;
+
+  return { page, pageSize, skip };
+};
+
+const parseIdList = (value) => {
+  if (!value) return [];
+  return String(value)
+    .split(',')
+    .map((part) => parseIntegerId(part))
+    .filter((id) => Number.isInteger(id));
+};
+
 const isValidEmail = (email) =>
   typeof email === 'string' &&
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
@@ -196,6 +220,7 @@ const formatProjectTypeResponse = (projectType) => ({
 const formatBlogCategoryResponse = (category) => ({
   id: category.id,
   name: category.name,
+  postCount: category._count?.posts ?? null,
   createdAt: category.createdAt,
   updatedAt: category.updatedAt,
 });
@@ -208,28 +233,140 @@ const deriveBlogUiStatus = (status, publishDate) => {
 };
 
 const formatBlogPostResponse = (post) => {
-  const publishDate = post.publishedAt ? post.publishedAt.toISOString().split('T')[0] : null;
-  const shortDescription = post.shortDescription || post.summary || '';
-  const longDescription = post.longDescription || post.content || shortDescription;
-  const blogImage = post.blogImage || post.coverImage || '';
+  const publishDate = post.publishedAt
+    ? post.publishedAt.toISOString().split('T')[0]
+    : null;
+
   return {
     id: post.id,
     title: post.title,
+    subtitle: post.subtitle || '',
     slug: post.slug,
-    coverImage: post.coverImage || '',
-    blogImage,
-    shortDescription,
-    longDescription,
-    categoryId: post.categoryId || '',
-    category: post.category ? formatBlogCategoryResponse(post.category) : null,
+
+    shortDescription: post.shortDescription || post.summary || '',
+    longDescription: post.longDescription || post.content || post.summary || '',
+
+    description: post.summary || post.shortDescription || '',
+    conclusion: post.conclusion || post.content || post.longDescription || '',
+
+    coverImage: post.coverImage || post.blogImage || '',
+    blogImage: post.blogImage || post.coverImage || '',
+
+    tags: post.tags || [],
+
+    categoryId: post.categoryId || null,
+    category: post.category
+      ? formatBlogCategoryResponse(post.category)
+      : null,
+
     publishDate,
-    description: shortDescription,
-    conclusion: longDescription,
     status: deriveBlogUiStatus(post.status, publishDate),
+
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
   };
 };
+
+const formatTagResponse = (tag) => ({
+  id: tag.id,
+  name: tag.name,
+  createdAt: tag.createdAt,
+  updatedAt: tag.updatedAt,
+});
+
+const normalizeStringArray = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => normalizeText(item))
+      .filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => normalizeText(item))
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const formatCaseStudyDetailResponse = (detail) => {
+  if (!detail) return null;
+
+  const projectOverview = {
+    title: detail.projectTitle,
+    subtitle: detail.projectSubtitle || '',
+    description: detail.projectDescription || '',
+    image: detail.projectImage || '',
+  };
+
+  const approaches = Array.isArray(detail.approaches)
+    ? detail.approaches.map((item) => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle || '',
+      image: item.image || '',
+      approachType: item.approachType || '',
+    }))
+    : [];
+
+  const solutions = Array.isArray(detail.solutions)
+    ? detail.solutions.map((item) => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle || '',
+      tags: normalizeStringArray(item.tags),
+    }))
+    : [];
+
+  const technologies = Array.isArray(detail.technologies)
+    ? detail.technologies.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.image || '',
+    }))
+    : [];
+
+  const features = Array.isArray(detail.features)
+    ? detail.features.map((item) => ({
+      id: item.id,
+      title: item.title,
+    }))
+    : [];
+
+  const screenshots = Array.isArray(detail.screenshots)
+    ? detail.screenshots.map((item) => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle || '',
+      image: item.image || '',
+    }))
+    : [];
+
+  return {
+    projectOverview,
+    approaches,
+    solutions,
+    technologies,
+    features,
+    screenshots,
+  };
+};
+
+const formatCaseStudyResponse = (caseStudy) => ({
+  id: caseStudy.id,
+  slug: caseStudy.slug,
+  title: caseStudy.title,
+  subtitle: caseStudy.subtitle || '',
+  description: caseStudy.description || '',
+  coverImage: caseStudy.coverImage || '',
+  tags: Array.isArray(caseStudy.tags) ? caseStudy.tags.map(formatTagResponse) : [],
+  tagIds: Array.isArray(caseStudy.tags) ? caseStudy.tags.map((tag) => tag.id) : [],
+  detail: caseStudy.detail ? formatCaseStudyDetailResponse(caseStudy.detail) : undefined,
+  createdAt: caseStudy.createdAt,
+  updatedAt: caseStudy.updatedAt,
+});
 
 const EMPLOYMENT_LABELS = {
   FULL_TIME: 'Full-time',
@@ -359,6 +496,34 @@ const validateBlogCategoryInput = (body) => {
   return { name };
 };
 
+const validateTagInput = (body) => {
+  const name = normalizeText(body?.name);
+
+  if (!name) {
+    return { error: 'Tag name is required.' };
+  }
+
+  return { name };
+};
+
+const validateCaseStudyInput = (body) => {
+  const title = normalizeText(body?.title);
+  const subtitle = normalizeText(body?.subtitle);
+  const description = normalizeText(body?.description);
+  const coverImage = normalizeText(body?.coverImage) || null;
+  const slug = normalizeSlug(body?.slug || title) || null;
+  const tagIds = Array.isArray(body?.tagIds)
+    ? (body.tagIds || [])
+        .map((value) => parseIntegerId(value))
+        .filter((value) => Number.isInteger(value))
+    : [];
+
+  if (!title) return { error: 'Title is required.' };
+  if (!slug) return { error: 'A valid slug is required.' };
+
+  return { title, subtitle, description, coverImage, slug, tagIds };
+};
+
 const normalizePublishDate = (value) => {
   const parsed = value ? new Date(value) : new Date();
   return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
@@ -377,14 +542,29 @@ const mapUiStatusToPublishStatus = (status) => {
   return 'DRAFT';
 };
 
+const normalizeAdminStatusFilter = (status) => {
+  const normalized = normalizeText(status).toUpperCase();
+  if (['PUBLISHED', 'PUBLISH', 'PUBLISHING'].includes(normalized)) return 'PUBLISHED';
+  if (['SCHEDULED', 'REVIEW'].includes(normalized)) return 'REVIEW';
+  if (normalized === 'DRAFT') return 'DRAFT';
+
+  const uiNormalized = normalizeBlogStatus(status);
+  return mapUiStatusToPublishStatus(uiNormalized);
+};
+
 const validateBlogPostInput = (body) => {
   const title = normalizeText(body?.title);
-  const shortDescription = normalizeText(body?.shortDescription || body?.description);
-  const longDescription = normalizeText(body?.longDescription || body?.conclusion);
-  const blogImage = normalizeText(body?.blogImage || body?.coverImage) || null;
+  const subtitle = normalizeText(body?.subtitle);
+  const shortDescription = normalizeText(body?.shortDescription);
+  const longDescription = normalizeText(body?.longDescription);
+  const conclusion = normalizeText(body?.conclusion);
+
   const coverImage = normalizeText(body?.coverImage) || null;
+  const blogImage = normalizeText(body?.blogImage) || null;
+
   const slugInput = normalizeText(body?.slug || body?.title);
   const slug = normalizeSlug(slugInput) || `post-${Date.now()}`;
+
   const publishDate = normalizePublishDate(body?.publishDate);
   const status = normalizeBlogStatus(body?.status);
   const categoryId = parseIntegerId(body?.categoryId) ?? null;
@@ -392,9 +572,21 @@ const validateBlogPostInput = (body) => {
   if (!title) return { error: 'Title is required.' };
   if (!shortDescription) return { error: 'Short description is required.' };
   if (!longDescription) return { error: 'Long description is required.' };
-  if (!blogImage) return { error: 'Blog image is required.' };
+  if (!conclusion) return { error: 'Conclusion is required.' };
 
-  return { title, shortDescription, longDescription, blogImage, coverImage, slug, publishDate, status, categoryId };
+  return {
+    title,
+    subtitle,
+    shortDescription,
+    longDescription,
+    conclusion,
+    coverImage,
+    blogImage,
+    slug,
+    publishDate,
+    status,
+    categoryId,
+  };
 };
 
 const validateCareerOpeningInput = (body) => {
@@ -1816,7 +2008,10 @@ app.delete('/api/admin/project-types/:id', async (req, res) => {
 
 app.get('/api/blog-categories', async (req, res) => {
   try {
-    const categories = await prisma.blogCategory.findMany({ orderBy: { name: 'asc' } });
+    const categories = await prisma.blogCategory.findMany({
+      orderBy: { name: 'asc' },
+      include: { _count: { select: { posts: true } } },
+    });
     return res.json({ categories: categories.map(formatBlogCategoryResponse) });
   } catch (error) {
     console.error('Blog category list (public) failed', error);
@@ -1832,7 +2027,10 @@ app.get('/api/admin/blog-categories', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const categories = await prisma.blogCategory.findMany({ orderBy: { createdAt: 'desc' } });
+    const categories = await prisma.blogCategory.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { posts: true } } },
+    });
     return res.json({ categories: categories.map(formatBlogCategoryResponse) });
   } catch (error) {
     console.error('Blog category list failed', error);
@@ -1924,19 +2122,105 @@ app.delete('/api/admin/blog-categories/:id', async (req, res) => {
 
 app.get('/api/blog-posts', async (req, res) => {
   try {
-    const posts = await prisma.blogPost.findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { publishedAt: 'desc' },
-      include: { category: true },
-    });
+    const { page, pageSize, skip } = getPaginationParams(req.query, { defaultPageSize: 6, maxPageSize: 50 });
+    const categoryIds = parseIdList(req.query.categoryIds || req.query.categories);
+    const singleCategory = parseIntegerId(req.query.categoryId);
+    const targetCategories = categoryIds.length > 0 ? categoryIds : singleCategory ? [singleCategory] : [];
+
+    const searchTerm = normalizeText(req.query.search || req.query.q);
+    const excludeSlug = normalizeSlug(req.query.excludeSlug || req.query.exclude);
 
     const today = new Date();
-    const published = posts.filter((post) => !post.publishedAt || post.publishedAt <= today);
 
-    return res.json({ posts: published.map(formatBlogPostResponse) });
+    const where = {
+      status: 'PUBLISHED',
+      AND: [
+        { OR: [{ publishedAt: null }, { publishedAt: { lte: today } }] },
+      ],
+    };
+
+    if (targetCategories.length > 0) {
+      where.AND.push({ categoryId: { in: targetCategories } });
+    }
+
+    if (req.query.uncategorized === 'true') {
+      where.AND.push({ categoryId: null });
+    }
+
+    if (searchTerm) {
+      where.AND.push({
+        OR: [
+          { title: { contains: searchTerm, mode: 'insensitive' } },
+          { summary: { contains: searchTerm, mode: 'insensitive' } },
+          { shortDescription: { contains: searchTerm, mode: 'insensitive' } },
+          { longDescription: { contains: searchTerm, mode: 'insensitive' } },
+          { conclusion: { contains: searchTerm, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    const total = await prisma.blogPost.count({ where });
+
+    let adjustedTotal = total;
+    if (excludeSlug) {
+      const slugWhere = {
+        ...where,
+        AND: [...(where.AND || []), { slug: excludeSlug }],
+      };
+      const excludedCount = await prisma.blogPost.count({ where: slugWhere });
+      adjustedTotal = Math.max(0, total - excludedCount);
+    }
+
+    const posts = await prisma.blogPost.findMany({
+      where,
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+      include: { category: true },
+      skip: pageSize ? skip : undefined,
+      take: pageSize || undefined,
+    });
+
+    const filteredPosts = excludeSlug ? posts.filter((post) => post.slug !== excludeSlug) : posts;
+
+    const metaPageSize = pageSize || Math.max(1, filteredPosts.length || 1);
+    const pagination = {
+      page,
+      pageSize: metaPageSize,
+      total: adjustedTotal,
+      totalPages: pageSize ? Math.max(1, Math.ceil(adjustedTotal / metaPageSize)) : 1,
+    };
+
+    return res.json({ posts: filteredPosts.map(formatBlogPostResponse), pagination });
   } catch (error) {
     console.error('Blog post list (public) failed', error);
     return res.status(500).json({ message: 'Unable to load blog posts right now.' });
+  }
+});
+
+app.get('/api/blog-posts/:slug', async (req, res) => {
+  try {
+    const slug = normalizeSlug(req.params.slug);
+    if (!slug) {
+      return res.status(400).json({ message: 'A valid slug is required.' });
+    }
+
+    const today = new Date();
+    const post = await prisma.blogPost.findFirst({
+      where: {
+        slug,
+        status: 'PUBLISHED',
+        OR: [{ publishedAt: null }, { publishedAt: { lte: today } }],
+      },
+      include: { category: true },
+    });
+
+    if (!post) {
+      return res.status(404).json({ message: 'Blog post not found.' });
+    }
+
+    return res.json({ post: formatBlogPostResponse(post) });
+  } catch (error) {
+    console.error('Blog post detail (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load blog post right now.' });
   }
 });
 
@@ -1948,12 +2232,56 @@ app.get('/api/admin/blog-posts', async (req, res) => {
       return res.status(status).json({ message });
     }
 
+    const { page, pageSize, skip } = getPaginationParams(req.query, { defaultPageSize: 20, maxPageSize: 100 });
+    const categoryIds = parseIdList(req.query.categoryIds || req.query.categories);
+    const singleCategory = parseIntegerId(req.query.categoryId);
+    const targetCategories = categoryIds.length > 0 ? categoryIds : singleCategory ? [singleCategory] : [];
+    const searchTerm = normalizeText(req.query.search || req.query.q);
+    const statusFilter = normalizeAdminStatusFilter(req.query.status);
+
+    const where = {};
+
+    if (targetCategories.length > 0) {
+      where.categoryId = { in: targetCategories };
+    }
+
+    if (req.query.uncategorized === 'true') {
+      where.categoryId = null;
+    }
+
+    if (statusFilter) {
+      where.status = statusFilter;
+    }
+
+    if (searchTerm) {
+      where.OR = [
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { summary: { contains: searchTerm, mode: 'insensitive' } },
+        { shortDescription: { contains: searchTerm, mode: 'insensitive' } },
+        { longDescription: { contains: searchTerm, mode: 'insensitive' } },
+        { conclusion: { contains: searchTerm, mode: 'insensitive' } },
+      ];
+    }
+
+    const total = await prisma.blogPost.count({ where });
+
     const posts = await prisma.blogPost.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: { category: true },
+      skip: pageSize ? skip : undefined,
+      take: pageSize || undefined,
     });
 
-    return res.json({ posts: posts.map(formatBlogPostResponse) });
+    const metaPageSize = pageSize || Math.max(1, posts.length || 1);
+    const pagination = {
+      page,
+      pageSize: metaPageSize,
+      total,
+      totalPages: pageSize ? Math.max(1, Math.ceil(total / metaPageSize)) : 1,
+    };
+
+    return res.json({ posts: posts.map(formatBlogPostResponse), pagination });
   } catch (error) {
     console.error('Blog post list failed', error);
     return res.status(500).json({ message: 'Unable to load blog posts right now.' });
@@ -1969,12 +2297,16 @@ app.post('/api/admin/blog-posts', async (req, res) => {
     }
 
     const validation = validateBlogPostInput(req.body || {});
-    if (validation.error) return res.status(400).json({ message: validation.error });
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
 
     const {
       title,
+      subtitle,
       shortDescription,
       longDescription,
+      conclusion,
       blogImage,
       coverImage,
       slug,
@@ -1983,35 +2315,54 @@ app.post('/api/admin/blog-posts', async (req, res) => {
       categoryId,
     } = validation;
 
+    // Category validation
     if (categoryId) {
-      const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
-      if (!categoryExists) return res.status(404).json({ message: 'Selected category not found.' });
+      const categoryExists = await prisma.blogCategory.findUnique({
+        where: { id: categoryId },
+      });
+      if (!categoryExists) {
+        return res.status(404).json({ message: 'Selected category not found.' });
+      }
     }
 
     const created = await prisma.blogPost.create({
       data: {
         title,
+        subtitle,
         slug,
+
         summary: shortDescription,
         shortDescription,
         longDescription,
-        content: longDescription || shortDescription,
+
+        conclusion,
+        content: longDescription || conclusion || shortDescription,
+
         coverImage: coverImage || blogImage,
         blogImage,
+
         status: mapUiStatusToPublishStatus(uiStatus),
         publishedAt: publishDate,
+
         categoryId: categoryId || null,
       },
       include: { category: true },
     });
 
-    return res.status(201).json({ post: formatBlogPostResponse(created) });
+    return res.status(201).json({
+      post: formatBlogPostResponse(created),
+      message: 'Blog post created successfully.',
+    });
   } catch (error) {
     console.error('Blog post create failed', error);
     if (error?.code === 'P2002') {
-      return res.status(409).json({ message: 'A blog post with this slug already exists.' });
+      return res
+        .status(409)
+        .json({ message: 'A blog post with this slug already exists.' });
     }
-    return res.status(500).json({ message: 'Unable to create blog post right now.' });
+    return res
+      .status(500)
+      .json({ message: 'Unable to create blog post right now.' });
   }
 });
 
@@ -2024,18 +2375,28 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
     }
 
     const postId = parseIntegerId(req.params.id);
-    if (!postId) return res.status(400).json({ message: 'A valid blog post id is required.' });
+    if (!postId) {
+      return res.status(400).json({ message: 'A valid blog post id is required.' });
+    }
 
     const validation = validateBlogPostInput(req.body || {});
-    if (validation.error) return res.status(400).json({ message: validation.error });
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
 
-    const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
-    if (!existing) return res.status(404).json({ message: 'Blog post not found.' });
+    const existing = await prisma.blogPost.findUnique({
+      where: { id: postId },
+    });
+    if (!existing) {
+      return res.status(404).json({ message: 'Blog post not found.' });
+    }
 
     const {
       title,
+      subtitle,
       shortDescription,
       longDescription,
+      conclusion,
       blogImage,
       coverImage,
       slug,
@@ -2044,36 +2405,55 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
       categoryId,
     } = validation;
 
+    // Category validation
     if (categoryId) {
-      const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
-      if (!categoryExists) return res.status(404).json({ message: 'Selected category not found.' });
+      const categoryExists = await prisma.blogCategory.findUnique({
+        where: { id: categoryId },
+      });
+      if (!categoryExists) {
+        return res.status(404).json({ message: 'Selected category not found.' });
+      }
     }
 
     const updated = await prisma.blogPost.update({
       where: { id: postId },
       data: {
         title,
+        subtitle,
         slug,
+
         summary: shortDescription,
         shortDescription,
         longDescription,
-        content: longDescription || shortDescription,
+
+        conclusion,
+        content: longDescription || conclusion || shortDescription,
+
         coverImage: coverImage || blogImage,
         blogImage,
+
         status: mapUiStatusToPublishStatus(uiStatus),
         publishedAt: publishDate,
+
         categoryId: categoryId || null,
       },
       include: { category: true },
     });
 
-    return res.json({ post: formatBlogPostResponse(updated), message: 'Blog post updated.' });
+    return res.json({
+      post: formatBlogPostResponse(updated),
+      message: 'Blog post updated successfully.',
+    });
   } catch (error) {
     console.error('Blog post update failed', error);
     if (error?.code === 'P2002') {
-      return res.status(409).json({ message: 'A blog post with this slug already exists.' });
+      return res
+        .status(409)
+        .json({ message: 'A blog post with this slug already exists.' });
     }
-    return res.status(500).json({ message: 'Unable to update blog post right now.' });
+    return res
+      .status(500)
+      .json({ message: 'Unable to update blog post right now.' });
   }
 });
 
@@ -2096,6 +2476,506 @@ app.delete('/api/admin/blog-posts/:id', async (req, res) => {
   } catch (error) {
     console.error('Blog post delete failed', error);
     return res.status(500).json({ message: 'Unable to delete blog post right now.' });
+  }
+});
+
+// ---------- Case Study + Tag Routes ----------
+
+app.get('/api/tags', async (_req, res) => {
+  try {
+    const tags = await prisma.tag.findMany({ orderBy: { name: 'asc' } });
+    return res.json({ tags: tags.map(formatTagResponse) });
+  } catch (error) {
+    console.error('Tag list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load tags right now.' });
+  }
+});
+
+app.get('/api/admin/tags', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const tags = await prisma.tag.findMany({ orderBy: { createdAt: 'desc' } });
+    return res.json({ tags: tags.map(formatTagResponse) });
+  } catch (error) {
+    console.error('Tag list failed', error);
+    return res.status(500).json({ message: 'Unable to load tags right now.' });
+  }
+});
+
+app.post('/api/admin/tags', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateTagInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.tag.create({ data: { name: validation.name } });
+    return res.status(201).json({ tag: formatTagResponse(created) });
+  } catch (error) {
+    console.error('Tag create failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A tag with this name already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to create tag right now.' });
+  }
+});
+
+app.put('/api/admin/tags/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const tagId = parseIntegerId(req.params.id);
+    if (!tagId) return res.status(400).json({ message: 'A valid tag id is required.' });
+
+    const validation = validateTagInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.tag.findUnique({ where: { id: tagId } });
+    if (!existing) return res.status(404).json({ message: 'Tag not found.' });
+
+    const updated = await prisma.tag.update({
+      where: { id: tagId },
+      data: { name: validation.name },
+    });
+
+    return res.json({ tag: formatTagResponse(updated), message: 'Tag updated.' });
+  } catch (error) {
+    console.error('Tag update failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A tag with this name already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to update tag right now.' });
+  }
+});
+
+app.delete('/api/admin/tags/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const tagId = parseIntegerId(req.params.id);
+    if (!tagId) return res.status(400).json({ message: 'A valid tag id is required.' });
+
+    const existing = await prisma.tag.findUnique({ where: { id: tagId } });
+    if (!existing) return res.status(404).json({ message: 'Tag not found.' });
+
+    await prisma.tag.delete({ where: { id: tagId } });
+    return res.json({ message: 'Tag deleted.' });
+  } catch (error) {
+    console.error('Tag delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete tag right now.' });
+  }
+});
+
+app.get('/api/case-studies', async (req, res) => {
+  try {
+    const { page, pageSize, skip } = getPaginationParams(req.query, { defaultPageSize: 9, maxPageSize: 50 });
+    const tagIds = parseIdList(req.query.tagIds || req.query.tags);
+    const searchTerm = normalizeText(req.query.search || req.query.q);
+
+    const where = {};
+
+    if (tagIds.length > 0) {
+      where.tags = { some: { id: { in: tagIds } } };
+    }
+
+    if (searchTerm) {
+      where.OR = [
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { subtitle: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
+      ];
+    }
+
+    const total = await prisma.caseStudy.count({ where });
+    const caseStudies = await prisma.caseStudy.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { tags: true },
+      skip: pageSize ? skip : undefined,
+      take: pageSize || undefined,
+    });
+
+    const metaPageSize = pageSize || Math.max(1, caseStudies.length || 1);
+    const pagination = {
+      page,
+      pageSize: metaPageSize,
+      total,
+      totalPages: pageSize ? Math.max(1, Math.ceil(total / metaPageSize)) : 1,
+    };
+
+    return res.json({
+      caseStudies: caseStudies.map(formatCaseStudyResponse),
+      pagination,
+    });
+  } catch (error) {
+    console.error('Case study list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load case studies right now.' });
+  }
+});
+
+const CASE_STUDY_DETAIL_INCLUDE = {
+  tags: true,
+  detail: {
+    include: {
+      approaches: true,
+      solutions: true,
+      technologies: true,
+      features: true,
+      screenshots: true,
+    },
+  },
+};
+
+app.get('/api/case-studies/:slug', async (req, res) => {
+  try {
+    const slug = normalizeSlug(req.params.slug);
+    if (!slug) return res.status(400).json({ message: 'A valid slug is required.' });
+
+    const caseStudy = await prisma.caseStudy.findFirst({
+      where: { slug },
+      include: CASE_STUDY_DETAIL_INCLUDE,
+    });
+
+    if (!caseStudy) {
+      return res.status(404).json({ message: 'Case study not found.' });
+    }
+
+    return res.json({ caseStudy: formatCaseStudyResponse(caseStudy) });
+  } catch (error) {
+    console.error('Case study detail failed', error);
+    return res.status(500).json({ message: 'Unable to load case study right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const { page, pageSize, skip } = getPaginationParams(req.query, { defaultPageSize: 20, maxPageSize: 100 });
+    const tagIds = parseIdList(req.query.tagIds || req.query.tags);
+    const searchTerm = normalizeText(req.query.search || req.query.q);
+
+    const where = {};
+
+    if (tagIds.length > 0) {
+      where.tags = { some: { id: { in: tagIds } } };
+    }
+
+    if (searchTerm) {
+      where.OR = [
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { subtitle: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
+      ];
+    }
+
+    const total = await prisma.caseStudy.count({ where });
+    const caseStudies = await prisma.caseStudy.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { tags: true },
+      skip: pageSize ? skip : undefined,
+      take: pageSize || undefined,
+    });
+
+    const metaPageSize = pageSize || Math.max(1, caseStudies.length || 1);
+    const pagination = {
+      page,
+      pageSize: metaPageSize,
+      total,
+      totalPages: pageSize ? Math.max(1, Math.ceil(total / metaPageSize)) : 1,
+    };
+
+    return res.json({
+      caseStudies: caseStudies.map(formatCaseStudyResponse),
+      pagination,
+    });
+  } catch (error) {
+    console.error('Case study list (admin) failed', error);
+    return res.status(500).json({ message: 'Unable to load case studies right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const validation = validateCaseStudyInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const { title, subtitle, description, coverImage, slug, tagIds } = validation;
+
+    if (tagIds.length > 0) {
+      const existingTags = await prisma.tag.findMany({ where: { id: { in: tagIds } } });
+      if (existingTags.length !== tagIds.length) {
+        return res.status(404).json({ message: 'One or more selected tags were not found.' });
+      }
+    }
+
+    const created = await prisma.caseStudy.create({
+      data: {
+        title,
+        subtitle,
+        description,
+        coverImage,
+        slug,
+        tags: tagIds.length ? { connect: tagIds.map((id) => ({ id })) } : undefined,
+      },
+      include: { tags: true },
+    });
+
+    return res.status(201).json({
+      caseStudy: formatCaseStudyResponse(created),
+      message: 'Case study created successfully.',
+    });
+  } catch (error) {
+    console.error('Case study create failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A case study with this slug already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to create case study right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const validation = validateCaseStudyInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.caseStudy.findUnique({ where: { id: caseStudyId }, include: { tags: true } });
+    if (!existing) return res.status(404).json({ message: 'Case study not found.' });
+
+    const { title, subtitle, description, coverImage, slug, tagIds } = validation;
+
+    if (tagIds.length > 0) {
+      const existingTags = await prisma.tag.findMany({ where: { id: { in: tagIds } } });
+      if (existingTags.length !== tagIds.length) {
+        return res.status(404).json({ message: 'One or more selected tags were not found.' });
+      }
+    }
+
+    const updated = await prisma.caseStudy.update({
+      where: { id: caseStudyId },
+      data: {
+        title,
+        subtitle,
+        description,
+        coverImage,
+        slug,
+        tags: {
+          set: tagIds.map((id) => ({ id })),
+        },
+      },
+      include: { tags: true },
+    });
+
+    return res.json({
+      caseStudy: formatCaseStudyResponse(updated),
+      message: 'Case study updated successfully.',
+    });
+  } catch (error) {
+    console.error('Case study update failed', error);
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ message: 'A case study with this slug already exists.' });
+    }
+    return res.status(500).json({ message: 'Unable to update case study right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const existing = await prisma.caseStudy.findUnique({ where: { id: caseStudyId } });
+    if (!existing) return res.status(404).json({ message: 'Case study not found.' });
+
+    await prisma.caseStudy.delete({ where: { id: caseStudyId } });
+    return res.json({ message: 'Case study deleted.' });
+  } catch (error) {
+    console.error('Case study delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete case study right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/details', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const caseStudy = await prisma.caseStudy.findUnique({
+      where: { id: caseStudyId },
+      include: CASE_STUDY_DETAIL_INCLUDE,
+    });
+
+    if (!caseStudy) {
+      return res.status(404).json({ message: 'Case study not found.' });
+    }
+
+    return res.json({
+      caseStudy: formatCaseStudyResponse(caseStudy),
+      detail: formatCaseStudyDetailResponse(caseStudy.detail),
+    });
+  } catch (error) {
+    console.error('Case study detail fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load case study detail right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/details', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const validation = validateCaseStudyDetailInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.caseStudy.findUnique({ where: { id: caseStudyId } });
+    if (!existing) return res.status(404).json({ message: 'Case study not found.' });
+
+    const detail = await prisma.caseStudyDetail.upsert({
+      where: { caseStudyId },
+      update: {
+        projectTitle: validation.projectOverview.title,
+        projectSubtitle: validation.projectOverview.subtitle,
+        projectDescription: validation.projectOverview.description,
+        projectImage: validation.projectOverview.image,
+      },
+      create: {
+        caseStudyId,
+        projectTitle: validation.projectOverview.title,
+        projectSubtitle: validation.projectOverview.subtitle,
+        projectDescription: validation.projectOverview.description,
+        projectImage: validation.projectOverview.image,
+      },
+    });
+
+    await prisma.$transaction([
+      prisma.caseStudyApproach.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudySolution.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudyTechnology.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudyFeature.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudyScreenshot.deleteMany({ where: { detailId: detail.id } }),
+    ]);
+
+    if (validation.approaches.length) {
+      await prisma.caseStudyApproach.createMany({
+        data: validation.approaches.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          subtitle: item.subtitle || null,
+          image: item.image || null,
+          approachType: item.approachType || null,
+        })),
+      });
+    }
+
+    if (validation.solutions.length) {
+      await prisma.caseStudySolution.createMany({
+        data: validation.solutions.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          subtitle: item.subtitle || null,
+          tags: item.tags?.length ? item.tags : [],
+        })),
+      });
+    }
+
+    if (validation.technologies.length) {
+      await prisma.caseStudyTechnology.createMany({
+        data: validation.technologies.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          image: item.image || null,
+        })),
+      });
+    }
+
+    if (validation.features.length) {
+      await prisma.caseStudyFeature.createMany({
+        data: validation.features.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+        })),
+      });
+    }
+
+    if (validation.screenshots.length) {
+      await prisma.caseStudyScreenshot.createMany({
+        data: validation.screenshots.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          subtitle: item.subtitle || null,
+          image: item.image || null,
+        })),
+      });
+    }
+
+    const updatedCaseStudy = await prisma.caseStudy.findUnique({
+      where: { id: caseStudyId },
+      include: CASE_STUDY_DETAIL_INCLUDE,
+    });
+
+    return res.json({
+      message: 'Case study detail saved successfully.',
+      caseStudy: formatCaseStudyResponse(updatedCaseStudy),
+      detail: formatCaseStudyDetailResponse(updatedCaseStudy?.detail),
+    });
+  } catch (error) {
+    console.error('Case study detail save failed', error);
+    return res.status(500).json({ message: 'Unable to save case study detail right now.' });
   }
 });
 
@@ -2732,15 +3612,25 @@ function parseImages(imagesField) {
 }
 
 /// Banner enums (Prisma enum BannerType)
-const BANNER_TYPES = ['HOME', 'ABOUT', 'BLOGS', 'CONTACT', 'CAREER'];
+const BANNER_TYPES = ['HOME', 'ABOUT', 'BLOGS', 'CONTACT', 'CAREER', 'CASESTUDY'];
 
 const normalizeBannerTypeInput = (value) => {
-  const raw = String(value || '').trim().toUpperCase();
+  const raw = String(value || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '');
+
+  if (raw === 'CASESTUDY' || raw === 'CASESTUDIES') return 'CASESTUDY';
+
   return BANNER_TYPES.includes(raw) ? raw : 'HOME';
 };
 
 const toUiBannerType = (enumValue) =>
-  typeof enumValue === 'string' ? enumValue.toLowerCase() : 'home';
+  enumValue === 'CASESTUDY'
+    ? 'case-study'
+    : typeof enumValue === 'string'
+      ? enumValue.toLowerCase()
+      : 'home';
 
 const validateImageUrl = (url) => {
   if (!url) return null;
@@ -2755,6 +3645,126 @@ const validateImageUrl = (url) => {
   }
 
   return null;
+};
+
+const validateCaseStudyDetailInput = (body = {}) => {
+  const projectOverview = body.projectOverview || {};
+
+  const title = normalizeText(projectOverview.title);
+  const subtitle = normalizeText(projectOverview.subtitle);
+  const description = normalizeText(projectOverview.description);
+  const image = normalizeText(projectOverview.image);
+
+  if (!title) {
+    return { error: 'Project overview title is required.' };
+  }
+
+  const overviewImageError = validateImageUrl(image);
+  if (overviewImageError) {
+    return { error: overviewImageError };
+  }
+
+  const approaches = [];
+  const approachesInput = Array.isArray(body.approaches) ? body.approaches : [];
+  for (const item of approachesInput) {
+    const approachTitle = normalizeText(item?.title);
+    const approachSubtitle = normalizeText(item?.subtitle);
+    const approachType = normalizeText(item?.approachType);
+    const approachImage = normalizeText(item?.image);
+
+    const imageError = validateImageUrl(approachImage);
+    if (imageError) {
+      return { error: imageError };
+    }
+
+    if (approachTitle || approachSubtitle || approachType || approachImage) {
+      approaches.push({
+        title: approachTitle || 'Approach',
+        subtitle: approachSubtitle,
+        approachType,
+        image: approachImage || null,
+      });
+    }
+  }
+
+  const solutions = [];
+  const solutionsInput = Array.isArray(body.solutions) ? body.solutions : [];
+  for (const item of solutionsInput) {
+    const solutionTitle = normalizeText(item?.title);
+    const solutionSubtitle = normalizeText(item?.subtitle);
+    const tags = normalizeStringArray(item?.tags);
+
+    if (solutionTitle || solutionSubtitle || tags.length) {
+      solutions.push({
+        title: solutionTitle || 'Solution',
+        subtitle: solutionSubtitle,
+        tags,
+      });
+    }
+  }
+
+  const technologies = [];
+  const technologiesInput = Array.isArray(body.technologies) ? body.technologies : [];
+  for (const item of technologiesInput) {
+    const techTitle = normalizeText(item?.title);
+    const techImage = normalizeText(item?.image);
+
+    const imageError = validateImageUrl(techImage);
+    if (imageError) {
+      return { error: imageError };
+    }
+
+    if (techTitle || techImage) {
+      technologies.push({
+        title: techTitle || 'Technology',
+        image: techImage || null,
+      });
+    }
+  }
+
+  const features = [];
+  const featuresInput = Array.isArray(body.features) ? body.features : [];
+  for (const item of featuresInput) {
+    const featureTitle = normalizeText(item?.title);
+    if (featureTitle) {
+      features.push({ title: featureTitle });
+    }
+  }
+
+  const screenshots = [];
+  const screenshotsInput = Array.isArray(body.screenshots) ? body.screenshots : [];
+  for (const item of screenshotsInput) {
+    const shotTitle = normalizeText(item?.title);
+    const shotSubtitle = normalizeText(item?.subtitle);
+    const shotImage = normalizeText(item?.image);
+
+    const imageError = validateImageUrl(shotImage);
+    if (imageError) {
+      return { error: imageError };
+    }
+
+    if (shotTitle || shotSubtitle || shotImage) {
+      screenshots.push({
+        title: shotTitle || 'Screenshot',
+        subtitle: shotSubtitle,
+        image: shotImage || null,
+      });
+    }
+  }
+
+  return {
+    projectOverview: {
+      title,
+      subtitle,
+      description,
+      image: image || null,
+    },
+    approaches,
+    solutions,
+    technologies,
+    features,
+    screenshots,
+  };
 };
 
 const mapBannerToResponse = (banner) => {

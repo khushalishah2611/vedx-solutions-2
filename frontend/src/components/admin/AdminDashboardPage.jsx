@@ -1504,6 +1504,7 @@ const AdminDashboardPage = () => {
                     <MenuItem value="home">Home</MenuItem>
                     <MenuItem value="about">About</MenuItem>
                     <MenuItem value="blogs">Blogs</MenuItem>
+                    <MenuItem value="case-study">Case study</MenuItem>
                     <MenuItem value="contact">Contact</MenuItem>
                     <MenuItem value="career">Career</MenuItem>
                   </TextField>
