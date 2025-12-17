@@ -12,16 +12,6 @@ const BlogPreviewCard = ({
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.9 : 0.78);
 
-  const slug = post.slug || post.id || '#';
-  const imageUrl =
-    post.coverImage ||
-    post.blogImage ||
-    post.image ||
-    post.heroImage ||
-    'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80';
-  const categoryLabel = post.category?.name || post.category || 'Uncategorized';
-  const excerpt = post.shortDescription || post.description || post.excerpt || '';
-
   return (
     <Paper
       elevation={0}
@@ -43,7 +33,7 @@ const BlogPreviewCard = ({
     >
       <Box
         component={RouterLink}
-        to={`/blog/${slug}`}
+        to={`/blog/${post.slug}`}
         sx={{
           display: 'block',
           textDecoration: 'none',
@@ -56,7 +46,7 @@ const BlogPreviewCard = ({
           sx={{
             height: imageHeight,
             borderRadius: 0.5,
-            backgroundImage: `url(${imageUrl})`,
+            backgroundImage: `url(${post.image})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
 
@@ -94,14 +84,14 @@ const BlogPreviewCard = ({
               WebkitTextFillColor: 'transparent'
             }}
           >
-            {categoryLabel}
+            {post.category}
           </Box>
         </Box>
 
         <Stack spacing={1.5}>
           <Typography
             component={RouterLink}
-            to={`/blog/${slug}`}
+            to={`/blog/${post.slug}`}
             variant="h6"
             sx={{
               color: theme.palette.text.primary,
@@ -122,15 +112,7 @@ const BlogPreviewCard = ({
           >
             {post.title}
           </Typography>
-          {showExcerpt && excerpt && (
-            <Typography
-              variant="body2"
-              color={subtleText}
-              sx={{ lineHeight: 1.6 }}
-            >
-              {excerpt}
-            </Typography>
-          )}
+
         </Stack>
 
 
@@ -139,7 +121,7 @@ const BlogPreviewCard = ({
           variant="contained"
           size="large"
           component={RouterLink}
-          to={`/blog/${slug}`}
+          to={`/blog/${post.slug}`}
 
           sx={{
             background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',

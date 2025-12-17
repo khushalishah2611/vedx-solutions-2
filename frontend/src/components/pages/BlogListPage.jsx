@@ -18,8 +18,8 @@ import {
 } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useSearchParams } from 'react-router-dom';
-import BlogPreviewCard from '../shared/BlogPreviewCard.jsx';
-import { apiUrl } from '../../utils/const.js';
+import { blogPosts } from '../../data/blogs.js';
+import ServicesBlog from '../shared/ServicesBlog.jsx';
 const POSTS_PER_PAGE = 4;
 
 const BlogListPage = () => {
@@ -29,31 +29,47 @@ const BlogListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') ?? '';
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10);
-  const categoriesParam = searchParams.get('categories') ?? '';
   const [searchValue, setSearchValue] = useState(queryParam);
-  const [categories, setCategories] = useState([]);
-  const [categoriesError, setCategoriesError] = useState('');
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-  const [posts, setPosts] = useState([]);
-  const [postsError, setPostsError] = useState('');
-  const [loadingPosts, setLoadingPosts] = useState(false);
-  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const categories = useMemo(() => {
+    const unique = new Set(blogPosts.map((post) => post.category));
+    return ['all', ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
+  }, []);
 
-  const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.72);
+  const categoryParam = searchParams.get('category');
+  const categoriesParam = searchParams.get('categories');
 
-  const selectedCategoryIds = useMemo(() => {
-    const parsed = categoriesParam
+  const selectedCategories = useMemo(() => {
+    const raw = categoriesParam ?? categoryParam;
+
+    if (!raw) return ['all'];
+
+    const parsed = raw
       .split(',')
-      .map((value) => Number.parseInt(value, 10))
-      .filter((value) => Number.isInteger(value));
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
 
-    const knownIds = categories.map((cat) => cat.id);
-    if (knownIds.length === 0) return parsed;
-    return parsed.filter((id) => knownIds.includes(id));
-  }, [categories, categoriesParam]);
+    const valid = parsed.filter((item) => categories.includes(item));
+    return valid.length > 0 ? valid : ['all'];
+  }, [categories, categoryParam, categoriesParam]);
 
-  const hasAllSelected = selectedCategoryIds.length === 0;
+  const hasAllSelected = selectedCategories.includes('all');
+
+  const categoryCounts = useMemo(() => {
+    return blogPosts.reduce(
+      (acc, post) => {
+        acc.all += 1;
+        acc[post.category] = (acc[post.category] ?? 0) + 1;
+        return acc;
+      },
+      { all: 0 }
+    );
+  }, []);
+
+  const activeCategories = useMemo(
+    () => (hasAllSelected ? [] : selectedCategories),
+    [hasAllSelected, selectedCategories]
+  );
 
   const normalisedPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
 
@@ -61,100 +77,53 @@ const BlogListPage = () => {
     setSearchValue(queryParam);
   }, [queryParam]);
 
-  const loadCategories = async () => {
-    setCategoriesLoading(true);
-    setCategoriesError('');
-    try {
-      const response = await fetch(apiUrl('/api/blog-categories'));
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.message || 'Unable to load categories.');
-      setCategories(payload.categories || []);
-    } catch (error) {
-      console.error('Load blog categories failed', error);
-      setCategories([]);
-      setCategoriesError(error?.message || 'Unable to load categories right now.');
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
+  const filteredPosts = useMemo(() => {
+    const normalisedQuery = queryParam.trim().toLowerCase();
 
-  const fetchPosts = async () => {
-    setLoadingPosts(true);
-    setPostsError('');
-    try {
-      const params = new URLSearchParams();
-      params.set('page', normalisedPage);
-      params.set('pageSize', POSTS_PER_PAGE);
-      if (queryParam.trim()) params.set('search', queryParam.trim());
-      if (!hasAllSelected) params.set('categoryIds', selectedCategoryIds.join(','));
+    return blogPosts.filter((post) => {
+      if (activeCategories.length > 0 && !activeCategories.includes(post.category)) return false;
+      if (!normalisedQuery) return true;
 
-      const response = await fetch(apiUrl(`/api/blog-posts?${params.toString()}`));
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.message || 'Unable to load blogs.');
+      const haystack = [post.title, post.excerpt, ...(post.tags ?? [])]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(normalisedQuery);
+    });
+  }, [activeCategories, queryParam]);
 
-      setPosts(payload.posts || []);
-      setPagination(
-        payload.pagination || {
-          page: normalisedPage,
-          totalPages: 1,
-          total: (payload.posts || []).length,
-        }
-      );
-    } catch (error) {
-      console.error('Load blogs failed', error);
-      setPosts([]);
-      setPagination({ page: 1, totalPages: 1, total: 0 });
-      setPostsError(error?.message || 'Unable to load blogs right now.');
-    } finally {
-      setLoadingPosts(false);
-    }
-  };
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  useEffect(() => {
-    fetchPosts();
-  }, [queryParam, categoriesParam, normalisedPage, hasAllSelected, selectedCategoryIds]);
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE));
+  const currentPage = Math.min(totalPages, normalisedPage);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [pagination.page]);
+  }, [activeCategories, currentPage]);
 
-  const categoryCounts = useMemo(() => {
-    const counts = { all: categories.reduce((sum, cat) => sum + (cat.postCount ?? 0), 0) };
-    categories.forEach((cat) => {
-      counts[cat.id] = cat.postCount ?? 0;
-    });
-    return counts;
-  }, [categories]);
+  const paginatedPosts = useMemo(() => {
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    return filteredPosts.slice(start, start + POSTS_PER_PAGE);
+  }, [filteredPosts, currentPage]);
 
-  const categoryItems = useMemo(
-    () => [
-      { id: 'all', name: 'All Topics', count: categoryCounts.all || pagination.total || 0 },
-      ...categories.map((category) => ({
-        id: category.id,
-        name: category.name,
-        count: categoryCounts[category.id] ?? category.postCount ?? 0,
-      })),
-    ],
-    [categories, categoryCounts, pagination.total]
-  );
+  const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.72);
 
   const handleCategoryChange = (value) => {
     const nextParams = new URLSearchParams(searchParams);
     if (value === 'all') {
       nextParams.delete('categories');
+      nextParams.delete('category');
     } else {
-      const currentSelections = [...selectedCategoryIds];
+      const currentSelections = hasAllSelected ? [] : [...selectedCategories];
       const exists = currentSelections.includes(value);
       const updatedSelections = exists
         ? currentSelections.filter((item) => item !== value)
         : [...currentSelections, value];
 
-      if (updatedSelections.length === 0) nextParams.delete('categories');
-      else nextParams.set('categories', updatedSelections.join(','));
+      if (updatedSelections.length === 0) {
+        nextParams.delete('categories');
+        nextParams.delete('category');
+      } else {
+        nextParams.set('categories', updatedSelections.join(','));
+        nextParams.delete('category');
+      }
     }
     nextParams.delete('page');
     setSearchParams(nextParams);
@@ -186,10 +155,9 @@ const BlogListPage = () => {
   };
 
   const hasFilters = !hasAllSelected || queryParam.trim().length > 0;
-  const totalResults = pagination.total ?? posts.length;
-  const startIndex = totalResults === 0 ? 0 : (pagination.page - 1) * POSTS_PER_PAGE + 1;
-  const endIndex = Math.min(totalResults, pagination.page * POSTS_PER_PAGE);
-  const totalPages = pagination.totalPages ?? Math.max(1, Math.ceil(totalResults / POSTS_PER_PAGE));
+  const totalResults = filteredPosts.length;
+  const startIndex = totalResults === 0 ? 0 : (currentPage - 1) * POSTS_PER_PAGE + 1;
+  const endIndex = Math.min(totalResults, currentPage * POSTS_PER_PAGE);
 
   return (
     <Box
@@ -307,24 +275,16 @@ const BlogListPage = () => {
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       Categories
                     </Typography>
-                    {categoriesError && (
-                      <Typography variant="body2" color="error">
-                        {categoriesError}
-                      </Typography>
-                    )}
                     <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      {categoriesLoading && categoryItems.length === 0 && (
-                        <ListItemButton disabled>
-                          <ListItemText primary="Loading categories..." />
-                        </ListItemButton>
-                      )}
-                      {categoryItems.map((item) => {
-                        const isSelected = item.id === 'all' ? hasAllSelected : selectedCategoryIds.includes(item.id);
+                      {categories.map((item) => {
+                        const label = item === 'all' ? 'All Topics' : item;
+                        const isSelected = hasAllSelected ? item === 'all' : selectedCategories.includes(item);
+                        const count = categoryCounts[item] ?? 0;
 
                         return (
                           <ListItemButton
-                            key={item.id}
-                            onClick={() => handleCategoryChange(item.id)}
+                            key={item}
+                            onClick={() => handleCategoryChange(item)}
                             selected={isSelected}
                             sx={{
                               borderRadius: 0.5,
@@ -334,9 +294,9 @@ const BlogListPage = () => {
                               }
                             }}
                           >
-                            <ListItemText primary={item.name} />
+                            <ListItemText primary={label} />
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {item.count ?? 0}
+                              {count}
                             </Typography>
                           </ListItemButton>
                         );
@@ -371,47 +331,43 @@ const BlogListPage = () => {
                 {hasFilters && (
                   <Stack direction="row" spacing={1.5} flexWrap="wrap">
                     {!hasAllSelected &&
-                      selectedCategoryIds.map((categoryId) => {
-                        const categoryName =
-                          categories.find((cat) => cat.id === categoryId)?.name || `Category ${categoryId}`;
-                        return (
+                      selectedCategories.map((category) => (
+                        <Box
+                          key={category}
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            px: 2,
+                            py: 1,
+                            borderRadius: 0.5,
+                            border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                            background: !isDark
+                              ? alpha('#ddddddff', 0.9)
+                              : alpha('#0000007c', 0.9),
+                            color: alpha(accentColor, 0.9),
+                            fontWeight: 600,
+                            letterSpacing: 1,
+                            textTransform: 'uppercase',
+                            fontSize: 11,
+                            lineHeight: 1.3,
+                            width: 'fit-content',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => handleCategoryChange(category)}
+                          title={`Remove ${category} filter`}
+                        >
                           <Box
-                            key={categoryId}
+                            component="span"
                             sx={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              px: 2,
-                              py: 1,
-                              borderRadius: 0.5,
-                              border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                              background: !isDark
-                                ? alpha('#ddddddff', 0.9)
-                                : alpha('#0000007c', 0.9),
-                              color: alpha(accentColor, 0.9),
-                              fontWeight: 600,
-                              letterSpacing: 1,
-                              textTransform: 'uppercase',
-                              fontSize: 11,
-                              lineHeight: 1.3,
-                              width: 'fit-content',
-                              cursor: 'pointer'
+                              background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent'
                             }}
-                            onClick={() => handleCategoryChange(categoryId)}
-                            title={`Remove ${categoryName} filter`}
                           >
-                            <Box
-                              component="span"
-                              sx={{
-                                background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent'
-                              }}
-                            >
-                              Category: {categoryName}
-                            </Box>
+                            Category: {category}
                           </Box>
-                        );
-                      })}
+                        </Box>
+                      ))}
 
                     {queryParam.trim().length > 0 && (
                       <Box
@@ -451,29 +407,12 @@ const BlogListPage = () => {
                   </Stack>
                 )}
 
-                {postsError && (
-                  <Typography color="error" variant="body2">
-                    {postsError}
-                  </Typography>
-                )}
 
-                {loadingPosts && (
-                  <Typography variant="body2" color="text.secondary">
-                    Loading articles...
-                  </Typography>
-                )}
-
-                {posts.length > 0 && (
-                  <Grid container spacing={3}>
-                    {posts.map((post) => (
-                      <Grid item xs={12} sm={6} key={post.slug || post.id}>
-                        <BlogPreviewCard post={post} imageHeight={220} showExcerpt />
-                      </Grid>
-                    ))}
-                  </Grid>
-                )}
-
-                {!loadingPosts && posts.length === 0 && !postsError && (
+                {paginatedPosts.length > 0 ? (
+                  <Box my={10}>
+                    <ServicesBlog showHeading={false} />
+                  </Box>
+                ) : (
                   <Paper
                     variant="outlined"
                     sx={{
@@ -493,11 +432,11 @@ const BlogListPage = () => {
                 )}
 
                 {/* PAGINATION – custom UI */}
-                {posts.length > 0 && totalPages > 1 && (
+                {paginatedPosts.length > 0 && (
                   <Stack alignItems="center" sx={{ mt: { xs: 4, md: 6 } }}>
                     <Pagination
                       count={totalPages}
-                      page={pagination.page}
+                      page={currentPage}
                       onChange={handlePageChange}
                       shape="rounded"
                       variant="text"
