@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -31,6 +32,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
 import { apiUrl } from '../../utils/const.js';
 import { fileToDataUrl } from '../../utils/files.js';
 
@@ -96,6 +98,7 @@ const ImageUpload = ({ label, value, onChange }) => {
 
 const AdminCaseStudiesPage = () => {
   const token = useMemo(() => localStorage.getItem('adminToken'), []);
+  const navigate = useNavigate();
 
   const [caseStudies, setCaseStudies] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -553,6 +556,11 @@ const AdminCaseStudiesPage = () => {
                         <TableCell>{item.updatedAt ? String(item.updatedAt).split('T')[0] : '-'}</TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Tooltip title="Manage Details">
+                              <IconButton color="primary" onClick={() => navigate(`/admin/case-studies/${item.id}/details`)}>
+                                <FactCheckOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
                             <Tooltip title="View">
                               <IconButton color="primary" onClick={() => setViewCaseStudy(item)}>
                                 <VisibilityOutlinedIcon fontSize="small" />
