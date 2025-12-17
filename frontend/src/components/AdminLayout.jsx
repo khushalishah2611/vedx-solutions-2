@@ -35,6 +35,7 @@ import WorkOutlineOutlinedIcon from '@mui/icons-material/WorkOutlineOutlined';
 import DesignServicesOutlinedIcon from '@mui/icons-material/DesignServicesOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
+import CollectionsBookmarkOutlinedIcon from '@mui/icons-material/CollectionsBookmarkOutlined';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { getStoredAdminProfile } from '../data/adminProfile.js';
@@ -132,6 +133,7 @@ const AdminLayout = () => {
       { label: 'Customer reviews', icon: <RateReviewOutlinedIcon />, to: '/admin/feedbacks' },
       { label: 'MasterData', icon: <CategoryOutlinedIcon />, to: '/admin/navigation' },
       { label: 'Blogs', icon: <ArticleOutlinedIcon />, to: '/admin/blogs' },
+      { label: 'Case Studies', icon: <CollectionsBookmarkOutlinedIcon />, to: '/admin/case-studies' },
       { label: 'Profile', icon: <ManageAccountsRoundedIcon />, to: '/admin/profile' },
       { label: 'Change Password', icon: <LockResetRoundedIcon />, to: '/admin/change-password' }
     ],

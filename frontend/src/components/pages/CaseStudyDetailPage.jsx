@@ -1,58 +1,101 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import { alpha, Box, Container, Divider, useTheme } from '@mui/material';
+import {
+  Box,
+  Chip,
+  CircularProgress,
+  Container,
+  Divider,
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import CaseStudyDetailHero from '../sections/caseStudies/CaseStudyDetailHero.jsx';
-import CaseStudyOverviewSection from '../sections/caseStudies/CaseStudyOverviewSection.jsx';
-import CaseStudyApproachSection from '../sections/caseStudies/CaseStudyApproachSection.jsx';
-import CaseStudyCoreFeaturesSection from '../sections/caseStudies/CaseStudyCoreFeaturesSection.jsx';
-import CaseStudySolutionSection from '../sections/caseStudies/CaseStudySolutionSection.jsx';
-import CaseStudyTechnologySection from '../sections/caseStudies/CaseStudyTechnologySection.jsx';
-import CaseStudyFeaturesSection from '../sections/caseStudies/CaseStudyFeaturesSection.jsx';
-import CaseStudyScreenshotsSection from '../sections/caseStudies/CaseStudyScreenshotsSection.jsx';
-import CaseStudyRelatedSection from '../sections/caseStudies/CaseStudyRelatedSection.jsx';
-import { caseStudiesBySlug, caseStudiesList } from '../../data/caseStudies.js';
+import { apiUrl } from '../../utils/const.js';
+
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80';
 
 const CaseStudyDetailPage = () => {
   const { slug } = useParams();
-  const caseStudy = caseStudiesBySlug[slug] || null;
   const theme = useTheme();
 
-  const [animate, setAnimate] = useState(false);
+  const [caseStudy, setCaseStudy] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [notFound, setNotFound] = useState(false);
+
+  const loadCaseStudy = async () => {
+    setLoading(true);
+    setError('');
+    setNotFound(false);
+    try {
+      const response = await fetch(apiUrl(`/api/case-studies/${slug}`));
+      const payload = await response.json();
+      if (!response.ok) {
+        if (response.status === 404) setNotFound(true);
+        throw new Error(payload?.message || 'Unable to load case study.');
+      }
+      setCaseStudy(payload.caseStudy || null);
+    } catch (err) {
+      console.error('Load case study failed', err);
+      setError(err?.message || 'Unable to load case study right now.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimate(true), 40);
-    return () => clearTimeout(timer);
-  }, []);
+    loadCaseStudy();
+  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const dividerColor = alpha(theme.palette.divider, 0.6);
+  const heroCaseStudy = useMemo(() => {
+    if (!caseStudy) return null;
+    const tags = Array.isArray(caseStudy.tags)
+      ? caseStudy.tags.map((tag) => (typeof tag === 'string' ? tag : tag?.name)).filter(Boolean)
+      : [];
 
-  const featureBadges = useMemo(() => {
-    const badges = [
-      ...(caseStudy?.coreFeatures?.map((feature) => feature.title) || []),
-      ...(caseStudy?.advancedContent?.map((module) => module.title) || []),
-    ];
-
-    return Array.from(new Set(badges)).slice(0, 12);
+    return {
+      ...caseStudy,
+      heroImage: caseStudy.coverImage || FALLBACK_IMAGE,
+      heroTitle: caseStudy.title,
+      heroDescription: caseStudy.subtitle || caseStudy.description || '',
+      category: tags[0] || 'Case Study',
+      breadcrumbs: [
+        { label: 'Home', href: '/' },
+        { label: 'Case Studies', href: '/casestudy' },
+        { label: caseStudy.title },
+      ],
+    };
   }, [caseStudy]);
 
-  const relatedCaseStudies = useMemo(
-    () => caseStudiesList.filter((item) => item.slug !== slug).slice(0, 3),
-    [slug]
-  );
+  if (notFound) {
+    return <Navigate to="/casestudy" replace />;
+  }
 
-  // Application screenshots – max 5, in a responsive grid
-  const screenshotsToShow = useMemo(
-    () => (caseStudy?.screenshots || []).slice(0, 5),
-    [caseStudy]
-  );
+  if (loading) {
+    return (
+      <Stack alignItems="center" justifyContent="center" sx={{ py: 8 }}>
+        <CircularProgress />
+      </Stack>
+    );
+  }
 
-  if (!caseStudy) {
+  if (error) {
+    return (
+      <Stack alignItems="center" justifyContent="center" sx={{ py: 8 }}>
+        <Typography color="error">{error}</Typography>
+      </Stack>
+    );
+  }
+
+  if (!caseStudy || !heroCaseStudy) {
     return <Navigate to="/casestudy" replace />;
   }
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
-      <CaseStudyDetailHero caseStudy={caseStudy} />
+      <CaseStudyDetailHero caseStudy={heroCaseStudy} />
 
       <Container
         maxWidth={false}
@@ -61,39 +104,44 @@ const CaseStudyDetailPage = () => {
           py: { xs: 6, md: 10 },
         }}
       >
-        <Box my={5}><CaseStudyOverviewSection caseStudy={caseStudy} animate={animate} /></Box>
+        <Stack spacing={4}>
+          <Box>
+            <Typography variant="h4" fontWeight={800} gutterBottom>
+              {caseStudy.title}
+            </Typography>
+            {caseStudy.subtitle && (
+              <Typography variant="h6" color="text.secondary">
+                {caseStudy.subtitle}
+              </Typography>
+            )}
+          </Box>
 
-        <Divider sx={{ borderColor: dividerColor }} />
+          {caseStudy.tags?.length > 0 && (
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              {caseStudy.tags.map((tag) => (
+                <Chip
+                  key={typeof tag === 'string' ? tag : tag.id}
+                  label={typeof tag === 'string' ? tag : tag?.name}
+                  variant="outlined"
+                  color="primary"
+                />
+              ))}
+            </Stack>
+          )}
 
-        <Box my={10}><CaseStudyApproachSection caseStudy={caseStudy} animate={animate} /></Box>
+          <Divider />
 
-        <Box my={10}>
-          <CaseStudyCoreFeaturesSection caseStudy={caseStudy} animate={animate} />
-        </Box>
-
-        <Divider sx={{ borderColor: dividerColor }} />
-
-        <Box my={10}><CaseStudySolutionSection caseStudy={caseStudy} animate={animate} /></Box>
-
-        <Divider sx={{ borderColor: dividerColor }} />
-
-        <Box my={10}> <CaseStudyTechnologySection caseStudy={caseStudy} animate={animate} />
-        </Box>
-        <Divider sx={{ borderColor: dividerColor }} />
-
-        <Box my={10}>
-          <CaseStudyFeaturesSection featureBadges={featureBadges} animate={animate} />
-        </Box>
-
-        <Divider sx={{ borderColor: dividerColor }} />
-
-        <Box my={10}><CaseStudyScreenshotsSection screenshotsToShow={screenshotsToShow} animate={animate} /></Box>
-
-        <Divider sx={{ borderColor: dividerColor }} />
-
-        <Box my={10}>
-          <CaseStudyRelatedSection relatedCaseStudies={relatedCaseStudies} />
-        </Box>
+          <Typography
+            variant="body1"
+            sx={{
+              lineHeight: 1.8,
+              color: theme.palette.text.secondary,
+              whiteSpace: 'pre-line',
+            }}
+          >
+            {caseStudy.description || 'No description provided for this case study yet.'}
+          </Typography>
+        </Stack>
       </Container>
     </Box>
   );
