@@ -392,9 +392,122 @@ model CaseStudy {
   coverImage  String?  @db.LongText
 
   tags        Tag[]    @relation("CaseStudyTags")
+  detail      CaseStudyDetail?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+/// ----------------------------------------------------------
+/// CASE STUDY DETAIL SECTIONS
+/// ----------------------------------------------------------
+model CaseStudyDetail {
+  id                 Int                     @id @default(autoincrement())
+  caseStudyId        Int                     @unique
+  caseStudy          CaseStudy               @relation(fields: [caseStudyId], references: [id], onDelete: Cascade)
+
+  projectTitle       String
+  projectSubtitle    String?
+  projectDescription String?                 @db.LongText
+  projectImage       String?                 @db.LongText
+
+  approaches         CaseStudyApproach[]
+  solutions          CaseStudySolution[]
+  technologies       CaseStudyTechnology[]
+  features           CaseStudyFeature[]
+  screenshots        CaseStudyScreenshot[]
+  listItems          CaseStudyListItem[]
+
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+}
+
+model CaseStudyApproach {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+  subtitle    String?
+  image       String?          @db.LongText
+  approachType String?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudySolution {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+  subtitle    String?
+  tags        Json?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyTechnology {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+  image       String?          @db.LongText
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyFeature {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyScreenshot {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+  subtitle    String?
+  image       String?          @db.LongText
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyListItem {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+  subtitle    String?
+  image       String?          @db.LongText
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
 }
 
 /// ----------------------------------------------------------

@@ -274,6 +274,96 @@ const formatTagResponse = (tag) => ({
   updatedAt: tag.updatedAt,
 });
 
+const normalizeStringArray = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => normalizeText(item))
+      .filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => normalizeText(item))
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const formatCaseStudyDetailResponse = (detail) => {
+  if (!detail) return null;
+
+  const projectOverview = {
+    title: detail.projectTitle,
+    subtitle: detail.projectSubtitle || '',
+    description: detail.projectDescription || '',
+    image: detail.projectImage || '',
+  };
+
+  const approaches = Array.isArray(detail.approaches)
+    ? detail.approaches.map((item) => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle || '',
+      image: item.image || '',
+      approachType: item.approachType || '',
+    }))
+    : [];
+
+  const solutions = Array.isArray(detail.solutions)
+    ? detail.solutions.map((item) => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle || '',
+      tags: normalizeStringArray(item.tags),
+    }))
+    : [];
+
+  const technologies = Array.isArray(detail.technologies)
+    ? detail.technologies.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.image || '',
+    }))
+    : [];
+
+  const features = Array.isArray(detail.features)
+    ? detail.features.map((item) => ({
+      id: item.id,
+      title: item.title,
+    }))
+    : [];
+
+  const screenshots = Array.isArray(detail.screenshots)
+    ? detail.screenshots.map((item) => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle || '',
+      image: item.image || '',
+    }))
+    : [];
+
+  const listItems = Array.isArray(detail.listItems)
+    ? detail.listItems.map((item) => ({
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle || '',
+      image: item.image || '',
+    }))
+    : [];
+
+  return {
+    projectOverview,
+    approaches,
+    solutions,
+    technologies,
+    features,
+    screenshots,
+    listItems,
+  };
+};
+
 const formatCaseStudyResponse = (caseStudy) => ({
   id: caseStudy.id,
   slug: caseStudy.slug,
@@ -283,6 +373,7 @@ const formatCaseStudyResponse = (caseStudy) => ({
   coverImage: caseStudy.coverImage || '',
   tags: Array.isArray(caseStudy.tags) ? caseStudy.tags.map(formatTagResponse) : [],
   tagIds: Array.isArray(caseStudy.tags) ? caseStudy.tags.map((tag) => tag.id) : [],
+  detail: caseStudy.detail ? formatCaseStudyDetailResponse(caseStudy.detail) : undefined,
   createdAt: caseStudy.createdAt,
   updatedAt: caseStudy.updatedAt,
 });
@@ -2549,6 +2640,20 @@ app.get('/api/case-studies', async (req, res) => {
   }
 });
 
+const CASE_STUDY_DETAIL_INCLUDE = {
+  tags: true,
+  detail: {
+    include: {
+      approaches: true,
+      solutions: true,
+      technologies: true,
+      features: true,
+      screenshots: true,
+      listItems: true,
+    },
+  },
+};
+
 app.get('/api/case-studies/:slug', async (req, res) => {
   try {
     const slug = normalizeSlug(req.params.slug);
@@ -2556,7 +2661,7 @@ app.get('/api/case-studies/:slug', async (req, res) => {
 
     const caseStudy = await prisma.caseStudy.findFirst({
       where: { slug },
-      include: { tags: true },
+      include: CASE_STUDY_DETAIL_INCLUDE,
     });
 
     if (!caseStudy) {
@@ -2741,6 +2846,159 @@ app.delete('/api/admin/case-studies/:id', async (req, res) => {
   } catch (error) {
     console.error('Case study delete failed', error);
     return res.status(500).json({ message: 'Unable to delete case study right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/details', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const caseStudy = await prisma.caseStudy.findUnique({
+      where: { id: caseStudyId },
+      include: CASE_STUDY_DETAIL_INCLUDE,
+    });
+
+    if (!caseStudy) {
+      return res.status(404).json({ message: 'Case study not found.' });
+    }
+
+    return res.json({
+      caseStudy: formatCaseStudyResponse(caseStudy),
+      detail: formatCaseStudyDetailResponse(caseStudy.detail),
+    });
+  } catch (error) {
+    console.error('Case study detail fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load case study detail right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/details', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const validation = validateCaseStudyDetailInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const existing = await prisma.caseStudy.findUnique({ where: { id: caseStudyId } });
+    if (!existing) return res.status(404).json({ message: 'Case study not found.' });
+
+    const detail = await prisma.caseStudyDetail.upsert({
+      where: { caseStudyId },
+      update: {
+        projectTitle: validation.projectOverview.title,
+        projectSubtitle: validation.projectOverview.subtitle,
+        projectDescription: validation.projectOverview.description,
+        projectImage: validation.projectOverview.image,
+      },
+      create: {
+        caseStudyId,
+        projectTitle: validation.projectOverview.title,
+        projectSubtitle: validation.projectOverview.subtitle,
+        projectDescription: validation.projectOverview.description,
+        projectImage: validation.projectOverview.image,
+      },
+    });
+
+    await prisma.$transaction([
+      prisma.caseStudyApproach.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudySolution.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudyTechnology.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudyFeature.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudyScreenshot.deleteMany({ where: { detailId: detail.id } }),
+      prisma.caseStudyListItem.deleteMany({ where: { detailId: detail.id } }),
+    ]);
+
+    if (validation.approaches.length) {
+      await prisma.caseStudyApproach.createMany({
+        data: validation.approaches.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          subtitle: item.subtitle || null,
+          image: item.image || null,
+          approachType: item.approachType || null,
+        })),
+      });
+    }
+
+    if (validation.solutions.length) {
+      await prisma.caseStudySolution.createMany({
+        data: validation.solutions.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          subtitle: item.subtitle || null,
+          tags: item.tags?.length ? item.tags : [],
+        })),
+      });
+    }
+
+    if (validation.technologies.length) {
+      await prisma.caseStudyTechnology.createMany({
+        data: validation.technologies.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          image: item.image || null,
+        })),
+      });
+    }
+
+    if (validation.features.length) {
+      await prisma.caseStudyFeature.createMany({
+        data: validation.features.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+        })),
+      });
+    }
+
+    if (validation.screenshots.length) {
+      await prisma.caseStudyScreenshot.createMany({
+        data: validation.screenshots.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          subtitle: item.subtitle || null,
+          image: item.image || null,
+        })),
+      });
+    }
+
+    if (validation.listItems.length) {
+      await prisma.caseStudyListItem.createMany({
+        data: validation.listItems.map((item) => ({
+          detailId: detail.id,
+          title: item.title,
+          subtitle: item.subtitle || null,
+          image: item.image || null,
+        })),
+      });
+    }
+
+    const updatedCaseStudy = await prisma.caseStudy.findUnique({
+      where: { id: caseStudyId },
+      include: CASE_STUDY_DETAIL_INCLUDE,
+    });
+
+    return res.json({
+      message: 'Case study detail saved successfully.',
+      caseStudy: formatCaseStudyResponse(updatedCaseStudy),
+      detail: formatCaseStudyDetailResponse(updatedCaseStudy?.detail),
+    });
+  } catch (error) {
+    console.error('Case study detail save failed', error);
+    return res.status(500).json({ message: 'Unable to save case study detail right now.' });
   }
 });
 
@@ -3377,15 +3635,25 @@ function parseImages(imagesField) {
 }
 
 /// Banner enums (Prisma enum BannerType)
-const BANNER_TYPES = ['HOME', 'ABOUT', 'BLOGS', 'CONTACT', 'CAREER','CASESTUDY'];
+const BANNER_TYPES = ['HOME', 'ABOUT', 'BLOGS', 'CONTACT', 'CAREER', 'CASESTUDY'];
 
 const normalizeBannerTypeInput = (value) => {
-  const raw = String(value || '').trim().toUpperCase();
+  const raw = String(value || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '');
+
+  if (raw === 'CASESTUDY' || raw === 'CASESTUDIES') return 'CASESTUDY';
+
   return BANNER_TYPES.includes(raw) ? raw : 'HOME';
 };
 
 const toUiBannerType = (enumValue) =>
-  typeof enumValue === 'string' ? enumValue.toLowerCase() : 'home';
+  enumValue === 'CASESTUDY'
+    ? 'case-study'
+    : typeof enumValue === 'string'
+      ? enumValue.toLowerCase()
+      : 'home';
 
 const validateImageUrl = (url) => {
   if (!url) return null;
@@ -3400,6 +3668,148 @@ const validateImageUrl = (url) => {
   }
 
   return null;
+};
+
+const validateCaseStudyDetailInput = (body = {}) => {
+  const projectOverview = body.projectOverview || {};
+
+  const title = normalizeText(projectOverview.title);
+  const subtitle = normalizeText(projectOverview.subtitle);
+  const description = normalizeText(projectOverview.description);
+  const image = normalizeText(projectOverview.image);
+
+  if (!title) {
+    return { error: 'Project overview title is required.' };
+  }
+
+  const overviewImageError = validateImageUrl(image);
+  if (overviewImageError) {
+    return { error: overviewImageError };
+  }
+
+  const approaches = [];
+  const approachesInput = Array.isArray(body.approaches) ? body.approaches : [];
+  for (const item of approachesInput) {
+    const approachTitle = normalizeText(item?.title);
+    const approachSubtitle = normalizeText(item?.subtitle);
+    const approachType = normalizeText(item?.approachType);
+    const approachImage = normalizeText(item?.image);
+
+    const imageError = validateImageUrl(approachImage);
+    if (imageError) {
+      return { error: imageError };
+    }
+
+    if (approachTitle || approachSubtitle || approachType || approachImage) {
+      approaches.push({
+        title: approachTitle || 'Approach',
+        subtitle: approachSubtitle,
+        approachType,
+        image: approachImage || null,
+      });
+    }
+  }
+
+  const solutions = [];
+  const solutionsInput = Array.isArray(body.solutions) ? body.solutions : [];
+  for (const item of solutionsInput) {
+    const solutionTitle = normalizeText(item?.title);
+    const solutionSubtitle = normalizeText(item?.subtitle);
+    const tags = normalizeStringArray(item?.tags);
+
+    if (solutionTitle || solutionSubtitle || tags.length) {
+      solutions.push({
+        title: solutionTitle || 'Solution',
+        subtitle: solutionSubtitle,
+        tags,
+      });
+    }
+  }
+
+  const technologies = [];
+  const technologiesInput = Array.isArray(body.technologies) ? body.technologies : [];
+  for (const item of technologiesInput) {
+    const techTitle = normalizeText(item?.title);
+    const techImage = normalizeText(item?.image);
+
+    const imageError = validateImageUrl(techImage);
+    if (imageError) {
+      return { error: imageError };
+    }
+
+    if (techTitle || techImage) {
+      technologies.push({
+        title: techTitle || 'Technology',
+        image: techImage || null,
+      });
+    }
+  }
+
+  const features = [];
+  const featuresInput = Array.isArray(body.features) ? body.features : [];
+  for (const item of featuresInput) {
+    const featureTitle = normalizeText(item?.title);
+    if (featureTitle) {
+      features.push({ title: featureTitle });
+    }
+  }
+
+  const screenshots = [];
+  const screenshotsInput = Array.isArray(body.screenshots) ? body.screenshots : [];
+  for (const item of screenshotsInput) {
+    const shotTitle = normalizeText(item?.title);
+    const shotSubtitle = normalizeText(item?.subtitle);
+    const shotImage = normalizeText(item?.image);
+
+    const imageError = validateImageUrl(shotImage);
+    if (imageError) {
+      return { error: imageError };
+    }
+
+    if (shotTitle || shotSubtitle || shotImage) {
+      screenshots.push({
+        title: shotTitle || 'Screenshot',
+        subtitle: shotSubtitle,
+        image: shotImage || null,
+      });
+    }
+  }
+
+  const listItems = [];
+  const listItemsInput = Array.isArray(body.listItems) ? body.listItems : [];
+  for (const item of listItemsInput) {
+    const itemTitle = normalizeText(item?.title);
+    const itemSubtitle = normalizeText(item?.subtitle);
+    const itemImage = normalizeText(item?.image);
+
+    const imageError = validateImageUrl(itemImage);
+    if (imageError) {
+      return { error: imageError };
+    }
+
+    if (itemTitle || itemSubtitle || itemImage) {
+      listItems.push({
+        title: itemTitle || 'List item',
+        subtitle: itemSubtitle,
+        image: itemImage || null,
+      });
+    }
+  }
+
+  return {
+    projectOverview: {
+      title,
+      subtitle,
+      description,
+      image: image || null,
+    },
+    approaches,
+    solutions,
+    technologies,
+    features,
+    screenshots,
+    listItems,
+  };
 };
 
 const mapBannerToResponse = (banner) => {
