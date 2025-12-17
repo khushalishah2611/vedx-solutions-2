@@ -119,13 +119,13 @@ const ImageUpload = ({ label, value, onChange }) => {
   return (
     <Stack spacing={1}>
       <Button component="label" variant="outlined">
-        {value ? 'Change cover image' : 'Upload cover image'}
+        {value ? `Change ${label?.toLowerCase() || 'image'}` : `Upload ${label?.toLowerCase() || 'image'}`}
         <input type="file" hidden accept="image/*" onChange={handleChange} />
       </Button>
       {value && (
         <img
           src={value}
-          alt="Selected cover"
+          alt={label ? `${label} preview` : 'Selected image'}
           style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 8 }}
         />
       )}
@@ -139,10 +139,10 @@ const mapApiBlogToRow = (blog) => ({
   category: blog.category?.name || 'Uncategorized',
   categoryId: blog.categoryId || '',
   publishDate: blog.publishDate ? normalizeDateInput(blog.publishDate) : new Date().toISOString().split('T')[0],
-  description: blog.description || '',
-  conclusion: blog.conclusion || '',
+  shortDescription: blog.shortDescription || blog.description || '',
+  longDescription: blog.longDescription || blog.conclusion || '',
+  blogImage: blog.blogImage || blog.coverImage || '',
   status: deriveStatusFromDate(blog.status, blog.publishDate),
-  coverImage: blog.coverImage || '',
 });
 
 const AdminBlogsPage = () => {
@@ -171,10 +171,10 @@ const AdminBlogsPage = () => {
     title: '',
     categoryId: '',
     publishDate: new Date().toISOString().split('T')[0],
-    description: '',
-    conclusion: '',
+    shortDescription: '',
+    longDescription: '',
     status: 'Draft',
-    coverImage: '',
+    blogImage: '',
   });
 
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -396,10 +396,10 @@ const AdminBlogsPage = () => {
       title: '',
       categoryId: categoryOptions[0]?.id || '',
       publishDate: new Date().toISOString().split('T')[0],
-      description: '',
-      conclusion: '',
+      shortDescription: '',
+      longDescription: '',
       status: 'Draft',
-      coverImage: '',
+      blogImage: '',
     });
   };
 
@@ -460,18 +460,18 @@ const AdminBlogsPage = () => {
     setDialogError('');
 
     const trimmedTitle = formState.title.trim();
-    const trimmedDescription = formState.description.trim();
-    const trimmedConclusion = formState.conclusion.trim();
-    const trimmedCoverImage = formState.coverImage.trim();
+    const trimmedShortDescription = formState.shortDescription.trim();
+    const trimmedLongDescription = formState.longDescription.trim();
+    const trimmedBlogImage = formState.blogImage.trim();
 
     const requiredField = [
       { key: trimmedTitle, label: 'Title' },
       { key: formState.categoryId, label: 'Category' },
       { key: formState.publishDate, label: 'Publish date' },
       { key: formState.status, label: 'Status' },
-      { key: trimmedDescription, label: 'Description' },
-      { key: trimmedConclusion, label: 'Conclusion' },
-      { key: trimmedCoverImage, label: 'Cover image' },
+      { key: trimmedShortDescription, label: 'Short description' },
+      { key: trimmedLongDescription, label: 'Long description' },
+      { key: trimmedBlogImage, label: 'Blog image' },
     ].find((entry) => !entry.key);
 
     if (requiredField) {
@@ -486,10 +486,10 @@ const AdminBlogsPage = () => {
         title: trimmedTitle,
         categoryId: formState.categoryId,
         publishDate: formState.publishDate,
-        description: trimmedDescription,
-        conclusion: trimmedConclusion,
+        shortDescription: trimmedShortDescription,
+        longDescription: trimmedLongDescription,
         status: formState.status,
-        coverImage: trimmedCoverImage,
+        blogImage: trimmedBlogImage,
       };
 
       const response = await fetch(
@@ -763,7 +763,8 @@ const AdminBlogsPage = () => {
                   <TableCell>Category</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Publish Date</TableCell>
-                  <TableCell>Summary</TableCell>
+                  <TableCell>Short description</TableCell>
+                  <TableCell>Long description</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -804,7 +805,12 @@ const AdminBlogsPage = () => {
                     </TableCell>
                     <TableCell width="22%">
                       <Typography variant="body2" color="text.secondary" noWrap>
-                        {blog.description || 'No summary added yet.'}
+                        {blog.shortDescription || 'No short description yet.'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell width="22%">
+                      <Typography variant="body2" color="text.secondary" noWrap>
+                        {blog.longDescription || 'No long description yet.'}
                       </Typography>
                     </TableCell>
 
@@ -843,7 +849,7 @@ const AdminBlogsPage = () => {
                 ))}
                 {!loadingBlogs && filteredBlogs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={7}>
                       <Typography
                         variant="body2"
                         color="text.secondary"
@@ -856,7 +862,7 @@ const AdminBlogsPage = () => {
                 )}
                 {loadingBlogs && (
                   <TableRow>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={7}>
                       <Typography variant="body2" color="text.secondary" align="center">
                         Loading blogs...
                       </Typography>
@@ -986,15 +992,15 @@ const AdminBlogsPage = () => {
               ))}
             </TextField>
             <ImageUpload
-              label="Cover image"
-              value={formState.coverImage}
-              onChange={(value) => handleFormChange('coverImage', value)}
+              label="Blog image"
+              value={formState.blogImage}
+              onChange={(value) => handleFormChange('blogImage', value)}
             />
             <TextField
-              label="Description"
-              placeholder="Write a short description for the blog post"
-              value={formState.description}
-              onChange={(event) => handleFormChange('description', event.target.value)}
+              label="Short description"
+              placeholder="Write a concise summary for the blog post"
+              value={formState.shortDescription}
+              onChange={(event) => handleFormChange('shortDescription', event.target.value)}
               multiline
               minRows={4}
               maxRows={12}
@@ -1002,10 +1008,10 @@ const AdminBlogsPage = () => {
               required
             />
             <TextField
-              label="Conclusion"
-              placeholder="Summarize the key takeaway for readers"
-              value={formState.conclusion}
-              onChange={(event) => handleFormChange('conclusion', event.target.value)}
+              label="Long description"
+              placeholder="Share the full description of the blog content"
+              value={formState.longDescription}
+              onChange={(event) => handleFormChange('longDescription', event.target.value)}
               multiline
               minRows={3}
               maxRows={10}
@@ -1043,11 +1049,11 @@ const AdminBlogsPage = () => {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {viewBlog.title}
               </Typography>
-              {viewBlog.coverImage && (
+              {viewBlog.blogImage && (
                 <Box
                   component="img"
-                  src={viewBlog.coverImage}
-                  alt="Blog cover"
+                  src={viewBlog.blogImage}
+                  alt="Blog image"
                   sx={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 1 }}
                 />
               )}
@@ -1069,16 +1075,21 @@ const AdminBlogsPage = () => {
                 </Typography>
               </Stack>
               <Divider />
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                {viewBlog.description}
-              </Typography>
+              <Stack spacing={0.5}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Short description
+                </Typography>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+                  {viewBlog.shortDescription || 'No short description added yet.'}
+                </Typography>
+              </Stack>
               <Divider />
               <Stack spacing={0.5}>
                 <Typography variant="subtitle2" color="text.secondary">
-                  Conclusion
+                  Long description
                 </Typography>
                 <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                  {viewBlog.conclusion || 'No conclusion added yet.'}
+                  {viewBlog.longDescription || 'No long description added yet.'}
                 </Typography>
               </Stack>
             </Stack>

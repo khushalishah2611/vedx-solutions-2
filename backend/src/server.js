@@ -209,16 +209,22 @@ const deriveBlogUiStatus = (status, publishDate) => {
 
 const formatBlogPostResponse = (post) => {
   const publishDate = post.publishedAt ? post.publishedAt.toISOString().split('T')[0] : null;
+  const shortDescription = post.shortDescription || post.summary || '';
+  const longDescription = post.longDescription || post.content || shortDescription;
+  const blogImage = post.blogImage || post.coverImage || '';
   return {
     id: post.id,
     title: post.title,
     slug: post.slug,
     coverImage: post.coverImage || '',
+    blogImage,
+    shortDescription,
+    longDescription,
     categoryId: post.categoryId || '',
     category: post.category ? formatBlogCategoryResponse(post.category) : null,
     publishDate,
-    description: post.summary || '',
-    conclusion: post.content || '',
+    description: shortDescription,
+    conclusion: longDescription,
     status: deriveBlogUiStatus(post.status, publishDate),
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
@@ -373,8 +379,9 @@ const mapUiStatusToPublishStatus = (status) => {
 
 const validateBlogPostInput = (body) => {
   const title = normalizeText(body?.title);
-  const description = normalizeText(body?.description);
-  const conclusion = normalizeText(body?.conclusion);
+  const shortDescription = normalizeText(body?.shortDescription || body?.description);
+  const longDescription = normalizeText(body?.longDescription || body?.conclusion);
+  const blogImage = normalizeText(body?.blogImage || body?.coverImage) || null;
   const coverImage = normalizeText(body?.coverImage) || null;
   const slugInput = normalizeText(body?.slug || body?.title);
   const slug = normalizeSlug(slugInput) || `post-${Date.now()}`;
@@ -383,9 +390,11 @@ const validateBlogPostInput = (body) => {
   const categoryId = parseIntegerId(body?.categoryId) ?? null;
 
   if (!title) return { error: 'Title is required.' };
-  if (!description) return { error: 'Description is required.' };
+  if (!shortDescription) return { error: 'Short description is required.' };
+  if (!longDescription) return { error: 'Long description is required.' };
+  if (!blogImage) return { error: 'Blog image is required.' };
 
-  return { title, description, conclusion, coverImage, slug, publishDate, status, categoryId };
+  return { title, shortDescription, longDescription, blogImage, coverImage, slug, publishDate, status, categoryId };
 };
 
 const validateCareerOpeningInput = (body) => {
@@ -1962,7 +1971,17 @@ app.post('/api/admin/blog-posts', async (req, res) => {
     const validation = validateBlogPostInput(req.body || {});
     if (validation.error) return res.status(400).json({ message: validation.error });
 
-    const { title, description, conclusion, coverImage, slug, publishDate, status: uiStatus, categoryId } = validation;
+    const {
+      title,
+      shortDescription,
+      longDescription,
+      blogImage,
+      coverImage,
+      slug,
+      publishDate,
+      status: uiStatus,
+      categoryId,
+    } = validation;
 
     if (categoryId) {
       const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
@@ -1973,9 +1992,12 @@ app.post('/api/admin/blog-posts', async (req, res) => {
       data: {
         title,
         slug,
-        summary: description,
-        content: conclusion || description,
-        coverImage,
+        summary: shortDescription,
+        shortDescription,
+        longDescription,
+        content: longDescription || shortDescription,
+        coverImage: coverImage || blogImage,
+        blogImage,
         status: mapUiStatusToPublishStatus(uiStatus),
         publishedAt: publishDate,
         categoryId: categoryId || null,
@@ -2010,7 +2032,17 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
     const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
     if (!existing) return res.status(404).json({ message: 'Blog post not found.' });
 
-    const { title, description, conclusion, coverImage, slug, publishDate, status: uiStatus, categoryId } = validation;
+    const {
+      title,
+      shortDescription,
+      longDescription,
+      blogImage,
+      coverImage,
+      slug,
+      publishDate,
+      status: uiStatus,
+      categoryId,
+    } = validation;
 
     if (categoryId) {
       const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
@@ -2022,9 +2054,12 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
       data: {
         title,
         slug,
-        summary: description,
-        content: conclusion || description,
-        coverImage,
+        summary: shortDescription,
+        shortDescription,
+        longDescription,
+        content: longDescription || shortDescription,
+        coverImage: coverImage || blogImage,
+        blogImage,
         status: mapUiStatusToPublishStatus(uiStatus),
         publishedAt: publishDate,
         categoryId: categoryId || null,

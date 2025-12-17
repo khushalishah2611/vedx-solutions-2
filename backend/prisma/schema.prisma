@@ -349,8 +349,11 @@ model BlogPost {
   title        String
   slug         String       @unique
   summary      String?
+  shortDescription String?
+  longDescription  String?
   content      String       @db.LongText
   coverImage   String? @db.LongText
+  blogImage    String? @db.LongText
   author       String?
   status       PublishStatus @default(DRAFT)
   publishedAt  DateTime?
