@@ -104,6 +104,30 @@ const parseIntegerId = (value) => {
   return parsed;
 };
 
+const getPaginationParams = (query = {}, { defaultPageSize = 10, maxPageSize = 50 } = {}) => {
+  const rawPage = Number.parseInt(query.page, 10);
+  const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
+
+  const rawPageSize = query.pageSize === 'all' ? 'all' : Number.parseInt(query.pageSize, 10);
+  const hasUnlimited = rawPageSize === 'all' || rawPageSize === 0;
+
+  const pageSize = hasUnlimited
+    ? null
+    : Math.min(maxPageSize, Math.max(1, Number.isInteger(rawPageSize) ? rawPageSize : defaultPageSize));
+
+  const skip = pageSize ? (page - 1) * pageSize : 0;
+
+  return { page, pageSize, skip };
+};
+
+const parseIdList = (value) => {
+  if (!value) return [];
+  return String(value)
+    .split(',')
+    .map((part) => parseIntegerId(part))
+    .filter((id) => Number.isInteger(id));
+};
+
 const isValidEmail = (email) =>
   typeof email === 'string' &&
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
@@ -196,6 +220,7 @@ const formatProjectTypeResponse = (projectType) => ({
 const formatBlogCategoryResponse = (category) => ({
   id: category.id,
   name: category.name,
+  postCount: category._count?.posts ?? null,
   createdAt: category.createdAt,
   updatedAt: category.updatedAt,
 });
@@ -215,16 +240,17 @@ const formatBlogPostResponse = (post) => {
   return {
     id: post.id,
     title: post.title,
+    subtitle: post.subtitle || '',
     slug: post.slug,
 
-    shortDescription: post.shortDescription || '',
-    longDescription: post.longDescription || '',
+    shortDescription: post.shortDescription || post.summary || '',
+    longDescription: post.longDescription || post.content || post.summary || '',
 
-    description: post.summary || '',
-    conclusion: post.content || '',
+    description: post.summary || post.shortDescription || '',
+    conclusion: post.conclusion || post.content || post.longDescription || '',
 
-    coverImage: post.coverImage || '',
-    blogImage: post.blogImage || '',
+    coverImage: post.coverImage || post.blogImage || '',
+    blogImage: post.blogImage || post.coverImage || '',
 
     tags: post.tags || [],
 
@@ -387,10 +413,22 @@ const mapUiStatusToPublishStatus = (status) => {
   return 'DRAFT';
 };
 
+const normalizeAdminStatusFilter = (status) => {
+  const normalized = normalizeText(status).toUpperCase();
+  if (['PUBLISHED', 'PUBLISH', 'PUBLISHING'].includes(normalized)) return 'PUBLISHED';
+  if (['SCHEDULED', 'REVIEW'].includes(normalized)) return 'REVIEW';
+  if (normalized === 'DRAFT') return 'DRAFT';
+
+  const uiNormalized = normalizeBlogStatus(status);
+  return mapUiStatusToPublishStatus(uiNormalized);
+};
+
 const validateBlogPostInput = (body) => {
   const title = normalizeText(body?.title);
+  const subtitle = normalizeText(body?.subtitle);
   const shortDescription = normalizeText(body?.shortDescription);
   const longDescription = normalizeText(body?.longDescription);
+  const conclusion = normalizeText(body?.conclusion);
 
   const coverImage = normalizeText(body?.coverImage) || null;
   const blogImage = normalizeText(body?.blogImage) || null;
@@ -404,11 +442,15 @@ const validateBlogPostInput = (body) => {
 
   if (!title) return { error: 'Title is required.' };
   if (!shortDescription) return { error: 'Short description is required.' };
+  if (!longDescription) return { error: 'Long description is required.' };
+  if (!conclusion) return { error: 'Conclusion is required.' };
 
   return {
     title,
+    subtitle,
     shortDescription,
     longDescription,
+    conclusion,
     coverImage,
     blogImage,
     slug,
@@ -1837,7 +1879,10 @@ app.delete('/api/admin/project-types/:id', async (req, res) => {
 
 app.get('/api/blog-categories', async (req, res) => {
   try {
-    const categories = await prisma.blogCategory.findMany({ orderBy: { name: 'asc' } });
+    const categories = await prisma.blogCategory.findMany({
+      orderBy: { name: 'asc' },
+      include: { _count: { select: { posts: true } } },
+    });
     return res.json({ categories: categories.map(formatBlogCategoryResponse) });
   } catch (error) {
     console.error('Blog category list (public) failed', error);
@@ -1853,7 +1898,10 @@ app.get('/api/admin/blog-categories', async (req, res) => {
       return res.status(status).json({ message });
     }
 
-    const categories = await prisma.blogCategory.findMany({ orderBy: { createdAt: 'desc' } });
+    const categories = await prisma.blogCategory.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { posts: true } } },
+    });
     return res.json({ categories: categories.map(formatBlogCategoryResponse) });
   } catch (error) {
     console.error('Blog category list failed', error);
@@ -1945,19 +1993,105 @@ app.delete('/api/admin/blog-categories/:id', async (req, res) => {
 
 app.get('/api/blog-posts', async (req, res) => {
   try {
-    const posts = await prisma.blogPost.findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { publishedAt: 'desc' },
-      include: { category: true },
-    });
+    const { page, pageSize, skip } = getPaginationParams(req.query, { defaultPageSize: 6, maxPageSize: 50 });
+    const categoryIds = parseIdList(req.query.categoryIds || req.query.categories);
+    const singleCategory = parseIntegerId(req.query.categoryId);
+    const targetCategories = categoryIds.length > 0 ? categoryIds : singleCategory ? [singleCategory] : [];
+
+    const searchTerm = normalizeText(req.query.search || req.query.q);
+    const excludeSlug = normalizeSlug(req.query.excludeSlug || req.query.exclude);
 
     const today = new Date();
-    const published = posts.filter((post) => !post.publishedAt || post.publishedAt <= today);
 
-    return res.json({ posts: published.map(formatBlogPostResponse) });
+    const where = {
+      status: 'PUBLISHED',
+      AND: [
+        { OR: [{ publishedAt: null }, { publishedAt: { lte: today } }] },
+      ],
+    };
+
+    if (targetCategories.length > 0) {
+      where.AND.push({ categoryId: { in: targetCategories } });
+    }
+
+    if (req.query.uncategorized === 'true') {
+      where.AND.push({ categoryId: null });
+    }
+
+    if (searchTerm) {
+      where.AND.push({
+        OR: [
+          { title: { contains: searchTerm, mode: 'insensitive' } },
+          { summary: { contains: searchTerm, mode: 'insensitive' } },
+          { shortDescription: { contains: searchTerm, mode: 'insensitive' } },
+          { longDescription: { contains: searchTerm, mode: 'insensitive' } },
+          { conclusion: { contains: searchTerm, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    const total = await prisma.blogPost.count({ where });
+
+    let adjustedTotal = total;
+    if (excludeSlug) {
+      const slugWhere = {
+        ...where,
+        AND: [...(where.AND || []), { slug: excludeSlug }],
+      };
+      const excludedCount = await prisma.blogPost.count({ where: slugWhere });
+      adjustedTotal = Math.max(0, total - excludedCount);
+    }
+
+    const posts = await prisma.blogPost.findMany({
+      where,
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+      include: { category: true },
+      skip: pageSize ? skip : undefined,
+      take: pageSize || undefined,
+    });
+
+    const filteredPosts = excludeSlug ? posts.filter((post) => post.slug !== excludeSlug) : posts;
+
+    const metaPageSize = pageSize || Math.max(1, filteredPosts.length || 1);
+    const pagination = {
+      page,
+      pageSize: metaPageSize,
+      total: adjustedTotal,
+      totalPages: pageSize ? Math.max(1, Math.ceil(adjustedTotal / metaPageSize)) : 1,
+    };
+
+    return res.json({ posts: filteredPosts.map(formatBlogPostResponse), pagination });
   } catch (error) {
     console.error('Blog post list (public) failed', error);
     return res.status(500).json({ message: 'Unable to load blog posts right now.' });
+  }
+});
+
+app.get('/api/blog-posts/:slug', async (req, res) => {
+  try {
+    const slug = normalizeSlug(req.params.slug);
+    if (!slug) {
+      return res.status(400).json({ message: 'A valid slug is required.' });
+    }
+
+    const today = new Date();
+    const post = await prisma.blogPost.findFirst({
+      where: {
+        slug,
+        status: 'PUBLISHED',
+        OR: [{ publishedAt: null }, { publishedAt: { lte: today } }],
+      },
+      include: { category: true },
+    });
+
+    if (!post) {
+      return res.status(404).json({ message: 'Blog post not found.' });
+    }
+
+    return res.json({ post: formatBlogPostResponse(post) });
+  } catch (error) {
+    console.error('Blog post detail (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load blog post right now.' });
   }
 });
 
@@ -1969,12 +2103,56 @@ app.get('/api/admin/blog-posts', async (req, res) => {
       return res.status(status).json({ message });
     }
 
+    const { page, pageSize, skip } = getPaginationParams(req.query, { defaultPageSize: 20, maxPageSize: 100 });
+    const categoryIds = parseIdList(req.query.categoryIds || req.query.categories);
+    const singleCategory = parseIntegerId(req.query.categoryId);
+    const targetCategories = categoryIds.length > 0 ? categoryIds : singleCategory ? [singleCategory] : [];
+    const searchTerm = normalizeText(req.query.search || req.query.q);
+    const statusFilter = normalizeAdminStatusFilter(req.query.status);
+
+    const where = {};
+
+    if (targetCategories.length > 0) {
+      where.categoryId = { in: targetCategories };
+    }
+
+    if (req.query.uncategorized === 'true') {
+      where.categoryId = null;
+    }
+
+    if (statusFilter) {
+      where.status = statusFilter;
+    }
+
+    if (searchTerm) {
+      where.OR = [
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { summary: { contains: searchTerm, mode: 'insensitive' } },
+        { shortDescription: { contains: searchTerm, mode: 'insensitive' } },
+        { longDescription: { contains: searchTerm, mode: 'insensitive' } },
+        { conclusion: { contains: searchTerm, mode: 'insensitive' } },
+      ];
+    }
+
+    const total = await prisma.blogPost.count({ where });
+
     const posts = await prisma.blogPost.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: { category: true },
+      skip: pageSize ? skip : undefined,
+      take: pageSize || undefined,
     });
 
-    return res.json({ posts: posts.map(formatBlogPostResponse) });
+    const metaPageSize = pageSize || Math.max(1, posts.length || 1);
+    const pagination = {
+      page,
+      pageSize: metaPageSize,
+      total,
+      totalPages: pageSize ? Math.max(1, Math.ceil(total / metaPageSize)) : 1,
+    };
+
+    return res.json({ posts: posts.map(formatBlogPostResponse), pagination });
   } catch (error) {
     console.error('Blog post list failed', error);
     return res.status(500).json({ message: 'Unable to load blog posts right now.' });
@@ -1996,8 +2174,10 @@ app.post('/api/admin/blog-posts', async (req, res) => {
 
     const {
       title,
+      subtitle,
       shortDescription,
       longDescription,
+      conclusion,
       blogImage,
       coverImage,
       slug,
@@ -2019,13 +2199,15 @@ app.post('/api/admin/blog-posts', async (req, res) => {
     const created = await prisma.blogPost.create({
       data: {
         title,
+        subtitle,
         slug,
 
         summary: shortDescription,
         shortDescription,
         longDescription,
 
-        content: longDescription || shortDescription,
+        conclusion,
+        content: longDescription || conclusion || shortDescription,
 
         coverImage: coverImage || blogImage,
         blogImage,
@@ -2082,8 +2264,10 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
 
     const {
       title,
+      subtitle,
       shortDescription,
       longDescription,
+      conclusion,
       blogImage,
       coverImage,
       slug,
@@ -2106,13 +2290,15 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
       where: { id: postId },
       data: {
         title,
+        subtitle,
         slug,
 
         summary: shortDescription,
         shortDescription,
         longDescription,
 
-        content: longDescription || shortDescription,
+        conclusion,
+        content: longDescription || conclusion || shortDescription,
 
         coverImage: coverImage || blogImage,
         blogImage,

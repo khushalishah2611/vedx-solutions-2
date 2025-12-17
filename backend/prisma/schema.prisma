@@ -348,9 +348,14 @@ model BlogPost {
   id           Int          @id @default(autoincrement())
   title        String
   slug         String       @unique
-  summary      String?
+  subtitle     String?
+  summary      String?     @db.LongText
+  shortDescription String? @db.LongText
+  longDescription  String? @db.LongText
+  conclusion       String? @db.LongText
   content      String       @db.LongText
   coverImage   String? @db.LongText
+  blogImage    String? @db.LongText
   author       String?
   status       PublishStatus @default(DRAFT)
   publishedAt  DateTime?

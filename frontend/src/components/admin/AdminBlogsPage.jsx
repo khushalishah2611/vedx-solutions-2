@@ -141,11 +141,13 @@ const ImageUpload = ({ label, value, onChange, helperText }) => {
 const mapApiBlogToRow = (blog) => ({
   id: blog.id,
   title: blog.title,
+  subtitle: blog.subtitle || '',
   category: blog.category?.name || 'Uncategorized',
   categoryId: blog.categoryId || '',
   publishDate: blog.publishDate ? normalizeDateInput(blog.publishDate) : new Date().toISOString().split('T')[0],
   shortDescription: blog.shortDescription || blog.description || '',
-  longDescription: blog.longDescription || blog.conclusion || '',
+  longDescription: blog.longDescription || blog.conclusion || blog.description || '',
+  conclusion: blog.conclusion || '',
   status: deriveStatusFromDate(blog.status, blog.publishDate),
   coverImage: blog.coverImage || blog.blogImage || '',
   blogImage: blog.blogImage || blog.coverImage || '',
@@ -155,11 +157,13 @@ const mapApiBlogToRow = (blog) => ({
 const createEmptyFormState = () => ({
   id: '',
   title: '',
+  subtitle: '',
   slug: '',
   categoryId: '',
   publishDate: new Date().toISOString().split('T')[0],
   shortDescription: '',
   longDescription: '',
+  conclusion: '',
   status: 'Draft',
   coverImage: '',
   blogImage: '',
@@ -462,18 +466,23 @@ const AdminBlogsPage = () => {
     setDialogError('');
 
     const trimmedTitle = formState.title.trim();
+    const trimmedSubtitle = formState.subtitle.trim();
     const trimmedSlug = formState.slug.trim();
     const trimmedShortDescription = formState.shortDescription.trim();
     const trimmedLongDescription = formState.longDescription.trim();
+    const trimmedConclusion = formState.conclusion.trim();
     const trimmedCoverImage = formState.coverImage.trim();
     const trimmedBlogImage = formState.blogImage.trim();
 
     const requiredField = [
       { key: trimmedTitle, label: 'Title' },
+      { key: trimmedSubtitle, label: 'Subtitle' },
       { key: formState.categoryId, label: 'Category' },
       { key: formState.publishDate, label: 'Publish date' },
       { key: formState.status, label: 'Status' },
       { key: trimmedShortDescription, label: 'Short description' },
+      { key: trimmedLongDescription, label: 'Long description' },
+      { key: trimmedConclusion, label: 'Conclusion' },
     ].find((entry) => !entry.key);
 
     if (requiredField) {
@@ -494,11 +503,13 @@ const AdminBlogsPage = () => {
       if (!token) throw new Error('Your session expired. Please log in again.');
       const payload = {
         title: trimmedTitle,
+        subtitle: trimmedSubtitle,
         categoryId: formState.categoryId,
         publishDate: formState.publishDate,
         slug: trimmedSlug || trimmedTitle,
         shortDescription: trimmedShortDescription,
         longDescription: trimmedLongDescription || trimmedShortDescription,
+        conclusion: trimmedConclusion || trimmedLongDescription || trimmedShortDescription,
         status: formState.status,
         coverImage: resolvedCoverImage,
         blogImage: resolvedBlogImage,
@@ -955,8 +966,8 @@ const AdminBlogsPage = () => {
               label="Subtitle"
               placeholder="Enter blog sub title"
               fullWidth
-              value={formState.title}
-              onChange={(event) => handleFormChange('title', event.target.value)}
+              value={formState.subtitle}
+              onChange={(event) => handleFormChange('subtitle', event.target.value)}
               required
             />
             <TextField
@@ -1040,12 +1051,10 @@ const AdminBlogsPage = () => {
               required
             />
             <TextField
-              label=" Conclusion
-"
-              placeholder="Conclusion
-"
-              value={formState.longDescription}
-              onChange={(event) => handleFormChange('Conclusion', event.target.value)}
+              label="Conclusion"
+              placeholder="Wrap up your post with a clear takeaway"
+              value={formState.conclusion}
+              onChange={(event) => handleFormChange('conclusion', event.target.value)}
               multiline
               minRows={3}
               maxRows={10}
@@ -1084,6 +1093,11 @@ const AdminBlogsPage = () => {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {viewBlog.title}
               </Typography>
+              {viewBlog.subtitle && (
+                <Typography variant="subtitle1" color="text.secondary">
+                  {viewBlog.subtitle}
+                </Typography>
+              )}
               <Stack spacing={1}>
                 {viewBlog.coverImage && (
                   <Box
@@ -1135,6 +1149,15 @@ const AdminBlogsPage = () => {
                 </Typography>
                 <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                   {viewBlog.longDescription || 'No long description added yet.'}
+                </Typography>
+              </Stack>
+              <Divider />
+              <Stack spacing={0.5}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Conclusion
+                </Typography>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+                  {viewBlog.conclusion || 'No conclusion added yet.'}
                 </Typography>
               </Stack>
             </Stack>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Breadcrumbs,
@@ -17,7 +17,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
-import { blogPosts, getBlogBySlug, getRelatedPosts } from '../../data/blogs.js';
+import { apiUrl } from '../../utils/const.js';
 
 // === ANIMATIONS ===
 const slideInLeft = keyframes`
@@ -47,17 +47,103 @@ const BlogDetailPage = () => {
   const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
   const { slug } = useParams();
-  const post = getBlogBySlug(slug ?? '');
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [relatedPosts, setRelatedPosts] = useState([]);
+  const [recentPosts, setRecentPosts] = useState([]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug]);
 
   useEffect(() => {
-    if (!post) {
-      navigate('/blog', { replace: true });
-    }
-  }, [navigate, post]);
+    const loadPost = async () => {
+      if (!slug) return;
+      setLoading(true);
+      setError('');
+      try {
+        const response = await fetch(apiUrl(`/api/blog-posts/${slug}`));
+        const payload = await response.json();
+
+        if (response.status === 404) {
+          navigate('/blog', { replace: true });
+          return;
+        }
+
+        if (!response.ok) throw new Error(payload?.message || 'Unable to load blog post.');
+        setPost(payload.post);
+      } catch (error) {
+        console.error('Load blog post failed', error);
+        setError(error?.message || 'Unable to load blog post right now.');
+        setPost(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPost();
+  }, [navigate, slug]);
+
+  useEffect(() => {
+    const loadRelated = async () => {
+      if (!post) {
+        setRelatedPosts([]);
+        setRecentPosts([]);
+        return;
+      }
+
+      const baseParams = new URLSearchParams({ page: 1, pageSize: 3, exclude: post.slug });
+
+      try {
+        const relatedParams = new URLSearchParams(baseParams);
+        if (post.categoryId) relatedParams.set('categoryId', post.categoryId);
+        const relatedResponse = await fetch(apiUrl(`/api/blog-posts?${relatedParams.toString()}`));
+        const relatedPayload = await relatedResponse.json();
+        if (relatedResponse.ok) setRelatedPosts(relatedPayload.posts || []);
+        else setRelatedPosts([]);
+      } catch (error) {
+        console.error('Load related posts failed', error);
+        setRelatedPosts([]);
+      }
+
+      try {
+        const recentResponse = await fetch(apiUrl(`/api/blog-posts?${baseParams.toString()}`));
+        const recentPayload = await recentResponse.json();
+        if (recentResponse.ok) setRecentPosts(recentPayload.posts || []);
+        else setRecentPosts([]);
+      } catch (error) {
+        console.error('Load recent posts failed', error);
+        setRecentPosts([]);
+      }
+    };
+
+    loadRelated();
+  }, [post]);
+
+  if (loading) {
+    return (
+      <Box sx={{ bgcolor: 'background.default', py: 8 }}>
+        <Container maxWidth="md">
+          <Typography align="center" variant="h6">
+            Loading article...
+          </Typography>
+        </Container>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ bgcolor: 'background.default', py: 8 }}>
+        <Container maxWidth="md">
+          <Typography align="center" variant="h6" color="error">
+            {error}
+          </Typography>
+        </Container>
+      </Box>
+    );
+  }
 
   if (!post) return null;
 
@@ -69,7 +155,34 @@ const BlogDetailPage = () => {
     ? 'linear-gradient(180deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.92) 100%)'
     : 'linear-gradient(180deg, rgba(15,23,42,0.38) 0%, rgba(15,23,42,0.82) 100%)';
 
-  const relatedPosts = getRelatedPosts(post.slug, post.category, post.tags);
+  const formatDate = (value) => {
+    const parsed = value ? new Date(value) : null;
+    if (!parsed || Number.isNaN(parsed.getTime())) return value || '';
+    return parsed.toISOString().split('T')[0];
+  };
+
+  const publishDate = post.publishDate || post.publishedOn || post.createdAt || '';
+  const displayPublishDate = formatDate(publishDate) || 'Upcoming';
+
+  const ctaContent = {
+    heading: post.cta?.heading || 'Work with VedX Solutions',
+    description: post.cta?.description || 'Ready to build your next project? Let’s talk.',
+    primaryCtaLabel: post.cta?.primaryCtaLabel || 'Contact us',
+    primaryCtaHref: post.cta?.primaryCtaHref || '/contact',
+  };
+
+  const contentSections =
+    post.sections && post.sections.length > 0
+      ? post.sections
+      : [
+          {
+            heading: 'Overview',
+            paragraphs: [post.longDescription || post.shortDescription || ''],
+          },
+        ];
+
+  const conclusionText = post.conclusion || post.longDescription || '';
+  const tagList = Array.isArray(post.tags) ? post.tags : [];
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
@@ -78,7 +191,7 @@ const BlogDetailPage = () => {
         sx={{
           position: 'relative',
           color: '#fff',
-          backgroundImage: `${heroOverlay}, url(${post.heroImage ?? post.image})`,
+          backgroundImage: `${heroOverlay}, url(${post.coverImage || post.blogImage || post.heroImage || post.image})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -174,7 +287,7 @@ const BlogDetailPage = () => {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  {post.category}
+                  {post.category?.name || post.category || 'Uncategorized'}
                 </Box>
               </Box>
 
@@ -197,7 +310,7 @@ const BlogDetailPage = () => {
                   justifyContent: { xs: 'center', md: 'flex-start' },
                 }}
               >
-                <Typography variant="h6">{post.publishedOn}</Typography>
+                <Typography variant="h6">{displayPublishDate}</Typography>
               </Stack>
 
               {/* CTA Button */}
@@ -210,7 +323,7 @@ const BlogDetailPage = () => {
                   variant="contained"
                   size="large"
                   component={RouterLink}
-                  to={post.cta.primaryCtaHref}
+                  to={ctaContent.primaryCtaHref}
                   endIcon={<ArrowForwardIcon />}
                   sx={{
                     background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
@@ -224,7 +337,7 @@ const BlogDetailPage = () => {
                     },
                   }}
                 >
-                  {post.cta.primaryCtaLabel}
+                  {ctaContent.primaryCtaLabel}
                 </Button>
               </Stack>
             </Stack>
@@ -255,8 +368,8 @@ const BlogDetailPage = () => {
               }}
             >
               <Stack spacing={5}>
-                {post.sections.map((section) => (
-                  <Stack key={section.heading} spacing={2.5}>
+                {contentSections.map((section, index) => (
+                  <Stack key={section.heading || index} spacing={2.5}>
                     <Typography
                       variant="h4"
                       sx={{ fontSize: { xs: 26, md: 32 }, fontWeight: 700 }}
@@ -299,17 +412,11 @@ const BlogDetailPage = () => {
                     variant="h4"
                     sx={{ fontSize: { xs: 26, md: 32 }, fontWeight: 700 }}
                   >
-                    {post.conclusion.heading}
+                    Conclusion
                   </Typography>
-                  {post.conclusion.paragraphs.map((p, i) => (
-                    <Typography
-                      key={i}
-                      variant="body1"
-                      sx={{ color: subtleText, lineHeight: 1.8 }}
-                    >
-                      {p}
-                    </Typography>
-                  ))}
+                  <Typography variant="body1" sx={{ color: subtleText, lineHeight: 1.8 }}>
+                    {conclusionText || 'Stay tuned for more updates from our team.'}
+                  </Typography>
                 </Stack>
 
                 {/* CTA Box */}
@@ -332,20 +439,20 @@ const BlogDetailPage = () => {
                       variant="h4"
                       sx={{ fontSize: { xs: 26, md: 32 }, fontWeight: 700 }}
                     >
-                      {post.cta.heading}
+                      {ctaContent.heading}
                     </Typography>
                     <Typography
                       variant="body1"
                       sx={{ color: subtleText, lineHeight: 1.8 }}
                     >
-                      {post.cta.description}
+                      {ctaContent.description}
                     </Typography>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                       <Button
                         variant="contained"
                         size="large"
                         component={RouterLink}
-                        to={post.cta.primaryCtaHref}
+                        to={ctaContent.primaryCtaHref}
                         endIcon={<ArrowForwardIcon />}
                         sx={{
                           background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
@@ -359,7 +466,7 @@ const BlogDetailPage = () => {
                           },
                         }}
                       >
-                        {post.cta.primaryCtaLabel}
+                        {ctaContent.primaryCtaLabel}
                       </Button>
                     </Stack>
                   </Stack>
@@ -402,7 +509,7 @@ const BlogDetailPage = () => {
                       Tags
                     </Typography>
                     <Stack direction="row" flexWrap="wrap" gap={1.2}>
-                      {post.tags.map((tag) => (
+                      {tagList.map((tag) => (
                         <Box
                           key={tag}
                           sx={{
@@ -437,6 +544,11 @@ const BlogDetailPage = () => {
                           </Box>
                         </Box>
                       ))}
+                      {tagList.length === 0 && (
+                        <Typography variant="body2" color="text.secondary">
+                          No tags added for this post.
+                        </Typography>
+                      )}
                     </Stack>
                   </Stack>
                 </Box>
@@ -464,8 +576,8 @@ const BlogDetailPage = () => {
                       Recent Articles
                     </Typography>
                     <Stack spacing={2.5}>
-                      {blogPosts.slice(0, 3).map((item) => (
-                        <Stack key={item.slug} spacing={0.5}>
+                      {recentPosts.map((item) => (
+                        <Stack key={item.slug || item.id} spacing={0.5}>
                           <Typography
                             component={RouterLink}
                             to={`/blog/${item.slug}`}
@@ -485,10 +597,15 @@ const BlogDetailPage = () => {
                             {item.title}
                           </Typography>
                           <Typography variant="caption" sx={{ color: subtleText }}>
-                            {item.publishedOn ?? '10, Nov 2025'}
+                            {formatDate(item.publishDate || item.publishedOn || item.createdAt) || 'Coming soon'}
                           </Typography>
                         </Stack>
                       ))}
+                      {recentPosts.length === 0 && (
+                        <Typography variant="body2" color="text.secondary">
+                          No recent articles available yet.
+                        </Typography>
+                      )}
                     </Stack>
                   </Stack>
                 </Box>
