@@ -3399,7 +3399,7 @@ const AdminHiredeveloperPage = () => {
 
       {activeTab === 'hire' && (
         <Stack spacing={3}>
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          {/* <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
             <CardHeader
               title="Development services hero"
               subheader="Control the title, description, and hero image used on the development services section."
@@ -3439,7 +3439,7 @@ const AdminHiredeveloperPage = () => {
                 </Stack>
               </Stack>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
             <CardHeader
