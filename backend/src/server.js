@@ -208,18 +208,34 @@ const deriveBlogUiStatus = (status, publishDate) => {
 };
 
 const formatBlogPostResponse = (post) => {
-  const publishDate = post.publishedAt ? post.publishedAt.toISOString().split('T')[0] : null;
+  const publishDate = post.publishedAt
+    ? post.publishedAt.toISOString().split('T')[0]
+    : null;
+
   return {
     id: post.id,
     title: post.title,
     slug: post.slug,
-    coverImage: post.coverImage || '',
-    categoryId: post.categoryId || '',
-    category: post.category ? formatBlogCategoryResponse(post.category) : null,
-    publishDate,
+
+    shortDescription: post.shortDescription || '',
+    longDescription: post.longDescription || '',
+
     description: post.summary || '',
     conclusion: post.content || '',
+
+    coverImage: post.coverImage || '',
+    blogImage: post.blogImage || '',
+
+    tags: post.tags || [],
+
+    categoryId: post.categoryId || null,
+    category: post.category
+      ? formatBlogCategoryResponse(post.category)
+      : null,
+
+    publishDate,
     status: deriveBlogUiStatus(post.status, publishDate),
+
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
   };
@@ -373,19 +389,33 @@ const mapUiStatusToPublishStatus = (status) => {
 
 const validateBlogPostInput = (body) => {
   const title = normalizeText(body?.title);
-  const description = normalizeText(body?.description);
-  const conclusion = normalizeText(body?.conclusion);
+  const shortDescription = normalizeText(body?.shortDescription);
+  const longDescription = normalizeText(body?.longDescription);
+
   const coverImage = normalizeText(body?.coverImage) || null;
+  const blogImage = normalizeText(body?.blogImage) || null;
+
   const slugInput = normalizeText(body?.slug || body?.title);
   const slug = normalizeSlug(slugInput) || `post-${Date.now()}`;
+
   const publishDate = normalizePublishDate(body?.publishDate);
   const status = normalizeBlogStatus(body?.status);
   const categoryId = parseIntegerId(body?.categoryId) ?? null;
 
   if (!title) return { error: 'Title is required.' };
-  if (!description) return { error: 'Description is required.' };
+  if (!shortDescription) return { error: 'Short description is required.' };
 
-  return { title, description, conclusion, coverImage, slug, publishDate, status, categoryId };
+  return {
+    title,
+    shortDescription,
+    longDescription,
+    coverImage,
+    blogImage,
+    slug,
+    publishDate,
+    status,
+    categoryId,
+  };
 };
 
 const validateCareerOpeningInput = (body) => {
@@ -1960,36 +1990,68 @@ app.post('/api/admin/blog-posts', async (req, res) => {
     }
 
     const validation = validateBlogPostInput(req.body || {});
-    if (validation.error) return res.status(400).json({ message: validation.error });
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
 
-    const { title, description, conclusion, coverImage, slug, publishDate, status: uiStatus, categoryId } = validation;
+    const {
+      title,
+      shortDescription,
+      longDescription,
+      blogImage,
+      coverImage,
+      slug,
+      publishDate,
+      status: uiStatus,
+      categoryId,
+    } = validation;
 
+    // Category validation
     if (categoryId) {
-      const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
-      if (!categoryExists) return res.status(404).json({ message: 'Selected category not found.' });
+      const categoryExists = await prisma.blogCategory.findUnique({
+        where: { id: categoryId },
+      });
+      if (!categoryExists) {
+        return res.status(404).json({ message: 'Selected category not found.' });
+      }
     }
 
     const created = await prisma.blogPost.create({
       data: {
         title,
         slug,
-        summary: description,
-        content: conclusion || description,
-        coverImage,
+
+        summary: shortDescription,
+        shortDescription,
+        longDescription,
+
+        content: longDescription || shortDescription,
+
+        coverImage: coverImage || blogImage,
+        blogImage,
+
         status: mapUiStatusToPublishStatus(uiStatus),
         publishedAt: publishDate,
+
         categoryId: categoryId || null,
       },
       include: { category: true },
     });
 
-    return res.status(201).json({ post: formatBlogPostResponse(created) });
+    return res.status(201).json({
+      post: formatBlogPostResponse(created),
+      message: 'Blog post created successfully.',
+    });
   } catch (error) {
     console.error('Blog post create failed', error);
     if (error?.code === 'P2002') {
-      return res.status(409).json({ message: 'A blog post with this slug already exists.' });
+      return res
+        .status(409)
+        .json({ message: 'A blog post with this slug already exists.' });
     }
-    return res.status(500).json({ message: 'Unable to create blog post right now.' });
+    return res
+      .status(500)
+      .json({ message: 'Unable to create blog post right now.' });
   }
 });
 
@@ -2002,19 +2064,42 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
     }
 
     const postId = parseIntegerId(req.params.id);
-    if (!postId) return res.status(400).json({ message: 'A valid blog post id is required.' });
+    if (!postId) {
+      return res.status(400).json({ message: 'A valid blog post id is required.' });
+    }
 
     const validation = validateBlogPostInput(req.body || {});
-    if (validation.error) return res.status(400).json({ message: validation.error });
+    if (validation.error) {
+      return res.status(400).json({ message: validation.error });
+    }
 
-    const existing = await prisma.blogPost.findUnique({ where: { id: postId } });
-    if (!existing) return res.status(404).json({ message: 'Blog post not found.' });
+    const existing = await prisma.blogPost.findUnique({
+      where: { id: postId },
+    });
+    if (!existing) {
+      return res.status(404).json({ message: 'Blog post not found.' });
+    }
 
-    const { title, description, conclusion, coverImage, slug, publishDate, status: uiStatus, categoryId } = validation;
+    const {
+      title,
+      shortDescription,
+      longDescription,
+      blogImage,
+      coverImage,
+      slug,
+      publishDate,
+      status: uiStatus,
+      categoryId,
+    } = validation;
 
+    // Category validation
     if (categoryId) {
-      const categoryExists = await prisma.blogCategory.findUnique({ where: { id: categoryId } });
-      if (!categoryExists) return res.status(404).json({ message: 'Selected category not found.' });
+      const categoryExists = await prisma.blogCategory.findUnique({
+        where: { id: categoryId },
+      });
+      if (!categoryExists) {
+        return res.status(404).json({ message: 'Selected category not found.' });
+      }
     }
 
     const updated = await prisma.blogPost.update({
@@ -2022,23 +2107,38 @@ app.put('/api/admin/blog-posts/:id', async (req, res) => {
       data: {
         title,
         slug,
-        summary: description,
-        content: conclusion || description,
-        coverImage,
+
+        summary: shortDescription,
+        shortDescription,
+        longDescription,
+
+        content: longDescription || shortDescription,
+
+        coverImage: coverImage || blogImage,
+        blogImage,
+
         status: mapUiStatusToPublishStatus(uiStatus),
         publishedAt: publishDate,
+
         categoryId: categoryId || null,
       },
       include: { category: true },
     });
 
-    return res.json({ post: formatBlogPostResponse(updated), message: 'Blog post updated.' });
+    return res.json({
+      post: formatBlogPostResponse(updated),
+      message: 'Blog post updated successfully.',
+    });
   } catch (error) {
     console.error('Blog post update failed', error);
     if (error?.code === 'P2002') {
-      return res.status(409).json({ message: 'A blog post with this slug already exists.' });
+      return res
+        .status(409)
+        .json({ message: 'A blog post with this slug already exists.' });
     }
-    return res.status(500).json({ message: 'Unable to update blog post right now.' });
+    return res
+      .status(500)
+      .json({ message: 'Unable to update blog post right now.' });
   }
 });
 
