@@ -573,10 +573,24 @@ const AdminHiredeveloperPage = () => {
   const [hireMasterCategories, setHireMasterCategories] = useState([]);
   const [hireMasterSubcategories, setHireMasterSubcategories] = useState([]);
 
+  const requireToken = () => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      throw new Error('Your session expired. Please log in again.');
+    }
+    return token;
+  };
+
+  const authHeaders = (headers = {}) => ({
+    ...headers,
+    Authorization: `Bearer ${requireToken()}`,
+    'Content-Type': 'application/json',
+  });
+
   const fetchJson = async (path, options = {}) => {
     const response = await fetch(apiUrl(path), {
-      headers: { 'Content-Type': 'application/json' },
       ...options,
+      headers: authHeaders(options.headers),
     });
 
     const text = await response.text();
