@@ -877,7 +877,7 @@ const AdminBlogsPage = () => {
                 )}
               </TableBody>
             </Table>
-            </TableContainer>
+          </TableContainer>
           <Stack mt={2} alignItems="flex-end">
             <Pagination
               count={Math.max(1, Math.ceil(filteredBlogs.length / rowsPerPage))}
@@ -946,6 +946,14 @@ const AdminBlogsPage = () => {
             <TextField
               label="Title"
               placeholder="Enter blog title"
+              fullWidth
+              value={formState.title}
+              onChange={(event) => handleFormChange('title', event.target.value)}
+              required
+            />
+            <TextField
+              label="Subtitle"
+              placeholder="Enter blog sub title"
               fullWidth
               value={formState.title}
               onChange={(event) => handleFormChange('title', event.target.value)}
@@ -1031,6 +1039,20 @@ const AdminBlogsPage = () => {
               fullWidth
               required
             />
+            <TextField
+              label=" Conclusion
+"
+              placeholder="Conclusion
+"
+              value={formState.longDescription}
+              onChange={(event) => handleFormChange('Conclusion', event.target.value)}
+              multiline
+              minRows={3}
+              maxRows={10}
+              fullWidth
+              required
+            />
+
             {dialogError && (
               <Typography color="error" variant="body2">
                 {dialogError}
