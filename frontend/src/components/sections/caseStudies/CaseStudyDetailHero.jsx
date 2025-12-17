@@ -152,7 +152,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                     component={RouterLink}
                     underline="hover"
                     color="#fff"
-                    to="/casestudy"
+                    to="/case-studies"
                   >
                     Case Studies
                   </MuiLink>
