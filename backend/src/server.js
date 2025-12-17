@@ -3377,7 +3377,7 @@ function parseImages(imagesField) {
 }
 
 /// Banner enums (Prisma enum BannerType)
-const BANNER_TYPES = ['HOME', 'ABOUT', 'BLOGS', 'CONTACT', 'CAREER'];
+const BANNER_TYPES = ['HOME', 'ABOUT', 'BLOGS', 'CONTACT', 'CAREER','CASESTUDY'];
 
 const normalizeBannerTypeInput = (value) => {
   const raw = String(value || '').trim().toUpperCase();
