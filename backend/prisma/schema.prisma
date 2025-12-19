@@ -95,7 +95,7 @@ model ProcessStep {
 model ServiceSlider {
   id                Int           @id @default(autoincrement())
   sliderTitle       String
-  sliderDescription String?
+  sliderDescription String? @db.LongText
   sliderImageUrl    String?  @db.LongText
 
   services          ServiceCard[]
@@ -109,7 +109,7 @@ model ServiceCard {
   id           Int           @id @default(autoincrement())
   title        String
   subtitle     String?
-  description  String?
+  description  String? @db.LongText
   imageUrl     String?  @db.LongText
 
   sliderId     Int
@@ -130,7 +130,8 @@ model ServiceCard {
 model IndustriesConfig {
   id          Int        @id @default(autoincrement())
   title       String
-  description String?
+  description String? @db.LongText
+
 
   items       Industry[]
 
@@ -144,7 +145,7 @@ model Industry {
   section     IndustriesConfig @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   title       String
-  description String?
+  description String? @db.LongText
   imageUrl    String?  @db.LongText
 
   sortOrder   Int        @default(0)
@@ -163,7 +164,8 @@ model Industry {
 model TechSolutionsConfig {
   id          Int            @id @default(autoincrement())
   title       String
-  description String?
+  description String?  @db.LongText
+
 
   solutions   TechSolution[]
 
@@ -177,7 +179,7 @@ model TechSolution {
   section     TechSolutionsConfig @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   title       String
-  description String?
+  description String?  @db.LongText
 
   sortOrder   Int          @default(0)
   isActive    Boolean      @default(true)
@@ -194,7 +196,7 @@ model TechSolution {
 model ExpertiseConfig {
   id          Int            @id @default(autoincrement())
   title       String
-  description String?
+  description String?  @db.LongText
 
   items       ExpertiseItem[]
 

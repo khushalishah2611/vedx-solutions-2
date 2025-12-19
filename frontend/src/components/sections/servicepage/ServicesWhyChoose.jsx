@@ -38,8 +38,7 @@ const ServicesWhyChoose = () => {
           variant="body1"
           sx={{ color: subtleText, maxWidth: 720 }}
         >
-          A partner obsessed with outcomes, clarity, and dependable delivery. We build every engagement around
-          collaboration and trust.
+         Vedx Solutions is recognized for its innovative approach to digital transformation. We combine technology with strategic insight to turn your ideas into impactful and scalable realities. By developing custom software and AI solutions, we help unlock the future of your business. We are also known for
         </Typography>
       </Stack>
 

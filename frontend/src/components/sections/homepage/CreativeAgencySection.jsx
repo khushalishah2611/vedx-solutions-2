@@ -31,7 +31,7 @@ const useInView = (options = {}) => {
 
 // === TYPING TITLE COMPONENT ===
 const TypingTitle = () => {
-  const words = ['Enterprise Growth']; // Add more words if needed
+  const words = ['Brands', 'Enterprise', 'Company']; // Add more words if needed
   const [text, setText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
@@ -253,10 +253,7 @@ export default function CreativeAgencySection() {
                   lineHeight: 1.75,
                 }}
               >
-                We design, develop, and scale digital products that transform the
-                way brands connect with their audiences. Our team merges
-                creativity and technology to craft meaningful, measurable
-                experiences.
+                We're made up of top product experts and engineers who are capable in the invention and development of the industry's most advanced technologies including web, mobile apps, eCommerce, Commerce, loT, Al/ML, enterprise mobility, on-demand, cross-platform, cloud integration and alike. Technology happens to be the medium in which we work.
               </Typography>
 
               {/* Extended Description */}
@@ -269,10 +266,7 @@ export default function CreativeAgencySection() {
                   lineHeight: 1.7,
                 }}
               >
-                From brand strategy to full-stack engineering, we partner with
-                enterprises to build the next generation of customer experiences
-                — blending design thinking, storytelling, and advanced
-                technology.
+                If your organization is looking for an assistance on an upcoming software project or would like access to our talent, feel free to get in touch and begin a conversation.
               </Typography>
             </Stack>
           </Grid>
