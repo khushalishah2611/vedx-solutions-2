@@ -351,7 +351,7 @@ model BlogPost {
   id           Int          @id @default(autoincrement())
   title        String
   slug         String       @unique
-  subtitle     String?
+  subtitle     String? @db.LongText
   summary      String?     @db.LongText
   shortDescription String? @db.LongText
   longDescription  String? @db.LongText

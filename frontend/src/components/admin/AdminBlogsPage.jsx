@@ -138,6 +138,70 @@ const ImageUpload = ({ label, value, onChange, helperText }) => {
   );
 };
 
+const sanitizeRichText = (value) => {
+  if (!value) return '';
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(value, 'text/html');
+  const allowedTags = new Set(['A', 'B', 'STRONG', 'EM', 'I', 'U', 'UL', 'OL', 'LI', 'P', 'BR']);
+
+  const sanitizeNode = (node) => {
+    node.childNodes.forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) return;
+
+      if (child.nodeType !== Node.ELEMENT_NODE || !allowedTags.has(child.tagName)) {
+        const text = child.textContent || '';
+        child.replaceWith(doc.createTextNode(text));
+        return;
+      }
+
+      if (child.tagName === 'A') {
+        const href = child.getAttribute('href') || '';
+        if (!/^https?:\/\//i.test(href) && !href.startsWith('mailto:')) {
+          child.replaceWith(doc.createTextNode(child.textContent || ''));
+          return;
+        }
+        child.setAttribute('target', '_blank');
+        child.setAttribute('rel', 'noopener noreferrer');
+        [...child.attributes].forEach((attr) => {
+          if (!['href', 'target', 'rel'].includes(attr.name)) {
+            child.removeAttribute(attr.name);
+          }
+        });
+      } else {
+        [...child.attributes].forEach((attr) => child.removeAttribute(attr.name));
+      }
+
+      sanitizeNode(child);
+    });
+  };
+
+  sanitizeNode(doc.body);
+  return doc.body.innerHTML || doc.body.textContent || '';
+};
+
+const RichTextSection = ({ label, content, emptyText }) => {
+  const sanitized = useMemo(() => sanitizeRichText(content || ''), [content]);
+  const hasContent = Boolean(sanitized.trim());
+
+  return (
+    <Stack spacing={0.5}>
+      <Typography variant="subtitle2" color="text.secondary">
+        {label}
+      </Typography>
+      {hasContent ? (
+        <Typography variant="body1" component="div" sx={{ whiteSpace: 'pre-wrap' }}>
+          <Box component="span" dangerouslySetInnerHTML={{ __html: sanitized }} />
+        </Typography>
+      ) : (
+        <Typography variant="body1" color="text.secondary">
+          {emptyText}
+        </Typography>
+      )}
+    </Stack>
+  );
+};
+
 const mapApiBlogToRow = (blog) => ({
   id: blog.id,
   title: blog.title,
@@ -1141,32 +1205,23 @@ const AdminBlogsPage = () => {
                 </Typography>
               </Stack>
               <Divider />
-              <Stack spacing={0.5}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Short description
-                </Typography>
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                  {viewBlog.shortDescription || 'No short description added yet.'}
-                </Typography>
-              </Stack>
+              <RichTextSection
+                label="Short description"
+                content={viewBlog.shortDescription}
+                emptyText="No short description added yet."
+              />
               <Divider />
-              <Stack spacing={0.5}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Conclusion
-                </Typography>
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                  {viewBlog.conclusion || 'No conclusion added yet.'}
-                </Typography>
-              </Stack>
+              <RichTextSection
+                label="Conclusion"
+                content={viewBlog.conclusion}
+                emptyText="No conclusion added yet."
+              />
               <Divider />
-              <Stack spacing={0.5}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Long description
-                </Typography>
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                  {viewBlog.longDescription || 'No long description added yet.'}
-                </Typography>
-              </Stack>
+              <RichTextSection
+                label="Long description"
+                content={viewBlog.longDescription}
+                emptyText="No long description added yet."
+              />
             </Stack>
           )}
         </DialogContent>
