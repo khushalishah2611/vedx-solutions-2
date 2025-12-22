@@ -826,7 +826,11 @@ const AdminBlogsPage = () => {
                       </Typography>
                     </TableCell>
                     <TableCell width="22%">
-                      <Typography variant="body2" color="text.secondary" noWrap>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ whiteSpace: 'pre-line' }}
+                      >
                         {blog.shortDescription || 'No summary added yet.'}
                       </Typography>
                     </TableCell>
@@ -968,6 +972,9 @@ const AdminBlogsPage = () => {
               fullWidth
               value={formState.subtitle}
               onChange={(event) => handleFormChange('subtitle', event.target.value)}
+              multiline
+              minRows={2}
+              maxRows={4}
               required
             />
             <TextField
@@ -1035,7 +1042,7 @@ const AdminBlogsPage = () => {
               onChange={(event) => handleFormChange('shortDescription', event.target.value)}
               multiline
               minRows={4}
-              maxRows={12}
+              maxRows={14}
               fullWidth
               required
             />
@@ -1045,8 +1052,8 @@ const AdminBlogsPage = () => {
               value={formState.longDescription}
               onChange={(event) => handleFormChange('longDescription', event.target.value)}
               multiline
-              minRows={3}
-              maxRows={10}
+              minRows={5}
+              maxRows={16}
               fullWidth
               required
             />
@@ -1145,10 +1152,10 @@ const AdminBlogsPage = () => {
               <Divider />
               <Stack spacing={0.5}>
                 <Typography variant="subtitle2" color="text.secondary">
-                  Long description
+                  Conclusion
                 </Typography>
                 <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                  {viewBlog.longDescription || 'No long description added yet.'}
+                  {viewBlog.conclusion || 'No conclusion added yet.'}
                 </Typography>
               </Stack>
               <Divider />
