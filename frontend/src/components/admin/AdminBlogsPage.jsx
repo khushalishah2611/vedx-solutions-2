@@ -1164,11 +1164,11 @@ const AdminBlogsPage = () => {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {viewBlog.title}
               </Typography>
-              {viewBlog.subtitle && (
-                <Typography variant="subtitle1" color="text.secondary">
-                  {viewBlog.subtitle}
-                </Typography>
-              )}
+                 <RichTextSection
+                label="Long description"
+                content={viewBlog.subtitle}
+                emptyText="No long description added yet."
+              />
               <Stack spacing={1}>
                 {viewBlog.coverImage && (
                   <Box
