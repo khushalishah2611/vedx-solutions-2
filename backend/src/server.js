@@ -543,7 +543,11 @@ const mapUiStatusToPublishStatus = (status) => {
 };
 
 const normalizeAdminStatusFilter = (status) => {
-  const normalized = normalizeText(status).toUpperCase();
+  const rawStatus = normalizeText(status);
+
+  if (!rawStatus) return null;
+
+  const normalized = rawStatus.toUpperCase();
   if (['PUBLISHED', 'PUBLISH', 'PUBLISHING'].includes(normalized)) return 'PUBLISHED';
   if (['SCHEDULED', 'REVIEW'].includes(normalized)) return 'REVIEW';
   if (normalized === 'DRAFT') return 'DRAFT';
