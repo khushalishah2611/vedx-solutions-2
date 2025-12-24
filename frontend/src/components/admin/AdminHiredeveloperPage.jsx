@@ -147,8 +147,6 @@ const emptyProcessForm = {
   id: '',
   title: '',
   description: '',
-  category: '',
-  subcategory: '',
   image: imagePlaceholder,
 };
 
@@ -1249,13 +1247,6 @@ const AdminHiredeveloperPage = () => {
     }));
   }, [ourServices.sliderDescription, ourServices.sliderImage, ourServices.sliderTitle]);
 
-  useEffect(() => {
-    const allowed = subcategoryLookup.get(processForm.category) || [];
-    if (processForm.subcategory && !allowed.includes(processForm.subcategory)) {
-      setProcessForm((prev) => ({ ...prev, subcategory: '' }));
-    }
-  }, [processForm.category, processForm.subcategory, subcategoryLookup]);
-
   const openHirePricingCreateDialog = () => {
     setHirePricingDialogMode('create');
     setActiveHirePricingPlan(null);
@@ -1603,13 +1594,24 @@ const AdminHiredeveloperPage = () => {
 
   const handleHireServiceSubmit = async (event) => {
     event?.preventDefault();
-    if (!hireServiceForm.title.trim() || !hireServiceForm.category.trim() || !hireServiceForm.image) return;
+    if (!hireServiceForm.title.trim() || !hireServiceForm.image) return;
+
+    const payload = {
+      category: hireServiceForm.category || null,
+      subcategory: hireServiceForm.subcategory || null,
+      title: hireServiceForm.title,
+      description: hireServiceForm.description,
+      image: hireServiceForm.image,
+      heroTitle: hireServiceForm.heroTitle,
+      heroDescription: hireServiceForm.heroDescription,
+      heroImage: hireServiceForm.heroImage,
+    };
 
     try {
       if (hireServiceDialogMode === 'edit' && activeHireService) {
         const updated = await fetchJson(`/api/hire-developer/hire-services/${activeHireService.id}`, {
           method: 'PUT',
-          body: JSON.stringify(hireServiceForm),
+          body: JSON.stringify(payload),
         });
         const normalized = normalizeHireService(updated);
         setHireContent((prev) => ({
@@ -1621,7 +1623,7 @@ const AdminHiredeveloperPage = () => {
       } else {
         const created = await fetchJson('/api/hire-developer/hire-services', {
           method: 'POST',
-          body: JSON.stringify(hireServiceForm),
+          body: JSON.stringify(payload),
         });
         const normalized = normalizeHireService(created);
         setHireContent((prev) => ({ ...prev, services: [normalized, ...prev.services] }));
@@ -1671,20 +1673,28 @@ const AdminHiredeveloperPage = () => {
 
   const handleProcessSubmit = async (event) => {
     event?.preventDefault();
-    if (!processForm.title.trim() || !processForm.image || !processForm.category || !processForm.subcategory) return;
+    if (!processForm.title.trim() || !processForm.image) return;
+
+    const payload = {
+      title: processForm.title,
+      description: processForm.description,
+      category: processForm.category || null,
+      subcategory: processForm.subcategory || null,
+      image: processForm.image,
+    };
 
     try {
       if (processDialogMode === 'edit' && activeProcess) {
         const updated = await fetchJson(`/api/hire-developer/processes/${activeProcess.id}`, {
           method: 'PUT',
-          body: JSON.stringify(processForm),
+          body: JSON.stringify(payload),
         });
         const normalized = normalizeProcess(updated);
         setProcessList((prev) => prev.map((item) => (item.id === activeProcess.id ? normalized : item)));
       } else {
         const created = await fetchJson('/api/hire-developer/processes', {
           method: 'POST',
-          body: JSON.stringify(processForm),
+          body: JSON.stringify(payload),
         });
         const normalized = normalizeProcess(created);
         setProcessList((prev) => [normalized, ...prev]);
@@ -2147,11 +2157,6 @@ const AdminHiredeveloperPage = () => {
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
 
-  const processSubcategoryOptions = useMemo(() => {
-    if (!processForm.category) return allSubcategoryOptions;
-    return subcategoryLookup.get(processForm.category) || allSubcategoryOptions;
-  }, [allSubcategoryOptions, processForm.category, subcategoryLookup]);
-
   const whySubcategoryOptions = useMemo(() => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
     return options.map((option) => ({ name: option }));
@@ -2397,8 +2402,6 @@ const AdminHiredeveloperPage = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell align="right">Actions</TableCell>
@@ -2408,8 +2411,6 @@ const AdminHiredeveloperPage = () => {
                   {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
                     <TableRow key={item.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                      <TableCell>{item.category || '-'}</TableCell>
-                      <TableCell>{item.subcategory || '-'}</TableCell>
                       <TableCell>
                         <Box
                           component="img"
@@ -2441,7 +2442,7 @@ const AdminHiredeveloperPage = () => {
                   ))}
                   {processList.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No process steps added yet.
                         </Typography>
@@ -4219,35 +4220,6 @@ const AdminHiredeveloperPage = () => {
               fullWidth
               required
             />
-            <Autocomplete
-              options={categoryOptions.map((option) => option.label)}
-              value={processForm.category}
-              onInputChange={(event, newValue) => handleProcessChange('category', newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Category"
-                  placeholder="Select category"
-                  required
-                  helperText="Choose which category this process step belongs to"
-                />
-              )}
-            />
-            <Autocomplete
-              options={processSubcategoryOptions}
-              value={processForm.subcategory}
-              onInputChange={(event, newValue) => handleProcessChange('subcategory', newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category"
-                  placeholder="Select sub-category"
-                  required
-                  helperText="Pick a sub-category linked to the selected category"
-                />
-              )}
-              disabled={!processForm.category && processSubcategoryOptions.length === 0}
-            />
             <TextField
               label="Description"
               value={processForm.description}
@@ -4566,8 +4538,7 @@ const AdminHiredeveloperPage = () => {
                 <TextField
                   {...params}
                   label="Service category"
-                  required
-                  helperText="Link hire cards to a service category"
+                  helperText="Optionally link hire cards to a service category"
                 />
               )}
             />

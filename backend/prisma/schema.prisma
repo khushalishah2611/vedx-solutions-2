@@ -761,7 +761,7 @@ model HireDeveloper {
 
 model HireService {
   id             Int           @id @default(autoincrement())
-  category       String
+  category       String?
   subcategory    String?
   title          String
   description    String        @db.Text
@@ -911,7 +911,7 @@ model HireDeveloperPricing {
 
 model HireDeveloperHireService {
   id              Int      @id @default(autoincrement())
-  category        String
+  category        String?
   subcategory     String?
   title           String
   description     String?  @db.Text
@@ -931,8 +931,8 @@ model HireDeveloperProcess {
   id          Int      @id @default(autoincrement())
   title       String
   description String?  @db.Text
-  category    String
-  subcategory String
+  category    String?
+  subcategory String?
   image       String @db.LongText
 
   createdAt   DateTime @default(now())

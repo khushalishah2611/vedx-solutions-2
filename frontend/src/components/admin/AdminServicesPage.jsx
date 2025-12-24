@@ -1209,11 +1209,11 @@ const AdminServicesPage = () => {
 
   const handleHireServiceSubmit = async (event) => {
     event?.preventDefault();
-    if (!hireServiceForm.title.trim() || !hireServiceForm.category.trim() || !hireServiceForm.image) return;
+    if (!hireServiceForm.title.trim() || !hireServiceForm.image) return;
 
     const payload = {
-      category: hireServiceForm.category,
-      subcategory: hireServiceForm.subcategory,
+      category: hireServiceForm.category || null,
+      subcategory: hireServiceForm.subcategory || null,
       title: hireServiceForm.title,
       description: hireServiceForm.description,
       image: hireServiceForm.image,
@@ -1656,11 +1656,6 @@ const AdminServicesPage = () => {
     if (!technologyForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(technologyForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, subcategoryLookup, technologyForm.category]);
-
-  const hireSubcategoryOptions = useMemo(() => {
-    if (!hireServiceForm.category) return allSubcategoryOptions;
-    return subcategoryLookup.get(hireServiceForm.category) || allSubcategoryOptions;
-  }, [allSubcategoryOptions, hireServiceForm.category, subcategoryLookup]);
 
   const benefitSubcategoryOptions = useMemo(() => {
     if (!benefitForm.category) return allSubcategoryOptions;
@@ -3739,46 +3734,10 @@ const AdminServicesPage = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={hireServiceDialogOpen} onClose={closeHireServiceDialog} maxWidth="sm" fullWidth>
+            <Dialog open={hireServiceDialogOpen} onClose={closeHireServiceDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{hireServiceDialogMode === 'edit' ? 'Edit hire service' : 'Add hire service'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleHireServiceSubmit}>
-            <TextField
-              select
-              label="Service category"
-              value={hireServiceForm.category}
-              onChange={(event) =>
-                setHireServiceForm((prev) => ({
-                  ...prev,
-                  category: event.target.value,
-                  subcategory: '',
-                }))
-              }
-              required
-              helperText="Link hire cards to a service category"
-              fullWidth
-            >
-              {categoryOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Sub-category"
-              value={hireServiceForm.subcategory}
-              onChange={(event) => handleHireServiceFormChange('subcategory', event.target.value)}
-              helperText="Pick the sub-category for this hire option"
-              disabled={!hireServiceForm.category && hireSubcategoryOptions.length === 0}
-              fullWidth
-            >
-              {hireSubcategoryOptions.map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </TextField>
             <TextField
               label="Title"
               value={hireServiceForm.title}
