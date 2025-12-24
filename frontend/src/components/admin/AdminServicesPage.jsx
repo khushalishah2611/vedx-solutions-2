@@ -102,8 +102,6 @@ const emptyProcessForm = {
   id: '',
   title: '',
   description: '',
-  category: '',
-  subcategory: '',
   image: imagePlaceholder,
 };
 
@@ -884,13 +882,6 @@ const AdminServicesPage = () => {
     }));
   }, [ourServices.sliderDescription, ourServices.sliderImage, ourServices.sliderTitle]);
 
-  useEffect(() => {
-    const allowed = subcategoryLookup.get(processForm.category) || [];
-    if (processForm.subcategory && !allowed.includes(processForm.subcategory)) {
-      setProcessForm((prev) => ({ ...prev, subcategory: '' }));
-    }
-  }, [processForm.category, processForm.subcategory, subcategoryLookup]);
-
   const openServiceCreateDialog = () => {
     setServiceDialogMode('create');
     setActiveService(null);
@@ -1298,13 +1289,11 @@ const AdminServicesPage = () => {
 
   const handleProcessSubmit = async (event) => {
     event?.preventDefault();
-    if (!processForm.title.trim() || !processForm.image || !processForm.category) return;
+    if (!processForm.title.trim() || !processForm.image) return;
 
     const payload = {
       title: processForm.title,
       description: processForm.description,
-      category: processForm.category,
-      subcategory: processForm.subcategory,
       image: processForm.image,
       serviceId: processForm.serviceId || null,
     };
@@ -1678,11 +1667,6 @@ const AdminServicesPage = () => {
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
 
-  const processSubcategoryOptions = useMemo(() => {
-    if (!processForm.category) return allSubcategoryOptions;
-    return subcategoryLookup.get(processForm.category) || allSubcategoryOptions;
-  }, [allSubcategoryOptions, processForm.category, subcategoryLookup]);
-
   const whySubcategoryOptions = useMemo(() => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
     return options.map((option) => ({ name: option }));
@@ -1927,8 +1911,6 @@ const AdminServicesPage = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell align="right">Actions</TableCell>
@@ -1938,8 +1920,6 @@ const AdminServicesPage = () => {
                   {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
                     <TableRow key={item.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                      <TableCell>{item.category || '-'}</TableCell>
-                      <TableCell>{item.subcategory || '-'}</TableCell>
                       <TableCell>
                         <Box
                           component="img"
@@ -1971,7 +1951,7 @@ const AdminServicesPage = () => {
                   ))}
                   {processList.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No process steps added yet.
                         </Typography>
@@ -3459,35 +3439,6 @@ const AdminServicesPage = () => {
               onChange={(event) => handleProcessChange('title', event.target.value)}
               fullWidth
               required
-            />
-            <Autocomplete
-              options={categoryOptions.map((option) => option.label)}
-              value={processForm.category}
-              onInputChange={(event, newValue) => handleProcessChange('category', newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Category"
-                  placeholder="Select category"
-                  required
-                  helperText="Choose which category this process step belongs to"
-                />
-              )}
-            />
-            <Autocomplete
-              options={processSubcategoryOptions}
-              value={processForm.subcategory}
-              onInputChange={(event, newValue) => handleProcessChange('subcategory', newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category"
-                  placeholder="Select sub-category"
-                  required
-                  helperText="Pick a sub-category linked to the selected category"
-                />
-              )}
-              disabled={!processForm.category && processSubcategoryOptions.length === 0}
             />
             <TextField
               label="Description"

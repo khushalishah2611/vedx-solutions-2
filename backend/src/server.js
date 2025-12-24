@@ -5261,9 +5261,9 @@ app.post('/api/service-processes', async (req, res) => {
 
     const { title, description, category, subcategory, image, serviceId } = req.body ?? {};
 
-    if (!title || !description || !category || !image) {
+    if (!title || !description || !image) {
       return res.status(400).json({
-        error: 'title, description, category, and image are required'
+        error: 'title, description, and image are required'
       });
     }
 
@@ -5280,7 +5280,7 @@ app.post('/api/service-processes', async (req, res) => {
       data: {
         title,
         description,
-        category,
+        category: category || null,
         subcategory: subcategory || null,
         image,
         serviceId: serviceId || null,
@@ -5321,8 +5321,8 @@ app.put('/api/service-processes/:id', async (req, res) => {
       data: {
         title,
         description,
-        category,
-        subcategory,
+        category: category || null,
+        subcategory: subcategory || null,
         image,
         serviceId: serviceId === null ? null : serviceId,
       },

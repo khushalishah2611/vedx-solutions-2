@@ -730,7 +730,7 @@ model ServiceProcess {
   id          Int        @id @default(autoincrement())
   title       String
   description String     @db.Text
-  category    String
+  category    String?
   subcategory String?
   image String @db.LongText
 
