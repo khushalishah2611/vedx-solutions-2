@@ -42,6 +42,7 @@ const initialTechnologies = [];
 const initialBenefits = [];
 const initialHireDevelopers = { title: '', description: '', heroImage: imagePlaceholder, services: [] };
 const initialWhyChoose = {
+  id: null,
   heroTitle: '',
   heroDescription: '',
   heroImage: imagePlaceholder,
@@ -530,6 +531,7 @@ const AdminServicesPage = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || '');
       setWhyChoose({
+        id: data.id ?? null,
         heroTitle: data.heroTitle || '',
         heroDescription: data.heroDescription || '',
         heroImage: data.heroImage || imagePlaceholder,
@@ -616,6 +618,9 @@ const AdminServicesPage = () => {
   const [technologyPage, setTechnologyPage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
+  const [whyCategoryFilter, setWhyCategoryFilter] = useState('');
+  const [whySubcategoryFilter, setWhySubcategoryFilter] = useState('');
+  const [lastWhyServiceSelection, setLastWhyServiceSelection] = useState({ category: '', subcategory: '' });
   const [hireServicePage, setHireServicePage] = useState(1);
   const [processPage, setProcessPage] = useState(1);
   const [whyVedxPage, setWhyVedxPage] = useState(1);
@@ -631,7 +636,6 @@ const AdminServicesPage = () => {
   };
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
-  const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
   const resetWhyVedxForm = () => setWhyVedxForm(emptyWhyVedxForm);
   const resetOurServiceForm = () => setOurServiceForm(emptyOurServiceForm);
@@ -732,31 +736,48 @@ const AdminServicesPage = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save Why Choose hero');
       setWhyChoose((prev) => ({ ...prev, ...data }));
+      setWhyHeroForm((prev) => ({ ...prev, ...data }));
     } catch (err) {
       handleRequestError(err, 'Unable to save Why Choose hero');
     }
   };
 
-  const categoryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          (serviceCategories || [])
-            .map((category) => category.name)
-            .filter((name) => Boolean(name && name.trim()))
-        )
-      ).map((category) => ({
-        value: category,
-        label: category,
-      })),
-    [serviceCategories]
-  );
+  const categoryOptions = useMemo(() => {
+    const categoryNames = new Set(
+      services
+        .map((service) => service.category)
+        .filter((name) => Boolean(name && name.trim()))
+    );
+
+    if (categoryNames.size === 0) {
+      (serviceCategories || []).forEach((category) => {
+        if (category?.name) categoryNames.add(category.name);
+      });
+    }
+
+    return Array.from(categoryNames).map((category) => ({
+      value: category,
+      label: category,
+    }));
+  }, [serviceCategories, services]);
 
   const subcategoryLookup = useMemo(() => {
     const lookup = new Map();
 
+    services.forEach((service) => {
+      if (!service.category) return;
+
+      const current = lookup.get(service.category) || [];
+      (service.subcategories || []).forEach((subcategory) => {
+        if (subcategory.name && !current.includes(subcategory.name)) {
+          current.push(subcategory.name);
+        }
+      });
+      lookup.set(service.category, current);
+    });
+
     serviceCategories.forEach((category) => {
-      if (category.name) {
+      if (category.name && !lookup.has(category.name)) {
         lookup.set(category.name, []);
       }
     });
@@ -778,15 +799,25 @@ const AdminServicesPage = () => {
     });
 
     return lookup;
-  }, [serviceCategories, serviceSubcategories]);
+  }, [serviceCategories, serviceSubcategories, services]);
 
-  const allSubcategoryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(serviceSubcategories.map((subcategory) => subcategory.name).filter((name) => Boolean(name)))
-      ),
-    [serviceSubcategories]
-  );
+  const allSubcategoryOptions = useMemo(() => {
+    const options = new Set();
+
+    subcategoryLookup.forEach((subcategories) => {
+      subcategories.forEach((name) => {
+        if (name) options.add(name);
+      });
+    });
+
+    if (options.size === 0) {
+      serviceSubcategories.forEach((subcategory) => {
+        if (subcategory.name) options.add(subcategory.name);
+      });
+    }
+
+    return Array.from(options);
+  }, [serviceSubcategories, subcategoryLookup]);
 
   const filteredServices = useMemo(
     () =>
@@ -843,10 +874,21 @@ const AdminServicesPage = () => {
     return benefits.slice(start, start + rowsPerPage);
   }, [benefits, rowsPerPage, benefitPage]);
 
+  const filteredWhyServices = useMemo(
+    () =>
+      whyChoose.services.filter((service) => {
+        const matchesCategory = whyCategoryFilter ? service.category === whyCategoryFilter : true;
+        const matchesSubcategory = whySubcategoryFilter ? service.subcategory === whySubcategoryFilter : true;
+
+        return matchesCategory && matchesSubcategory;
+      }),
+    [whyCategoryFilter, whySubcategoryFilter, whyChoose.services]
+  );
+
   const pagedWhyServices = useMemo(() => {
     const start = (whyServicePage - 1) * rowsPerPage;
-    return whyChoose.services.slice(start, start + rowsPerPage);
-  }, [whyChoose.services, rowsPerPage, whyServicePage]);
+    return filteredWhyServices.slice(start, start + rowsPerPage);
+  }, [filteredWhyServices, rowsPerPage, whyServicePage]);
 
   const pagedHireServices = useMemo(() => {
     const start = (hireServicePage - 1) * rowsPerPage;
@@ -864,9 +906,25 @@ const AdminServicesPage = () => {
   }, [benefits.length, rowsPerPage]);
 
   useEffect(() => {
-    const maxWhyPage = Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage));
+    const maxWhyPage = Math.max(1, Math.ceil(filteredWhyServices.length / rowsPerPage));
     setWhyServicePage((prev) => Math.min(prev, maxWhyPage));
-  }, [whyChoose.services.length, rowsPerPage]);
+  }, [filteredWhyServices.length, rowsPerPage]);
+
+  useEffect(() => {
+    if (!whyCategoryFilter) {
+      setWhySubcategoryFilter('');
+      return;
+    }
+
+    const allowed = subcategoryLookup.get(whyCategoryFilter) || [];
+    if (whySubcategoryFilter && !allowed.includes(whySubcategoryFilter)) {
+      setWhySubcategoryFilter('');
+    }
+  }, [subcategoryLookup, whyCategoryFilter, whySubcategoryFilter]);
+
+  useEffect(() => {
+    setWhyServicePage(1);
+  }, [whyCategoryFilter, whySubcategoryFilter]);
 
   useEffect(() => {
     const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
@@ -1113,7 +1171,11 @@ const AdminServicesPage = () => {
   const openWhyServiceCreateDialog = () => {
     setWhyServiceDialogMode('create');
     setActiveWhyService(null);
-    resetWhyServiceForm();
+    setWhyServiceForm({
+      ...emptyWhyServiceForm,
+      category: whyCategoryFilter || lastWhyServiceSelection.category || '',
+      subcategory: whySubcategoryFilter || lastWhyServiceSelection.subcategory || '',
+    });
     setWhyServiceDialogOpen(true);
   };
 
@@ -1121,6 +1183,7 @@ const AdminServicesPage = () => {
     setWhyServiceDialogMode('edit');
     setActiveWhyService(service);
     setWhyServiceForm({ ...service });
+    setLastWhyServiceSelection({ category: service.category || '', subcategory: service.subcategory || '' });
     setWhyServiceDialogOpen(true);
   };
 
@@ -1131,13 +1194,14 @@ const AdminServicesPage = () => {
 
   const handleWhyServiceSubmit = async (event) => {
     event?.preventDefault();
-    if (!whyServiceForm.title.trim() || !whyServiceForm.category.trim()) return;
+    if (!whyServiceForm.title.trim() || !whyServiceForm.category.trim() || !whyServiceForm.description.trim()) return;
 
     const payload = {
       category: whyServiceForm.category,
       subcategory: whyServiceForm.subcategory,
       title: whyServiceForm.title,
       description: whyServiceForm.description,
+      whyChooseId: whyChoose.id,
     };
 
     const isEdit = whyServiceDialogMode === 'edit' && activeWhyService;
@@ -1161,6 +1225,7 @@ const AdminServicesPage = () => {
           ? prev.services.map((service) => (service.id === normalized.id ? normalized : service))
           : [normalized, ...prev.services],
       }));
+      setLastWhyServiceSelection({ category: normalized.category || '', subcategory: normalized.subcategory || '' });
       closeWhyServiceDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to save Why Choose service');
@@ -1666,6 +1731,11 @@ const AdminServicesPage = () => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
     return options.map((option) => ({ name: option }));
   }, [subcategoryLookup, whyServiceForm.category]);
+
+  const whyFilterSubcategoryOptions = useMemo(() => {
+    if (!whyCategoryFilter) return allSubcategoryOptions;
+    return subcategoryLookup.get(whyCategoryFilter) || [];
+  }, [allSubcategoryOptions, subcategoryLookup, whyCategoryFilter]);
 
   return (
     <Stack spacing={3}>
@@ -2462,12 +2532,14 @@ const AdminServicesPage = () => {
                         fullWidth
                         multiline
                         minRows={3}
+                        required
                       />
                       <TextField
                         label="Service table title"
                         value={whyHeroForm.tableTitle}
                         onChange={(event) => handleWhyHeroChange('tableTitle', event.target.value)}
                         fullWidth
+                        required
                       />
                       <TextField
                         label="Service table description"
@@ -2476,6 +2548,7 @@ const AdminServicesPage = () => {
                         fullWidth
                         multiline
                         minRows={2}
+                        required
                       />
                       <Stack direction="row" spacing={2} alignItems="center">
                         <Button type="submit" variant="contained">
@@ -2514,6 +2587,42 @@ const AdminServicesPage = () => {
                   >
                     Add highlight
                   </Button>
+                </Stack>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
+                  <TextField
+                    select
+                    label="Filter by category"
+                    value={whyCategoryFilter}
+                    onChange={(event) => setWhyCategoryFilter(event.target.value)}
+                    sx={{ minWidth: { md: 220 } }}
+                  >
+                    <MenuItem value="">All categories</MenuItem>
+                    {categoryOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    select
+                    label="Filter by sub-category"
+                    value={whySubcategoryFilter}
+                    onChange={(event) => setWhySubcategoryFilter(event.target.value)}
+                    sx={{ minWidth: { md: 220 } }}
+                    disabled={!whyCategoryFilter && whyFilterSubcategoryOptions.length === 0}
+                    helperText={
+                      whyCategoryFilter && whyFilterSubcategoryOptions.length === 0
+                        ? 'No sub-categories for this category'
+                        : undefined
+                    }
+                  >
+                    <MenuItem value="">All sub-categories</MenuItem>
+                    {(whyCategoryFilter ? whyFilterSubcategoryOptions : allSubcategoryOptions).map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Stack>
                 <TableContainer>
                   <Table size="small">
@@ -2561,11 +2670,11 @@ const AdminServicesPage = () => {
                           </TableCell>
                         </TableRow>
                       ))}
-                      {whyChoose.services.length === 0 && (
+                      {filteredWhyServices.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={5}>
                             <Typography variant="body2" color="text.secondary" align="center">
-                              No highlights yet. Use "Add highlight" to create category-wise reasons to choose you.
+                              No highlights match your filters. Clear filters or use "Add highlight" to create category-wise reasons to choose you.
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -2575,7 +2684,7 @@ const AdminServicesPage = () => {
                 </TableContainer>
                 <Stack mt={2} alignItems="flex-end">
                   <Pagination
-                    count={Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage))}
+                    count={Math.max(1, Math.ceil(filteredWhyServices.length / rowsPerPage))}
                     page={whyServicePage}
                     onChange={(event, page) => setWhyServicePage(page)}
                     color="primary"
@@ -3164,7 +3273,10 @@ const AdminServicesPage = () => {
               label="Category"
               value={whyServiceForm.category}
               onChange={(event) =>
-                setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }))
+                {
+                  setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }));
+                  setLastWhyServiceSelection((prev) => ({ ...prev, category: event.target.value || '', subcategory: '' }));
+                }
               }
               fullWidth
               required
@@ -3179,7 +3291,10 @@ const AdminServicesPage = () => {
               select
               label="Sub-category"
               value={whyServiceForm.subcategory}
-              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
+              onChange={(event) => {
+                setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }));
+                setLastWhyServiceSelection((prev) => ({ ...prev, subcategory: event.target.value || '' }));
+              }}
               fullWidth
               disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
               helperText={
@@ -3210,6 +3325,7 @@ const AdminServicesPage = () => {
               fullWidth
               multiline
               minRows={3}
+              required
             />
           </Stack>
         </DialogContent>
