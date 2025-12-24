@@ -5261,9 +5261,9 @@ app.post('/api/service-processes', async (req, res) => {
 
     const { title, description, category, subcategory, image, serviceId } = req.body ?? {};
 
-    if (!title || !description || !category || !image) {
+    if (!title || !description || !image) {
       return res.status(400).json({
-        error: 'title, description, category, and image are required'
+        error: 'title, description, and image are required'
       });
     }
 
@@ -5280,7 +5280,7 @@ app.post('/api/service-processes', async (req, res) => {
       data: {
         title,
         description,
-        category,
+        category: category || null,
         subcategory: subcategory || null,
         image,
         serviceId: serviceId || null,
@@ -5321,8 +5321,8 @@ app.put('/api/service-processes/:id', async (req, res) => {
       data: {
         title,
         description,
-        category,
-        subcategory,
+        category: category || null,
+        subcategory: subcategory || null,
         image,
         serviceId: serviceId === null ? null : serviceId,
       },
@@ -5436,7 +5436,7 @@ app.post('/api/hire-developer', async (req, res) => {
 
 const mapHireServiceToResponse = (service) => ({
   id: service.id,
-  category: service.category,
+  category: service.category || '',
   subcategory: service.subcategory || '',
   title: service.title,
   description: service.description,
@@ -5474,16 +5474,16 @@ app.post('/api/hire-services', async (req, res) => {
 
     const { category, subcategory, title, description, image, hireDeveloperId } = req.body ?? {};
 
-    if (!category || !title || !description || !image) {
+    if (!title || !description || !image) {
       return res.status(400).json({
-        error: 'category, title, description, and image are required'
+        error: 'title, description, and image are required'
       });
     }
 
     const created = await prisma.hireService.create({
       data: {
-        category,
-        subcategory: subcategory || null,
+        category: category?.trim() || null,
+        subcategory: subcategory?.trim() || null,
         title,
         description,
         image,
@@ -5514,8 +5514,8 @@ app.put('/api/hire-services/:id', async (req, res) => {
     const updated = await prisma.hireService.update({
       where: { id },
       data: {
-        category,
-        subcategory,
+        category: category === undefined ? undefined : category?.trim() || null,
+        subcategory: subcategory === undefined ? undefined : subcategory?.trim() || null,
         title,
         description,
         image,
@@ -6222,13 +6222,9 @@ app.post('/api/hire-developer/services', async (req, res) => {
       faqs,
     } = req.body;
 
-    if (!category || !String(category).trim()) {
-      return res.status(400).json({ error: 'Category is required' });
-    }
-
     const service = await prisma.hireDeveloperService.create({
       data: {
-        category: String(category).trim(),
+        category: category?.trim() || null,
         subcategories: subcategories ?? [],
         bannerTitle: bannerTitle?.trim() || null,
         bannerSubtitle: bannerSubtitle?.trim() || null,
@@ -6273,7 +6269,7 @@ app.put('/api/hire-developer/services/:id', async (req, res) => {
     const updated = await prisma.hireDeveloperService.update({
       where: { id },
       data: {
-        ...(category !== undefined && { category: String(category).trim() }),
+        ...(category !== undefined && { category: category?.trim() || null }),
         ...(subcategories !== undefined && { subcategories }),
         bannerTitle: bannerTitle?.trim() || null,
         bannerSubtitle: bannerSubtitle?.trim() || null,
@@ -6684,8 +6680,8 @@ app.post('/api/hire-developer/hire-services', async (req, res) => {
       heroImage,
     } = req.body;
 
-    if (!category || !String(category).trim() || !title || !String(title).trim()) {
-      return res.status(400).json({ error: 'Category and title are required' });
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
     }
     if (!image || !String(image).trim()) {
       return res.status(400).json({ error: 'Image is required' });
@@ -6693,7 +6689,7 @@ app.post('/api/hire-developer/hire-services', async (req, res) => {
 
     const service = await prisma.hireDeveloperHireService.create({
       data: {
-        category: String(category).trim(),
+        category: category?.trim() || null,
         subcategory: subcategory?.trim() || null,
         title: String(title).trim(),
         description: description?.trim() || null,
@@ -6734,7 +6730,7 @@ app.put('/api/hire-developer/hire-services/:id', async (req, res) => {
     const updated = await prisma.hireDeveloperHireService.update({
       where: { id },
       data: {
-        ...(category !== undefined && { category: String(category).trim() }),
+        ...(category !== undefined && { category: category?.trim() || null }),
         subcategory: subcategory?.trim() || null,
         ...(title !== undefined && { title: String(title).trim() }),
         description: description?.trim() || null,
@@ -6802,22 +6798,19 @@ app.post('/api/hire-developer/processes', async (req, res) => {
 
     const { title, description, category, subcategory, image } = req.body;
 
-    if (!title || !String(title).trim() || !category || !String(category).trim()) {
-      return res.status(400).json({ error: 'Title and category are required' });
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
     }
     if (!image || !String(image).trim()) {
       return res.status(400).json({ error: 'Image is required' });
-    }
-    if (!subcategory || !String(subcategory).trim()) {
-      return res.status(400).json({ error: 'Subcategory is required' });
     }
 
     const process = await prisma.hireDeveloperProcess.create({
       data: {
         title: String(title).trim(),
         description: description?.trim() || null,
-        category: String(category).trim(),
-        subcategory: String(subcategory).trim(),
+        category: category?.trim() || null,
+        subcategory: subcategory?.trim() || null,
         image: String(image).trim(),
       },
     });
@@ -6845,8 +6838,8 @@ app.put('/api/hire-developer/processes/:id', async (req, res) => {
       data: {
         ...(title !== undefined && { title: String(title).trim() }),
         description: description?.trim() || null,
-        ...(category !== undefined && { category: String(category).trim() }),
-        ...(subcategory !== undefined && { subcategory: String(subcategory).trim() }),
+        ...(category !== undefined && { category: category?.trim() || null }),
+        ...(subcategory !== undefined && { subcategory: subcategory?.trim() || null }),
         ...(image !== undefined && { image: String(image).trim() }),
       },
     });
