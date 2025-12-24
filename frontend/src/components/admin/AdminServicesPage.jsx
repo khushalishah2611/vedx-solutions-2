@@ -954,7 +954,7 @@ const AdminServicesPage = () => {
         if (categoryCompare !== 0) return categoryCompare;
         const subcategoryCompare = (a.subcategory || '').localeCompare(b.subcategory || '');
         if (subcategoryCompare !== 0) return subcategoryCompare;
-        return (a.id || '').localeCompare(b.id || '');
+        return String(a.id ?? '').localeCompare(String(b.id ?? ''));
       }),
     }));
   }, [technologies]);
