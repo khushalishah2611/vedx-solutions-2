@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Box,
   Button,
   Card,
@@ -31,6 +34,7 @@ import {
   Typography
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
@@ -53,7 +57,12 @@ const initialWhyChoose = {
   services: [],
 };
 const initialProcess = [];
-const initialWhyVedx = { heroTitle: '', heroDescription: '', heroImage: imagePlaceholder, reasons: [] };
+const emptyWhyVedxHero = {
+  id: '',
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+};
 const initialOurServices = { sliderTitle: '', sliderDescription: '', sliderImage: imagePlaceholder, services: [] };
 const initialIndustries = [];
 const initialTechSolutions = [];
@@ -109,6 +118,7 @@ const emptyProcessForm = {
 };
 
 const emptyWhyVedxHero = {
+  id: '',
   heroTitle: '',
   heroDescription: '',
   heroImage: imagePlaceholder,
@@ -119,6 +129,7 @@ const emptyWhyVedxForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  whyVedxId: '',
 };
 
 const emptyOurServiceForm = {
@@ -321,8 +332,10 @@ const AdminServicesPage = () => {
   const [activeProcess, setActiveProcess] = useState(null);
   const [processToDelete, setProcessToDelete] = useState(null);
 
-  const [whyVedx, setWhyVedx] = useState(initialWhyVedx);
-  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState(initialWhyVedx);
+  const [whyVedxList, setWhyVedxList] = useState([]);
+  const [selectedWhyVedxId, setSelectedWhyVedxId] = useState('');
+  const [whyVedxHeroForm, setWhyVedxHeroForm] = useState(emptyWhyVedxHero);
+  const [whyVedxReasons, setWhyVedxReasons] = useState([]);
   const [whyVedxDialogOpen, setWhyVedxDialogOpen] = useState(false);
   const [whyVedxDialogMode, setWhyVedxDialogMode] = useState('create');
   const [whyVedxForm, setWhyVedxForm] = useState(emptyWhyVedxForm);
@@ -446,6 +459,14 @@ const AdminServicesPage = () => {
   const normalizeWhyVedxReason = (reason) => ({
     ...reason,
     whyVedxId: reason.whyVedxId || '',
+  });
+
+  const normalizeWhyVedx = (item) => ({
+    id: item.id,
+    heroTitle: item.heroTitle || '',
+    heroDescription: item.heroDescription || '',
+    heroImage: item.heroImage || imagePlaceholder,
+    reasons: (item.reasons || []).map(normalizeWhyVedxReason),
   });
 
   const loadServiceMenus = async () => {
@@ -572,31 +593,30 @@ const AdminServicesPage = () => {
 
   const loadWhyVedx = async () => {
     try {
-      const response = await fetch(apiUrl('/api/why-vedx'));
+      const response = await fetch(apiUrl('/api/why-vedx?includeReasons=true'));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || '');
-      setWhyVedx({
-        heroTitle: data.heroTitle || '',
-        heroDescription: data.heroDescription || '',
-        heroImage: data.heroImage || imagePlaceholder,
-        reasons: data.reasons?.map(normalizeWhyVedxReason) || [],
-      });
-      setWhyVedxHeroForm({
-        heroTitle: data.heroTitle || '',
-        heroDescription: data.heroDescription || '',
-        heroImage: data.heroImage || imagePlaceholder,
-      });
+      const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
+
+      setWhyVedxList(list);
+
+      const active = list[0] || emptyWhyVedxHero;
+      setSelectedWhyVedxId(active.id || '');
+      setWhyVedxHeroForm(active.id ? active : emptyWhyVedxHero);
+      setWhyVedxReasons(active.reasons || []);
     } catch (err) {
       console.error('Failed to load why VEDX config', err);
     }
   };
 
-  const loadWhyVedxReasons = async () => {
+  const loadWhyVedxReasons = async (whyVedxId) => {
     try {
-      const response = await fetch(apiUrl('/api/why-vedx-reasons'));
+      const params = new URLSearchParams();
+      if (whyVedxId) params.append('whyVedxId', String(whyVedxId));
+      const response = await fetch(apiUrl(`/api/why-vedx-reasons${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load reasons');
-      setWhyVedx((prev) => ({ ...prev, reasons: (data || []).map(normalizeWhyVedxReason) }));
+      setWhyVedxReasons((data || []).map(normalizeWhyVedxReason));
     } catch (err) {
       console.error('Failed to load why VEDX reasons', err);
     }
@@ -613,7 +633,6 @@ const AdminServicesPage = () => {
     loadHireServices();
     loadWhyChoose();
     loadWhyVedx();
-    loadWhyVedxReasons();
   }, []);
 
   useEffect(() => {
@@ -632,6 +651,18 @@ const AdminServicesPage = () => {
       loadWhyServices(existing.id);
     }
   }, [selectedWhyChooseId, whyChooseList]);
+
+  useEffect(() => {
+    const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
+    if (active) {
+      setWhyVedxHeroForm(active);
+      loadWhyVedxReasons(active.id);
+    } else {
+      setWhyVedxHeroForm(emptyWhyVedxHero);
+      setWhyVedxReasons([]);
+    }
+    setWhyVedxPage(1);
+  }, [selectedWhyVedxId, whyVedxList]);
 
   const rowsPerPage = 5;
   const [serviceDateFilter, setServiceDateFilter] = useState('all');
@@ -659,7 +690,7 @@ const AdminServicesPage = () => {
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
   const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
-  const resetWhyVedxForm = () => setWhyVedxForm(emptyWhyVedxForm);
+  const resetWhyVedxForm = () => setWhyVedxForm({ ...emptyWhyVedxForm, whyVedxId: selectedWhyVedxId || '' });
   const resetOurServiceForm = () => setOurServiceForm(emptyOurServiceForm);
   const resetIndustryForm = () => setIndustryForm(emptyIndustryForm);
   const resetTechSolutionForm = () => setTechSolutionForm(emptyTechSolutionForm);
@@ -824,6 +855,11 @@ const AdminServicesPage = () => {
     [serviceSubcategories]
   );
 
+  const whyVedxOptions = useMemo(
+    () => whyVedxList.map((item) => ({ value: item.id, label: item.heroTitle || `Hero ${item.id}` })),
+    [whyVedxList]
+  );
+
   const filteredServices = useMemo(
     () =>
       services.filter((service) => {
@@ -847,6 +883,18 @@ const AdminServicesPage = () => {
     const start = (servicePage - 1) * rowsPerPage;
     return filteredServices.slice(start, start + rowsPerPage);
   }, [filteredServices, rowsPerPage, servicePage]);
+
+  const groupedServices = useMemo(() => {
+    const lookup = new Map();
+
+    pagedServices.forEach((service) => {
+      const key = service.category || 'Uncategorised';
+      const existing = lookup.get(key) || [];
+      lookup.set(key, [...existing, service]);
+    });
+
+    return Array.from(lookup.entries()).map(([category, services]) => ({ category, services }));
+  }, [pagedServices]);
 
   useEffect(() => {
     setServicePage(1);
@@ -878,6 +926,16 @@ const AdminServicesPage = () => {
     const start = (benefitPage - 1) * rowsPerPage;
     return benefits.slice(start, start + rowsPerPage);
   }, [benefits, rowsPerPage, benefitPage]);
+
+  const activeWhyVedxReasons = useMemo(() => {
+    if (!selectedWhyVedxId) return whyVedxReasons;
+    return whyVedxReasons.filter((reason) => String(reason.whyVedxId) === String(selectedWhyVedxId));
+  }, [selectedWhyVedxId, whyVedxReasons]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(activeWhyVedxReasons.length / rowsPerPage));
+    setWhyVedxPage((prev) => Math.min(prev, maxPage));
+  }, [activeWhyVedxReasons.length, rowsPerPage]);
 
   const pagedWhyServices = useMemo(() => {
     const start = (whyServicePage - 1) * rowsPerPage;
@@ -1403,6 +1461,7 @@ const AdminServicesPage = () => {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
+          id: selectedWhyVedxId || undefined,
           heroTitle: whyVedxHeroForm.heroTitle,
           heroDescription: whyVedxHeroForm.heroDescription,
           heroImage: whyVedxHeroForm.heroImage,
@@ -1410,7 +1469,20 @@ const AdminServicesPage = () => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save Why VEDX hero');
-      setWhyVedx((prev) => ({ ...prev, ...data }));
+      const normalized = normalizeWhyVedx(data);
+
+      setWhyVedxList((prev) => {
+        const exists = prev.some((item) => item.id === normalized.id);
+        return exists ? prev.map((item) => (item.id === normalized.id ? normalized : item)) : [normalized, ...prev];
+      });
+      setSelectedWhyVedxId(normalized.id);
+      setWhyVedxHeroForm(normalized);
+      if (normalized.reasons?.length) {
+        setWhyVedxReasons((prev) => {
+          const remaining = prev.filter((reason) => reason.whyVedxId !== normalized.id);
+          return [...remaining, ...normalized.reasons];
+        });
+      }
     } catch (err) {
       handleRequestError(err, 'Unable to save Why VEDX hero');
     }
@@ -1453,8 +1525,13 @@ const AdminServicesPage = () => {
       title: whyVedxForm.title,
       description: whyVedxForm.description,
       image: whyVedxForm.image,
-      whyVedxId: whyVedxForm.whyVedxId || null,
+      whyVedxId: whyVedxForm.whyVedxId || selectedWhyVedxId || null,
     };
+
+    if (!payload.whyVedxId) {
+      handleRequestError(new Error('Please select a hero before adding reasons'));
+      return;
+    }
 
     const isEdit = whyVedxDialogMode === 'edit' && activeWhyVedx;
     const url = isEdit
@@ -1471,12 +1548,10 @@ const AdminServicesPage = () => {
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save reason');
 
       const normalized = normalizeWhyVedxReason(data);
-      setWhyVedx((prev) => ({
-        ...prev,
-        reasons: isEdit
-          ? prev.reasons.map((item) => (item.id === normalized.id ? normalized : item))
-          : [normalized, ...prev.reasons],
-      }));
+      setWhyVedxReasons((prev) => {
+        const remaining = prev.filter((item) => item.id !== normalized.id);
+        return [normalized, ...remaining];
+      });
       closeWhyVedxDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to save reason');
@@ -1494,10 +1569,7 @@ const AdminServicesPage = () => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete reason');
-      setWhyVedx((prev) => ({
-        ...prev,
-        reasons: prev.reasons.filter((item) => item.id !== whyVedxToDelete.id),
-      }));
+      setWhyVedxReasons((prev) => prev.filter((item) => item.id !== whyVedxToDelete.id));
       closeWhyVedxDeleteDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to delete reason');
@@ -1718,6 +1790,11 @@ const AdminServicesPage = () => {
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
 
+  const hireServiceSubcategoryOptions = useMemo(() => {
+    if (!hireServiceForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(hireServiceForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, hireServiceForm.category, subcategoryLookup]);
+
   const whySubcategoryOptions = useMemo(() => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
     return options.map((option) => ({ name: option }));
@@ -1836,101 +1913,106 @@ const AdminServicesPage = () => {
                 </Stack>
               )}
             </Stack>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-categories</TableCell>
-                    <TableCell>Banner</TableCell>
-
-                    <TableCell>FAQs</TableCell>
-                    <TableCell>Totals</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedServices.map((service) => (
-                    <TableRow key={service.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{service.category}</TableCell>
-                      <TableCell sx={{ maxWidth: 200 }}>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                          {service.subcategories.map((item) => (
-                            <Chip
-                              key={item.name}
-                              label={item.name}
-                              size="small"
-                            />
-                          ))}
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Stack spacing={0.5}>
-                          <Box
-                            component="img"
-                            src={service.bannerImage || imagePlaceholder}
-                            alt={`${service.category} banner`}
-                            sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                          />
-                          <Typography variant="body2" fontWeight={600}>
-                            {service.bannerTitle}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary" noWrap>
-                            {service.bannerSubtitle}
-                          </Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" />
-                      </TableCell>
-                      <TableCell>
-                        <Stack spacing={0.5}>
-                          <Typography variant="body2">Services: {service.totalServices}</Typography>
-                          <Typography variant="body2">Projects: {service.totalProjects}</Typography>
-                          <Typography variant="body2">Clients: {service.totalClients}</Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="View details">
-                            <IconButton size="small" onClick={() => setViewService(service)}>
-                              <VisibilityOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Edit">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() => openServiceEditDialog(service)}
-                            >
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openServiceDeleteDialog(service)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {filteredServices.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No service categories yet. Click "Add service" to create your first entry.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Stack spacing={1.5}>
+              {groupedServices.map(({ category, services }) => (
+                <Accordion key={category} defaultExpanded>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                      <Typography variant="subtitle1" fontWeight={700}>
+                        {category}
+                      </Typography>
+                      <Chip label={`${services.length} entr${services.length === 1 ? 'y' : 'ies'}`} size="small" />
+                      <Chip
+                        label={`${services.reduce((sum, item) => sum + (item.subcategories?.length || 0), 0)} sub-categories`}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Stack spacing={1.5}>
+                      {services.map((service) => (
+                        <Card key={service.id} variant="outlined">
+                          <CardContent>
+                            <Stack spacing={2}>
+                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'stretch' }}>
+                                <Stack spacing={1} flex={1}>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    Sub-categories
+                                  </Typography>
+                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                    {service.subcategories.map((item) => (
+                                      <Chip key={item.name} label={item.name} size="small" />
+                                    ))}
+                                  </Stack>
+                                  <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" sx={{ alignSelf: 'flex-start' }} />
+                                </Stack>
+                                <Stack spacing={1} minWidth={220}>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    Banner preview
+                                  </Typography>
+                                  <Box
+                                    component="img"
+                                    src={service.bannerImage || imagePlaceholder}
+                                    alt={`${service.category} banner`}
+                                    sx={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 1 }}
+                                  />
+                                  <Typography variant="body2" fontWeight={600} noWrap>
+                                    {service.bannerTitle}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" noWrap>
+                                    {service.bannerSubtitle}
+                                  </Typography>
+                                </Stack>
+                                <Stack spacing={0.5} minWidth={200}>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    Totals
+                                  </Typography>
+                                  <Typography variant="body2">Services: {service.totalServices}</Typography>
+                                  <Typography variant="body2">Projects: {service.totalProjects}</Typography>
+                                  <Typography variant="body2">Clients: {service.totalClients}</Typography>
+                                </Stack>
+                              </Stack>
+                              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                <Tooltip title="View details">
+                                  <IconButton size="small" onClick={() => setViewService(service)}>
+                                    <VisibilityOutlinedIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Edit">
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => openServiceEditDialog(service)}
+                                  >
+                                    <EditOutlinedIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => openServiceDeleteDialog(service)}
+                                  >
+                                    <DeleteOutlineIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              {filteredServices.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center">
+                  No service categories yet. Click "Add service" to create your first entry.
+                </Typography>
+              )}
+            </Stack>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
                 count={Math.max(1, Math.ceil(filteredServices.length / rowsPerPage))}
@@ -2032,6 +2114,28 @@ const AdminServicesPage = () => {
           <Divider />
           <CardContent>
             <Stack spacing={3}>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+                <Autocomplete
+                  options={whyVedxOptions}
+                  value={whyVedxOptions.find((option) => String(option.value) === String(selectedWhyVedxId)) || null}
+                  onChange={(event, option) => setSelectedWhyVedxId(option?.value || '')}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Select hero" placeholder="Pick an existing hero card" fullWidth />
+                  )}
+                  sx={{ minWidth: 260, flex: 1 }}
+                />
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setSelectedWhyVedxId('');
+                      setWhyVedxHeroForm(emptyWhyVedxHero);
+                    }}
+                  >
+                    Add new hero
+                  </Button>
+                </Stack>
+              </Stack>
               <Box component="form" onSubmit={handleWhyVedxHeroSave} sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={8}>
@@ -2079,6 +2183,7 @@ const AdminServicesPage = () => {
                     startIcon={<AddCircleOutlineIcon />}
                     onClick={openWhyVedxCreateDialog}
                     sx={{ mt: { xs: 1, sm: 0 } }}
+                    disabled={!selectedWhyVedxId}
                   >
                     Add reason
                   </Button>
@@ -2094,7 +2199,7 @@ const AdminServicesPage = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {whyVedx.reasons
+                      {activeWhyVedxReasons
                         .slice((whyVedxPage - 1) * rowsPerPage, whyVedxPage * rowsPerPage)
                         .map((item) => (
                           <TableRow key={item.id} hover>
@@ -2128,11 +2233,13 @@ const AdminServicesPage = () => {
                             </TableCell>
                           </TableRow>
                         ))}
-                      {whyVedx.reasons.length === 0 && (
+                      {activeWhyVedxReasons.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={4}>
                             <Typography variant="body2" color="text.secondary" align="center">
-                              No reasons added yet.
+                              {selectedWhyVedxId
+                                ? 'No reasons added yet.'
+                                : 'Select a hero card to start adding reasons.'}
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -2142,7 +2249,7 @@ const AdminServicesPage = () => {
                 </TableContainer>
                 <Stack mt={2} alignItems="flex-end">
                   <Pagination
-                    count={Math.max(1, Math.ceil(whyVedx.reasons.length / rowsPerPage))}
+                    count={Math.max(1, Math.ceil(activeWhyVedxReasons.length / rowsPerPage))}
                     page={whyVedxPage}
                     onChange={(event, page) => setWhyVedxPage(page)}
                     color="primary"
@@ -3845,6 +3952,39 @@ const AdminServicesPage = () => {
         <DialogTitle>{hireServiceDialogMode === 'edit' ? 'Edit hire service' : 'Add hire service'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleHireServiceSubmit}>
+            <Autocomplete
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={hireServiceForm.category}
+              onInputChange={(event, newValue) =>
+                setHireServiceForm((prev) => ({
+                  ...prev,
+                  category: newValue || '',
+                  subcategory: newValue === prev.category ? prev.subcategory : '',
+                }))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Service category"
+                  helperText="Link hire cards to a service category"
+                />
+              )}
+            />
+            <Autocomplete
+              freeSolo
+              options={hireServiceSubcategoryOptions}
+              value={hireServiceForm.subcategory}
+              onInputChange={(event, newValue) => handleHireServiceFormChange('subcategory', newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sub-category"
+                  helperText="Pick the matching sub-category"
+                />
+              )}
+              disabled={!hireServiceForm.category && hireServiceSubcategoryOptions.length === 0}
+            />
             <TextField
               label="Title"
               value={hireServiceForm.title}
