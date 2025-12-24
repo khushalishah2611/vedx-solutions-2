@@ -155,6 +155,11 @@ const emptyWhyServiceForm = {
   subcategory: '',
   title: '',
   description: '',
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  tableTitle: '',
+  tableDescription: '',
   image: imagePlaceholder,
 };
 
@@ -425,6 +430,11 @@ const AdminServicesPage = () => {
     ...service,
     category: service.category || '',
     subcategory: service.subcategory || '',
+    heroTitle: service.heroTitle || '',
+    heroDescription: service.heroDescription || '',
+    heroImage: service.heroImage || imagePlaceholder,
+    tableTitle: service.tableTitle || '',
+    tableDescription: service.tableDescription || '',
     image: service.image || imagePlaceholder,
   });
 
@@ -1115,14 +1125,25 @@ const AdminServicesPage = () => {
   const openWhyServiceCreateDialog = () => {
     setWhyServiceDialogMode('create');
     setActiveWhyService(null);
-    resetWhyServiceForm();
+    setWhyServiceForm({
+      ...emptyWhyServiceForm,
+      heroTitle: whyChoose.heroTitle || '',
+      heroDescription: whyChoose.heroDescription || '',
+      heroImage: whyChoose.heroImage || imagePlaceholder,
+      tableTitle: whyChoose.tableTitle || '',
+      tableDescription: whyChoose.tableDescription || '',
+    });
     setWhyServiceDialogOpen(true);
   };
 
   const openWhyServiceEditDialog = (service) => {
     setWhyServiceDialogMode('edit');
     setActiveWhyService(service);
-    setWhyServiceForm({ ...service, image: service.image || imagePlaceholder });
+    setWhyServiceForm({
+      ...service,
+      image: service.image || imagePlaceholder,
+      heroImage: service.heroImage || imagePlaceholder,
+    });
     setWhyServiceDialogOpen(true);
   };
 
@@ -1137,6 +1158,11 @@ const AdminServicesPage = () => {
       !whyServiceForm.title.trim() ||
       !whyServiceForm.category.trim() ||
       !whyServiceForm.description.trim() ||
+      !whyServiceForm.heroTitle.trim() ||
+      !whyServiceForm.heroDescription.trim() ||
+      !whyServiceForm.tableTitle.trim() ||
+      !whyServiceForm.tableDescription.trim() ||
+      !whyServiceForm.heroImage.trim() ||
       !whyServiceForm.image.trim()
     )
       return;
@@ -1146,6 +1172,11 @@ const AdminServicesPage = () => {
       subcategory: whyServiceForm.subcategory,
       title: whyServiceForm.title,
       description: whyServiceForm.description,
+      heroTitle: whyServiceForm.heroTitle,
+      heroDescription: whyServiceForm.heroDescription,
+      heroImage: whyServiceForm.heroImage,
+      tableTitle: whyServiceForm.tableTitle,
+      tableDescription: whyServiceForm.tableDescription,
       image: whyServiceForm.image,
     };
 
@@ -3179,86 +3210,152 @@ const AdminServicesPage = () => {
           <Stack spacing={2} component="form" onSubmit={handleWhyServiceSubmit}>
             <Grid container spacing={2} alignItems="stretch">
               <Grid item xs={12} md={7}>
-                <Stack spacing={2} height="100%">
-                  <TextField
-                    select
-                    label="Category"
-                    value={whyServiceForm.category}
-                    onChange={(event) =>
-                      setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }))
-                    }
-                    fullWidth
-                    required
-                  >
-                    {categoryOptions.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    select
-                    label="Sub-category"
-                    value={whyServiceForm.subcategory}
-                    onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
-                    fullWidth
-                    disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
-                    helperText={
-                      !whyServiceForm.category
-                        ? 'Select a category first'
-                        : whySubcategoryOptions.length === 0
-                          ? 'No sub-categories available for this category'
-                          : undefined
-                    }
-                  >
-                    {whySubcategoryOptions.map((option) => (
-                      <MenuItem key={option.name} value={option.name}>
-                        {option.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    label="Highlight title"
-                    value={whyServiceForm.title}
-                    onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, title: event.target.value }))}
-                    fullWidth
-                    required
-                  />
-                  <TextField
-                    label="Description"
-                    value={whyServiceForm.description}
-                    onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, description: event.target.value }))}
-                    fullWidth
-                    multiline
-                    minRows={3}
-                    required
-                  />
+                <Stack spacing={2.5} height="100%">
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle1">Hero & table content</Typography>
+                    <TextField
+                      label="Hero title"
+                      value={whyServiceForm.heroTitle}
+                      onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, heroTitle: event.target.value }))}
+                      fullWidth
+                      required
+                    />
+                    <TextField
+                      label="Hero description"
+                      value={whyServiceForm.heroDescription}
+                      onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, heroDescription: event.target.value }))}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      required
+                    />
+                    <TextField
+                      label="Table title"
+                      value={whyServiceForm.tableTitle}
+                      onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, tableTitle: event.target.value }))}
+                      fullWidth
+                      required
+                    />
+                    <TextField
+                      label="Table description"
+                      value={whyServiceForm.tableDescription}
+                      onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, tableDescription: event.target.value }))}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      required
+                    />
+                  </Stack>
+
+                  <Divider />
+
+                  <Stack spacing={2}>
+                    <Typography variant="subtitle1">Highlight details</Typography>
+                    <TextField
+                      select
+                      label="Category"
+                      value={whyServiceForm.category}
+                      onChange={(event) =>
+                        setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }))
+                      }
+                      fullWidth
+                      required
+                    >
+                      {categoryOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    <TextField
+                      select
+                      label="Sub-category"
+                      value={whyServiceForm.subcategory}
+                      onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
+                      fullWidth
+                      disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
+                      helperText={
+                        !whyServiceForm.category
+                          ? 'Select a category first'
+                          : whySubcategoryOptions.length === 0
+                            ? 'No sub-categories available for this category'
+                            : undefined
+                      }
+                    >
+                      {whySubcategoryOptions.map((option) => (
+                        <MenuItem key={option.name} value={option.name}>
+                          {option.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    <TextField
+                      label="Highlight title"
+                      value={whyServiceForm.title}
+                      onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, title: event.target.value }))}
+                      fullWidth
+                      required
+                    />
+                    <TextField
+                      label="Description"
+                      value={whyServiceForm.description}
+                      onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, description: event.target.value }))}
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      required
+                    />
+                  </Stack>
                 </Stack>
               </Grid>
               <Grid item xs={12} md={5}>
-                <Stack
-                  spacing={1.5}
-                  sx={{
-                    border: '1px dashed',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    p: 2,
-                    height: '100%',
-                    bgcolor: (theme) => theme.palette.background.paper,
-                  }}
-                >
-                  <Stack spacing={0.5}>
-                    <Typography variant="subtitle2">Highlight image</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Upload a supporting graphic (landscape works best).
-                    </Typography>
+                <Stack spacing={2} height="100%">
+                  <Stack
+                    spacing={1.5}
+                    sx={{
+                      border: '1px dashed',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      p: 2,
+                      bgcolor: (theme) => theme.palette.background.paper,
+                    }}
+                  >
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle2">Hero image</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        This powers the hero on the service detail page.
+                      </Typography>
+                    </Stack>
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyServiceForm.heroImage}
+                      onChange={(value) => setWhyServiceForm((prev) => ({ ...prev, heroImage: value }))}
+                      required
+                    />
                   </Stack>
-                  <ImageUpload
-                    label="Image"
-                    value={whyServiceForm.image}
-                    onChange={(value) => setWhyServiceForm((prev) => ({ ...prev, image: value }))}
-                    required
-                  />
+
+                  <Stack
+                    spacing={1.5}
+                    sx={{
+                      border: '1px dashed',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      p: 2,
+                      bgcolor: (theme) => theme.palette.background.paper,
+                    }}
+                  >
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle2">Highlight image</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Upload a supporting graphic (landscape works best).
+                      </Typography>
+                    </Stack>
+                    <ImageUpload
+                      label="Image"
+                      value={whyServiceForm.image}
+                      onChange={(value) => setWhyServiceForm((prev) => ({ ...prev, image: value }))}
+                      required
+                    />
+                  </Stack>
                 </Stack>
               </Grid>
             </Grid>
