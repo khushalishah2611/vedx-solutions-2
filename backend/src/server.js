@@ -5798,7 +5798,7 @@ const mapWhyVedxToResponse = (whyVedx) => ({
   heroTitle: whyVedx.heroTitle,
   heroDescription: whyVedx.heroDescription,
   heroImage: whyVedx.heroImage,
-  reasons: whyVedx.reasons?.map(r => ({
+  reasons: whyVedx.reasons?.map((r) => ({
     id: r.id,
     title: r.title,
     description: r.description,
@@ -5809,7 +5809,11 @@ const mapWhyVedxToResponse = (whyVedx) => ({
 });
 
 const resolveWhyVedxId = async (providedId) => {
-  if (providedId !== undefined && providedId !== null) return providedId;
+  const parsed = parseIntegerId(providedId);
+  if (parsed) {
+    const existing = await prisma.whyVedx.findUnique({ where: { id: parsed }, select: { id: true } });
+    return existing?.id ?? null;
+  }
 
   const existing = await prisma.whyVedx.findFirst({ select: { id: true } });
   return existing?.id ?? null;
@@ -5818,15 +5822,13 @@ const resolveWhyVedxId = async (providedId) => {
 // GET why vedx config
 app.get('/api/why-vedx', async (req, res) => {
   try {
-    const whyVedx = await prisma.whyVedx.findFirst({
-      include: { reasons: true },
+    const includeReasons = req.query.includeReasons === 'true';
+    const whyVedx = await prisma.whyVedx.findMany({
+      include: includeReasons ? { reasons: true } : undefined,
+      orderBy: { createdAt: 'desc' },
     });
 
-    if (!whyVedx) {
-      return res.status(404).json({ error: 'Why VEDX config not found' });
-    }
-
-    res.json(mapWhyVedxToResponse(whyVedx));
+    res.json(whyVedx.map(mapWhyVedxToResponse));
   } catch (err) {
     console.error('GET /api/why-vedx error', err);
     res.status(500).json({ error: 'Failed to fetch why VEDX config' });
@@ -5839,7 +5841,7 @@ app.post('/api/why-vedx', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { heroTitle, heroDescription, heroImage } = req.body ?? {};
+    const { id, heroTitle, heroDescription, heroImage } = req.body ?? {};
 
     if (!heroTitle || !heroDescription || !heroImage) {
       return res.status(400).json({
@@ -5847,12 +5849,13 @@ app.post('/api/why-vedx', async (req, res) => {
       });
     }
 
-    const existing = await prisma.whyVedx.findFirst();
-
     let result;
-    if (existing) {
+    if (id) {
+      const parsedId = parseIntegerId(id);
+      if (!parsedId) return res.status(400).json({ error: 'Valid whyVedx id is required' });
+
       result = await prisma.whyVedx.update({
-        where: { id: existing.id },
+        where: { id: parsedId },
         data: { heroTitle, heroDescription, heroImage },
         include: { reasons: true },
       });
@@ -5867,6 +5870,23 @@ app.post('/api/why-vedx', async (req, res) => {
   } catch (err) {
     console.error('POST /api/why-vedx error', err);
     res.status(500).json({ error: 'Failed to save why VEDX config' });
+  }
+});
+
+// DELETE why vedx config
+app.delete('/api/why-vedx/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid whyVedx id required' });
+
+    await prisma.whyVedx.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/why-vedx/:id error', err);
+    res.status(500).json({ error: 'Failed to delete why VEDX config' });
   }
 });
 
@@ -5887,7 +5907,11 @@ const mapWhyVedxReasonToResponse = (reason) => ({
 // GET all why vedx reasons
 app.get('/api/why-vedx-reasons', async (req, res) => {
   try {
+    const parsedWhyVedxId = parseIntegerId(req.query?.whyVedxId);
     const reasons = await prisma.whyVedxReason.findMany({
+      where: {
+        ...(parsedWhyVedxId ? { whyVedxId: parsedWhyVedxId } : {}),
+      },
       orderBy: { createdAt: 'desc' },
     });
 
