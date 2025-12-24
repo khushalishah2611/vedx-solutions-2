@@ -648,7 +648,7 @@ model ServiceMenu {
   id             Int                      @id @default(autoincrement())
   category       String
   bannerTitle    String
-  bannerSubtitle String String @db.LongText
+  bannerSubtitle String  @db.LongText
   bannerImage    String @db.LongText
   totalServices  Int                      @default(0)
   totalProjects  Int                      @default(0)
