@@ -620,6 +620,7 @@ const AdminServicesPage = () => {
   const [whyServicePage, setWhyServicePage] = useState(1);
   const [whyCategoryFilter, setWhyCategoryFilter] = useState('');
   const [whySubcategoryFilter, setWhySubcategoryFilter] = useState('');
+  const [lastWhyServiceSelection, setLastWhyServiceSelection] = useState({ category: '', subcategory: '' });
   const [hireServicePage, setHireServicePage] = useState(1);
   const [processPage, setProcessPage] = useState(1);
   const [whyVedxPage, setWhyVedxPage] = useState(1);
@@ -635,7 +636,6 @@ const AdminServicesPage = () => {
   };
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
-  const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
   const resetWhyVedxForm = () => setWhyVedxForm(emptyWhyVedxForm);
   const resetOurServiceForm = () => setOurServiceForm(emptyOurServiceForm);
@@ -742,26 +742,42 @@ const AdminServicesPage = () => {
     }
   };
 
-  const categoryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          (serviceCategories || [])
-            .map((category) => category.name)
-            .filter((name) => Boolean(name && name.trim()))
-        )
-      ).map((category) => ({
-        value: category,
-        label: category,
-      })),
-    [serviceCategories]
-  );
+  const categoryOptions = useMemo(() => {
+    const categoryNames = new Set(
+      services
+        .map((service) => service.category)
+        .filter((name) => Boolean(name && name.trim()))
+    );
+
+    if (categoryNames.size === 0) {
+      (serviceCategories || []).forEach((category) => {
+        if (category?.name) categoryNames.add(category.name);
+      });
+    }
+
+    return Array.from(categoryNames).map((category) => ({
+      value: category,
+      label: category,
+    }));
+  }, [serviceCategories, services]);
 
   const subcategoryLookup = useMemo(() => {
     const lookup = new Map();
 
+    services.forEach((service) => {
+      if (!service.category) return;
+
+      const current = lookup.get(service.category) || [];
+      (service.subcategories || []).forEach((subcategory) => {
+        if (subcategory.name && !current.includes(subcategory.name)) {
+          current.push(subcategory.name);
+        }
+      });
+      lookup.set(service.category, current);
+    });
+
     serviceCategories.forEach((category) => {
-      if (category.name) {
+      if (category.name && !lookup.has(category.name)) {
         lookup.set(category.name, []);
       }
     });
@@ -783,15 +799,25 @@ const AdminServicesPage = () => {
     });
 
     return lookup;
-  }, [serviceCategories, serviceSubcategories]);
+  }, [serviceCategories, serviceSubcategories, services]);
 
-  const allSubcategoryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(serviceSubcategories.map((subcategory) => subcategory.name).filter((name) => Boolean(name)))
-      ),
-    [serviceSubcategories]
-  );
+  const allSubcategoryOptions = useMemo(() => {
+    const options = new Set();
+
+    subcategoryLookup.forEach((subcategories) => {
+      subcategories.forEach((name) => {
+        if (name) options.add(name);
+      });
+    });
+
+    if (options.size === 0) {
+      serviceSubcategories.forEach((subcategory) => {
+        if (subcategory.name) options.add(subcategory.name);
+      });
+    }
+
+    return Array.from(options);
+  }, [serviceSubcategories, subcategoryLookup]);
 
   const filteredServices = useMemo(
     () =>
@@ -1145,7 +1171,11 @@ const AdminServicesPage = () => {
   const openWhyServiceCreateDialog = () => {
     setWhyServiceDialogMode('create');
     setActiveWhyService(null);
-    resetWhyServiceForm();
+    setWhyServiceForm({
+      ...emptyWhyServiceForm,
+      category: whyCategoryFilter || lastWhyServiceSelection.category || '',
+      subcategory: whySubcategoryFilter || lastWhyServiceSelection.subcategory || '',
+    });
     setWhyServiceDialogOpen(true);
   };
 
@@ -1153,6 +1183,7 @@ const AdminServicesPage = () => {
     setWhyServiceDialogMode('edit');
     setActiveWhyService(service);
     setWhyServiceForm({ ...service });
+    setLastWhyServiceSelection({ category: service.category || '', subcategory: service.subcategory || '' });
     setWhyServiceDialogOpen(true);
   };
 
@@ -1194,6 +1225,7 @@ const AdminServicesPage = () => {
           ? prev.services.map((service) => (service.id === normalized.id ? normalized : service))
           : [normalized, ...prev.services],
       }));
+      setLastWhyServiceSelection({ category: normalized.category || '', subcategory: normalized.subcategory || '' });
       closeWhyServiceDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to save Why Choose service');
@@ -3241,7 +3273,10 @@ const AdminServicesPage = () => {
               label="Category"
               value={whyServiceForm.category}
               onChange={(event) =>
-                setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }))
+                {
+                  setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }));
+                  setLastWhyServiceSelection((prev) => ({ ...prev, category: event.target.value || '', subcategory: '' }));
+                }
               }
               fullWidth
               required
@@ -3256,7 +3291,10 @@ const AdminServicesPage = () => {
               select
               label="Sub-category"
               value={whyServiceForm.subcategory}
-              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
+              onChange={(event) => {
+                setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }));
+                setLastWhyServiceSelection((prev) => ({ ...prev, subcategory: event.target.value || '' }));
+              }}
               fullWidth
               disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
               helperText={
