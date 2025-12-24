@@ -57,12 +57,7 @@ const initialWhyChoose = {
   services: [],
 };
 const initialProcess = [];
-const emptyWhyVedxHero = {
-  id: '',
-  heroTitle: '',
-  heroDescription: '',
-  heroImage: imagePlaceholder,
-};
+const emptyWhyVedxHero = [];
 const initialOurServices = { sliderTitle: '', sliderDescription: '', sliderImage: imagePlaceholder, services: [] };
 const initialIndustries = [];
 const initialTechSolutions = [];
