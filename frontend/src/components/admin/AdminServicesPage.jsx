@@ -1964,71 +1964,98 @@ const AdminServicesPage = () => {
                       {services.map((service) => (
                         <Card key={service.id} variant="outlined">
                           <CardContent>
-                            <Stack spacing={2}>
-                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'stretch' }}>
-                                <Stack spacing={1} flex={1}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Sub-categories
-                                  </Typography>
-                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                                    {service.subcategories.map((item) => (
-                                      <Chip key={item.name} label={item.name} size="small" />
-                                    ))}
-                                  </Stack>
-                                  <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" sx={{ alignSelf: 'flex-start' }} />
+                            <Grid container spacing={2}>
+                              {/* LEFT: Sub-categories */}
+                              <Grid item xs={12} md={4}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                  Sub-categories
+                                </Typography>
+
+                                <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                  {service.subcategories.map((item) => (
+                                    <Chip key={item.name} label={item.name} size="small" />
+                                  ))}
                                 </Stack>
-                                <Stack spacing={1} minWidth={220}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Banner preview
-                                  </Typography>
-                                  <Box
-                                    component="img"
-                                    src={service.bannerImage || imagePlaceholder}
-                                    alt={`${service.category} banner`}
-                                    sx={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 1 }}
-                                  />
-                                  <Typography variant="body2" fontWeight={600} noWrap>
-                                    {service.bannerTitle}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary" noWrap>
-                                    {service.bannerSubtitle}
-                                  </Typography>
+
+                                <Chip
+                                  label={`${service.faqs?.length || 0} FAQs`}
+                                  size="small"
+                                  sx={{ mt: 1 }}
+                                />
+                              </Grid>
+
+                              {/* CENTER: Banner Preview */}
+                              <Grid item xs={12} md={4}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                  Banner Preview
+                                </Typography>
+
+                                <Box
+                                  component="img"
+                                  src={service.bannerImage || imagePlaceholder}
+                                  alt={`${service.category} banner`}
+                                  sx={{
+                                    width: '100%',
+                                    height: 120,
+                                    objectFit: 'cover',
+                                    borderRadius: 1,
+                                  }}
+                                />
+
+                                <Typography variant="body2" fontWeight={600} noWrap mt={1}>
+                                  {service.bannerTitle}
+                                </Typography>
+                              </Grid>
+
+                              {/* RIGHT: Totals */}
+                              <Grid item xs={12} md={3}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                  Totals
+                                </Typography>
+
+                                <Typography variant="body2">
+                                  Services: {service.totalServices}
+                                </Typography>
+                                <Typography variant="body2">
+                                  Projects: {service.totalProjects}
+                                </Typography>
+                                <Typography variant="body2">
+                                  Clients: {service.totalClients}
+                                </Typography>
+                              </Grid>
+
+                              {/* ACTION BUTTONS */}
+                              <Grid item xs={12} md={1} display="flex" alignItems="flex-end">
+                                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                  <Tooltip title="View details">
+                                    <IconButton size="small" onClick={() => setViewService(service)}>
+                                      <VisibilityOutlinedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+
+                                  <Tooltip title="Edit">
+                                    <IconButton
+                                      size="small"
+                                      color="primary"
+                                      onClick={() => openServiceEditDialog(service)}
+                                    >
+                                      <EditOutlinedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() => openServiceDeleteDialog(service)}
+                                    >
+                                      <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
                                 </Stack>
-                                <Stack spacing={0.5} minWidth={200}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Totals
-                                  </Typography>
-                                  <Typography variant="body2">Services: {service.totalServices}</Typography>
-                                  <Typography variant="body2">Projects: {service.totalProjects}</Typography>
-                                  <Typography variant="body2">Clients: {service.totalClients}</Typography>
-                                </Stack>
-                              </Stack>
-                              <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                <Tooltip title="View details">
-                                  <IconButton size="small" onClick={() => setViewService(service)}>
-                                    <VisibilityOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Edit">
-                                  <IconButton
-                                    size="small"
-                                    color="primary"
-                                    onClick={() => openServiceEditDialog(service)}
-                                  >
-                                    <EditOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={() => openServiceDeleteDialog(service)}
-                                  >
-                                    <DeleteOutlineIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Stack>
-                            </Stack>
+                              </Grid>
+                            </Grid>
+
                           </CardContent>
                         </Card>
                       ))}
@@ -2762,7 +2789,7 @@ const AdminServicesPage = () => {
                         <Button type="submit" variant="contained">
                           Save hero content
                         </Button>
-                      
+
                       </Stack>
                     </Stack>
                   </Grid>
