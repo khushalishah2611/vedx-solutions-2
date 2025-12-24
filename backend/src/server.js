@@ -6222,13 +6222,9 @@ app.post('/api/hire-developer/services', async (req, res) => {
       faqs,
     } = req.body;
 
-    if (!category || !String(category).trim()) {
-      return res.status(400).json({ error: 'Category is required' });
-    }
-
     const service = await prisma.hireDeveloperService.create({
       data: {
-        category: String(category).trim(),
+        category: category?.trim() || null,
         subcategories: subcategories ?? [],
         bannerTitle: bannerTitle?.trim() || null,
         bannerSubtitle: bannerSubtitle?.trim() || null,
@@ -6273,7 +6269,7 @@ app.put('/api/hire-developer/services/:id', async (req, res) => {
     const updated = await prisma.hireDeveloperService.update({
       where: { id },
       data: {
-        ...(category !== undefined && { category: String(category).trim() }),
+        ...(category !== undefined && { category: category?.trim() || null }),
         ...(subcategories !== undefined && { subcategories }),
         bannerTitle: bannerTitle?.trim() || null,
         bannerSubtitle: bannerSubtitle?.trim() || null,

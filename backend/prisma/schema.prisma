@@ -846,7 +846,7 @@ model WhyVedxReason {
 /// ----------------------------------------------------------
 model HireDeveloperService {
   id             Int      @id @default(autoincrement())
-  category       String
+  category       String?
   subcategories  Json     // Array of {name: string}
   bannerTitle    String?
   bannerSubtitle String?
