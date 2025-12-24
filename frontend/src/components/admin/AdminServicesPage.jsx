@@ -905,11 +905,6 @@ const AdminServicesPage = () => {
     setServicePage((prev) => Math.min(prev, maxPage));
   }, [filteredServices.length, rowsPerPage]);
 
-  useEffect(() => {
-    const maxPage = Math.max(1, Math.ceil(activeWhyVedxReasons.length / rowsPerPage));
-    setWhyVedxPage((prev) => Math.min(prev, maxPage));
-  }, [activeWhyVedxReasons.length, rowsPerPage]);
-
   const pagedTechnologies = useMemo(() => {
     const start = (technologyPage - 1) * rowsPerPage;
     return technologies.slice(start, start + rowsPerPage);
