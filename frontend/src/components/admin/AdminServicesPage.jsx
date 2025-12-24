@@ -57,7 +57,15 @@ const initialWhyChoose = {
   services: [],
 };
 const initialProcess = [];
-const emptyWhyVedxHero = [];
+const emptyWhyVedxHero = {
+  id: '',
+  category: '',
+  subcategory: '',
+  heroTitle: '',
+  heroDescription: '',
+  heroImage: imagePlaceholder,
+  reasons: [],
+};
 const initialOurServices = { sliderTitle: '', sliderDescription: '', sliderImage: imagePlaceholder, services: [] };
 const initialIndustries = [];
 const initialTechSolutions = [];
@@ -451,6 +459,8 @@ const AdminServicesPage = () => {
 
   const normalizeWhyVedx = (item) => ({
     id: item.id,
+    category: item.category || '',
+    subcategory: item.subcategory || '',
     heroTitle: item.heroTitle || '',
     heroDescription: item.heroDescription || '',
     heroImage: item.heroImage || imagePlaceholder,
@@ -658,7 +668,6 @@ const AdminServicesPage = () => {
   const [serviceCategoryFilter, setServiceCategoryFilter] = useState('');
   const [serviceSubcategoryFilter, setServiceSubcategoryFilter] = useState('');
   const [servicePage, setServicePage] = useState(1);
-  const [technologyPage, setTechnologyPage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
   const [hireServicePage, setHireServicePage] = useState(1);
@@ -745,7 +754,18 @@ const AdminServicesPage = () => {
   };
 
   const handleWhyVedxHeroChange = (field, value) => {
-    setWhyVedxHeroForm((prev) => ({ ...prev, [field]: value }));
+    setWhyVedxHeroForm((prev) => {
+      const next = { ...prev, [field]: value };
+
+      if (field === 'category') {
+        const availableSubcategories = subcategoryLookup.get(value) || allSubcategoryOptions;
+        if (next.subcategory && !availableSubcategories.includes(next.subcategory)) {
+          next.subcategory = '';
+        }
+      }
+
+      return next;
+    });
   };
 
   const handleOurServicesHeroChange = (field, value) => {
@@ -848,6 +868,14 @@ const AdminServicesPage = () => {
     [whyVedxList]
   );
 
+  const whyVedxSubcategoryOptions = useMemo(() => {
+    const base = whyVedxHeroForm.category
+      ? subcategoryLookup.get(whyVedxHeroForm.category) || []
+      : allSubcategoryOptions;
+
+    return base.map((subcategory) => ({ value: subcategory, label: subcategory }));
+  }, [allSubcategoryOptions, subcategoryLookup, whyVedxHeroForm.category]);
+
   const filteredServices = useMemo(
     () =>
       services.filter((service) => {
@@ -905,20 +933,31 @@ const AdminServicesPage = () => {
     setServicePage((prev) => Math.min(prev, maxPage));
   }, [filteredServices.length, rowsPerPage]);
 
-  useEffect(() => {
-    const maxPage = Math.max(1, Math.ceil(activeWhyVedxReasons.length / rowsPerPage));
-    setWhyVedxPage((prev) => Math.min(prev, maxPage));
-  }, [activeWhyVedxReasons.length, rowsPerPage]);
-
-  const pagedTechnologies = useMemo(() => {
-    const start = (technologyPage - 1) * rowsPerPage;
-    return technologies.slice(start, start + rowsPerPage);
-  }, [technologies, rowsPerPage, technologyPage]);
-
   const pagedBenefits = useMemo(() => {
     const start = (benefitPage - 1) * rowsPerPage;
     return benefits.slice(start, start + rowsPerPage);
   }, [benefits, rowsPerPage, benefitPage]);
+
+  const groupedTechnologies = useMemo(() => {
+    const lookup = new Map();
+
+    technologies.forEach((tech) => {
+      const title = tech.title || 'Untitled';
+      const existing = lookup.get(title) || [];
+      lookup.set(title, [...existing, tech]);
+    });
+
+    return Array.from(lookup.entries()).map(([title, items]) => ({
+      title,
+      items: items.sort((a, b) => {
+        const categoryCompare = (a.category || '').localeCompare(b.category || '');
+        if (categoryCompare !== 0) return categoryCompare;
+        const subcategoryCompare = (a.subcategory || '').localeCompare(b.subcategory || '');
+        if (subcategoryCompare !== 0) return subcategoryCompare;
+        return (a.id || '').localeCompare(b.id || '');
+      }),
+    }));
+  }, [technologies]);
 
   const activeWhyVedxReasons = useMemo(() => {
     if (!selectedWhyVedxId) return whyVedxReasons;
@@ -939,11 +978,6 @@ const AdminServicesPage = () => {
     const start = (hireServicePage - 1) * rowsPerPage;
     return hireContent.services.slice(start, start + rowsPerPage);
   }, [hireContent.services, rowsPerPage, hireServicePage]);
-
-  useEffect(() => {
-    const maxTechPage = Math.max(1, Math.ceil(technologies.length / rowsPerPage));
-    setTechnologyPage((prev) => Math.min(prev, maxTechPage));
-  }, [rowsPerPage, technologies.length]);
 
   useEffect(() => {
     const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
@@ -1455,6 +1489,8 @@ const AdminServicesPage = () => {
         headers: authHeaders(),
         body: JSON.stringify({
           id: selectedWhyVedxId || undefined,
+          category: whyVedxHeroForm.category,
+          subcategory: whyVedxHeroForm.subcategory,
           heroTitle: whyVedxHeroForm.heroTitle,
           heroDescription: whyVedxHeroForm.heroDescription,
           heroImage: whyVedxHeroForm.heroImage,
@@ -2133,6 +2169,42 @@ const AdminServicesPage = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={8}>
                     <Stack spacing={2}>
+                      <Autocomplete
+                        options={categoryOptions}
+                        value={
+                          categoryOptions.find((option) => option.value === whyVedxHeroForm.category) || null
+                        }
+                        onChange={(event, option) => handleWhyVedxHeroChange('category', option?.value || '')}
+                        renderInput={(params) => (
+                          <TextField {...params} label="Category" placeholder="Select category" fullWidth />
+                        )}
+                        fullWidth
+                      />
+                      <Autocomplete
+                        options={whyVedxSubcategoryOptions}
+                        value={
+                          whyVedxSubcategoryOptions.find(
+                            (option) => option.value === whyVedxHeroForm.subcategory
+                          ) || null
+                        }
+                        onChange={(event, option) =>
+                          handleWhyVedxHeroChange('subcategory', option?.value || '')
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Subcategory"
+                            placeholder={
+                              whyVedxHeroForm.category
+                                ? 'Select a subcategory'
+                                : 'Select a category to filter subcategories'
+                            }
+                            fullWidth
+                          />
+                        )}
+                        fullWidth
+                        disabled={!whyVedxSubcategoryOptions.length}
+                      />
                       <TextField
                         label="Title"
                         value={whyVedxHeroForm.heroTitle}
@@ -2808,78 +2880,98 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Image</TableCell>
-                    <TableCell>Items</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedTechnologies.map((tech) => (
-                    <TableRow key={tech.id} hover>
-                      <TableCell>{tech.category || '-'}</TableCell>
-                      <TableCell>{tech.subcategory || '-'}</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>{tech.title}</TableCell>
-                      <TableCell>
-                        <Box
-                          component="img"
-                          src={tech.image || imagePlaceholder}
-                          alt={`${tech.title} preview`}
-                          sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 220 }}>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                          {tech.items.map((item) => (
-                            <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
-                          ))}
-                        </Stack>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openTechnologyDeleteDialog(tech)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {technologies.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No technology groups configured yet.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Stack mt={2} alignItems="flex-end">
-              <Pagination
-                count={Math.max(1, Math.ceil(technologies.length / rowsPerPage))}
-                page={technologyPage}
-                onChange={(event, page) => setTechnologyPage(page)}
-                color="primary"
-              />
+            <Stack spacing={1.5}>
+              {groupedTechnologies.map(({ title, items }) => (
+                <Accordion key={title} defaultExpanded>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                      <Typography variant="subtitle1" fontWeight={700}>
+                        {title}
+                      </Typography>
+                      <Chip label={`${items.length} entr${items.length === 1 ? 'y' : 'ies'}`} size="small" />
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Stack spacing={1.5}>
+                      {items.map((tech) => (
+                        <Card key={tech.id} variant="outlined">
+                          <CardContent>
+                            <Stack spacing={2}>
+                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'stretch' }}>
+                                <Stack spacing={1} flex={1}>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    Category / Sub-category
+                                  </Typography>
+                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                    <Chip
+                                      label={tech.category || 'Uncategorised'}
+                                      size="small"
+                                      color={tech.category ? 'default' : 'warning'}
+                                    />
+                                    {tech.subcategory ? (
+                                      <Chip label={tech.subcategory} size="small" color="primary" variant="outlined" />
+                                    ) : (
+                                      <Chip label="No sub-category" size="small" variant="outlined" color="default" />
+                                    )}
+                                  </Stack>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    Technologies
+                                  </Typography>
+                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                    {tech.items.length > 0 ? (
+                                      tech.items.map((item) => (
+                                        <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
+                                      ))
+                                    ) : (
+                                      <Typography variant="body2" color="text.secondary">
+                                        No items added yet.
+                                      </Typography>
+                                    )}
+                                  </Stack>
+                                </Stack>
+                                <Stack spacing={1} minWidth={220}>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    Preview
+                                  </Typography>
+                                  <Box
+                                    component="img"
+                                    src={tech.image || imagePlaceholder}
+                                    alt={`${tech.title} preview`}
+                                    sx={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 1 }}
+                                  />
+                                  <Typography variant="body2" fontWeight={600} noWrap>
+                                    {tech.title}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" noWrap>
+                                    {tech.subcategory || 'No sub-category selected'}
+                                  </Typography>
+                                </Stack>
+                              </Stack>
+                              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                <Tooltip title="Edit">
+                                  <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
+                                    <EditOutlinedIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton size="small" color="error" onClick={() => openTechnologyDeleteDialog(tech)}>
+                                    <DeleteOutlineIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              {technologies.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center">
+                  No technology groups configured yet.
+                </Typography>
+              )}
             </Stack>
           </CardContent>
         </Card>
