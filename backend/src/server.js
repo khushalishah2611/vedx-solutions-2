@@ -5224,8 +5224,6 @@ const mapServiceProcessToResponse = (process) => ({
   id: process.id,
   title: process.title,
   description: process.description,
-  category: process.category,
-  subcategory: process.subcategory || '',
   image: process.image,
   serviceId: process.serviceId || null,
   createdAt: process.createdAt,
@@ -5235,14 +5233,8 @@ const mapServiceProcessToResponse = (process) => ({
 // GET all service processes
 app.get('/api/service-processes', async (req, res) => {
   try {
-    const { category, subcategory, serviceId } = req.query;
-
     const processes = await prisma.serviceProcess.findMany({
-      where: {
-        ...(category && { category }),
-        ...(subcategory && { subcategory }),
-        ...(serviceId && { serviceId }),
-      },
+      where: req.query.serviceId ? { serviceId: req.query.serviceId } : undefined,
       orderBy: { createdAt: 'desc' },
     });
 
@@ -5259,7 +5251,7 @@ app.post('/api/service-processes', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, category, subcategory, image, serviceId } = req.body ?? {};
+    const { title, description, image, serviceId } = req.body ?? {};
 
     if (!title || !description || !image) {
       return res.status(400).json({
@@ -5280,8 +5272,6 @@ app.post('/api/service-processes', async (req, res) => {
       data: {
         title,
         description,
-        category: category || null,
-        subcategory: subcategory || null,
         image,
         serviceId: serviceId || null,
       },
@@ -5305,7 +5295,7 @@ app.put('/api/service-processes/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid service process id required' });
     }
 
-    const { title, description, category, subcategory, image, serviceId } = req.body ?? {};
+    const { title, description, image, serviceId } = req.body ?? {};
 
     if (serviceId) {
       const serviceExists = await prisma.serviceMenu.findUnique({
@@ -5321,8 +5311,6 @@ app.put('/api/service-processes/:id', async (req, res) => {
       data: {
         title,
         description,
-        category: category || null,
-        subcategory: subcategory || null,
         image,
         serviceId: serviceId === null ? null : serviceId,
       },
