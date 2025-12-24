@@ -779,6 +779,8 @@ model HireService {
 /// ----------------------------------------------------------
 model WhyChoose {
   id               Int          @id @default(autoincrement())
+  category         String?
+  subcategory      String?
   heroTitle        String
   heroDescription  String       @db.Text
   heroImage        String      @db.LongText

@@ -42,6 +42,9 @@ const initialTechnologies = [];
 const initialBenefits = [];
 const initialHireDevelopers = { title: '', description: '', heroImage: imagePlaceholder, services: [] };
 const initialWhyChoose = {
+  id: '',
+  category: '',
+  subcategory: '',
   heroTitle: '',
   heroDescription: '',
   heroImage: imagePlaceholder,
@@ -301,6 +304,8 @@ const AdminServicesPage = () => {
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
 
+  const [whyChooseList, setWhyChooseList] = useState([]);
+  const [selectedWhyChooseId, setSelectedWhyChooseId] = useState('');
   const [whyChoose, setWhyChoose] = useState(initialWhyChoose);
   const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChoose);
   const [whyServiceDialogOpen, setWhyServiceDialogOpen] = useState(false);
@@ -426,6 +431,18 @@ const AdminServicesPage = () => {
     subcategory: service.subcategory || '',
   });
 
+  const normalizeWhyChooseHero = (item) => ({
+    id: item.id,
+    category: item.category || '',
+    subcategory: item.subcategory || '',
+    heroTitle: item.heroTitle || '',
+    heroDescription: item.heroDescription || '',
+    heroImage: item.heroImage || imagePlaceholder,
+    tableTitle: item.tableTitle || '',
+    tableDescription: item.tableDescription || '',
+    services: (item.services || []).map(normalizeWhyService),
+  });
+
   const normalizeWhyVedxReason = (reason) => ({
     ...reason,
     whyVedxId: reason.whyVedxId || '',
@@ -529,29 +546,22 @@ const AdminServicesPage = () => {
       const response = await fetch(apiUrl('/api/why-choose'));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || '');
-      setWhyChoose({
-        heroTitle: data.heroTitle || '',
-        heroDescription: data.heroDescription || '',
-        heroImage: data.heroImage || imagePlaceholder,
-        tableTitle: data.tableTitle || '',
-        tableDescription: data.tableDescription || '',
-        services: data.services?.map(normalizeWhyService) || [],
-      });
-      setWhyHeroForm({
-        heroTitle: data.heroTitle || '',
-        heroDescription: data.heroDescription || '',
-        heroImage: data.heroImage || imagePlaceholder,
-        tableTitle: data.tableTitle || '',
-        tableDescription: data.tableDescription || '',
-      });
+      const normalized = (data || []).map(normalizeWhyChooseHero);
+      const active = normalized[0] || initialWhyChoose;
+      setWhyChoose(active);
+      setWhyHeroForm({ ...active });
+      setWhyChooseList(normalized);
+      setSelectedWhyChooseId(active.id || '');
     } catch (err) {
       console.error('Failed to load why choose config', err);
     }
   };
 
-  const loadWhyServices = async () => {
+  const loadWhyServices = async (whyChooseId) => {
     try {
-      const response = await fetch(apiUrl('/api/why-services'));
+      const params = new URLSearchParams();
+      if (whyChooseId) params.append('whyChooseId', String(whyChooseId));
+      const response = await fetch(apiUrl(`/api/why-services${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load why services');
       setWhyChoose((prev) => ({ ...prev, services: (data || []).map(normalizeWhyService) }));
@@ -602,10 +612,26 @@ const AdminServicesPage = () => {
     loadHireContent();
     loadHireServices();
     loadWhyChoose();
-    loadWhyServices();
     loadWhyVedx();
     loadWhyVedxReasons();
   }, []);
+
+  useEffect(() => {
+    if (!selectedWhyChooseId) {
+      setWhyChoose(initialWhyChoose);
+      setWhyHeroForm(initialWhyChoose);
+      setWhyServicePage(1);
+      return;
+    }
+
+    const existing = whyChooseList.find((item) => String(item.id) === String(selectedWhyChooseId));
+    if (existing) {
+      setWhyChoose(existing);
+      setWhyHeroForm(existing);
+      setWhyServicePage(1);
+      loadWhyServices(existing.id);
+    }
+  }, [selectedWhyChooseId, whyChooseList]);
 
   const rowsPerPage = 5;
   const [serviceDateFilter, setServiceDateFilter] = useState('all');
@@ -722,6 +748,9 @@ const AdminServicesPage = () => {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
+          id: selectedWhyChooseId || undefined,
+          category: whyHeroForm.category,
+          subcategory: whyHeroForm.subcategory,
           heroTitle: whyHeroForm.heroTitle,
           heroDescription: whyHeroForm.heroDescription,
           heroImage: whyHeroForm.heroImage,
@@ -731,7 +760,14 @@ const AdminServicesPage = () => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save Why Choose hero');
-      setWhyChoose((prev) => ({ ...prev, ...data }));
+      const normalized = normalizeWhyChooseHero(data);
+      setWhyChoose(normalized);
+      setWhyHeroForm(normalized);
+      setSelectedWhyChooseId(String(normalized.id));
+      setWhyChooseList((prev) => {
+        const exists = prev.some((item) => item.id === normalized.id);
+        return exists ? prev.map((item) => (item.id === normalized.id ? normalized : item)) : [normalized, ...prev];
+      });
     } catch (err) {
       handleRequestError(err, 'Unable to save Why Choose hero');
     }
@@ -1132,12 +1168,17 @@ const AdminServicesPage = () => {
   const handleWhyServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!whyServiceForm.title.trim() || !whyServiceForm.category.trim()) return;
+    if (!selectedWhyChooseId) {
+      handleRequestError(new Error('Please select a Why Choose config before adding highlights'));
+      return;
+    }
 
     const payload = {
       category: whyServiceForm.category,
       subcategory: whyServiceForm.subcategory,
       title: whyServiceForm.title,
       description: whyServiceForm.description,
+      whyChooseId: Number(selectedWhyChooseId),
     };
 
     const isEdit = whyServiceDialogMode === 'edit' && activeWhyService;
@@ -1155,12 +1196,20 @@ const AdminServicesPage = () => {
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save Why Choose service');
 
       const normalized = normalizeWhyService(data);
-      setWhyChoose((prev) => ({
-        ...prev,
-        services: isEdit
+      setWhyChoose((prev) => {
+        const updatedServices = isEdit
           ? prev.services.map((service) => (service.id === normalized.id ? normalized : service))
-          : [normalized, ...prev.services],
-      }));
+          : [normalized, ...prev.services];
+
+        return { ...prev, services: updatedServices };
+      });
+      setWhyChooseList((prev) =>
+        prev.map((item) =>
+          String(item.id) === String(selectedWhyChooseId)
+            ? { ...item, services: isEdit ? item.services.map((service) => (service.id === normalized.id ? normalized : service)) : [normalized, ...(item.services || [])] }
+            : item
+        )
+      );
       closeWhyServiceDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to save Why Choose service');
@@ -1182,6 +1231,13 @@ const AdminServicesPage = () => {
         ...prev,
         services: prev.services.filter((service) => service.id !== whyServiceToDelete.id),
       }));
+      setWhyChooseList((prev) =>
+        prev.map((item) =>
+          String(item.id) === String(selectedWhyChooseId)
+            ? { ...item, services: (item.services || []).filter((service) => service.id !== whyServiceToDelete.id) }
+            : item
+        )
+      );
       closeWhyServiceDeleteDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to delete Why Choose service');
@@ -2440,6 +2496,30 @@ const AdminServicesPage = () => {
           <Divider />
           <CardContent>
             <Stack spacing={3}>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
+                <Autocomplete
+                  options={whyChooseList}
+                  getOptionLabel={(option) =>
+                    [option.category, option.subcategory].filter(Boolean).join(' / ') || 'Untitled'
+                  }
+                  value={whyChooseList.find((item) => String(item.id) === String(selectedWhyChooseId)) || null}
+                  onChange={(event, value) => setSelectedWhyChooseId(value?.id ? String(value.id) : '')}
+                  renderInput={(params) => <TextField {...params} label="Select why choose config" />}
+                  sx={{ minWidth: { xs: '100%', md: 320 } }}
+                />
+                <Button
+                  variant="outlined"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() => {
+                    setSelectedWhyChooseId('');
+                    setWhyHeroForm(initialWhyChoose);
+                    setWhyChoose(initialWhyChoose);
+                  }}
+                  sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
+                >
+                  New config
+                </Button>
+              </Stack>
               <Box
                 component="form"
                 onSubmit={handleWhyHeroSave}
@@ -2448,6 +2528,47 @@ const AdminServicesPage = () => {
                 <Grid container spacing={2} alignItems="flex-start">
                   <Grid item xs={12} md={8}>
                     <Stack spacing={2}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            select
+                            label="Category"
+                            value={whyHeroForm.category}
+                            onChange={(event) => handleWhyHeroChange('category', event.target.value)}
+                            fullWidth
+                            required
+                          >
+                            {categoryOptions.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            select
+                            label="Sub-category"
+                            value={whyHeroForm.subcategory}
+                            onChange={(event) => handleWhyHeroChange('subcategory', event.target.value)}
+                            fullWidth
+                            disabled={!whyHeroForm.category || (subcategoryLookup.get(whyHeroForm.category) || []).length === 0}
+                            helperText={
+                              !whyHeroForm.category
+                                ? 'Select a category first'
+                                : (subcategoryLookup.get(whyHeroForm.category) || []).length === 0
+                                  ? 'No sub-categories available for this category'
+                                  : undefined
+                            }
+                          >
+                            {(subcategoryLookup.get(whyHeroForm.category) || []).map((option) => (
+                              <MenuItem key={option} value={option}>
+                                {option}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </Grid>
+                      </Grid>
                       <TextField
                         label="Hero title"
                         value={whyHeroForm.heroTitle}
@@ -2510,6 +2631,7 @@ const AdminServicesPage = () => {
                     variant="contained"
                     startIcon={<AddCircleOutlineIcon />}
                     onClick={openWhyServiceCreateDialog}
+                    disabled={!selectedWhyChooseId}
                     sx={{ mt: { xs: 1, sm: 0 } }}
                   >
                     Add highlight

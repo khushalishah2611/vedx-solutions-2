@@ -5541,43 +5541,48 @@ app.delete('/api/hire-services/:id', async (req, res) => {
  * WHY CHOOSE APIs
  * =============================================== */
 
-const mapWhyChooseToResponse = (whyChoose) => ({
+const mapWhyChooseToResponse = (whyChoose, includeServices = true) => ({
   id: whyChoose.id,
+  category: whyChoose.category || '',
+  subcategory: whyChoose.subcategory || '',
   heroTitle: whyChoose.heroTitle,
   heroDescription: whyChoose.heroDescription,
   heroImage: whyChoose.heroImage,
   tableTitle: whyChoose.tableTitle,
   tableDescription: whyChoose.tableDescription,
-  services: whyChoose.services?.map(s => ({
-    id: s.id,
-    category: s.category,
-    subcategory: s.subcategory || '',
-    title: s.title,
-    description: s.description,
-  })) || [],
+  ...(includeServices && {
+    services: whyChoose.services?.map((s) => ({
+      id: s.id,
+      category: s.category,
+      subcategory: s.subcategory || '',
+      title: s.title,
+      description: s.description,
+    })) || [],
+  }),
   createdAt: whyChoose.createdAt,
   updatedAt: whyChoose.updatedAt,
 });
 
 const resolveWhyChooseId = async (providedId) => {
-  if (providedId !== undefined && providedId !== null) return providedId;
-
-  const existing = await prisma.whyChoose.findFirst({ select: { id: true } });
-  return existing?.id ?? null;
+  if (providedId !== undefined && providedId !== null) return parseIntegerId(providedId);
+  return null;
 };
 
 // GET why choose config
 app.get('/api/why-choose', async (req, res) => {
   try {
-    const whyChoose = await prisma.whyChoose.findFirst({
+    const { category, subcategory } = req.query;
+
+    const whyChooseList = await prisma.whyChoose.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+      },
+      orderBy: { createdAt: 'desc' },
       include: { services: true },
     });
 
-    if (!whyChoose) {
-      return res.status(404).json({ error: 'Why choose config not found' });
-    }
-
-    res.json(mapWhyChooseToResponse(whyChoose));
+    res.json(whyChooseList.map((item) => mapWhyChooseToResponse(item)));
   } catch (err) {
     console.error('GET /api/why-choose error', err);
     res.status(500).json({ error: 'Failed to fetch why choose config' });
@@ -5591,6 +5596,9 @@ app.post('/api/why-choose', async (req, res) => {
     if (!admin) return res.status(status).json({ message });
 
     const {
+      id,
+      category,
+      subcategory,
       heroTitle,
       heroDescription,
       heroImage,
@@ -5598,24 +5606,37 @@ app.post('/api/why-choose', async (req, res) => {
       tableDescription
     } = req.body ?? {};
 
-    if (!heroTitle || !heroDescription || !heroImage || !tableTitle || !tableDescription) {
+    const normalizedId = id ? parseIntegerId(id) : null;
+    if (id && !normalizedId) {
+      return res.status(400).json({ error: 'Valid why choose id required for updates' });
+    }
+
+    if (!category || !heroTitle || !heroDescription || !heroImage || !tableTitle || !tableDescription) {
       return res.status(400).json({
-        error: 'All hero and table fields are required'
+        error: 'Category, hero, and table fields are required'
       });
     }
 
-    const existing = await prisma.whyChoose.findFirst();
+    const baseData = {
+      category,
+      subcategory: subcategory || null,
+      heroTitle,
+      heroDescription,
+      heroImage,
+      tableTitle,
+      tableDescription,
+    };
 
     let result;
-    if (existing) {
+    if (normalizedId) {
       result = await prisma.whyChoose.update({
-        where: { id: existing.id },
-        data: { heroTitle, heroDescription, heroImage, tableTitle, tableDescription },
+        where: { id: normalizedId },
+        data: baseData,
         include: { services: true },
       });
     } else {
       result = await prisma.whyChoose.create({
-        data: { heroTitle, heroDescription, heroImage, tableTitle, tableDescription },
+        data: baseData,
         include: { services: true },
       });
     }
@@ -5645,12 +5666,14 @@ const mapWhyServiceToResponse = (service) => ({
 // GET all why services
 app.get('/api/why-services', async (req, res) => {
   try {
-    const { category, subcategory } = req.query;
+    const { category, subcategory, whyChooseId } = req.query;
+    const parsedWhyChooseId = parseIntegerId(whyChooseId);
 
     const services = await prisma.whyService.findMany({
       where: {
         ...(category && { category }),
         ...(subcategory && { subcategory }),
+        ...(parsedWhyChooseId && { whyChooseId: parsedWhyChooseId }),
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -5681,6 +5704,11 @@ app.post('/api/why-services', async (req, res) => {
       return res.status(400).json({
         error: 'whyChooseId is required; please create the Why Choose config first'
       });
+    }
+
+    const hasWhyChoose = await prisma.whyChoose.findUnique({ where: { id: resolvedWhyChooseId } });
+    if (!hasWhyChoose) {
+      return res.status(400).json({ error: 'whyChooseId does not exist' });
     }
 
     const created = await prisma.whyService.create({
@@ -5721,6 +5749,10 @@ app.put('/api/why-services/:id', async (req, res) => {
         return res.status(400).json({
           error: 'whyChooseId is required; please create the Why Choose config first'
         });
+      }
+      const hasWhyChoose = await prisma.whyChoose.findUnique({ where: { id: resolvedWhyChooseId } });
+      if (!hasWhyChoose) {
+        return res.status(400).json({ error: 'whyChooseId does not exist' });
       }
 
       data.whyChooseId = resolvedWhyChooseId;
