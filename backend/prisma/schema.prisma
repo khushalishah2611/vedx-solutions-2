@@ -680,8 +680,8 @@ model ServiceMenuSubcategory {
 
 model ServiceMenuFaq {
   id        Int        @id @default(autoincrement())
-  question  String
-  answer    String
+  question  String 
+  answer    String  @db.LongText
 
   serviceId Int
   service   ServiceMenu @relation(fields: [serviceId], references: [id], onDelete: Cascade)

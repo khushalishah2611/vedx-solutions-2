@@ -1752,7 +1752,7 @@ const AdminServicesPage = () => {
                     {...params}
                     label="Category filter"
                     placeholder="All categories"
-                  
+
                   />
                 )}
               />
@@ -1771,7 +1771,7 @@ const AdminServicesPage = () => {
                     {...params}
                     label="Sub-category filter"
                     placeholder="All sub-categories"
-                 
+
                   />
                 )}
                 disabled={!serviceCategoryFilter && allSubcategoryOptions.length === 0}
@@ -2124,7 +2124,7 @@ const AdminServicesPage = () => {
         </Card>
       )}
 
-     
+
 
       {activeTab === 'industries' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -3058,12 +3058,15 @@ const AdminServicesPage = () => {
                   <Stack spacing={1}>
                     {serviceForm.faqs.map((faq) => (
                       <Stack key={faq.id} direction="row" spacing={1} alignItems="center">
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {faq.question}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" flex={1}>
-                          {faq.answer}
-                        </Typography>
+                        <Box display="flex" flexDirection="column" gap={1}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {faq.question}
+                          </Typography>
+
+                          <Typography variant="body2" color="text.secondary">
+                            {faq.answer}
+                          </Typography>
+                        </Box>
                         <IconButton size="small" onClick={() => removeFaq(faq.id)}>
                           <DeleteOutlineIcon fontSize="small" />
                         </IconButton>
@@ -3149,10 +3152,10 @@ const AdminServicesPage = () => {
                   <Typography variant="body2" color="text.secondary">
                     No FAQs added for this service yet.
                   </Typography>
-              )}
+                )}
+              </Stack>
             </Stack>
-          </Stack>
-        )}
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setViewService(null)} color="inherit">
@@ -3209,8 +3212,8 @@ const AdminServicesPage = () => {
                 !whyServiceForm.category
                   ? 'Select a category first'
                   : whySubcategoryOptions.length === 0
-                  ? 'No sub-categories available for this category'
-                  : undefined
+                    ? 'No sub-categories available for this category'
+                    : undefined
               }
             >
               {whySubcategoryOptions.map((option) => (

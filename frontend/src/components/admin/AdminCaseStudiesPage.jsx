@@ -512,7 +512,7 @@ const AdminCaseStudiesPage = () => {
                     <TableRow>
                       <TableCell>Title</TableCell>
                       <TableCell>Tags</TableCell>
-                      <TableCell>Updated</TableCell>
+                 
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -553,7 +553,7 @@ const AdminCaseStudiesPage = () => {
                             ))}
                           </Stack>
                         </TableCell>
-                        <TableCell>{item.updatedAt ? String(item.updatedAt).split('T')[0] : '-'}</TableCell>
+                        
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <Tooltip title="Manage Details">

@@ -25,7 +25,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,    
+  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -442,11 +442,11 @@ const AdminNavigationPage = () => {
         prev.map((category) =>
           category.id === selectedCategory.id
             ? {
-                ...category,
-                subcategories: category.subcategories.filter(
-                  (sub) => sub.id !== subToDelete.id
-                ),
-              }
+              ...category,
+              subcategories: category.subcategories.filter(
+                (sub) => sub.id !== subToDelete.id
+              ),
+            }
             : category
         )
       );
@@ -817,9 +817,9 @@ const AdminNavigationPage = () => {
         prev.map((cat) =>
           cat.id === activeHireCategory.id
             ? {
-                ...cat,
-                subcategories: cat.subcategories.filter((sub) => sub.id !== id),
-              }
+              ...cat,
+              subcategories: cat.subcategories.filter((sub) => sub.id !== id),
+            }
             : cat
         )
       );
@@ -890,14 +890,7 @@ const AdminNavigationPage = () => {
                               <Typography variant="subtitle1" fontWeight={700}>
                                 {category.name}
                               </Typography>
-                              {category.slug && (
-                                <Chip
-                                  size="small"
-                                  color="primary"
-                                  variant="outlined"
-                                  label={`Slug: ${category.slug}`}
-                                />
-                              )}
+
                               <Chip
                                 size="small"
                                 label={`${category.subcategories.length} sub-categories`}
@@ -990,18 +983,8 @@ const AdminNavigationPage = () => {
                       Category description
                     </Typography>
                     <Typography variant="body1">{selectedCategory.description}</Typography>
-                    {selectedCategory.slug && (
-                      <Typography
-                        variant="caption"
-                        color="primary.main"
-                        fontWeight={700}
-                      >
-                        Slug: {selectedCategory.slug}
-                      </Typography>
-                    )}
-                    <Typography variant="caption" color="text.secondary">
-                      Created on {selectedCategory.createdOn}
-                    </Typography>
+
+
                   </Stack>
 
                   <Divider />
@@ -1026,9 +1009,7 @@ const AdminNavigationPage = () => {
                                 <Typography variant="subtitle2" fontWeight={700}>
                                   {subcategory.name}
                                 </Typography>
-                                {subcategory.slug && (
-                                  <Chip label={subcategory.slug} size="small" variant="outlined" />
-                                )}
+
                               </Stack>
                             </TableCell>
                             <TableCell>
@@ -1149,9 +1130,7 @@ const AdminNavigationPage = () => {
                     <TableCell sx={{ fontWeight: 700 }}>
                       <Stack direction="row" spacing={1} alignItems="center">
                         {category.title}
-                        {category.slug && (
-                          <Chip size="small" label={category.slug} variant="outlined" />
-                        )}
+                        
                       </Stack>
                     </TableCell>
                     <TableCell sx={{ maxWidth: 360 }}>
