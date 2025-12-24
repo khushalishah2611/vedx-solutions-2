@@ -117,13 +117,6 @@ const emptyProcessForm = {
   image: imagePlaceholder,
 };
 
-const emptyWhyVedxHero = {
-  id: '',
-  heroTitle: '',
-  heroDescription: '',
-  heroImage: imagePlaceholder,
-};
-
 const emptyWhyVedxForm = {
   id: '',
   title: '',
@@ -936,6 +929,11 @@ const AdminServicesPage = () => {
     if (!selectedWhyVedxId) return whyVedxReasons;
     return whyVedxReasons.filter((reason) => String(reason.whyVedxId) === String(selectedWhyVedxId));
   }, [selectedWhyVedxId, whyVedxReasons]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(activeWhyVedxReasons.length / rowsPerPage));
+    setWhyVedxPage((prev) => Math.min(prev, maxPage));
+  }, [activeWhyVedxReasons.length, rowsPerPage]);
 
   const pagedWhyServices = useMemo(() => {
     const start = (whyServicePage - 1) * rowsPerPage;
