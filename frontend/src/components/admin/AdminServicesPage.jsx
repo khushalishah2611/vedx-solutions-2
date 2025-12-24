@@ -1843,7 +1843,7 @@ const AdminServicesPage = () => {
                     <TableCell>Category</TableCell>
                     <TableCell>Sub-categories</TableCell>
                     <TableCell>Banner</TableCell>
-                  
+
                     <TableCell>FAQs</TableCell>
                     <TableCell>Totals</TableCell>
                     <TableCell align="right">Actions</TableCell>
@@ -2528,47 +2528,35 @@ const AdminServicesPage = () => {
                 <Grid container spacing={2} alignItems="flex-start">
                   <Grid item xs={12} md={8}>
                     <Stack spacing={2}>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            select
-                            label="Category"
-                            value={whyHeroForm.category}
-                            onChange={(event) => handleWhyHeroChange('category', event.target.value)}
-                            fullWidth
-                            required
-                          >
-                            {categoryOptions.map((option) => (
-                              <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            select
-                            label="Sub-category"
-                            value={whyHeroForm.subcategory}
-                            onChange={(event) => handleWhyHeroChange('subcategory', event.target.value)}
-                            fullWidth
-                            disabled={!whyHeroForm.category || (subcategoryLookup.get(whyHeroForm.category) || []).length === 0}
-                            helperText={
-                              !whyHeroForm.category
-                                ? 'Select a category first'
-                                : (subcategoryLookup.get(whyHeroForm.category) || []).length === 0
-                                  ? 'No sub-categories available for this category'
-                                  : undefined
-                            }
-                          >
-                            {(subcategoryLookup.get(whyHeroForm.category) || []).map((option) => (
-                              <MenuItem key={option} value={option}>
-                                {option}
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        </Grid>
-                      </Grid>
+                      <TextField
+                        select
+                        label="Category"
+                        value={whyHeroForm.category}
+                        onChange={(event) => handleWhyHeroChange('category', event.target.value)}
+                        fullWidth
+                        required
+                      >
+                        {categoryOptions.map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                      <TextField
+                        select
+                        label="Sub-category"
+                        value={whyHeroForm.subcategory}
+                        onChange={(event) => handleWhyHeroChange('subcategory', event.target.value)}
+                        fullWidth
+                        disabled={!whyHeroForm.category || (subcategoryLookup.get(whyHeroForm.category) || []).length === 0}
+
+                      >
+                        {(subcategoryLookup.get(whyHeroForm.category) || []).map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {option}
+                          </MenuItem>
+                        ))}
+                      </TextField>
                       <TextField
                         label="Hero title"
                         value={whyHeroForm.heroTitle}
@@ -2602,9 +2590,7 @@ const AdminServicesPage = () => {
                         <Button type="submit" variant="contained">
                           Save hero content
                         </Button>
-                        <Typography variant="body2" color="text.secondary">
-                          This content powers the hero and highlights intro on the service detail page.
-                        </Typography>
+                      
                       </Stack>
                     </Stack>
                   </Grid>
@@ -3855,7 +3841,7 @@ const AdminServicesPage = () => {
         </DialogActions>
       </Dialog>
 
-            <Dialog open={hireServiceDialogOpen} onClose={closeHireServiceDialog} maxWidth="sm" fullWidth>
+      <Dialog open={hireServiceDialogOpen} onClose={closeHireServiceDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{hireServiceDialogMode === 'edit' ? 'Edit hire service' : 'Add hire service'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleHireServiceSubmit}>
