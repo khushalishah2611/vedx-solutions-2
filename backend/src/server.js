@@ -5637,6 +5637,7 @@ const mapWhyServiceToResponse = (service) => ({
   subcategory: service.subcategory || '',
   title: service.title,
   description: service.description,
+  image: service.image || '',
   whyChooseId: service.whyChooseId,
   createdAt: service.createdAt,
   updatedAt: service.updatedAt,
@@ -5668,11 +5669,11 @@ app.post('/api/why-services', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
+    const { category, subcategory, title, description, image, whyChooseId } = req.body ?? {};
 
-    if (!category || !title || !description) {
+    if (!category || !title || !description || !image) {
       return res.status(400).json({
-        error: 'category, title, and description are required'
+        error: 'category, title, description, and image are required'
       });
     }
 
@@ -5689,6 +5690,7 @@ app.post('/api/why-services', async (req, res) => {
         subcategory: subcategory || null,
         title,
         description,
+        image,
         whyChooseId: resolvedWhyChooseId,
       },
     });
@@ -5711,9 +5713,13 @@ app.put('/api/why-services/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid why service id required' });
     }
 
-    const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
+    const { category, subcategory, title, description, image, whyChooseId } = req.body ?? {};
 
-    const data = { category, subcategory, title, description };
+    if (!category || !title || !description || !image) {
+      return res.status(400).json({ error: 'category, title, description, and image are required' });
+    }
+
+    const data = { category, subcategory, title, description, image };
 
     if (whyChooseId !== undefined) {
       const resolvedWhyChooseId = await resolveWhyChooseId(whyChooseId);
