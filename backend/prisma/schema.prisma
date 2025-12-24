@@ -714,7 +714,7 @@ model Benefit {
   title       String
   category    String?
   subcategory String?
-  description String   @db.Text
+  description String  @db.LongText
   image       String @db.LongText
 
   createdAt   DateTime @default(now())
@@ -816,7 +816,7 @@ model WhyService {
 model WhyVedx {
   id              Int             @id @default(autoincrement())
   heroTitle       String
-  heroDescription String          @db.Text
+  heroDescription String          @db.LongText
   heroImage       String   @db.LongText
 
   reasons         WhyVedxReason[]
