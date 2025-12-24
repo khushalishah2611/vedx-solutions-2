@@ -730,8 +730,6 @@ model ServiceProcess {
   id          Int        @id @default(autoincrement())
   title       String
   description String     @db.Text
-  category    String?
-  subcategory String?
   image String @db.LongText
 
   serviceId   Int?
@@ -740,7 +738,6 @@ model ServiceProcess {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  @@index([category, subcategory])
   @@index([serviceId])
 }
 
