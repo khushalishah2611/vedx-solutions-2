@@ -5637,6 +5637,12 @@ const mapWhyServiceToResponse = (service) => ({
   subcategory: service.subcategory || '',
   title: service.title,
   description: service.description,
+  heroTitle: service.heroTitle,
+  heroDescription: service.heroDescription,
+  heroImage: service.heroImage,
+  tableTitle: service.tableTitle,
+  tableDescription: service.tableDescription,
+  image: service.image || '',
   whyChooseId: service.whyChooseId,
   createdAt: service.createdAt,
   updatedAt: service.updatedAt,
@@ -5668,11 +5674,23 @@ app.post('/api/why-services', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
+    const {
+      category,
+      subcategory,
+      title,
+      description,
+      heroTitle,
+      heroDescription,
+      heroImage,
+      tableTitle,
+      tableDescription,
+      image,
+      whyChooseId,
+    } = req.body ?? {};
 
-    if (!category || !title || !description) {
+    if (!category || !title || !description || !heroTitle || !heroDescription || !heroImage || !tableTitle || !tableDescription || !image) {
       return res.status(400).json({
-        error: 'category, title, and description are required'
+        error: 'category, title, description, hero content, table content, and image are required'
       });
     }
 
@@ -5689,6 +5707,12 @@ app.post('/api/why-services', async (req, res) => {
         subcategory: subcategory || null,
         title,
         description,
+        heroTitle,
+        heroDescription,
+        heroImage,
+        tableTitle,
+        tableDescription,
+        image,
         whyChooseId: resolvedWhyChooseId,
       },
     });
@@ -5711,9 +5735,36 @@ app.put('/api/why-services/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid why service id required' });
     }
 
-    const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
+    const {
+      category,
+      subcategory,
+      title,
+      description,
+      heroTitle,
+      heroDescription,
+      heroImage,
+      tableTitle,
+      tableDescription,
+      image,
+      whyChooseId,
+    } = req.body ?? {};
 
-    const data = { category, subcategory, title, description };
+    if (!category || !title || !description || !heroTitle || !heroDescription || !heroImage || !tableTitle || !tableDescription || !image) {
+      return res.status(400).json({ error: 'category, title, description, hero content, table content, and image are required' });
+    }
+
+    const data = {
+      category,
+      subcategory,
+      title,
+      description,
+      heroTitle,
+      heroDescription,
+      heroImage,
+      tableTitle,
+      tableDescription,
+      image,
+    };
 
     if (whyChooseId !== undefined) {
       const resolvedWhyChooseId = await resolveWhyChooseId(whyChooseId);

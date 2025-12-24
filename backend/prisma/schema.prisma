@@ -797,6 +797,12 @@ model WhyService {
   subcategory String?
   title       String
   description String    @db.Text
+  heroTitle        String
+  heroDescription  String       @db.Text
+  heroImage        String      @db.LongText
+  tableTitle       String
+  tableDescription String       @db.Text
+  image       String?   @db.LongText
 
   whyChooseId Int?
   whyChoose   WhyChoose? @relation(fields: [whyChooseId], references: [id], onDelete: SetNull)
