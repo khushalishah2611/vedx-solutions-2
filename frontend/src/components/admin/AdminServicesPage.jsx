@@ -482,16 +482,20 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadTechnologies = async () => {
+  const loadTechnologies = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/technologies'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/technologies${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
       setTechnologies((data || []).map(normalizeTechnology));
     } catch (err) {
       console.error('Failed to load technologies', err);
     }
-  };
+  }, []);
 
   const loadServiceCategories = async () => {
     try {
@@ -515,16 +519,20 @@ const AdminServicesPage = () => {
     }
   };
 
-  const loadBenefits = async () => {
+  const loadBenefits = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/benefits'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/benefits${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load benefits');
       setBenefits((data || []).map(normalizeBenefit));
     } catch (err) {
       console.error('Failed to load benefits', err);
     }
-  };
+  }, []);
 
   const loadProcesses = async () => {
     try {
@@ -553,20 +561,28 @@ const AdminServicesPage = () => {
     }
   };
 
-  const loadHireServices = async () => {
+  const loadHireServices = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/hire-services'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/hire-services${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load hire services');
       setHireContent((prev) => ({ ...prev, services: (data || []).map(normalizeHireService) }));
     } catch (err) {
       console.error('Failed to load hire services', err);
     }
-  };
+  }, []);
 
-  const loadWhyChoose = async () => {
+  const loadWhyChoose = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/why-choose'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/why-choose${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || '');
       const normalized = (data || []).map(normalizeWhyChooseHero);
@@ -575,15 +591,18 @@ const AdminServicesPage = () => {
       setWhyHeroForm({ ...active });
       setWhyChooseList(normalized);
       setSelectedWhyChooseId(active.id || '');
+      setWhyServicePage(1);
     } catch (err) {
       console.error('Failed to load why choose config', err);
     }
-  };
+  }, []);
 
-  const loadWhyServices = async (whyChooseId) => {
+  const loadWhyServices = useCallback(async (whyChooseId, { category, subcategory } = {}) => {
     try {
       const params = new URLSearchParams();
       if (whyChooseId) params.append('whyChooseId', String(whyChooseId));
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
       const response = await fetch(apiUrl(`/api/why-services${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load why services');
@@ -591,7 +610,7 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load why services', err);
     }
-  };
+  }, []);
 
   const loadWhyVedx = async () => {
     try {
@@ -627,14 +646,23 @@ const AdminServicesPage = () => {
   useEffect(() => {
     loadServiceCategories();
     loadServiceSubcategories();
-    loadTechnologies();
-    loadBenefits();
     loadProcesses();
     loadHireContent();
-    loadHireServices();
-    loadWhyChoose();
     loadWhyVedx();
   }, []);
+
+  useEffect(() => {
+    const filters = {
+      category: categoryFilter || undefined,
+      subcategory: subcategoryFilter || undefined,
+    };
+
+    loadServiceMenus(filters);
+    loadTechnologies(filters);
+    loadBenefits(filters);
+    loadHireServices(filters);
+    loadWhyChoose(filters);
+  }, [categoryFilter, loadBenefits, loadHireServices, loadServiceMenus, loadTechnologies, loadWhyChoose, subcategoryFilter]);
 
   useEffect(() => {
     if (!selectedWhyChooseId) {
@@ -649,9 +677,12 @@ const AdminServicesPage = () => {
       setWhyChoose(existing);
       setWhyHeroForm(existing);
       setWhyServicePage(1);
-      loadWhyServices(existing.id);
+      loadWhyServices(existing.id, {
+        category: categoryFilter || undefined,
+        subcategory: subcategoryFilter || undefined,
+      });
     }
-  }, [selectedWhyChooseId, whyChooseList]);
+  }, [categoryFilter, loadWhyServices, selectedWhyChooseId, subcategoryFilter, whyChooseList]);
 
   useEffect(() => {
     const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
@@ -668,8 +699,8 @@ const AdminServicesPage = () => {
   const rowsPerPage = 5;
   const [serviceDateFilter, setServiceDateFilter] = useState('all');
   const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
-  const [serviceCategoryFilter, setServiceCategoryFilter] = useState('');
-  const [serviceSubcategoryFilter, setServiceSubcategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [subcategoryFilter, setSubcategoryFilter] = useState('');
   const [servicePage, setServicePage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
@@ -882,20 +913,20 @@ const AdminServicesPage = () => {
   const filteredServices = useMemo(
     () =>
       services.filter((service) => {
-        const matchesCategory = serviceCategoryFilter
-          ? service.category === serviceCategoryFilter
+        const matchesCategory = categoryFilter
+          ? service.category === categoryFilter
           : true;
-        const matchesSubcategory = serviceSubcategoryFilter
-          ? service.subcategories.some((subcategory) => subcategory.name === serviceSubcategoryFilter)
+        const matchesSubcategory = subcategoryFilter
+          ? service.subcategories.some((subcategory) => subcategory.name === subcategoryFilter)
           : true;
 
-        return (
-          matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange) &&
-          matchesCategory &&
-          matchesSubcategory
-        );
+      return (
+        matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange) &&
+        matchesCategory &&
+        matchesSubcategory
+      );
       }),
-    [serviceCategoryFilter, serviceDateFilter, serviceDateRange, serviceSubcategoryFilter, services]
+    [categoryFilter, serviceDateFilter, serviceDateRange, services, subcategoryFilter]
   );
 
   const pagedServices = useMemo(() => {
@@ -917,26 +948,25 @@ const AdminServicesPage = () => {
 
   useEffect(() => {
     setServicePage(1);
-  }, [serviceCategoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, serviceSubcategoryFilter]);
+  }, [categoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, subcategoryFilter]);
 
   useEffect(() => {
-    loadServiceMenus({
-      category: serviceCategoryFilter || undefined,
-      subcategory: serviceSubcategoryFilter || undefined,
-    });
-  }, [loadServiceMenus, serviceCategoryFilter, serviceSubcategoryFilter]);
+    setBenefitPage(1);
+    setHireServicePage(1);
+    setWhyServicePage(1);
+  }, [categoryFilter, subcategoryFilter]);
 
   useEffect(() => {
-    if (!serviceCategoryFilter) {
-      setServiceSubcategoryFilter('');
+    if (!categoryFilter) {
+      setSubcategoryFilter('');
       return;
     }
 
-    const allowed = subcategoryLookup.get(serviceCategoryFilter) || [];
-    if (serviceSubcategoryFilter && !allowed.includes(serviceSubcategoryFilter)) {
-      setServiceSubcategoryFilter('');
+    const allowed = subcategoryLookup.get(categoryFilter) || [];
+    if (subcategoryFilter && !allowed.includes(subcategoryFilter)) {
+      setSubcategoryFilter('');
     }
-  }, [serviceCategoryFilter, serviceSubcategoryFilter, subcategoryLookup]);
+  }, [categoryFilter, subcategoryFilter, subcategoryLookup]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredServices.length / rowsPerPage));
@@ -1858,6 +1888,45 @@ const AdminServicesPage = () => {
         }}
       />
 
+      <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          Filter every tab by category and subcategory
+        </Typography>
+        <Stack
+          spacing={2}
+          direction={{ xs: 'column', md: 'row' }}
+          alignItems={{ xs: 'stretch', md: 'flex-end' }}
+        >
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            freeSolo
+            options={categoryOptions.map((option) => option.label)}
+            value={categoryFilter}
+            onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
+            renderInput={(params) => (
+              <TextField {...params} label="Category filter" placeholder="All categories" />
+            )}
+          />
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            freeSolo
+            options={
+              categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
+            }
+            value={subcategoryFilter}
+            onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Sub-category filter"
+                placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
+              />
+            )}
+            disabled={!categoryFilter && allSubcategoryOptions.length === 0}
+          />
+        </Stack>
+      </Stack>
+
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
@@ -1890,41 +1959,6 @@ const AdminServicesPage = () => {
                   </MenuItem>
                 ))}
               </TextField>
-              <Autocomplete
-                sx={{ minWidth: 220 }}
-                freeSolo
-                options={categoryOptions.map((option) => option.label)}
-                value={serviceCategoryFilter}
-                onInputChange={(event, newValue) => setServiceCategoryFilter(newValue || '')}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Category filter"
-                    placeholder="All categories"
-
-                  />
-                )}
-              />
-              <Autocomplete
-                sx={{ minWidth: 220 }}
-                freeSolo
-                options={
-                  serviceCategoryFilter
-                    ? subcategoryLookup.get(serviceCategoryFilter) || []
-                    : allSubcategoryOptions
-                }
-                value={serviceSubcategoryFilter}
-                onInputChange={(event, newValue) => setServiceSubcategoryFilter(newValue || '')}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Sub-category filter"
-                    placeholder="All sub-categories"
-
-                  />
-                )}
-                disabled={!serviceCategoryFilter && allSubcategoryOptions.length === 0}
-              />
               {serviceDateFilter === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                   <TextField
