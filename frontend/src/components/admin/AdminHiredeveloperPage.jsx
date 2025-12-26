@@ -18,14 +18,12 @@ import {
   MenuItem,
   Pagination,
   Stack,
-  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Tabs,
   TextField,
   Tooltip,
   Typography
@@ -34,6 +32,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import AdminSectionTabs from './AdminSectionTabs.jsx';
 
 const imagePlaceholder = '';
 
@@ -2164,25 +2163,23 @@ const AdminHiredeveloperPage = () => {
 
   return (
     <Stack spacing={3}>
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 0.5, bgcolor: 'background.paper' }}>
-        <Tabs
-          value={activeTab}
-          onChange={(event, value) => setActiveTab(value)}
-          variant="scrollable"
-          scrollButtons="auto"
-          indicatorColor="primary"
-          textColor="primary"
-        >
-          <Tab value="services" label="Service menu" />
-          <Tab value="process" label="Process" />
-          <Tab value="why-vedx" label="Why choose VedX" />
-          <Tab value="why-choose" label="Why choose service" />
-          <Tab value="technologies" label="Technologies we support" />
-          <Tab value="benefits" label="Benefits" />
-          <Tab value="hire-pricing" label="Hire pricing" />
-          <Tab value="hire" label="Development services" />
-        </Tabs>
-      </Box>
+      <AdminSectionTabs
+        value={activeTab}
+        onChange={(event, value) => setActiveTab(value)}
+        tabs={[
+          { value: 'services', label: 'Service menu' },
+          { value: 'process', label: 'Process' },
+          { value: 'why-vedx', label: 'Why choose VedX' },
+          { value: 'why-choose', label: 'Why choose service' },
+          { value: 'technologies', label: 'Technologies we support' },
+          { value: 'benefits', label: 'Benefits' },
+          { value: 'hire-pricing', label: 'Hire pricing' },
+          { value: 'hire', label: 'Development services' },
+        ]}
+        sx={{
+          background: 'linear-gradient(135deg, #0b1120 0%, #111827 100%)',
+        }}
+      />
 
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
