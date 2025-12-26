@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
@@ -21,14 +21,12 @@ import {
   MenuItem,
   Pagination,
   Stack,
-  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Tabs,
   TextField,
   Tooltip,
   Typography
@@ -38,6 +36,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import AdminSectionTabs from './AdminSectionTabs.jsx';
 
 const imagePlaceholder = '';
 
@@ -368,6 +367,21 @@ const AdminServicesPage = () => {
   const [activeExpertise, setActiveExpertise] = useState(null);
   const [expertiseToDelete, setExpertiseToDelete] = useState(null);
 
+  const rowsPerPage = 5;
+  const [serviceDateFilter, setServiceDateFilter] = useState('all');
+  const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [subcategoryFilter, setSubcategoryFilter] = useState('');
+  const [servicePage, setServicePage] = useState(1);
+  const [benefitPage, setBenefitPage] = useState(1);
+  const [whyServicePage, setWhyServicePage] = useState(1);
+  const [hireServicePage, setHireServicePage] = useState(1);
+  const [processPage, setProcessPage] = useState(1);
+  const [whyVedxPage, setWhyVedxPage] = useState(1);
+  const [industryPage, setIndustryPage] = useState(1);
+  const [techSolutionPage, setTechSolutionPage] = useState(1);
+  const [expertisePage, setExpertisePage] = useState(1);
+
   const normalizeDate = (value) => (value ? String(value).split('T')[0] : '');
 
   const requireToken = () => {
@@ -467,27 +481,36 @@ const AdminServicesPage = () => {
     reasons: (item.reasons || []).map(normalizeWhyVedxReason),
   });
 
-  const loadServiceMenus = async () => {
+  const loadServiceMenus = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/service-menus'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const query = params.toString();
+      const response = await fetch(apiUrl(`/api/service-menus${query ? `?${query}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load service menus');
       setServices((data || []).map(normalizeServiceMenu));
     } catch (err) {
       console.error('Failed to load service menus', err);
     }
-  };
+  }, []);
 
-  const loadTechnologies = async () => {
+  const loadTechnologies = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/technologies'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/technologies${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
       setTechnologies((data || []).map(normalizeTechnology));
     } catch (err) {
       console.error('Failed to load technologies', err);
     }
-  };
+  }, []);
 
   const loadServiceCategories = async () => {
     try {
@@ -511,16 +534,20 @@ const AdminServicesPage = () => {
     }
   };
 
-  const loadBenefits = async () => {
+  const loadBenefits = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/benefits'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/benefits${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load benefits');
       setBenefits((data || []).map(normalizeBenefit));
     } catch (err) {
       console.error('Failed to load benefits', err);
     }
-  };
+  }, []);
 
   const loadProcesses = async () => {
     try {
@@ -549,20 +576,28 @@ const AdminServicesPage = () => {
     }
   };
 
-  const loadHireServices = async () => {
+  const loadHireServices = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/hire-services'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/hire-services${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load hire services');
       setHireContent((prev) => ({ ...prev, services: (data || []).map(normalizeHireService) }));
     } catch (err) {
       console.error('Failed to load hire services', err);
     }
-  };
+  }, []);
 
-  const loadWhyChoose = async () => {
+  const loadWhyChoose = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/why-choose'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/why-choose${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || '');
       const normalized = (data || []).map(normalizeWhyChooseHero);
@@ -571,15 +606,18 @@ const AdminServicesPage = () => {
       setWhyHeroForm({ ...active });
       setWhyChooseList(normalized);
       setSelectedWhyChooseId(active.id || '');
+      setWhyServicePage(1);
     } catch (err) {
       console.error('Failed to load why choose config', err);
     }
-  };
+  }, []);
 
-  const loadWhyServices = async (whyChooseId) => {
+  const loadWhyServices = useCallback(async (whyChooseId, { category, subcategory } = {}) => {
     try {
       const params = new URLSearchParams();
       if (whyChooseId) params.append('whyChooseId', String(whyChooseId));
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
       const response = await fetch(apiUrl(`/api/why-services${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load why services');
@@ -587,7 +625,7 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load why services', err);
     }
-  };
+  }, []);
 
   const loadWhyVedx = async () => {
     try {
@@ -621,17 +659,25 @@ const AdminServicesPage = () => {
   };
 
   useEffect(() => {
-    loadServiceMenus();
     loadServiceCategories();
     loadServiceSubcategories();
-    loadTechnologies();
-    loadBenefits();
     loadProcesses();
     loadHireContent();
-    loadHireServices();
-    loadWhyChoose();
     loadWhyVedx();
   }, []);
+
+  useEffect(() => {
+    const filters = {
+      category: categoryFilter || undefined,
+      subcategory: subcategoryFilter || undefined,
+    };
+
+    loadServiceMenus(filters);
+    loadTechnologies(filters);
+    loadBenefits(filters);
+    loadHireServices(filters);
+    loadWhyChoose(filters);
+  }, [categoryFilter, loadBenefits, loadHireServices, loadServiceMenus, loadTechnologies, loadWhyChoose, subcategoryFilter]);
 
   useEffect(() => {
     if (!selectedWhyChooseId) {
@@ -646,9 +692,12 @@ const AdminServicesPage = () => {
       setWhyChoose(existing);
       setWhyHeroForm(existing);
       setWhyServicePage(1);
-      loadWhyServices(existing.id);
+      loadWhyServices(existing.id, {
+        category: categoryFilter || undefined,
+        subcategory: subcategoryFilter || undefined,
+      });
     }
-  }, [selectedWhyChooseId, whyChooseList]);
+  }, [categoryFilter, loadWhyServices, selectedWhyChooseId, subcategoryFilter, whyChooseList]);
 
   useEffect(() => {
     const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
@@ -661,21 +710,6 @@ const AdminServicesPage = () => {
     }
     setWhyVedxPage(1);
   }, [selectedWhyVedxId, whyVedxList]);
-
-  const rowsPerPage = 5;
-  const [serviceDateFilter, setServiceDateFilter] = useState('all');
-  const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
-  const [serviceCategoryFilter, setServiceCategoryFilter] = useState('');
-  const [serviceSubcategoryFilter, setServiceSubcategoryFilter] = useState('');
-  const [servicePage, setServicePage] = useState(1);
-  const [benefitPage, setBenefitPage] = useState(1);
-  const [whyServicePage, setWhyServicePage] = useState(1);
-  const [hireServicePage, setHireServicePage] = useState(1);
-  const [processPage, setProcessPage] = useState(1);
-  const [whyVedxPage, setWhyVedxPage] = useState(1);
-  const [industryPage, setIndustryPage] = useState(1);
-  const [techSolutionPage, setTechSolutionPage] = useState(1);
-  const [expertisePage, setExpertisePage] = useState(1);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
@@ -879,20 +913,20 @@ const AdminServicesPage = () => {
   const filteredServices = useMemo(
     () =>
       services.filter((service) => {
-        const matchesCategory = serviceCategoryFilter
-          ? service.category === serviceCategoryFilter
+        const matchesCategory = categoryFilter
+          ? service.category === categoryFilter
           : true;
-        const matchesSubcategory = serviceSubcategoryFilter
-          ? service.subcategories.some((subcategory) => subcategory.name === serviceSubcategoryFilter)
+        const matchesSubcategory = subcategoryFilter
+          ? service.subcategories.some((subcategory) => subcategory.name === subcategoryFilter)
           : true;
 
-        return (
-          matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange) &&
-          matchesCategory &&
-          matchesSubcategory
-        );
+      return (
+        matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange) &&
+        matchesCategory &&
+        matchesSubcategory
+      );
       }),
-    [serviceCategoryFilter, serviceDateFilter, serviceDateRange, serviceSubcategoryFilter, services]
+    [categoryFilter, serviceDateFilter, serviceDateRange, services, subcategoryFilter]
   );
 
   const pagedServices = useMemo(() => {
@@ -914,19 +948,25 @@ const AdminServicesPage = () => {
 
   useEffect(() => {
     setServicePage(1);
-  }, [serviceCategoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, serviceSubcategoryFilter]);
+  }, [categoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, subcategoryFilter]);
 
   useEffect(() => {
-    if (!serviceCategoryFilter) {
-      setServiceSubcategoryFilter('');
+    setBenefitPage(1);
+    setHireServicePage(1);
+    setWhyServicePage(1);
+  }, [categoryFilter, subcategoryFilter]);
+
+  useEffect(() => {
+    if (!categoryFilter) {
+      setSubcategoryFilter('');
       return;
     }
 
-    const allowed = subcategoryLookup.get(serviceCategoryFilter) || [];
-    if (serviceSubcategoryFilter && !allowed.includes(serviceSubcategoryFilter)) {
-      setServiceSubcategoryFilter('');
+    const allowed = subcategoryLookup.get(categoryFilter) || [];
+    if (subcategoryFilter && !allowed.includes(subcategoryFilter)) {
+      setSubcategoryFilter('');
     }
-  }, [serviceCategoryFilter, serviceSubcategoryFilter, subcategoryLookup]);
+  }, [categoryFilter, subcategoryFilter, subcategoryLookup]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredServices.length / rowsPerPage));
@@ -1831,24 +1871,61 @@ const AdminServicesPage = () => {
 
   return (
     <Stack spacing={3}>
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 0.5, bgcolor: 'background.paper' }}>
-        <Tabs
-          value={activeTab}
-          onChange={(event, value) => setActiveTab(value)}
-          variant="scrollable"
-          scrollButtons="auto"
-          indicatorColor="primary"
-          textColor="primary"
+      <AdminSectionTabs
+        value={activeTab}
+        onChange={(event, value) => setActiveTab(value)}
+        tabs={[
+          { value: 'services', label: 'Service menu' },
+          { value: 'process', label: 'Process' },
+          { value: 'why-vedx', label: 'Why choose VedX' },
+          { value: 'why-choose', label: 'Why choose service' },
+          { value: 'technologies', label: 'Technologies we support' },
+          { value: 'benefits', label: 'Benefits' },
+          { value: 'hire', label: 'Development services' },
+        ]}
+        sx={{
+          background: 'linear-gradient(135deg, #0b1120 0%, #111827 100%)',
+        }}
+      />
+
+      <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          Filter every tab by category and subcategory
+        </Typography>
+        <Stack
+          spacing={2}
+          direction={{ xs: 'column', md: 'row' }}
+          alignItems={{ xs: 'stretch', md: 'flex-end' }}
         >
-          <Tab value="services" label="Service menu" />
-          <Tab value="process" label="Process" />
-          <Tab value="why-vedx" label="Why choose VedX" />
-          <Tab value="why-choose" label="Why choose service" />
-          <Tab value="technologies" label="Technologies we support" />
-          <Tab value="benefits" label="Benefits" />
-          <Tab value="hire" label="Development services" />
-        </Tabs>
-      </Box>
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            freeSolo
+            options={categoryOptions.map((option) => option.label)}
+            value={categoryFilter}
+            onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
+            renderInput={(params) => (
+              <TextField {...params} label="Category filter" placeholder="All categories" />
+            )}
+          />
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            freeSolo
+            options={
+              categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
+            }
+            value={subcategoryFilter}
+            onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Sub-category filter"
+                placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
+              />
+            )}
+            disabled={!categoryFilter && allSubcategoryOptions.length === 0}
+          />
+        </Stack>
+      </Stack>
 
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -1882,41 +1959,6 @@ const AdminServicesPage = () => {
                   </MenuItem>
                 ))}
               </TextField>
-              <Autocomplete
-                sx={{ minWidth: 220 }}
-                freeSolo
-                options={categoryOptions.map((option) => option.label)}
-                value={serviceCategoryFilter}
-                onInputChange={(event, newValue) => setServiceCategoryFilter(newValue || '')}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Category filter"
-                    placeholder="All categories"
-
-                  />
-                )}
-              />
-              <Autocomplete
-                sx={{ minWidth: 220 }}
-                freeSolo
-                options={
-                  serviceCategoryFilter
-                    ? subcategoryLookup.get(serviceCategoryFilter) || []
-                    : allSubcategoryOptions
-                }
-                value={serviceSubcategoryFilter}
-                onInputChange={(event, newValue) => setServiceSubcategoryFilter(newValue || '')}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Sub-category filter"
-                    placeholder="All sub-categories"
-
-                  />
-                )}
-                disabled={!serviceCategoryFilter && allSubcategoryOptions.length === 0}
-              />
               {serviceDateFilter === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                   <TextField
