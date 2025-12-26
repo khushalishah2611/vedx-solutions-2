@@ -1889,9 +1889,7 @@ const AdminServicesPage = () => {
       />
 
       <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
-        <Typography variant="subtitle2" color="text.secondary">
-          Filter every tab by category and subcategory
-        </Typography>
+
         <Stack
           spacing={2}
           direction={{ xs: 'column', md: 'row' }}
@@ -2850,9 +2848,7 @@ const AdminServicesPage = () => {
                 <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
                   <Box>
                     <Typography variant="h6">{whyChoose.tableTitle || 'Service highlights'}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {whyChoose.tableDescription || 'Add category and sub-category wise proof points for this service.'}
-                    </Typography>
+                    
                   </Box>
                   <Button
                     variant="contained"
