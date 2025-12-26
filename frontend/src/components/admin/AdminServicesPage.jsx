@@ -367,6 +367,21 @@ const AdminServicesPage = () => {
   const [activeExpertise, setActiveExpertise] = useState(null);
   const [expertiseToDelete, setExpertiseToDelete] = useState(null);
 
+  const rowsPerPage = 5;
+  const [serviceDateFilter, setServiceDateFilter] = useState('all');
+  const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [subcategoryFilter, setSubcategoryFilter] = useState('');
+  const [servicePage, setServicePage] = useState(1);
+  const [benefitPage, setBenefitPage] = useState(1);
+  const [whyServicePage, setWhyServicePage] = useState(1);
+  const [hireServicePage, setHireServicePage] = useState(1);
+  const [processPage, setProcessPage] = useState(1);
+  const [whyVedxPage, setWhyVedxPage] = useState(1);
+  const [industryPage, setIndustryPage] = useState(1);
+  const [techSolutionPage, setTechSolutionPage] = useState(1);
+  const [expertisePage, setExpertisePage] = useState(1);
+
   const normalizeDate = (value) => (value ? String(value).split('T')[0] : '');
 
   const requireToken = () => {
@@ -695,21 +710,6 @@ const AdminServicesPage = () => {
     }
     setWhyVedxPage(1);
   }, [selectedWhyVedxId, whyVedxList]);
-
-  const rowsPerPage = 5;
-  const [serviceDateFilter, setServiceDateFilter] = useState('all');
-  const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [subcategoryFilter, setSubcategoryFilter] = useState('');
-  const [servicePage, setServicePage] = useState(1);
-  const [benefitPage, setBenefitPage] = useState(1);
-  const [whyServicePage, setWhyServicePage] = useState(1);
-  const [hireServicePage, setHireServicePage] = useState(1);
-  const [processPage, setProcessPage] = useState(1);
-  const [whyVedxPage, setWhyVedxPage] = useState(1);
-  const [industryPage, setIndustryPage] = useState(1);
-  const [techSolutionPage, setTechSolutionPage] = useState(1);
-  const [expertisePage, setExpertisePage] = useState(1);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
