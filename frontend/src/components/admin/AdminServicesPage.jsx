@@ -920,11 +920,11 @@ const AdminServicesPage = () => {
           ? service.subcategories.some((subcategory) => subcategory.name === subcategoryFilter)
           : true;
 
-      return (
-        matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange) &&
-        matchesCategory &&
-        matchesSubcategory
-      );
+        return (
+          matchesDateFilter(service.createdAt, serviceDateFilter, serviceDateRange) &&
+          matchesCategory &&
+          matchesSubcategory
+        );
       }),
     [categoryFilter, serviceDateFilter, serviceDateRange, services, subcategoryFilter]
   );
@@ -2848,7 +2848,6 @@ const AdminServicesPage = () => {
                 <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
                   <Box>
                     <Typography variant="h6">{whyChoose.tableTitle || 'Service highlights'}</Typography>
-                    
                   </Box>
                   <Button
                     variant="contained"
