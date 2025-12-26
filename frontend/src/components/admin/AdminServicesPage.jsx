@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
@@ -466,16 +466,21 @@ const AdminServicesPage = () => {
     reasons: (item.reasons || []).map(normalizeWhyVedxReason),
   });
 
-  const loadServiceMenus = async () => {
+  const loadServiceMenus = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/service-menus'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const query = params.toString();
+      const response = await fetch(apiUrl(`/api/service-menus${query ? `?${query}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load service menus');
       setServices((data || []).map(normalizeServiceMenu));
     } catch (err) {
       console.error('Failed to load service menus', err);
     }
-  };
+  }, []);
 
   const loadTechnologies = async () => {
     try {
@@ -620,7 +625,6 @@ const AdminServicesPage = () => {
   };
 
   useEffect(() => {
-    loadServiceMenus();
     loadServiceCategories();
     loadServiceSubcategories();
     loadTechnologies();
@@ -914,6 +918,13 @@ const AdminServicesPage = () => {
   useEffect(() => {
     setServicePage(1);
   }, [serviceCategoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, serviceSubcategoryFilter]);
+
+  useEffect(() => {
+    loadServiceMenus({
+      category: serviceCategoryFilter || undefined,
+      subcategory: serviceSubcategoryFilter || undefined,
+    });
+  }, [loadServiceMenus, serviceCategoryFilter, serviceSubcategoryFilter]);
 
   useEffect(() => {
     if (!serviceCategoryFilter) {

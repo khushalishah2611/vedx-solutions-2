@@ -4772,10 +4772,17 @@ const mapServiceMenuToResponse = (menu) => ({
 // GET all service menus
 app.get('/api/service-menus', async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, subcategory } = req.query;
 
     const menus = await prisma.serviceMenu.findMany({
-      where: category ? { category } : {},
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && {
+          subcategories: {
+            some: { name: String(subcategory) },
+          },
+        }),
+      },
       include: {
         subcategories: true,
         faqs: true,
