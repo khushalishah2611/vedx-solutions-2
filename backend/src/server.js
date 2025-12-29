@@ -5122,6 +5122,69 @@ const mapBenefitToResponse = (benefit) => ({
   updatedAt: benefit.updatedAt,
 });
 
+const mapBenefitConfigToResponse = (config) => ({
+  id: config.id,
+  title: config.title,
+  description: config.description || '',
+  createdAt: config.createdAt,
+  updatedAt: config.updatedAt,
+});
+
+const mapContactButtonToResponse = (button) => ({
+  id: button.id,
+  title: button.title,
+  description: button.description || '',
+  image: button.image || '',
+  createdAt: button.createdAt,
+  updatedAt: button.updatedAt,
+});
+
+// GET benefit hero/config
+app.get('/api/benefits/config', async (_req, res) => {
+  try {
+    const config = await prisma.benefitConfig.findFirst({ orderBy: { createdAt: 'desc' } });
+
+    if (!config) {
+      return res.json(null);
+    }
+
+    return res.json(mapBenefitConfigToResponse(config));
+  } catch (err) {
+    console.error('GET /api/benefits/config error', err);
+    return res.status(500).json({ error: 'Failed to fetch benefit configuration' });
+  }
+});
+
+// CREATE or update benefit hero/config
+app.post('/api/benefits/config', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { id, title, description } = req.body ?? {};
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Both title and description are required' });
+    }
+
+    const existing = id
+      ? await prisma.benefitConfig.findUnique({ where: { id } })
+      : await prisma.benefitConfig.findFirst({ orderBy: { createdAt: 'desc' } });
+
+    const saved = existing
+      ? await prisma.benefitConfig.update({
+          where: { id: existing.id },
+          data: { title, description },
+        })
+      : await prisma.benefitConfig.create({ data: { title, description } });
+
+    return res.json(mapBenefitConfigToResponse(saved));
+  } catch (err) {
+    console.error('POST /api/benefits/config error', err);
+    return res.status(500).json({ error: 'Failed to save benefit configuration' });
+  }
+});
+
 // GET all benefits
 app.get('/api/benefits', async (req, res) => {
   try {
@@ -5220,6 +5283,97 @@ app.delete('/api/benefits/:id', async (req, res) => {
   } catch (err) {
     console.error('DELETE /api/benefits/:id error', err);
     res.status(500).json({ error: 'Failed to delete benefit' });
+  }
+});
+
+/* ===============================================
+ * CONTACT BUTTON APIs
+ * =============================================== */
+
+// GET all contact buttons
+app.get('/api/contact-buttons', async (_req, res) => {
+  try {
+    const buttons = await prisma.contactButton.findMany({ orderBy: { createdAt: 'desc' } });
+
+    res.json(buttons.map(mapContactButtonToResponse));
+  } catch (err) {
+    console.error('GET /api/contact-buttons error', err);
+    res.status(500).json({ error: 'Failed to fetch contact buttons' });
+  }
+});
+
+// CREATE contact button
+app.post('/api/contact-buttons', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, image } = req.body ?? {};
+
+    if (!title || !image) {
+      return res.status(400).json({ error: 'Title and image are required' });
+    }
+
+    const created = await prisma.contactButton.create({
+      data: {
+        title,
+        description: description || null,
+        image,
+      },
+    });
+
+    res.status(201).json(mapContactButtonToResponse(created));
+  } catch (err) {
+    console.error('POST /api/contact-buttons error', err);
+    res.status(500).json({ error: 'Failed to create contact button' });
+  }
+});
+
+// UPDATE contact button
+app.put('/api/contact-buttons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ error: 'Valid contact button id required' });
+    }
+
+    const { title, description, image } = req.body ?? {};
+
+    const updated = await prisma.contactButton.update({
+      where: { id },
+      data: {
+        title,
+        description: description || null,
+        image,
+      },
+    });
+
+    res.json(mapContactButtonToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/contact-buttons/:id error', err);
+    res.status(500).json({ error: 'Failed to update contact button' });
+  }
+});
+
+// DELETE contact button
+app.delete('/api/contact-buttons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ error: 'Valid contact button id required' });
+    }
+
+    await prisma.contactButton.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/contact-buttons/:id error', err);
+    res.status(500).json({ error: 'Failed to delete contact button' });
   }
 });
 

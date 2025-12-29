@@ -43,6 +43,7 @@ const imagePlaceholder = '';
 const initialServices = [];
 const initialTechnologies = [];
 const initialBenefits = [];
+const initialBenefitHero = { title: '', description: '' };
 const initialHireDevelopers = { title: '', description: '', heroImage: imagePlaceholder, services: [] };
 const initialWhyChoose = {
   id: '',
@@ -107,6 +108,13 @@ const emptyHireServiceForm = {
   id: '',
   category: '',
   subcategory: '',
+  title: '',
+  description: '',
+  image: imagePlaceholder,
+};
+
+const emptyContactButtonForm = {
+  id: '',
   title: '',
   description: '',
   image: imagePlaceholder,
@@ -296,6 +304,8 @@ const AdminServicesPage = () => {
   const [technologyToDelete, setTechnologyToDelete] = useState(null);
 
   const [benefits, setBenefits] = useState(initialBenefits);
+  const [benefitHero, setBenefitHero] = useState(initialBenefitHero);
+  const [benefitHeroSaved, setBenefitHeroSaved] = useState(false);
   const [benefitDialogOpen, setBenefitDialogOpen] = useState(false);
   const [benefitDialogMode, setBenefitDialogMode] = useState('create');
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
@@ -309,6 +319,13 @@ const AdminServicesPage = () => {
   const [activeHireService, setActiveHireService] = useState(null);
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
+
+  const [contactButtons, setContactButtons] = useState([]);
+  const [contactButtonDialogOpen, setContactButtonDialogOpen] = useState(false);
+  const [contactButtonDialogMode, setContactButtonDialogMode] = useState('create');
+  const [contactButtonForm, setContactButtonForm] = useState(emptyContactButtonForm);
+  const [activeContactButton, setActiveContactButton] = useState(null);
+  const [contactButtonToDelete, setContactButtonToDelete] = useState(null);
 
   const [whyChooseList, setWhyChooseList] = useState([]);
   const [selectedWhyChooseId, setSelectedWhyChooseId] = useState('');
@@ -381,6 +398,7 @@ const AdminServicesPage = () => {
   const [industryPage, setIndustryPage] = useState(1);
   const [techSolutionPage, setTechSolutionPage] = useState(1);
   const [expertisePage, setExpertisePage] = useState(1);
+  const [contactButtonPage, setContactButtonPage] = useState(1);
 
   const normalizeDate = (value) => (value ? String(value).split('T')[0] : '');
 
@@ -420,6 +438,19 @@ const AdminServicesPage = () => {
     ...benefit,
     category: benefit.category || '',
     subcategory: benefit.subcategory || '',
+  });
+
+  const normalizeBenefitConfig = (config) => ({
+    id: config?.id || '',
+    title: config?.title || '',
+    description: config?.description || '',
+  });
+
+  const normalizeContactButton = (button) => ({
+    id: button.id,
+    title: button.title,
+    description: button.description || '',
+    image: button.image || imagePlaceholder,
   });
 
   const normalizeServiceCategory = (category) => ({
@@ -549,6 +580,17 @@ const AdminServicesPage = () => {
     }
   }, []);
 
+  const loadBenefitConfig = useCallback(async () => {
+    try {
+      const response = await fetch(apiUrl('/api/benefits/config'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load benefit configuration');
+      setBenefitHero(normalizeBenefitConfig(data || initialBenefitHero));
+    } catch (err) {
+      console.error('Failed to load benefit configuration', err);
+    }
+  }, []);
+
   const loadProcesses = async () => {
     try {
       const response = await fetch(apiUrl('/api/service-processes'));
@@ -588,6 +630,17 @@ const AdminServicesPage = () => {
       setHireContent((prev) => ({ ...prev, services: (data || []).map(normalizeHireService) }));
     } catch (err) {
       console.error('Failed to load hire services', err);
+    }
+  }, []);
+
+  const loadContactButtons = useCallback(async () => {
+    try {
+      const response = await fetch(apiUrl('/api/contact-buttons'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load contact buttons');
+      setContactButtons((data || []).map(normalizeContactButton));
+    } catch (err) {
+      console.error('Failed to load contact buttons', err);
     }
   }, []);
 
@@ -664,6 +717,8 @@ const AdminServicesPage = () => {
     loadProcesses();
     loadHireContent();
     loadWhyVedx();
+    loadBenefitConfig();
+    loadContactButtons();
   }, []);
 
   useEffect(() => {
@@ -752,6 +807,11 @@ const AdminServicesPage = () => {
     setBenefitForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleBenefitHeroChange = (field, value) => {
+    setBenefitHeroSaved(false);
+    setBenefitHero((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleHireServiceFormChange = (field, value) => {
     setHireServiceForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -780,6 +840,28 @@ const AdminServicesPage = () => {
       setTimeout(() => setHeroSaved(false), 3000);
     } catch (err) {
       handleRequestError(err, 'Unable to save hero content');
+    }
+  };
+
+  const handleBenefitHeroSave = async (event) => {
+    event?.preventDefault();
+    try {
+      const response = await fetch(apiUrl('/api/benefits/config'), {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          id: benefitHero.id || undefined,
+          title: benefitHero.title,
+          description: benefitHero.description,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save benefits copy');
+      setBenefitHero(normalizeBenefitConfig(data));
+      setBenefitHeroSaved(true);
+      setTimeout(() => setBenefitHeroSaved(false), 3000);
+    } catch (err) {
+      handleRequestError(err, 'Unable to save benefits copy');
     }
   };
 
@@ -812,6 +894,10 @@ const AdminServicesPage = () => {
 
   const handleWhyHeroChange = (field, value) => {
     setWhyHeroForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleContactButtonFormChange = (field, value) => {
+    setContactButtonForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleWhyHeroSave = async (event) => {
@@ -1019,6 +1105,26 @@ const AdminServicesPage = () => {
     return hireContent.services.slice(start, start + rowsPerPage);
   }, [hireContent.services, rowsPerPage, hireServicePage]);
 
+  const groupedHireServices = useMemo(() => {
+    const lookup = new Map();
+
+    pagedHireServices.forEach((service) => {
+      const category = service.category || 'Uncategorised';
+      const existing = lookup.get(category) || [];
+      lookup.set(category, [...existing, service]);
+    });
+
+    return Array.from(lookup.entries()).map(([category, items]) => ({
+      category,
+      services: items,
+    }));
+  }, [pagedHireServices]);
+
+  const pagedContactButtons = useMemo(() => {
+    const start = (contactButtonPage - 1) * rowsPerPage;
+    return contactButtons.slice(start, start + rowsPerPage);
+  }, [contactButtonPage, contactButtons, rowsPerPage]);
+
   useEffect(() => {
     const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
     setBenefitPage((prev) => Math.min(prev, maxBenefitPage));
@@ -1033,6 +1139,11 @@ const AdminServicesPage = () => {
     const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
     setHireServicePage((prev) => Math.min(prev, maxHireServicePage));
   }, [hireContent.services.length, rowsPerPage]);
+
+  useEffect(() => {
+    const maxContactPage = Math.max(1, Math.ceil(contactButtons.length / rowsPerPage));
+    setContactButtonPage((prev) => Math.min(prev, maxContactPage));
+  }, [contactButtons.length, rowsPerPage]);
 
   useEffect(() => {
     setOurServicesHeroForm((prev) => ({
@@ -1446,6 +1557,79 @@ const AdminServicesPage = () => {
       closeHireServiceDeleteDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to delete hire service');
+    }
+  };
+
+  const openContactButtonCreateDialog = () => {
+    setContactButtonDialogMode('create');
+    setActiveContactButton(null);
+    setContactButtonForm(emptyContactButtonForm);
+    setContactButtonDialogOpen(true);
+  };
+
+  const openContactButtonEditDialog = (button) => {
+    setContactButtonDialogMode('edit');
+    setActiveContactButton(button);
+    setContactButtonForm({ ...button });
+    setContactButtonDialogOpen(true);
+  };
+
+  const closeContactButtonDialog = () => {
+    setContactButtonDialogOpen(false);
+    setActiveContactButton(null);
+  };
+
+  const handleContactButtonSubmit = async (event) => {
+    event?.preventDefault();
+    if (!contactButtonForm.title.trim() || !contactButtonForm.image) return;
+
+    const payload = {
+      title: contactButtonForm.title,
+      description: contactButtonForm.description,
+      image: contactButtonForm.image,
+    };
+
+    const isEdit = contactButtonDialogMode === 'edit' && activeContactButton;
+    const url = isEdit
+      ? apiUrl(`/api/contact-buttons/${activeContactButton.id}`)
+      : apiUrl('/api/contact-buttons');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save contact button');
+
+      const normalized = normalizeContactButton(data);
+      setContactButtons((prev) =>
+        isEdit
+          ? prev.map((item) => (item.id === normalized.id ? normalized : item))
+          : [normalized, ...prev]
+      );
+      closeContactButtonDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save contact button');
+    }
+  };
+
+  const openContactButtonDeleteDialog = (button) => setContactButtonToDelete(button);
+  const closeContactButtonDeleteDialog = () => setContactButtonToDelete(null);
+  const handleConfirmDeleteContactButton = async () => {
+    if (!contactButtonToDelete) return;
+    try {
+      const response = await fetch(apiUrl(`/api/contact-buttons/${contactButtonToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete contact button');
+      setContactButtons((prev) => prev.filter((item) => item.id !== contactButtonToDelete.id));
+      closeContactButtonDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete contact button');
     }
   };
 
@@ -1881,6 +2065,7 @@ const AdminServicesPage = () => {
           { value: 'why-choose', label: 'Why choose service' },
           { value: 'technologies', label: 'Technologies we support' },
           { value: 'benefits', label: 'Benefits' },
+          { value: 'contact-buttons', label: 'Contact buttons' },
           { value: 'hire', label: 'Development services' },
         ]}
         sx={{
@@ -3054,6 +3239,43 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
+            <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Intro copy
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Benefits title"
+                    value={benefitHero.title}
+                    onChange={(event) => handleBenefitHeroChange('title', event.target.value)}
+                    required
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Benefits description"
+                    value={benefitHero.description}
+                    onChange={(event) => handleBenefitHeroChange('description', event.target.value)}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                  />
+                </Grid>
+              </Grid>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button variant="contained" onClick={handleBenefitHeroSave}>
+                  Save intro
+                </Button>
+                {benefitHeroSaved && (
+                  <Typography variant="body2" color="success.main">
+                    Saved
+                  </Typography>
+                )}
+              </Stack>
+            </Stack>
+            <Divider sx={{ mb: 2 }} />
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -3129,6 +3351,98 @@ const AdminServicesPage = () => {
         </Card>
       )}
 
+      {activeTab === 'contact-buttons' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Contact buttons"
+            subheader="Showcase contact CTAs with supporting copy and imagery."
+            action={
+              <Button
+                variant="contained"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={openContactButtonCreateDialog}
+              >
+                Add contact button
+              </Button>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Image</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {pagedContactButtons.map((button) => (
+                    <TableRow key={button.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{button.title}</TableCell>
+                      <TableCell sx={{ maxWidth: 360 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {button.description || 'No description provided.'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box
+                          component="img"
+                          src={button.image || imagePlaceholder}
+                          alt={`${button.title} visual`}
+                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => openContactButtonEditDialog(button)}
+                            >
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => openContactButtonDeleteDialog(button)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {contactButtons.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No contact buttons configured yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(contactButtons.length / rowsPerPage))}
+                page={contactButtonPage}
+                onChange={(event, page) => setContactButtonPage(page)}
+                color="primary"
+              />
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
       {activeTab === 'hire' && (
         <Stack spacing={3}>
           {/* <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -3189,73 +3503,97 @@ const AdminServicesPage = () => {
             />
             <Divider />
             <CardContent>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Category</TableCell>
-                      <TableCell>Sub-category</TableCell>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {pagedHireServices.map((service) => (
-                      <TableRow key={service.id} hover>
-                        <TableCell>{service.category || '-'}</TableCell>
-                        <TableCell>{service.subcategory || '-'}</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>{service.title}</TableCell>
-                        <TableCell>
-                          <Box
-                            component="img"
-                            src={service.image || imagePlaceholder}
-                            alt={`${service.title} visual`}
-                            sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ maxWidth: 320 }}>
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {service.description}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Stack direction="row" spacing={1} justifyContent="flex-end">
-                            <Tooltip title="Edit">
-                              <IconButton
-                                size="small"
-                                color="primary"
-                                onClick={() => openHireServiceEditDialog(service)}
-                              >
-                                <EditOutlinedIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Delete">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => openHireServiceDeleteDialog(service)}
-                              >
-                                <DeleteOutlineIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {hireContent.services.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No development services configured yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <Stack spacing={1.5}>
+                {groupedHireServices.map(({ category, services }) => (
+                  <Accordion key={category} defaultExpanded>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                        <Typography variant="subtitle1" fontWeight={700}>
+                          {category}
+                        </Typography>
+                        <Chip
+                          label={`${services.length} service${services.length === 1 ? '' : 's'}`}
+                          size="small"
+                        />
+                      </Stack>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={2}>
+                        {services.map((service) => (
+                          <Grid item xs={12} md={6} key={service.id}>
+                            <Card variant="outlined" sx={{ height: '100%' }}>
+                              <CardContent>
+                                <Stack spacing={1.5} height="100%">
+                                  <Stack
+                                    direction={{ xs: 'column', sm: 'row' }}
+                                    spacing={2}
+                                    alignItems={{ sm: 'flex-start' }}
+                                  >
+                                    <Stack spacing={0.5} flex={1}>
+                                      <Typography variant="subtitle1" fontWeight={700}>
+                                        {service.title}
+                                      </Typography>
+                                      <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                        <Chip
+                                          label={service.category || 'Uncategorised'}
+                                          size="small"
+                                          color={service.category ? 'default' : 'warning'}
+                                        />
+                                        <Chip
+                                          label={service.subcategory || 'No sub-category'}
+                                          size="small"
+                                          variant="outlined"
+                                          color={service.subcategory ? 'primary' : 'default'}
+                                        />
+                                      </Stack>
+                                    </Stack>
+                                    <Box
+                                      component="img"
+                                      src={service.image || imagePlaceholder}
+                                      alt={`${service.title} preview`}
+                                      sx={{ width: 140, height: 90, objectFit: 'cover', borderRadius: 1 }}
+                                    />
+                                  </Stack>
+
+                                  <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+                                    {service.description || 'No description added yet.'}
+                                  </Typography>
+
+                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                    <Tooltip title="Edit">
+                                      <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={() => openHireServiceEditDialog(service)}
+                                      >
+                                        <EditOutlinedIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete">
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => openHireServiceDeleteDialog(service)}
+                                      >
+                                        <DeleteOutlineIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Stack>
+                                </Stack>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+                {hireContent.services.length === 0 && (
+                  <Typography variant="body2" color="text.secondary" align="center">
+                    No development services configured yet.
+                  </Typography>
+                )}
+              </Stack>
               <Stack mt={2} alignItems="flex-end">
                 <Pagination
                   count={Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage))}
@@ -3782,6 +4120,62 @@ const AdminServicesPage = () => {
             Cancel
           </Button>
           <Button onClick={handleConfirmDeleteBenefit} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={contactButtonDialogOpen} onClose={closeContactButtonDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{
+          contactButtonDialogMode === 'edit' ? 'Edit contact button' : 'Add contact button'
+        }</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleContactButtonSubmit}>
+            <TextField
+              label="Title"
+              value={contactButtonForm.title}
+              onChange={(event) => handleContactButtonFormChange('title', event.target.value)}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              value={contactButtonForm.description}
+              onChange={(event) => handleContactButtonFormChange('description', event.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+            />
+            <ImageUpload
+              label="Image"
+              value={contactButtonForm.image}
+              onChange={(value) => handleContactButtonFormChange('image', value)}
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeContactButtonDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleContactButtonSubmit} variant="contained">
+            {contactButtonDialogMode === 'edit' ? 'Save changes' : 'Add contact button'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(contactButtonToDelete)} onClose={closeContactButtonDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete contact button</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{contactButtonToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeContactButtonDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteContactButton} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>
