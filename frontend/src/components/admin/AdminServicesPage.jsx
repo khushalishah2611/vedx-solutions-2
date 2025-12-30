@@ -1284,7 +1284,7 @@ const AdminServicesPage = () => {
     setActiveBenefit(null);
   };
 
-  const handleBenefitSubmit = async (event) => {
+  const handleBenefitSubmit = async (event, { stayOpen = false } = {}) => {
     event?.preventDefault();
     if (!benefitForm.title.trim() || !benefitForm.description.trim() || !benefitForm.image) return;
 
@@ -1314,6 +1314,16 @@ const AdminServicesPage = () => {
       setBenefits((prev) =>
         isEdit ? prev.map((benefit) => (benefit.id === normalized.id ? normalized : benefit)) : [normalized, ...prev]
       );
+
+      if (!isEdit && stayOpen) {
+        setBenefitForm((prev) => ({
+          ...emptyBenefitForm,
+          category: prev.category,
+          subcategory: prev.subcategory,
+        }));
+        return;
+      }
+
       closeBenefitDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to save benefit');
@@ -4108,6 +4118,14 @@ const AdminServicesPage = () => {
           <Button onClick={closeBenefitDialog} color="inherit">
             Cancel
           </Button>
+          {benefitDialogMode === 'create' && (
+            <Button
+              onClick={(event) => handleBenefitSubmit(event, { stayOpen: true })}
+              variant="outlined"
+            >
+              Save & add another
+            </Button>
+          )}
           <Button onClick={handleBenefitSubmit} variant="contained">
             {benefitDialogMode === 'edit' ? 'Save changes' : 'Add benefit'}
           </Button>
