@@ -43,7 +43,19 @@ const imagePlaceholder = '';
 const initialServices = [];
 const initialTechnologies = [];
 const initialBenefits = [];
+<<<<<<< HEAD
 const initialContactButtons = [];
+=======
+const initialBenefitHero = {
+  id: '',
+  title: '',
+  description: '',
+  categoryId: '',
+  subcategoryId: '',
+  categoryName: '',
+  subcategoryName: '',
+};
+>>>>>>> developement
 const initialHireDevelopers = { title: '', description: '', heroImage: imagePlaceholder, services: [] };
 const initialWhyChoose = {
   id: '',
@@ -120,6 +132,15 @@ const emptyHireServiceForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+};
+
+const emptyContactButtonForm = {
+  id: '',
+  title: '',
+  description: '',
+  image: imagePlaceholder,
+  category: '',
+  subcategory: '',
 };
 
 const emptyProcessForm = {
@@ -306,6 +327,10 @@ const AdminServicesPage = () => {
   const [technologyToDelete, setTechnologyToDelete] = useState(null);
 
   const [benefits, setBenefits] = useState(initialBenefits);
+  const [benefitHero, setBenefitHero] = useState(initialBenefitHero);
+  const [benefitConfigs, setBenefitConfigs] = useState([]);
+  const [selectedBenefitConfigId, setSelectedBenefitConfigId] = useState('');
+  const [benefitHeroSaved, setBenefitHeroSaved] = useState(false);
   const [benefitDialogOpen, setBenefitDialogOpen] = useState(false);
   const [benefitDialogMode, setBenefitDialogMode] = useState('create');
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
@@ -326,6 +351,13 @@ const AdminServicesPage = () => {
   const [activeHireService, setActiveHireService] = useState(null);
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
+
+  const [contactButtons, setContactButtons] = useState([]);
+  const [contactButtonDialogOpen, setContactButtonDialogOpen] = useState(false);
+  const [contactButtonDialogMode, setContactButtonDialogMode] = useState('create');
+  const [contactButtonForm, setContactButtonForm] = useState(emptyContactButtonForm);
+  const [activeContactButton, setActiveContactButton] = useState(null);
+  const [contactButtonToDelete, setContactButtonToDelete] = useState(null);
 
   const [whyChooseList, setWhyChooseList] = useState([]);
   const [selectedWhyChooseId, setSelectedWhyChooseId] = useState('');
@@ -398,6 +430,7 @@ const AdminServicesPage = () => {
   const [industryPage, setIndustryPage] = useState(1);
   const [techSolutionPage, setTechSolutionPage] = useState(1);
   const [expertisePage, setExpertisePage] = useState(1);
+  const [contactButtonPage, setContactButtonPage] = useState(1);
 
   const normalizeDate = (value) => (value ? String(value).split('T')[0] : '');
 
@@ -439,6 +472,7 @@ const AdminServicesPage = () => {
     subcategory: benefit.subcategory || '',
   });
 
+<<<<<<< HEAD
   const normalizeContactButton = (button) => ({
     id: button.id,
     title: button.title || '',
@@ -448,6 +482,25 @@ const AdminServicesPage = () => {
     subcategoryId: button.subcategoryId || '',
     category: button.category || button.categoryName || '',
     subcategory: button.subcategory || button.subcategoryName || '',
+=======
+  const normalizeBenefitConfig = (config) => ({
+    id: config?.id || '',
+    title: config?.title || '',
+    description: config?.description || '',
+    categoryId: config?.categoryId || '',
+    subcategoryId: config?.subcategoryId || '',
+    categoryName: config?.categoryName || '',
+    subcategoryName: config?.subcategoryName || '',
+  });
+
+  const normalizeContactButton = (button) => ({
+    id: button.id,
+    title: button.title,
+    description: button.description || '',
+    image: button.image || imagePlaceholder,
+    category: button.category || '',
+    subcategory: button.subcategory || '',
+>>>>>>> developement
   });
 
   const normalizeServiceCategory = (category) => ({
@@ -577,6 +630,7 @@ const AdminServicesPage = () => {
     }
   }, []);
 
+<<<<<<< HEAD
   const loadContactButtons = useCallback(async () => {
     try {
       const response = await fetch(apiUrl('/api/contact-buttons'));
@@ -589,6 +643,21 @@ const AdminServicesPage = () => {
   }, []);
 
   const loadProcesses = useCallback(async () => {
+=======
+  const loadBenefitConfigs = useCallback(async () => {
+    try {
+      const response = await fetch(apiUrl('/api/benefit-configs'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load benefit configuration');
+      const normalized = (data || []).map(normalizeBenefitConfig);
+      setBenefitConfigs(normalized);
+    } catch (err) {
+      console.error('Failed to load benefit configuration', err);
+    }
+  }, []);
+
+  const loadProcesses = async () => {
+>>>>>>> developement
     try {
       const response = await fetch(apiUrl('/api/service-processes'));
       const data = await response.json();
@@ -627,6 +696,17 @@ const AdminServicesPage = () => {
       setHireContent((prev) => ({ ...prev, services: (data || []).map(normalizeHireService) }));
     } catch (err) {
       console.error('Failed to load hire services', err);
+    }
+  }, []);
+
+  const loadContactButtons = useCallback(async () => {
+    try {
+      const response = await fetch(apiUrl('/api/contact-buttons'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load contact buttons');
+      setContactButtons((data || []).map(normalizeContactButton));
+    } catch (err) {
+      console.error('Failed to load contact buttons', err);
     }
   }, []);
 
@@ -703,6 +783,7 @@ const AdminServicesPage = () => {
     loadProcesses();
     loadHireContent();
     loadWhyVedx();
+<<<<<<< HEAD
     loadContactButtons();
   }, [
     loadContactButtons,
@@ -730,6 +811,11 @@ const AdminServicesPage = () => {
     serviceCategories.length,
     serviceSubcategories.length,
   ]);
+=======
+    loadBenefitConfigs();
+    loadContactButtons();
+  }, [loadBenefitConfigs]);
+>>>>>>> developement
 
   useEffect(() => {
     const filters = {
@@ -835,6 +921,11 @@ const AdminServicesPage = () => {
     setBenefitForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleBenefitHeroChange = (field, value) => {
+    setBenefitHeroSaved(false);
+    setBenefitHero((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleHireServiceFormChange = (field, value) => {
     setHireServiceForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -866,6 +957,61 @@ const AdminServicesPage = () => {
     }
   };
 
+  const handleBenefitHeroSave = async (event) => {
+    event?.preventDefault();
+    try {
+      const isEdit = Boolean(selectedBenefitConfigId);
+      const url = isEdit
+        ? apiUrl(`/api/benefit-configs/${selectedBenefitConfigId}`)
+        : apiUrl('/api/benefit-configs');
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          id: isEdit ? selectedBenefitConfigId : undefined,
+          title: benefitHero.title,
+          description: benefitHero.description,
+          categoryId: benefitHero.categoryId || null,
+          subcategoryId: benefitHero.subcategoryId || null,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save benefits copy');
+      const normalized = normalizeBenefitConfig(data);
+      setBenefitHero(normalized);
+      setBenefitConfigs((prev) => {
+        const exists = prev.some((item) => String(item.id) === String(normalized.id));
+        if (exists) {
+          return prev.map((item) => (String(item.id) === String(normalized.id) ? normalized : item));
+        }
+        return [normalized, ...prev];
+      });
+      setSelectedBenefitConfigId(String(normalized.id));
+      setBenefitHeroSaved(true);
+      setTimeout(() => setBenefitHeroSaved(false), 3000);
+    } catch (err) {
+      handleRequestError(err, 'Unable to save benefits copy');
+    }
+  };
+
+  useEffect(() => {
+    if (benefitConfigs.length === 0) {
+      setSelectedBenefitConfigId('');
+      setBenefitHero(initialBenefitHero);
+      return;
+    }
+
+    if (!selectedBenefitConfigId) {
+      setSelectedBenefitConfigId(String(benefitConfigs[0].id));
+      return;
+    }
+
+    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
+    if (active) {
+      setBenefitHero(active);
+    }
+  }, [benefitConfigs, selectedBenefitConfigId]);
+
   const handleProcessChange = (field, value) => {
     setProcessForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -895,6 +1041,19 @@ const AdminServicesPage = () => {
 
   const handleWhyHeroChange = (field, value) => {
     setWhyHeroForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleContactButtonFormChange = (field, value) => {
+    if (field === 'category') {
+      setContactButtonForm((prev) => {
+        const allowedSubcategories = subcategoryLookup.get(value) || [];
+        const nextSubcategory = allowedSubcategories.includes(prev.subcategory) ? prev.subcategory : '';
+        return { ...prev, category: value, subcategory: nextSubcategory };
+      });
+      return;
+    }
+
+    setContactButtonForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleWhyHeroSave = async (event) => {
@@ -937,10 +1096,14 @@ const AdminServicesPage = () => {
             .map((category) => category.name)
             .filter((name) => Boolean(name && name.trim()))
         )
-      ).map((category) => ({
-        value: category,
-        label: category,
-      })),
+      ).map((categoryName) => {
+        const category = serviceCategories.find((item) => item.name === categoryName);
+        return {
+          value: categoryName,
+          label: categoryName,
+          id: category?.id || '',
+        };
+      }),
     [serviceCategories]
   );
 
@@ -1049,6 +1212,23 @@ const AdminServicesPage = () => {
     setWhyServicePage(1);
   }, [categoryFilter, subcategoryFilter]);
 
+  const benefitHeroCategoryOptions = useMemo(
+    () => serviceCategories.map((category) => ({ value: category.id, label: category.name })),
+    [serviceCategories]
+  );
+
+  const benefitHeroSubcategoryOptions = useMemo(() => {
+    const base = benefitHero.categoryId
+      ? serviceSubcategories.filter((item) => Number(item.categoryId) === Number(benefitHero.categoryId))
+      : serviceSubcategories;
+
+    return base.map((subcategory) => ({
+      value: subcategory.id,
+      label: subcategory.name,
+      categoryId: subcategory.categoryId,
+    }));
+  }, [benefitHero.categoryId, serviceSubcategories]);
+
   useEffect(() => {
     if (!categoryFilter) {
       setSubcategoryFilter('');
@@ -1070,6 +1250,18 @@ const AdminServicesPage = () => {
     const start = (benefitPage - 1) * rowsPerPage;
     return benefits.slice(start, start + rowsPerPage);
   }, [benefits, rowsPerPage, benefitPage]);
+
+  const groupedBenefits = useMemo(() => {
+    const lookup = new Map();
+
+    pagedBenefits.forEach((benefit) => {
+      const categoryKey = benefit.category || 'Uncategorised';
+      const existing = lookup.get(categoryKey) || [];
+      lookup.set(categoryKey, [...existing, benefit]);
+    });
+
+    return Array.from(lookup.entries()).map(([category, items]) => ({ category, items }));
+  }, [pagedBenefits]);
 
   const groupedTechnologies = useMemo(() => {
     const lookup = new Map();
@@ -1112,10 +1304,32 @@ const AdminServicesPage = () => {
     return hireContent.services.slice(start, start + rowsPerPage);
   }, [hireContent.services, rowsPerPage, hireServicePage]);
 
+  const groupedHireServices = useMemo(() => {
+    const lookup = new Map();
+
+    pagedHireServices.forEach((service) => {
+      const category = service.category || 'Uncategorised';
+      const existing = lookup.get(category) || [];
+      lookup.set(category, [...existing, service]);
+    });
+
+    return Array.from(lookup.entries()).map(([category, items]) => ({
+      category,
+      services: items,
+    }));
+  }, [pagedHireServices]);
+
+  const pagedContactButtons = useMemo(() => {
+    const start = (contactButtonPage - 1) * rowsPerPage;
+    return contactButtons.slice(start, start + rowsPerPage);
+  }, [contactButtonPage, contactButtons, rowsPerPage]);
+
   useEffect(() => {
     const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
     setBenefitPage((prev) => Math.min(prev, maxBenefitPage));
   }, [benefits.length, rowsPerPage]);
+
+  const hasBenefitConfig = Boolean(selectedBenefitConfigId);
 
   useEffect(() => {
     const maxWhyPage = Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage));
@@ -1126,6 +1340,11 @@ const AdminServicesPage = () => {
     const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
     setHireServicePage((prev) => Math.min(prev, maxHireServicePage));
   }, [hireContent.services.length, rowsPerPage]);
+
+  useEffect(() => {
+    const maxContactPage = Math.max(1, Math.ceil(contactButtons.length / rowsPerPage));
+    setContactButtonPage((prev) => Math.min(prev, maxContactPage));
+  }, [contactButtons.length, rowsPerPage]);
 
   useEffect(() => {
     setOurServicesHeroForm((prev) => ({
@@ -1291,6 +1510,11 @@ const AdminServicesPage = () => {
   };
 
   const openBenefitCreateDialog = () => {
+    if (!hasBenefitConfig) {
+      handleRequestError(new Error('Please create and save a benefit config before adding benefits'));
+      return;
+    }
+
     setBenefitDialogMode('create');
     setActiveBenefit(null);
     resetBenefitForm();
@@ -1634,6 +1858,81 @@ const AdminServicesPage = () => {
       closeHireServiceDeleteDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to delete hire service');
+    }
+  };
+
+  const openContactButtonCreateDialog = () => {
+    setContactButtonDialogMode('create');
+    setActiveContactButton(null);
+    setContactButtonForm(emptyContactButtonForm);
+    setContactButtonDialogOpen(true);
+  };
+
+  const openContactButtonEditDialog = (button) => {
+    setContactButtonDialogMode('edit');
+    setActiveContactButton(button);
+    setContactButtonForm({ ...button });
+    setContactButtonDialogOpen(true);
+  };
+
+  const closeContactButtonDialog = () => {
+    setContactButtonDialogOpen(false);
+    setActiveContactButton(null);
+  };
+
+  const handleContactButtonSubmit = async (event) => {
+    event?.preventDefault();
+    if (!contactButtonForm.title.trim() || !contactButtonForm.image) return;
+
+    const payload = {
+      title: contactButtonForm.title,
+      description: contactButtonForm.description,
+      image: contactButtonForm.image,
+      category: contactButtonForm.category,
+      subcategory: contactButtonForm.subcategory,
+    };
+
+    const isEdit = contactButtonDialogMode === 'edit' && activeContactButton;
+    const url = isEdit
+      ? apiUrl(`/api/contact-buttons/${activeContactButton.id}`)
+      : apiUrl('/api/contact-buttons');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save contact button');
+
+      const normalized = normalizeContactButton(data);
+      setContactButtons((prev) =>
+        isEdit
+          ? prev.map((item) => (item.id === normalized.id ? normalized : item))
+          : [normalized, ...prev]
+      );
+      closeContactButtonDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save contact button');
+    }
+  };
+
+  const openContactButtonDeleteDialog = (button) => setContactButtonToDelete(button);
+  const closeContactButtonDeleteDialog = () => setContactButtonToDelete(null);
+  const handleConfirmDeleteContactButton = async () => {
+    if (!contactButtonToDelete) return;
+    try {
+      const response = await fetch(apiUrl(`/api/contact-buttons/${contactButtonToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete contact button');
+      setContactButtons((prev) => prev.filter((item) => item.id !== contactButtonToDelete.id));
+      closeContactButtonDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete contact button');
     }
   };
 
@@ -2047,10 +2346,17 @@ const AdminServicesPage = () => {
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
 
+<<<<<<< HEAD
   const contactButtonSubcategoryOptions = useMemo(
     () => serviceSubcategories.filter((subcategory) => subcategory.categoryId === contactButtonForm.categoryId),
     [contactButtonForm.categoryId, serviceSubcategories]
   );
+=======
+  const contactButtonSubcategoryOptions = useMemo(() => {
+    if (!contactButtonForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(contactButtonForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, contactButtonForm.category, subcategoryLookup]);
+>>>>>>> developement
 
   const hireServiceSubcategoryOptions = useMemo(() => {
     if (!hireServiceForm.category) return allSubcategoryOptions;
@@ -2075,6 +2381,7 @@ const AdminServicesPage = () => {
           { value: 'technologies', label: 'Technologies we support' },
           { value: 'contact-buttons', label: 'Contact buttons' },
           { value: 'benefits', label: 'Benefits' },
+          { value: 'contact-buttons', label: 'Contact buttons' },
           { value: 'hire', label: 'Development services' },
         ]}
         sx={{
@@ -3325,8 +3632,218 @@ const AdminServicesPage = () => {
             title="Benefits"
             subheader="Control benefit cards with images and rich descriptions."
             action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openBenefitCreateDialog}>
+              <Button
+                variant="contained"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={openBenefitCreateDialog}
+                disabled={!hasBenefitConfig}
+              >
                 Add benefit
+              </Button>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={2}
+              alignItems={{ xs: 'stretch', md: 'center' }}
+              mb={2}
+            >
+              <Autocomplete
+                options={benefitConfigs}
+                getOptionLabel={(option) =>
+                  option?.categoryName || option?.subcategoryName
+                    ? [option.categoryName, option.subcategoryName].filter(Boolean).join(' / ')
+                    : option?.title || 'Untitled'
+                }
+                value={benefitConfigs.find((item) => String(item.id) === String(selectedBenefitConfigId)) || null}
+                onChange={(event, value) => setSelectedBenefitConfigId(value?.id ? String(value.id) : '')}
+                renderInput={(params) => <TextField {...params} label="Select benefits config" />}
+                sx={{ minWidth: { xs: '100%', md: 320 } }}
+              />
+              <Button
+                variant="outlined"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={() => {
+                  setSelectedBenefitConfigId('');
+                  setBenefitHero(initialBenefitHero);
+                  setBenefitHeroSaved(false);
+                }}
+                sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
+              >
+                New config
+              </Button>
+            </Stack>
+
+            <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
+              <TextField
+                select
+                label="Category"
+                value={benefitHero.categoryId}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  handleBenefitHeroChange('categoryId', value);
+
+                  const allowedSubcategories = benefitHeroSubcategoryOptions
+                    .filter((option) => Number(option.categoryId) === Number(value))
+                    .map((option) => option.value);
+
+                  if (value && benefitHero.subcategoryId && !allowedSubcategories.includes(benefitHero.subcategoryId)) {
+                    handleBenefitHeroChange('subcategoryId', '');
+                  }
+                }}
+
+                fullWidth
+              >
+                <MenuItem value="">All categories</MenuItem>
+                {benefitHeroCategoryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                label="Sub-category"
+                value={benefitHero.subcategoryId}
+                onChange={(event) => handleBenefitHeroChange('subcategoryId', event.target.value)}
+
+                fullWidth
+                disabled={!benefitHeroCategoryOptions.length}
+              >
+                <MenuItem value="">All sub-categories</MenuItem>
+                {benefitHeroSubcategoryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="Benefits title"
+                value={benefitHero.title}
+                onChange={(event) => handleBenefitHeroChange('title', event.target.value)}
+                required
+                fullWidth
+              />
+              <TextField
+                label="Benefits description"
+                value={benefitHero.description}
+                onChange={(event) => handleBenefitHeroChange('description', event.target.value)}
+                fullWidth
+                multiline
+                minRows={2}
+              />
+
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button variant="contained" onClick={handleBenefitHeroSave}>
+                  Save Benefits
+                </Button>
+                {benefitHeroSaved && (
+                  <Typography variant="body2" color="success.main">
+                    Saved
+                  </Typography>
+                )}
+              </Stack>
+            </Stack>
+            <Divider sx={{ mb: 2 }} />
+            <Stack spacing={2}>
+              {groupedBenefits.map((group) => (
+                <Accordion key={group.category} defaultExpanded disableGutters>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle1">{group.category}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {group.items.length} benefit{group.items.length === 1 ? '' : 's'}
+                      </Typography>
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Title</TableCell>
+                            <TableCell>Sub-category</TableCell>
+                            <TableCell>Image</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell align="right">Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {group.items.map((benefit) => (
+                            <TableRow key={benefit.id} hover>
+                              <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
+                              <TableCell>{benefit.subcategory || '-'}</TableCell>
+                              <TableCell sx={{ maxWidth: 200 }}>
+                                <Box
+                                  component="img"
+                                  src={benefit.image || imagePlaceholder}
+                                  alt={`${benefit.title} visual`}
+                                  sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                                />
+                              </TableCell>
+                              <TableCell sx={{ maxWidth: 240 }}>
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                  {benefit.description}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="right">
+                                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                  <Tooltip title="Edit">
+                                    <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
+                                      <EditOutlinedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() => openBenefitDeleteDialog(benefit)}
+                                    >
+                                      <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Stack>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              {benefits.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center">
+                  No benefits configured yet.
+                </Typography>
+              )}
+            </Stack>
+            <Stack mt={2} alignItems="flex-end">
+              <Pagination
+                count={Math.max(1, Math.ceil(benefits.length / rowsPerPage))}
+                page={benefitPage}
+                onChange={(event, page) => setBenefitPage(page)}
+                color="primary"
+              />
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'contact-buttons' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Contact buttons"
+            subheader="Showcase contact CTAs with supporting copy and imagery."
+            action={
+              <Button
+                variant="contained"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={openContactButtonCreateDialog}
+              >
+                Add contact button
               </Button>
             }
           />
@@ -3337,36 +3854,48 @@ const AdminServicesPage = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Title</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
-                    <TableCell>Image</TableCell>
                     <TableCell>Description</TableCell>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Subcategory</TableCell>
+                    <TableCell>Image</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {pagedBenefits.map((benefit) => (
-                    <TableRow key={benefit.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
-                      <TableCell>{benefit.category || '-'}</TableCell>
-                      <TableCell>{benefit.subcategory || '-'}</TableCell>
-                      <TableCell sx={{ maxWidth: 200 }}>
+                  {pagedContactButtons.map((button) => (
+                    <TableRow key={button.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{button.title}</TableCell>
+                      <TableCell sx={{ maxWidth: 360 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {button.description || 'No description provided.'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 140 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {button.category || 'Not set'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 140 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {button.subcategory || 'Not set'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
                         <Box
                           component="img"
-                          src={benefit.image || imagePlaceholder}
-                          alt={`${benefit.title} visual`}
-                          sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                          src={button.image || imagePlaceholder}
+                          alt={`${button.title} visual`}
+                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
                         />
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 240 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {benefit.description}
-                        </Typography>
                       </TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                           <Tooltip title="Edit">
-                            <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => openContactButtonEditDialog(button)}
+                            >
                               <EditOutlinedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
@@ -3374,7 +3903,7 @@ const AdminServicesPage = () => {
                             <IconButton
                               size="small"
                               color="error"
-                              onClick={() => openBenefitDeleteDialog(benefit)}
+                              onClick={() => openContactButtonDeleteDialog(button)}
                             >
                               <DeleteOutlineIcon fontSize="small" />
                             </IconButton>
@@ -3383,11 +3912,11 @@ const AdminServicesPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {benefits.length === 0 && (
+                  {contactButtons.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
-                          No benefits configured yet.
+                          No contact buttons configured yet.
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -3397,9 +3926,9 @@ const AdminServicesPage = () => {
             </TableContainer>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
-                count={Math.max(1, Math.ceil(benefits.length / rowsPerPage))}
-                page={benefitPage}
-                onChange={(event, page) => setBenefitPage(page)}
+                count={Math.max(1, Math.ceil(contactButtons.length / rowsPerPage))}
+                page={contactButtonPage}
+                onChange={(event, page) => setContactButtonPage(page)}
                 color="primary"
               />
             </Stack>
@@ -3467,73 +3996,97 @@ const AdminServicesPage = () => {
             />
             <Divider />
             <CardContent>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Category</TableCell>
-                      <TableCell>Sub-category</TableCell>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {pagedHireServices.map((service) => (
-                      <TableRow key={service.id} hover>
-                        <TableCell>{service.category || '-'}</TableCell>
-                        <TableCell>{service.subcategory || '-'}</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>{service.title}</TableCell>
-                        <TableCell>
-                          <Box
-                            component="img"
-                            src={service.image || imagePlaceholder}
-                            alt={`${service.title} visual`}
-                            sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ maxWidth: 320 }}>
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {service.description}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Stack direction="row" spacing={1} justifyContent="flex-end">
-                            <Tooltip title="Edit">
-                              <IconButton
-                                size="small"
-                                color="primary"
-                                onClick={() => openHireServiceEditDialog(service)}
-                              >
-                                <EditOutlinedIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Delete">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => openHireServiceDeleteDialog(service)}
-                              >
-                                <DeleteOutlineIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {hireContent.services.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No development services configured yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <Stack spacing={1.5}>
+                {groupedHireServices.map(({ category, services }) => (
+                  <Accordion key={category} defaultExpanded>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                        <Typography variant="subtitle1" fontWeight={700}>
+                          {category}
+                        </Typography>
+                        <Chip
+                          label={`${services.length} service${services.length === 1 ? '' : 's'}`}
+                          size="small"
+                        />
+                      </Stack>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={2}>
+                        {services.map((service) => (
+                          <Grid item xs={12} md={6} key={service.id}>
+                            <Card variant="outlined" sx={{ height: '100%' }}>
+                              <CardContent>
+                                <Stack spacing={1.5} height="100%">
+                                  <Stack
+                                    direction={{ xs: 'column', sm: 'row' }}
+                                    spacing={2}
+                                    alignItems={{ sm: 'flex-start' }}
+                                  >
+                                    <Stack spacing={0.5} flex={1}>
+                                      <Typography variant="subtitle1" fontWeight={700}>
+                                        {service.title}
+                                      </Typography>
+                                      <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                        <Chip
+                                          label={service.category || 'Uncategorised'}
+                                          size="small"
+                                          color={service.category ? 'default' : 'warning'}
+                                        />
+                                        <Chip
+                                          label={service.subcategory || 'No sub-category'}
+                                          size="small"
+                                          variant="outlined"
+                                          color={service.subcategory ? 'primary' : 'default'}
+                                        />
+                                      </Stack>
+                                    </Stack>
+                                    <Box
+                                      component="img"
+                                      src={service.image || imagePlaceholder}
+                                      alt={`${service.title} preview`}
+                                      sx={{ width: 140, height: 90, objectFit: 'cover', borderRadius: 1 }}
+                                    />
+                                  </Stack>
+
+                                  <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+                                    {service.description || 'No description added yet.'}
+                                  </Typography>
+
+                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                    <Tooltip title="Edit">
+                                      <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={() => openHireServiceEditDialog(service)}
+                                      >
+                                        <EditOutlinedIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete">
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => openHireServiceDeleteDialog(service)}
+                                      >
+                                        <DeleteOutlineIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Stack>
+                                </Stack>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+                {hireContent.services.length === 0 && (
+                  <Typography variant="body2" color="text.secondary" align="center">
+                    No development services configured yet.
+                  </Typography>
+                )}
+              </Stack>
               <Stack mt={2} alignItems="flex-end">
                 <Pagination
                   count={Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage))}
@@ -4169,6 +4722,93 @@ const AdminServicesPage = () => {
             Cancel
           </Button>
           <Button onClick={handleConfirmDeleteBenefit} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={contactButtonDialogOpen} onClose={closeContactButtonDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{
+          contactButtonDialogMode === 'edit' ? 'Edit contact button' : 'Add contact button'
+        }</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleContactButtonSubmit}>
+            <TextField
+              label="Title"
+              value={contactButtonForm.title}
+              onChange={(event) => handleContactButtonFormChange('title', event.target.value)}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              value={contactButtonForm.description}
+              onChange={(event) => handleContactButtonFormChange('description', event.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+            />
+            <Autocomplete
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={contactButtonForm.category}
+              onInputChange={(event, newValue) => handleContactButtonFormChange('category', newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  placeholder="Select or type category"
+                  fullWidth
+                />
+              )}
+            />
+            <Autocomplete
+              freeSolo
+              options={contactButtonSubcategoryOptions}
+              value={contactButtonForm.subcategory}
+              onInputChange={(event, newValue) =>
+                handleContactButtonFormChange('subcategory', newValue || '')
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Subcategory"
+                  placeholder="Select or type subcategory"
+                  fullWidth
+                />
+              )}
+              disabled={!contactButtonForm.category && contactButtonSubcategoryOptions.length === 0}
+            />
+            <ImageUpload
+              label="Image"
+              value={contactButtonForm.image}
+              onChange={(value) => handleContactButtonFormChange('image', value)}
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeContactButtonDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleContactButtonSubmit} variant="contained">
+            {contactButtonDialogMode === 'edit' ? 'Save changes' : 'Add contact button'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(contactButtonToDelete)} onClose={closeContactButtonDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete contact button</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{contactButtonToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeContactButtonDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteContactButton} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>
