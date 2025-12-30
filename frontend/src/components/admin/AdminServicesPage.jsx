@@ -540,7 +540,7 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadServiceCategories = async () => {
+  const loadServiceCategories = useCallback(async () => {
     try {
       const response = await fetch(apiUrl('/api/service-categories'));
       const data = await response.json();
@@ -549,9 +549,9 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load service categories', err);
     }
-  };
+  }, []);
 
-  const loadServiceSubcategories = async () => {
+  const loadServiceSubcategories = useCallback(async () => {
     try {
       const response = await fetch(apiUrl('/api/service-subcategories'));
       const data = await response.json();
@@ -560,7 +560,7 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load service subcategories', err);
     }
-  };
+  }, []);
 
   const loadBenefits = useCallback(async ({ category, subcategory } = {}) => {
     try {
@@ -588,7 +588,7 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadProcesses = async () => {
+  const loadProcesses = useCallback(async () => {
     try {
       const response = await fetch(apiUrl('/api/service-processes'));
       const data = await response.json();
@@ -597,9 +597,9 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load processes', err);
     }
-  };
+  }, []);
 
-  const loadHireContent = async () => {
+  const loadHireContent = useCallback(async () => {
     try {
       const response = await fetch(apiUrl('/api/hire-developer'));
       const data = await response.json();
@@ -613,7 +613,7 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load hire developer config', err);
     }
-  };
+  }, []);
 
   const loadHireServices = useCallback(async ({ category, subcategory } = {}) => {
     try {
@@ -666,7 +666,7 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadWhyVedx = async () => {
+  const loadWhyVedx = useCallback(async () => {
     try {
       const response = await fetch(apiUrl('/api/why-vedx?includeReasons=true'));
       const data = await response.json();
@@ -682,7 +682,7 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load why VEDX config', err);
     }
-  };
+  }, []);
 
   const loadWhyVedxReasons = async (whyVedxId) => {
     try {
@@ -704,7 +704,32 @@ const AdminServicesPage = () => {
     loadHireContent();
     loadWhyVedx();
     loadContactButtons();
-  }, []);
+  }, [
+    loadContactButtons,
+    loadHireContent,
+    loadProcesses,
+    loadServiceCategories,
+    loadServiceSubcategories,
+    loadWhyVedx,
+  ]);
+
+  useEffect(() => {
+    if (!contactButtonDialogOpen) return;
+
+    if (serviceCategories.length === 0) {
+      loadServiceCategories();
+    }
+
+    if (serviceSubcategories.length === 0) {
+      loadServiceSubcategories();
+    }
+  }, [
+    contactButtonDialogOpen,
+    loadServiceCategories,
+    loadServiceSubcategories,
+    serviceCategories.length,
+    serviceSubcategories.length,
+  ]);
 
   useEffect(() => {
     const filters = {
