@@ -607,9 +607,13 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadBenefitConfigs = useCallback(async () => {
+  const loadBenefitConfigs = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/benefit-configs'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/benefit-configs${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load benefit configuration');
       const normalized = (data || []).map(normalizeBenefitConfig);
@@ -708,28 +712,39 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadWhyVedx = async () => {
-    try {
-      const response = await fetch(apiUrl('/api/why-vedx?includeReasons=true'));
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || '');
-      const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
+  const loadWhyVedx = useCallback(
+    async ({ category, subcategory } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        params.append('includeReasons', 'true');
 
-      setWhyVedxList(list);
+        const response = await fetch(apiUrl(`/api/why-vedx?${params.toString()}`));
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || '');
+        const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
 
-      const active = list[0] || emptyWhyVedxHero;
-      setSelectedWhyVedxId(active.id || '');
-      setWhyVedxHeroForm(active.id ? active : emptyWhyVedxHero);
-      setWhyVedxReasons(active.reasons || []);
-    } catch (err) {
-      console.error('Failed to load why VEDX config', err);
-    }
-  };
+        setWhyVedxList(list);
 
-  const loadWhyVedxReasons = async (whyVedxId) => {
+        const active =
+          list.find((item) => String(item.id) === String(selectedWhyVedxId)) || list[0] || emptyWhyVedxHero;
+        setSelectedWhyVedxId(active.id || '');
+        setWhyVedxHeroForm(active.id ? active : emptyWhyVedxHero);
+        setWhyVedxReasons(active.reasons || []);
+      } catch (err) {
+        console.error('Failed to load why VEDX config', err);
+      }
+    },
+    [selectedWhyVedxId]
+  );
+
+  const loadWhyVedxReasons = useCallback(async (whyVedxId, { category, subcategory } = {}) => {
     try {
       const params = new URLSearchParams();
       if (whyVedxId) params.append('whyVedxId', String(whyVedxId));
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
       const response = await fetch(apiUrl(`/api/why-vedx-reasons${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load reasons');
@@ -737,7 +752,7 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load why VEDX reasons', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadServiceCategories();
@@ -747,7 +762,7 @@ const AdminServicesPage = () => {
     loadWhyVedx();
     loadBenefitConfigs();
     loadContactButtons();
-  }, [loadBenefitConfigs]);
+  }, [loadBenefitConfigs, loadWhyVedx]);
 
   useEffect(() => {
     const filters = {
@@ -760,7 +775,19 @@ const AdminServicesPage = () => {
     loadBenefits(filters);
     loadHireServices(filters);
     loadWhyChoose(filters);
-  }, [categoryFilter, loadBenefits, loadHireServices, loadServiceMenus, loadTechnologies, loadWhyChoose, subcategoryFilter]);
+    loadWhyVedx(filters);
+    loadBenefitConfigs(filters);
+  }, [
+    categoryFilter,
+    loadBenefitConfigs,
+    loadBenefits,
+    loadHireServices,
+    loadServiceMenus,
+    loadTechnologies,
+    loadWhyChoose,
+    loadWhyVedx,
+    subcategoryFilter,
+  ]);
 
   useEffect(() => {
     if (!selectedWhyChooseId) {
@@ -783,16 +810,45 @@ const AdminServicesPage = () => {
   }, [categoryFilter, loadWhyServices, selectedWhyChooseId, subcategoryFilter, whyChooseList]);
 
   useEffect(() => {
+    const matchesFilters = (item) => {
+      const matchesCategory = categoryFilter
+        ? item.categoryName === categoryFilter || item.category === categoryFilter
+        : true;
+      const matchesSubcategory = subcategoryFilter
+        ? item.subcategoryName === subcategoryFilter || item.subcategory === subcategoryFilter
+        : true;
+
+      return matchesCategory && matchesSubcategory;
+    };
+
+    if (whyVedxList.length === 0) {
+      setSelectedWhyVedxId('');
+      setWhyVedxHeroForm(emptyWhyVedxHero);
+      setWhyVedxReasons([]);
+      setWhyVedxPage(1);
+      return;
+    }
+
     const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
-    if (active) {
-      setWhyVedxHeroForm(active);
-      loadWhyVedxReasons(active.id);
+    const preferred = (categoryFilter || subcategoryFilter) ? whyVedxList.find(matchesFilters) : null;
+    const next = preferred || active || whyVedxList[0];
+
+    if (String(next?.id || '') !== String(selectedWhyVedxId || '')) {
+      setSelectedWhyVedxId(next?.id ? String(next.id) : '');
+    }
+
+    if (next) {
+      setWhyVedxHeroForm(next);
+      loadWhyVedxReasons(next.id, {
+        category: categoryFilter || undefined,
+        subcategory: subcategoryFilter || undefined,
+      });
     } else {
       setWhyVedxHeroForm(emptyWhyVedxHero);
       setWhyVedxReasons([]);
     }
     setWhyVedxPage(1);
-  }, [selectedWhyVedxId, whyVedxList]);
+  }, [categoryFilter, loadWhyVedxReasons, selectedWhyVedxId, subcategoryFilter, whyVedxList]);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
@@ -929,6 +985,12 @@ const AdminServicesPage = () => {
   };
 
   useEffect(() => {
+    const matchesFilters = (config) => {
+      const matchesCategory = categoryFilter ? config.categoryName === categoryFilter : true;
+      const matchesSubcategory = subcategoryFilter ? config.subcategoryName === subcategoryFilter : true;
+      return matchesCategory && matchesSubcategory;
+    };
+
     if (benefitConfigs.length === 0) {
       setSelectedBenefitConfigId('');
       setBenefitHero(initialBenefitHero);
@@ -937,20 +999,33 @@ const AdminServicesPage = () => {
       return;
     }
 
-    if (!selectedBenefitConfigId) {
-      if (!benefitConfigClearedRef.current) {
-        setSelectedBenefitConfigId(String(benefitConfigs[0].id));
-      }
+    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
+    const preferredByFilters = !benefitConfigClearedRef.current && (categoryFilter || subcategoryFilter)
+      ? benefitConfigs.find(matchesFilters)
+      : null;
+
+    const nextConfig =
+      preferredByFilters ||
+      active ||
+      (!benefitConfigClearedRef.current ? benefitConfigs[0] : null);
+
+    if (!nextConfig) {
       return;
     }
 
-    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
-    if (active) {
-      setBenefitHero(active);
-      setBenefitPage(1);
-      benefitConfigClearedRef.current = false;
+    if (String(nextConfig.id) !== selectedBenefitConfigId) {
+      setSelectedBenefitConfigId(String(nextConfig.id));
     }
-  }, [benefitConfigs, selectedBenefitConfigId]);
+
+    setBenefitHero(nextConfig);
+    setBenefitPage(1);
+    benefitConfigClearedRef.current = false;
+  }, [
+    benefitConfigs,
+    categoryFilter,
+    selectedBenefitConfigId,
+    subcategoryFilter,
+  ]);
 
   const handleProcessChange = (field, value) => {
     setProcessForm((prev) => ({ ...prev, [field]: value }));
@@ -1165,6 +1240,31 @@ const AdminServicesPage = () => {
     return Array.from(lookup.entries()).map(([category, services]) => ({ category, services }));
   }, [pagedServices]);
 
+  const serviceLookupById = useMemo(
+    () => new Map(services.map((service) => [String(service.id), service])),
+    [services]
+  );
+
+  const filteredProcesses = useMemo(
+    () =>
+      processList.filter((item) => {
+        const linkedService = serviceLookupById.get(String(item.serviceId));
+        const matchesCategory = categoryFilter ? linkedService?.category === categoryFilter : true;
+        const matchesSubcategory = subcategoryFilter
+          ? item.subcategory === subcategoryFilter ||
+            linkedService?.subcategories?.some((subcategory) => subcategory.name === subcategoryFilter)
+          : true;
+
+        return matchesCategory && matchesSubcategory;
+      }),
+    [categoryFilter, processList, serviceLookupById, subcategoryFilter]
+  );
+
+  const pagedProcesses = useMemo(() => {
+    const start = (processPage - 1) * rowsPerPage;
+    return filteredProcesses.slice(start, start + rowsPerPage);
+  }, [filteredProcesses, processPage, rowsPerPage]);
+
   useEffect(() => {
     setServicePage(1);
   }, [categoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, subcategoryFilter]);
@@ -1173,6 +1273,8 @@ const AdminServicesPage = () => {
     setBenefitPage(1);
     setHireServicePage(1);
     setWhyServicePage(1);
+    setProcessPage(1);
+    setContactButtonPage(1);
   }, [categoryFilter, subcategoryFilter]);
 
   const benefitHeroCategoryOptions = useMemo(
@@ -1314,10 +1416,20 @@ const AdminServicesPage = () => {
     }));
   }, [pagedHireServices]);
 
+  const filteredContactButtons = useMemo(
+    () =>
+      contactButtons.filter((button) => {
+        const matchesCategory = categoryFilter ? button.category === categoryFilter : true;
+        const matchesSubcategory = subcategoryFilter ? button.subcategory === subcategoryFilter : true;
+        return matchesCategory && matchesSubcategory;
+      }),
+    [categoryFilter, contactButtons, subcategoryFilter]
+  );
+
   const pagedContactButtons = useMemo(() => {
     const start = (contactButtonPage - 1) * rowsPerPage;
-    return contactButtons.slice(start, start + rowsPerPage);
-  }, [contactButtonPage, contactButtons, rowsPerPage]);
+    return filteredContactButtons.slice(start, start + rowsPerPage);
+  }, [contactButtonPage, filteredContactButtons, rowsPerPage]);
 
   const groupedContactButtons = useMemo(() => {
     const lookup = new Map();
@@ -1352,9 +1464,14 @@ const AdminServicesPage = () => {
   }, [hireContent.services.length, rowsPerPage]);
 
   useEffect(() => {
-    const maxContactPage = Math.max(1, Math.ceil(contactButtons.length / rowsPerPage));
+    const maxProcessPage = Math.max(1, Math.ceil(filteredProcesses.length / rowsPerPage));
+    setProcessPage((prev) => Math.min(prev, maxProcessPage));
+  }, [filteredProcesses.length, rowsPerPage]);
+
+  useEffect(() => {
+    const maxContactPage = Math.max(1, Math.ceil(filteredContactButtons.length / rowsPerPage));
     setContactButtonPage((prev) => Math.min(prev, maxContactPage));
-  }, [contactButtons.length, rowsPerPage]);
+  }, [filteredContactButtons.length, rowsPerPage]);
 
   useEffect(() => {
     setOurServicesHeroForm((prev) => ({
@@ -2299,42 +2416,44 @@ const AdminServicesPage = () => {
         }}
       />
 
-      <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
+      {activeTab !== 'process' && (
+        <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
 
-        <Stack
-          spacing={2}
-          direction={{ xs: 'column', md: 'row' }}
-          alignItems={{ xs: 'stretch', md: 'flex-end' }}
-        >
-          <Autocomplete
-            sx={{ minWidth: 220 }}
-            freeSolo
-            options={categoryOptions.map((option) => option.label)}
-            value={categoryFilter}
-            onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
-            renderInput={(params) => (
-              <TextField {...params} label="Category filter" placeholder="All categories" />
-            )}
-          />
-          <Autocomplete
-            sx={{ minWidth: 220 }}
-            freeSolo
-            options={
-              categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
-            }
-            value={subcategoryFilter}
-            onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Sub-category filter"
-                placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
-              />
-            )}
-            disabled={!categoryFilter && allSubcategoryOptions.length === 0}
-          />
+          <Stack
+            spacing={2}
+            direction={{ xs: 'column', md: 'row' }}
+            alignItems={{ xs: 'stretch', md: 'flex-end' }}
+          >
+            <Autocomplete
+              sx={{ minWidth: 220 }}
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={categoryFilter}
+              onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
+              renderInput={(params) => (
+                <TextField {...params} label="Category filter" placeholder="All categories" />
+              )}
+            />
+            <Autocomplete
+              sx={{ minWidth: 220 }}
+              freeSolo
+              options={
+                categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
+              }
+              value={subcategoryFilter}
+              onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sub-category filter"
+                  placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
+                />
+              )}
+              disabled={!categoryFilter && allSubcategoryOptions.length === 0}
+            />
+          </Stack>
         </Stack>
-      </Stack>
+      )}
 
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -2556,7 +2675,7 @@ const AdminServicesPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
+                  {pagedProcesses.map((item) => (
                     <TableRow key={item.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                       <TableCell>
@@ -2588,11 +2707,13 @@ const AdminServicesPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {processList.length === 0 && (
+                  {pagedProcesses.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
-                          No process steps added yet.
+                          {processList.length === 0
+                            ? 'No process steps added yet.'
+                            : 'No process steps match the selected filters.'}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -2602,7 +2723,7 @@ const AdminServicesPage = () => {
             </TableContainer>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
-                count={Math.max(1, Math.ceil(processList.length / rowsPerPage))}
+                count={Math.max(1, Math.ceil(filteredProcesses.length / rowsPerPage))}
                 page={processPage}
                 onChange={(event, page) => setProcessPage(page)}
                 color="primary"
@@ -3746,15 +3867,17 @@ const AdminServicesPage = () => {
                   </AccordionDetails>
                 </Accordion>
               ))}
-              {contactButtons.length === 0 && (
+              {groupedContactButtons.length === 0 && (
                 <Typography variant="body2" color="text.secondary" align="center">
-                  No contact buttons configured yet.
+                  {contactButtons.length === 0
+                    ? 'No contact buttons configured yet.'
+                    : 'No contact buttons match the selected filters.'}
                 </Typography>
               )}
             </Stack>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
-                count={Math.max(1, Math.ceil(contactButtons.length / rowsPerPage))}
+                count={Math.max(1, Math.ceil(filteredContactButtons.length / rowsPerPage))}
                 page={contactButtonPage}
                 onChange={(event, page) => setContactButtonPage(page)}
                 color="primary"
