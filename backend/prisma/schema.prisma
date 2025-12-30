@@ -302,6 +302,7 @@ model ServiceCategory {
 
   subCategories ServiceSubCategory[]
   benefitConfigs BenefitConfig[]
+  whyVedxItems  WhyVedx[]
 }
 
 model ServiceSubCategory {
@@ -318,6 +319,7 @@ model ServiceSubCategory {
 
   services    Service[]
   benefitConfigs BenefitConfig[]
+  whyVedxItems WhyVedx[]
 
   @@index([categoryId])
 }
@@ -853,9 +855,16 @@ model WhyVedx {
   heroImage       String   @db.LongText
 
   reasons         WhyVedxReason[]
+  categoryId      Int?
+  category        ServiceCategory?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategoryId   Int?
+  subcategory     ServiceSubCategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+
+  @@index([categoryId])
+  @@index([subcategoryId])
 }
 
 model WhyVedxReason {
