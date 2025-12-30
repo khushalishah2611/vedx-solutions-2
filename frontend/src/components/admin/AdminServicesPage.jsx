@@ -607,9 +607,13 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadBenefitConfigs = useCallback(async () => {
+  const loadBenefitConfigs = useCallback(async ({ category, subcategory } = {}) => {
     try {
-      const response = await fetch(apiUrl('/api/benefit-configs'));
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+
+      const response = await fetch(apiUrl(`/api/benefit-configs${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load benefit configuration');
       const normalized = (data || []).map(normalizeBenefitConfig);
@@ -772,7 +776,18 @@ const AdminServicesPage = () => {
     loadHireServices(filters);
     loadWhyChoose(filters);
     loadWhyVedx(filters);
-  }, [categoryFilter, loadBenefits, loadHireServices, loadServiceMenus, loadTechnologies, loadWhyChoose, loadWhyVedx, subcategoryFilter]);
+    loadBenefitConfigs(filters);
+  }, [
+    categoryFilter,
+    loadBenefitConfigs,
+    loadBenefits,
+    loadHireServices,
+    loadServiceMenus,
+    loadTechnologies,
+    loadWhyChoose,
+    loadWhyVedx,
+    subcategoryFilter,
+  ]);
 
   useEffect(() => {
     if (!selectedWhyChooseId) {
@@ -795,10 +810,36 @@ const AdminServicesPage = () => {
   }, [categoryFilter, loadWhyServices, selectedWhyChooseId, subcategoryFilter, whyChooseList]);
 
   useEffect(() => {
+    const matchesFilters = (item) => {
+      const matchesCategory = categoryFilter
+        ? item.categoryName === categoryFilter || item.category === categoryFilter
+        : true;
+      const matchesSubcategory = subcategoryFilter
+        ? item.subcategoryName === subcategoryFilter || item.subcategory === subcategoryFilter
+        : true;
+
+      return matchesCategory && matchesSubcategory;
+    };
+
+    if (whyVedxList.length === 0) {
+      setSelectedWhyVedxId('');
+      setWhyVedxHeroForm(emptyWhyVedxHero);
+      setWhyVedxReasons([]);
+      setWhyVedxPage(1);
+      return;
+    }
+
     const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
-    if (active) {
-      setWhyVedxHeroForm(active);
-      loadWhyVedxReasons(active.id, {
+    const preferred = (categoryFilter || subcategoryFilter) ? whyVedxList.find(matchesFilters) : null;
+    const next = preferred || active || whyVedxList[0];
+
+    if (String(next?.id || '') !== String(selectedWhyVedxId || '')) {
+      setSelectedWhyVedxId(next?.id ? String(next.id) : '');
+    }
+
+    if (next) {
+      setWhyVedxHeroForm(next);
+      loadWhyVedxReasons(next.id, {
         category: categoryFilter || undefined,
         subcategory: subcategoryFilter || undefined,
       });
@@ -944,6 +985,12 @@ const AdminServicesPage = () => {
   };
 
   useEffect(() => {
+    const matchesFilters = (config) => {
+      const matchesCategory = categoryFilter ? config.categoryName === categoryFilter : true;
+      const matchesSubcategory = subcategoryFilter ? config.subcategoryName === subcategoryFilter : true;
+      return matchesCategory && matchesSubcategory;
+    };
+
     if (benefitConfigs.length === 0) {
       setSelectedBenefitConfigId('');
       setBenefitHero(initialBenefitHero);
@@ -952,20 +999,33 @@ const AdminServicesPage = () => {
       return;
     }
 
-    if (!selectedBenefitConfigId) {
-      if (!benefitConfigClearedRef.current) {
-        setSelectedBenefitConfigId(String(benefitConfigs[0].id));
-      }
+    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
+    const preferredByFilters = !benefitConfigClearedRef.current && (categoryFilter || subcategoryFilter)
+      ? benefitConfigs.find(matchesFilters)
+      : null;
+
+    const nextConfig =
+      preferredByFilters ||
+      active ||
+      (!benefitConfigClearedRef.current ? benefitConfigs[0] : null);
+
+    if (!nextConfig) {
       return;
     }
 
-    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
-    if (active) {
-      setBenefitHero(active);
-      setBenefitPage(1);
-      benefitConfigClearedRef.current = false;
+    if (String(nextConfig.id) !== selectedBenefitConfigId) {
+      setSelectedBenefitConfigId(String(nextConfig.id));
     }
-  }, [benefitConfigs, selectedBenefitConfigId]);
+
+    setBenefitHero(nextConfig);
+    setBenefitPage(1);
+    benefitConfigClearedRef.current = false;
+  }, [
+    benefitConfigs,
+    categoryFilter,
+    selectedBenefitConfigId,
+    subcategoryFilter,
+  ]);
 
   const handleProcessChange = (field, value) => {
     setProcessForm((prev) => ({ ...prev, [field]: value }));
