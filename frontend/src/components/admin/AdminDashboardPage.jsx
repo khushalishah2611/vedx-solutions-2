@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -34,6 +34,26 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { apiUrl } from "../../utils/const.js";
+
+const BANNER_TYPE_ORDER = [
+  "home",
+  "dashboard",
+  "about",
+  "blogs",
+  "case-study",
+  "contact",
+  "career",
+];
+
+const BANNER_TYPE_LABELS = {
+  home: "Home",
+  dashboard: "Dashboard",
+  about: "About",
+  blogs: "Blogs",
+  "case-study": "Case study",
+  contact: "Contact",
+  career: "Career",
+};
 
 /* =======================
  * Image upload helper
@@ -257,6 +277,32 @@ const AdminDashboardPage = () => {
    * -------------------------- */
   const selectedSliderForServiceDialog =
     ourServicesSliders.find((s) => s.id === ourServiceForm.sliderId) || null;
+
+  const bannerCountsByType = useMemo(() => {
+    const counts = {};
+    banners.forEach((item) => {
+      const type = item.type || "other";
+      counts[type] = (counts[type] || 0) + 1;
+    });
+    return counts;
+  }, [banners]);
+
+  const sortedBanners = useMemo(() => {
+    const getTypeOrder = (type) => {
+      const index = BANNER_TYPE_ORDER.indexOf(type);
+      return index === -1 ? BANNER_TYPE_ORDER.length : index;
+    };
+
+    return [...banners].sort((a, b) => {
+      const typeDiff = getTypeOrder(a.type) - getTypeOrder(b.type);
+      if (typeDiff !== 0) return typeDiff;
+
+      const aUpdated = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const bUpdated = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+
+      return bUpdated - aUpdated;
+    });
+  }, [banners]);
 
   /* ------------------------------------------------
    * INITIAL LOAD – fetch all sections from backend
@@ -1329,7 +1375,7 @@ const AdminDashboardPage = () => {
   /* -----------------------------------
    * Pagination slices
    * ----------------------------------- */
-  const paginatedBanners = banners.slice(
+  const paginatedBanners = sortedBanners.slice(
     (bannerPage - 1) * rowsPerPage,
     bannerPage * rowsPerPage
   );
@@ -1502,6 +1548,7 @@ const AdminDashboardPage = () => {
                     helperText="Choose where this banner will be used"
                   >
                     <MenuItem value="home">Home</MenuItem>
+                    <MenuItem value="dashboard">Dashboard</MenuItem>
                     <MenuItem value="about">About</MenuItem>
                     <MenuItem value="blogs">Blogs</MenuItem>
                     <MenuItem value="case-study">Case study</MenuItem>
@@ -1548,76 +1595,91 @@ const AdminDashboardPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {paginatedBanners.map((item) => (
-                    <TableRow key={item.id} hover>
-                      <TableCell sx={{ textTransform: "capitalize" }}>{item.type}</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                      <TableCell sx={{ maxWidth: 320 }}>
-                        {item.type === "home" ? (
-                          item.images?.length ? (
-                            <Stack direction="row" spacing={1} sx={{ overflowX: "auto" }}>
-                              {item.images.map((src, index) => (
-                                <Box
-                                  key={index}
-                                  component="img"
-                                  src={src}
-                                  alt={`${item.title} ${index + 1}`}
-                                  sx={{
-                                    width: 120,
-                                    height: 60,
-                                    borderRadius: 1,
-                                    objectFit: "cover",
-                                    border: "1px solid",
-                                    borderColor: "divider",
-                                  }}
-                                />
-                              ))}
-                            </Stack>
-                          ) : (
-                            <Typography variant="body2" color="text.secondary">
-                              No images selected
-                            </Typography>
-                          )
-                        ) : item.image ? (
-                          <Box
-                            component="img"
-                            src={item.image}
-                            alt={item.title}
-                            sx={{
-                              width: 140,
-                              height: 60,
-                              borderRadius: 1,
-                              objectFit: "cover",
-                              border: "1px solid",
-                              borderColor: "divider",
-                            }}
-                          />
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            -
-                          </Typography>
+                  {paginatedBanners.map((item, index) => {
+                    const typeLabel = BANNER_TYPE_LABELS[item.type] || item.type;
+                    const previousType = paginatedBanners[index - 1]?.type;
+                    const showTypeHeader = previousType !== item.type;
+
+                    return (
+                      <React.Fragment key={item.id}>
+                        {showTypeHeader && (
+                          <TableRow sx={{ backgroundColor: "background.default" }}>
+                            <TableCell colSpan={4} sx={{ fontWeight: 700, color: "text.secondary" }}>
+                              {typeLabel} ({bannerCountsByType[item.type] || 0})
+                            </TableCell>
+                          </TableRow>
                         )}
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => handleEditBanner(item.id)}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              color="error"
-                              size="small"
-                              onClick={() => handleDeleteBanner(item.id)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        <TableRow hover>
+                          <TableCell sx={{ textTransform: "capitalize" }}>{typeLabel}</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                          <TableCell sx={{ maxWidth: 320 }}>
+                            {item.type === "home" ? (
+                              item.images?.length ? (
+                                <Stack direction="row" spacing={1} sx={{ overflowX: "auto" }}>
+                                  {item.images.map((src, imgIndex) => (
+                                    <Box
+                                      key={imgIndex}
+                                      component="img"
+                                      src={src}
+                                      alt={`${item.title} ${imgIndex + 1}`}
+                                      sx={{
+                                        width: 120,
+                                        height: 60,
+                                        borderRadius: 1,
+                                        objectFit: "cover",
+                                        border: "1px solid",
+                                        borderColor: "divider",
+                                      }}
+                                    />
+                                  ))}
+                                </Stack>
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                  No images selected
+                                </Typography>
+                              )
+                            ) : item.image ? (
+                              <Box
+                                component="img"
+                                src={item.image}
+                                alt={item.title}
+                                sx={{
+                                  width: 140,
+                                  height: 60,
+                                  borderRadius: 1,
+                                  objectFit: "cover",
+                                  border: "1px solid",
+                                  borderColor: "divider",
+                                }}
+                              />
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                -
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" onClick={() => handleEditBanner(item.id)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  color="error"
+                                  size="small"
+                                  onClick={() => handleDeleteBanner(item.id)}
+                                >
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    );
+                  })}
                   {!banners.length && (
                     <TableRow>
                       <TableCell colSpan={4}>
