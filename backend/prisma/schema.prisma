@@ -721,11 +721,14 @@ model Benefit {
   subcategory String?
   description String  @db.LongText
   image       String @db.LongText
+  benefitConfigId Int?
+  benefitConfig   BenefitConfig? @relation(fields: [benefitConfigId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([category, subcategory])
+  @@index([benefitConfigId])
 }
 
 model BenefitConfig {
@@ -736,6 +739,7 @@ model BenefitConfig {
   category    ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   subcategoryId Int?
   subcategory   ServiceSubCategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  benefits     Benefit[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

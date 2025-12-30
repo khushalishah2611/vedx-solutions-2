@@ -114,6 +114,7 @@ const emptyBenefitForm = {
   subcategory: '',
   description: '',
   image: imagePlaceholder,
+  benefitConfigId: '',
 };
 
 const emptyHireServiceForm = {
@@ -453,6 +454,7 @@ const AdminServicesPage = () => {
 
   const normalizeBenefit = (benefit) => ({
     ...benefit,
+    benefitConfigId: benefit.benefitConfigId ? String(benefit.benefitConfigId) : '',
     category: benefit.category || '',
     subcategory: benefit.subcategory || '',
   });
@@ -592,11 +594,12 @@ const AdminServicesPage = () => {
     }
   };
 
-  const loadBenefits = useCallback(async ({ category, subcategory } = {}) => {
+  const loadBenefits = useCallback(async ({ category, subcategory, benefitConfigId } = {}) => {
     try {
       const params = new URLSearchParams();
       if (category) params.append('category', category);
       if (subcategory) params.append('subcategory', subcategory);
+      if (benefitConfigId) params.append('benefitConfigId', benefitConfigId);
 
       const response = await fetch(apiUrl(`/api/benefits${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
@@ -768,7 +771,6 @@ const AdminServicesPage = () => {
 
     loadServiceMenus(filters);
     loadTechnologies(filters);
-    loadBenefits(filters);
     loadHireServices(filters);
     loadWhyChoose(filters);
     loadWhyVedx(filters);
@@ -776,7 +778,6 @@ const AdminServicesPage = () => {
   }, [
     categoryFilter,
     loadBenefitConfigs,
-    loadBenefits,
     loadHireServices,
     loadServiceMenus,
     loadTechnologies,
@@ -784,6 +785,21 @@ const AdminServicesPage = () => {
     loadWhyVedx,
     subcategoryFilter,
   ]);
+
+  useEffect(() => {
+    if (!selectedBenefitConfigId) {
+      setBenefits([]);
+      return;
+    }
+
+    const filters = {
+      category: categoryFilter || undefined,
+      subcategory: subcategoryFilter || undefined,
+      benefitConfigId: selectedBenefitConfigId,
+    };
+
+    loadBenefits(filters);
+  }, [categoryFilter, loadBenefits, selectedBenefitConfigId, subcategoryFilter]);
 
   useEffect(() => {
     if (!selectedWhyChooseId) {
@@ -1327,17 +1343,10 @@ const AdminServicesPage = () => {
   const visibleBenefits = useMemo(() => {
     if (!selectedBenefitConfigId) return [];
 
-    return benefits.filter((benefit) => {
-      const matchesCategory = benefitConfigCategoryName
-        ? benefit.category === benefitConfigCategoryName
-        : true;
-      const matchesSubcategory = benefitConfigSubcategoryName
-        ? benefit.subcategory === benefitConfigSubcategoryName
-        : true;
-
-      return matchesCategory && matchesSubcategory;
-    });
-  }, [benefits, benefitConfigCategoryName, benefitConfigSubcategoryName, selectedBenefitConfigId]);
+    return benefits.filter(
+      (benefit) => String(benefit.benefitConfigId) === String(selectedBenefitConfigId)
+    );
+  }, [benefits, selectedBenefitConfigId]);
 
   const pagedBenefits = useMemo(() => {
     const start = (benefitPage - 1) * rowsPerPage;
@@ -1644,7 +1653,12 @@ const AdminServicesPage = () => {
 
     setBenefitDialogMode('create');
     setActiveBenefit(null);
-    setBenefitForm({ ...emptyBenefitForm, category: defaultCategory, subcategory: defaultSubcategory });
+    setBenefitForm({
+      ...emptyBenefitForm,
+      category: defaultCategory,
+      subcategory: defaultSubcategory,
+      benefitConfigId: selectedBenefitConfigId,
+    });
     setBenefitDialogOpen(true);
   };
 
@@ -1664,12 +1678,19 @@ const AdminServicesPage = () => {
     event?.preventDefault();
     if (!benefitForm.title.trim() || !benefitForm.description.trim() || !benefitForm.image) return;
 
+    const benefitConfigId = benefitForm.benefitConfigId || selectedBenefitConfigId;
+    if (!benefitConfigId) {
+      handleRequestError(new Error('Please select a benefit config before saving benefits'));
+      return;
+    }
+
     const payload = {
       title: benefitForm.title,
       category: benefitForm.category,
       subcategory: benefitForm.subcategory,
       description: benefitForm.description,
       image: benefitForm.image,
+      benefitConfigId,
     };
 
     const isEdit = benefitDialogMode === 'edit' && activeBenefit;
@@ -4503,6 +4524,7 @@ const AdminServicesPage = () => {
               }
               helperText="Link the benefit to a service category"
               fullWidth
+              disabled
             >
               {categoryOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -4515,8 +4537,9 @@ const AdminServicesPage = () => {
               label="Sub-category"
               value={benefitForm.subcategory}
               onChange={(event) => handleBenefitFormChange('subcategory', event.target.value)}
-              disabled={!benefitForm.category && benefitSubcategoryOptions.length === 0}
+              disabled
               fullWidth
+              InputProps={{ readOnly: true }}
             >
               {benefitSubcategoryOptions.map((option) => (
                 <MenuItem key={option} value={option}>
