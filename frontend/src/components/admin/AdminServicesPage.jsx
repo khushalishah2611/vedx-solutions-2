@@ -64,6 +64,7 @@ const initialWhyChoose = {
   services: [],
 };
 const initialProcess = [];
+const initialContactButtons = [];
 const emptyWhyVedxHero = {
   id: '',
   category: '',
@@ -124,13 +125,6 @@ const emptyHireServiceForm = {
   id: '',
   category: '',
   subcategory: '',
-  title: '',
-  description: '',
-  image: imagePlaceholder,
-};
-
-const emptyContactButtonForm = {
-  id: '',
   title: '',
   description: '',
   image: imagePlaceholder,
@@ -342,13 +336,6 @@ const AdminServicesPage = () => {
   const [activeHireService, setActiveHireService] = useState(null);
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
-
-  const [contactButtons, setContactButtons] = useState([]);
-  const [contactButtonDialogOpen, setContactButtonDialogOpen] = useState(false);
-  const [contactButtonDialogMode, setContactButtonDialogMode] = useState('create');
-  const [contactButtonForm, setContactButtonForm] = useState(emptyContactButtonForm);
-  const [activeContactButton, setActiveContactButton] = useState(null);
-  const [contactButtonToDelete, setContactButtonToDelete] = useState(null);
 
   const [whyChooseList, setWhyChooseList] = useState([]);
   const [selectedWhyChooseId, setSelectedWhyChooseId] = useState('');
