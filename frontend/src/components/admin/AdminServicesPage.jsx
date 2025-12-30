@@ -43,6 +43,7 @@ const imagePlaceholder = '';
 const initialServices = [];
 const initialTechnologies = [];
 const initialBenefits = [];
+const initialContactButtons = [];
 const initialHireDevelopers = { title: '', description: '', heroImage: imagePlaceholder, services: [] };
 const initialWhyChoose = {
   id: '',
@@ -92,6 +93,15 @@ const emptyTechnologyForm = {
   title: '',
   image: imagePlaceholder,
   items: [],
+};
+
+const emptyContactButtonForm = {
+  id: '',
+  title: '',
+  description: '',
+  image: imagePlaceholder,
+  categoryId: '',
+  subcategoryId: '',
 };
 
 const emptyBenefitForm = {
@@ -291,7 +301,7 @@ const AdminServicesPage = () => {
   const [technologyDialogOpen, setTechnologyDialogOpen] = useState(false);
   const [technologyDialogMode, setTechnologyDialogMode] = useState('create');
   const [technologyForm, setTechnologyForm] = useState(emptyTechnologyForm);
-  const [technologyItemsInput, setTechnologyItemsInput] = useState('');
+  const [technologyItemInput, setTechnologyItemInput] = useState('');
   const [activeTechnology, setActiveTechnology] = useState(null);
   const [technologyToDelete, setTechnologyToDelete] = useState(null);
 
@@ -301,6 +311,13 @@ const AdminServicesPage = () => {
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
   const [activeBenefit, setActiveBenefit] = useState(null);
   const [benefitToDelete, setBenefitToDelete] = useState(null);
+
+  const [contactButtons, setContactButtons] = useState(initialContactButtons);
+  const [contactButtonDialogOpen, setContactButtonDialogOpen] = useState(false);
+  const [contactButtonDialogMode, setContactButtonDialogMode] = useState('create');
+  const [contactButtonForm, setContactButtonForm] = useState(emptyContactButtonForm);
+  const [activeContactButton, setActiveContactButton] = useState(null);
+  const [contactButtonToDelete, setContactButtonToDelete] = useState(null);
 
   const [hireContent, setHireContent] = useState(initialHireDevelopers);
   const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
@@ -420,6 +437,17 @@ const AdminServicesPage = () => {
     ...benefit,
     category: benefit.category || '',
     subcategory: benefit.subcategory || '',
+  });
+
+  const normalizeContactButton = (button) => ({
+    id: button.id,
+    title: button.title || '',
+    description: button.description || '',
+    image: button.image || imagePlaceholder,
+    categoryId: button.categoryId || '',
+    subcategoryId: button.subcategoryId || '',
+    category: button.category || button.categoryName || '',
+    subcategory: button.subcategory || button.subcategoryName || '',
   });
 
   const normalizeServiceCategory = (category) => ({
@@ -549,6 +577,17 @@ const AdminServicesPage = () => {
     }
   }, []);
 
+  const loadContactButtons = useCallback(async () => {
+    try {
+      const response = await fetch(apiUrl('/api/contact-buttons'));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Unable to load contact buttons');
+      setContactButtons((data || []).map(normalizeContactButton));
+    } catch (err) {
+      console.error('Failed to load contact buttons', err);
+    }
+  }, []);
+
   const loadProcesses = async () => {
     try {
       const response = await fetch(apiUrl('/api/service-processes'));
@@ -664,6 +703,7 @@ const AdminServicesPage = () => {
     loadProcesses();
     loadHireContent();
     loadWhyVedx();
+    loadContactButtons();
   }, []);
 
   useEffect(() => {
@@ -746,6 +786,24 @@ const AdminServicesPage = () => {
 
   const handleTechnologyFormChange = (field, value) => {
     setTechnologyForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const addTechnologyItem = () => {
+    const trimmed = technologyItemInput.trim();
+    if (!trimmed) return;
+
+    setTechnologyForm((prev) => ({
+      ...prev,
+      items: [...(prev.items || []), trimmed],
+    }));
+    setTechnologyItemInput('');
+  };
+
+  const removeTechnologyItem = (index) => {
+    setTechnologyForm((prev) => ({
+      ...prev,
+      items: (prev.items || []).filter((_, itemIndex) => itemIndex !== index),
+    }));
   };
 
   const handleBenefitFormChange = (field, value) => {
@@ -859,6 +917,16 @@ const AdminServicesPage = () => {
         label: category,
       })),
     [serviceCategories]
+  );
+
+  const categoryNameLookup = useMemo(
+    () => new Map(serviceCategories.map((category) => [category.id, category.name || ''])),
+    [serviceCategories]
+  );
+
+  const subcategoryNameLookup = useMemo(
+    () => new Map(serviceSubcategories.map((subcategory) => [subcategory.id, subcategory.name || ''])),
+    [serviceSubcategories]
   );
 
   const subcategoryLookup = useMemo(() => {
@@ -1134,14 +1202,13 @@ const AdminServicesPage = () => {
     setTechnologyDialogMode('edit');
     setActiveTechnology(technology);
     setTechnologyForm({ ...technology });
-    setTechnologyItemsInput((technology.items || []).join(', '));
     setTechnologyDialogOpen(true);
   };
 
   const closeTechnologyDialog = () => {
     setTechnologyDialogOpen(false);
     setActiveTechnology(null);
-    setTechnologyItemsInput('');
+    setTechnologyItemInput('');
   };
 
   const handleTechnologySubmit = async (event) => {
@@ -1268,6 +1335,92 @@ const AdminServicesPage = () => {
       closeBenefitDeleteDialog();
     } catch (err) {
       handleRequestError(err, 'Unable to delete benefit');
+    }
+  };
+
+  const handleContactButtonFormChange = (field, value) => {
+    setContactButtonForm((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === 'categoryId' ? { subcategoryId: '' } : {}),
+    }));
+  };
+
+  const openContactButtonCreateDialog = () => {
+    setContactButtonDialogMode('create');
+    setActiveContactButton(null);
+    setContactButtonForm(emptyContactButtonForm);
+    setContactButtonDialogOpen(true);
+  };
+
+  const openContactButtonEditDialog = (button) => {
+    setContactButtonDialogMode('edit');
+    setActiveContactButton(button);
+    setContactButtonForm({ ...button });
+    setContactButtonDialogOpen(true);
+  };
+
+  const closeContactButtonDialog = () => {
+    setContactButtonDialogOpen(false);
+    setActiveContactButton(null);
+    setContactButtonForm(emptyContactButtonForm);
+  };
+
+  const handleContactButtonSubmit = async (event) => {
+    event?.preventDefault();
+    if (!contactButtonForm.title.trim() || !contactButtonForm.image || !contactButtonForm.categoryId) return;
+
+    const payload = {
+      title: contactButtonForm.title,
+      description: contactButtonForm.description,
+      image: contactButtonForm.image,
+      categoryId: contactButtonForm.categoryId,
+      subcategoryId: contactButtonForm.subcategoryId || null,
+    };
+
+    const isEdit = contactButtonDialogMode === 'edit' && activeContactButton;
+    const url = isEdit
+      ? apiUrl(`/api/contact-buttons/${activeContactButton.id}`)
+      : apiUrl('/api/contact-buttons');
+
+    try {
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save contact button');
+
+      const normalized = normalizeContactButton(data);
+      setContactButtons((prev) =>
+        isEdit
+          ? prev.map((button) => (button.id === normalized.id ? normalized : button))
+          : [normalized, ...prev]
+      );
+      closeContactButtonDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to save contact button');
+    }
+  };
+
+  const openContactButtonDeleteDialog = (button) => setContactButtonToDelete(button);
+  const closeContactButtonDeleteDialog = () => setContactButtonToDelete(null);
+  const handleConfirmDeleteContactButton = async () => {
+    if (!contactButtonToDelete) return;
+
+    try {
+      const response = await fetch(apiUrl(`/api/contact-buttons/${contactButtonToDelete.id}`), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to delete contact button');
+
+      setContactButtons((prev) => prev.filter((button) => button.id !== contactButtonToDelete.id));
+      closeContactButtonDeleteDialog();
+    } catch (err) {
+      handleRequestError(err, 'Unable to delete contact button');
     }
   };
 
@@ -1859,6 +2012,11 @@ const AdminServicesPage = () => {
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
 
+  const contactButtonSubcategoryOptions = useMemo(
+    () => serviceSubcategories.filter((subcategory) => subcategory.categoryId === contactButtonForm.categoryId),
+    [contactButtonForm.categoryId, serviceSubcategories]
+  );
+
   const hireServiceSubcategoryOptions = useMemo(() => {
     if (!hireServiceForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(hireServiceForm.category) || allSubcategoryOptions;
@@ -1880,6 +2038,7 @@ const AdminServicesPage = () => {
           { value: 'why-vedx', label: 'Why choose VedX' },
           { value: 'why-choose', label: 'Why choose service' },
           { value: 'technologies', label: 'Technologies we support' },
+          { value: 'contact-buttons', label: 'Contact buttons' },
           { value: 'benefits', label: 'Benefits' },
           { value: 'hire', label: 'Development services' },
         ]}
@@ -3041,6 +3200,90 @@ const AdminServicesPage = () => {
         </Card>
       )}
 
+      {activeTab === 'contact-buttons' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Contact buttons"
+            subheader="Add call-to-action buttons for each service category and sub-category."
+            action={
+              <Button
+                variant="contained"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={openContactButtonCreateDialog}
+              >
+                Add contact button
+              </Button>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Sub-category</TableCell>
+                    <TableCell>Image</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {contactButtons.map((button) => (
+                    <TableRow key={button.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{button.title}</TableCell>
+                      <TableCell>{categoryNameLookup.get(button.categoryId) || '-'}</TableCell>
+                      <TableCell>{subcategoryNameLookup.get(button.subcategoryId) || '—'}</TableCell>
+                      <TableCell sx={{ maxWidth: 200 }}>
+                        <Box
+                          component="img"
+                          src={button.image || imagePlaceholder}
+                          alt={`${button.title} visual`}
+                          sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 240 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {button.description || '—'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Edit">
+                            <IconButton size="small" color="primary" onClick={() => openContactButtonEditDialog(button)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => openContactButtonDeleteDialog(button)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {contactButtons.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No contact buttons configured yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      )}
+
       {activeTab === 'benefits' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
@@ -3657,22 +3900,35 @@ const AdminServicesPage = () => {
               onChange={(value) => handleTechnologyFormChange('image', value)}
               required
             />
-            <TextField
-              label="Technologies (comma separated)"
-              value={technologyItemsInput}
-              onChange={(event) => {
-                const nextValue = event.target.value;
-                setTechnologyItemsInput(nextValue);
-                handleTechnologyFormChange(
-                  'items',
-                  nextValue
-                    .split(',')
-                    .map((item) => item.trim())
-                    .filter(Boolean)
-                );
-              }}
-              fullWidth
-            />
+            <Stack spacing={1}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="stretch">
+                <TextField
+                  label="Add technology"
+                  value={technologyItemInput}
+                  onChange={(event) => setTechnologyItemInput(event.target.value)}
+                  fullWidth
+                />
+                <Button
+                  variant="outlined"
+                  onClick={addTechnologyItem}
+                  disabled={!technologyItemInput.trim()}
+                  sx={{ minWidth: 140 }}
+                >
+                  Add item
+                </Button>
+              </Stack>
+              <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                {(technologyForm.items || []).length > 0 ? (
+                  technologyForm.items.map((item, index) => (
+                    <Chip key={`${item}-${index}`} label={item} onDelete={() => removeTechnologyItem(index)} />
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No technologies added yet.
+                  </Typography>
+                )}
+              </Stack>
+            </Stack>
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -3697,6 +3953,94 @@ const AdminServicesPage = () => {
             Cancel
           </Button>
           <Button onClick={handleConfirmDeleteTechnology} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={contactButtonDialogOpen} onClose={closeContactButtonDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{contactButtonDialogMode === 'edit' ? 'Edit contact button' : 'Add contact button'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleContactButtonSubmit}>
+            <TextField
+              label="Title"
+              value={contactButtonForm.title}
+              onChange={(event) => handleContactButtonFormChange('title', event.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              select
+              label="Category"
+              value={contactButtonForm.categoryId}
+              onChange={(event) => {
+                const nextValue = event.target.value ? Number(event.target.value) : '';
+                handleContactButtonFormChange('categoryId', nextValue);
+              }}
+              fullWidth
+              required
+            >
+              {serviceCategories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Sub-category"
+              value={contactButtonForm.subcategoryId}
+              onChange={(event) => {
+                const nextValue = event.target.value ? Number(event.target.value) : '';
+                handleContactButtonFormChange('subcategoryId', nextValue);
+              }}
+              fullWidth
+              disabled={!contactButtonForm.categoryId || contactButtonSubcategoryOptions.length === 0}
+            >
+              {contactButtonSubcategoryOptions.map((subcategory) => (
+                <MenuItem key={subcategory.id} value={subcategory.id}>
+                  {subcategory.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <ImageUpload
+              label="Image"
+              value={contactButtonForm.image}
+              onChange={(value) => handleContactButtonFormChange('image', value)}
+              required
+            />
+            <TextField
+              label="Description"
+              value={contactButtonForm.description}
+              onChange={(event) => handleContactButtonFormChange('description', event.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeContactButtonDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleContactButtonSubmit} variant="contained">
+            {contactButtonDialogMode === 'edit' ? 'Save changes' : 'Add contact button'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(contactButtonToDelete)} onClose={closeContactButtonDeleteDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete contact button</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{contactButtonToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeContactButtonDeleteDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteContactButton} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>

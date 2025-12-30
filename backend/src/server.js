@@ -5122,6 +5122,19 @@ const mapBenefitToResponse = (benefit) => ({
   updatedAt: benefit.updatedAt,
 });
 
+const mapContactButtonToResponse = (button) => ({
+  id: button.id,
+  title: button.title,
+  description: button.description || '',
+  image: button.image,
+  categoryId: button.categoryId,
+  category: button.category?.name || '',
+  subcategoryId: button.subcategoryId || null,
+  subcategory: button.subcategory?.name || '',
+  createdAt: button.createdAt,
+  updatedAt: button.updatedAt,
+});
+
 // GET all benefits
 app.get('/api/benefits', async (req, res) => {
   try {
@@ -5220,6 +5233,155 @@ app.delete('/api/benefits/:id', async (req, res) => {
   } catch (err) {
     console.error('DELETE /api/benefits/:id error', err);
     res.status(500).json({ error: 'Failed to delete benefit' });
+  }
+});
+
+/* ===============================================
+ * CONTACT BUTTON APIs
+ * =============================================== */
+
+app.get('/api/contact-buttons', async (req, res) => {
+  try {
+    const categoryId = parseIntegerId(req.query.categoryId);
+    const subcategoryId = parseIntegerId(req.query.subcategoryId);
+
+    const buttons = await prisma.contactButton.findMany({
+      where: {
+        ...(categoryId && { categoryId }),
+        ...(subcategoryId && { subcategoryId }),
+      },
+      include: {
+        category: true,
+        subcategory: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(buttons.map(mapContactButtonToResponse));
+  } catch (err) {
+    console.error('GET /api/contact-buttons error', err);
+    res.status(500).json({ error: 'Failed to fetch contact buttons' });
+  }
+});
+
+app.post('/api/contact-buttons', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, image, categoryId, subcategoryId } = req.body ?? {};
+
+    const parsedCategoryId = parseIntegerId(categoryId);
+    const parsedSubcategoryId = parseIntegerId(subcategoryId);
+
+    if (!title || !image || !parsedCategoryId) {
+      return res.status(400).json({ error: 'title, image, and categoryId are required' });
+    }
+
+    const category = await prisma.serviceCategory.findUnique({ where: { id: parsedCategoryId } });
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    let subcategory = null;
+    if (parsedSubcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: parsedSubcategoryId } });
+
+      if (!subcategory) {
+        return res.status(404).json({ error: 'Sub-category not found' });
+      }
+
+      if (subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to selected category' });
+      }
+    }
+
+    const created = await prisma.contactButton.create({
+      data: {
+        title,
+        description: description || null,
+        image,
+        categoryId: category.id,
+        subcategoryId: subcategory?.id ?? null,
+      },
+      include: { category: true, subcategory: true },
+    });
+
+    res.status(201).json(mapContactButtonToResponse(created));
+  } catch (err) {
+    console.error('POST /api/contact-buttons error', err);
+    res.status(500).json({ error: 'Failed to create contact button' });
+  }
+});
+
+app.put('/api/contact-buttons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid contact button id required' });
+
+    const { title, description, image, categoryId, subcategoryId } = req.body ?? {};
+
+    const parsedCategoryId = parseIntegerId(categoryId);
+    const parsedSubcategoryId = parseIntegerId(subcategoryId);
+
+    if (!title || !image || !parsedCategoryId) {
+      return res.status(400).json({ error: 'title, image, and categoryId are required' });
+    }
+
+    const category = await prisma.serviceCategory.findUnique({ where: { id: parsedCategoryId } });
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    let subcategory = null;
+    if (parsedSubcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: parsedSubcategoryId } });
+
+      if (!subcategory) {
+        return res.status(404).json({ error: 'Sub-category not found' });
+      }
+
+      if (subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to selected category' });
+      }
+    }
+
+    const updated = await prisma.contactButton.update({
+      where: { id },
+      data: {
+        title,
+        description: description || null,
+        image,
+        categoryId: category.id,
+        subcategoryId: subcategory?.id ?? null,
+      },
+      include: { category: true, subcategory: true },
+    });
+
+    res.json(mapContactButtonToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/contact-buttons/:id error', err);
+    res.status(500).json({ error: 'Failed to update contact button' });
+  }
+});
+
+app.delete('/api/contact-buttons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid contact button id required' });
+
+    await prisma.contactButton.delete({ where: { id } });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/contact-buttons/:id error', err);
+    res.status(500).json({ error: 'Failed to delete contact button' });
   }
 });
 
