@@ -605,7 +605,7 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadProcesses = async () => {
+  const loadProcesses = useCallback(async () => {
     try {
       const response = await fetch(apiUrl('/api/service-processes'));
       const data = await response.json();
