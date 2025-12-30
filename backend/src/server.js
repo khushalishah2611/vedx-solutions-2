@@ -5232,9 +5232,13 @@ app.post('/api/benefits/config', async (req, res) => {
           data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
           include: { category: true, subcategory: true },
         })
-      : await prisma.benefitConfig.create({
-          data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
-          include: { category: true, subcategory: true },
+      : await prisma.$transaction(async (tx) => {
+          await tx.benefitConfig.deleteMany();
+
+          return tx.benefitConfig.create({
+            data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
+            include: { category: true, subcategory: true },
+          });
         });
 
     return res.json(mapBenefitConfigToResponse(saved));
@@ -5282,9 +5286,13 @@ app.post('/api/benefit-configs', async (req, res) => {
       }
     }
 
-    const saved = await prisma.benefitConfig.create({
-      data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
-      include: { category: true, subcategory: true },
+    const saved = await prisma.$transaction(async (tx) => {
+      await tx.benefitConfig.deleteMany();
+
+      return tx.benefitConfig.create({
+        data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
+        include: { category: true, subcategory: true },
+      });
     });
 
     return res.status(201).json(mapBenefitConfigToResponse(saved));
@@ -6133,6 +6141,10 @@ const mapWhyVedxToResponse = (whyVedx) => ({
   heroTitle: whyVedx.heroTitle,
   heroDescription: whyVedx.heroDescription,
   heroImage: whyVedx.heroImage,
+  categoryId: whyVedx.categoryId || null,
+  subcategoryId: whyVedx.subcategoryId || null,
+  categoryName: whyVedx.category?.name || '',
+  subcategoryName: whyVedx.subcategory?.name || '',
   reasons: whyVedx.reasons?.map((r) => ({
     id: r.id,
     title: r.title,
@@ -6159,7 +6171,11 @@ app.get('/api/why-vedx', async (req, res) => {
   try {
     const includeReasons = req.query.includeReasons === 'true';
     const whyVedx = await prisma.whyVedx.findMany({
-      include: includeReasons ? { reasons: true } : undefined,
+      include: {
+        ...(includeReasons ? { reasons: true } : {}),
+        category: true,
+        subcategory: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -6177,11 +6193,37 @@ app.post('/api/why-vedx', async (req, res) => {
     if (!admin) return res.status(status).json({ message });
 
     const { id, heroTitle, heroDescription, heroImage } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
     if (!heroTitle || !heroDescription || !heroImage) {
       return res.status(400).json({
         error: 'heroTitle, heroDescription, and heroImage are required'
       });
+    }
+
+    let category = null;
+    if (categoryId) {
+      category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+      if (!category) {
+        return res.status(400).json({ error: 'Category not found' });
+      }
+    }
+
+    let subcategory = null;
+    if (subcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+      if (!subcategory) {
+        return res.status(400).json({ error: 'Sub-category not found' });
+      }
+
+      if (category && subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+      }
+
+      if (!category) {
+        category = await prisma.serviceCategory.findUnique({ where: { id: subcategory.categoryId } });
+      }
     }
 
     let result;
@@ -6191,13 +6233,25 @@ app.post('/api/why-vedx', async (req, res) => {
 
       result = await prisma.whyVedx.update({
         where: { id: parsedId },
-        data: { heroTitle, heroDescription, heroImage },
-        include: { reasons: true },
+        data: {
+          heroTitle,
+          heroDescription,
+          heroImage,
+          categoryId: category?.id || null,
+          subcategoryId: subcategory?.id || null,
+        },
+        include: { reasons: true, category: true, subcategory: true },
       });
     } else {
       result = await prisma.whyVedx.create({
-        data: { heroTitle, heroDescription, heroImage },
-        include: { reasons: true },
+        data: {
+          heroTitle,
+          heroDescription,
+          heroImage,
+          categoryId: category?.id || null,
+          subcategoryId: subcategory?.id || null,
+        },
+        include: { reasons: true, category: true, subcategory: true },
       });
     }
 
