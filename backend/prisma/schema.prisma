@@ -747,9 +747,13 @@ model ContactButton {
   title       String
   description String? @db.Text
   image       String  @db.LongText
+  category    String?
+  subcategory String?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([category, subcategory])
 }
 
 /// ----------------------------------------------------------

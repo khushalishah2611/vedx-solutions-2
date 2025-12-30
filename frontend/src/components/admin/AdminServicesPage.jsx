@@ -44,6 +44,7 @@ const initialServices = [];
 const initialTechnologies = [];
 const initialBenefits = [];
 const initialBenefitHero = {
+  id: '',
   title: '',
   description: '',
   categoryId: '',
@@ -125,6 +126,8 @@ const emptyContactButtonForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  category: '',
+  subcategory: '',
 };
 
 const emptyProcessForm = {
@@ -312,6 +315,8 @@ const AdminServicesPage = () => {
 
   const [benefits, setBenefits] = useState(initialBenefits);
   const [benefitHero, setBenefitHero] = useState(initialBenefitHero);
+  const [benefitConfigs, setBenefitConfigs] = useState([]);
+  const [selectedBenefitConfigId, setSelectedBenefitConfigId] = useState('');
   const [benefitHeroSaved, setBenefitHeroSaved] = useState(false);
   const [benefitDialogOpen, setBenefitDialogOpen] = useState(false);
   const [benefitDialogMode, setBenefitDialogMode] = useState('create');
@@ -462,6 +467,8 @@ const AdminServicesPage = () => {
     title: button.title,
     description: button.description || '',
     image: button.image || imagePlaceholder,
+    category: button.category || '',
+    subcategory: button.subcategory || '',
   });
 
   const normalizeServiceCategory = (category) => ({
@@ -591,12 +598,13 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadBenefitConfig = useCallback(async () => {
+  const loadBenefitConfigs = useCallback(async () => {
     try {
-      const response = await fetch(apiUrl('/api/benefits/config'));
+      const response = await fetch(apiUrl('/api/benefit-configs'));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load benefit configuration');
-      setBenefitHero(normalizeBenefitConfig(data || initialBenefitHero));
+      const normalized = (data || []).map(normalizeBenefitConfig);
+      setBenefitConfigs(normalized);
     } catch (err) {
       console.error('Failed to load benefit configuration', err);
     }
@@ -728,9 +736,9 @@ const AdminServicesPage = () => {
     loadProcesses();
     loadHireContent();
     loadWhyVedx();
-    loadBenefitConfig();
+    loadBenefitConfigs();
     loadContactButtons();
-  }, []);
+  }, [loadBenefitConfigs]);
 
   useEffect(() => {
     const filters = {
@@ -857,11 +865,15 @@ const AdminServicesPage = () => {
   const handleBenefitHeroSave = async (event) => {
     event?.preventDefault();
     try {
-      const response = await fetch(apiUrl('/api/benefits/config'), {
-        method: 'POST',
+      const isEdit = Boolean(selectedBenefitConfigId);
+      const url = isEdit
+        ? apiUrl(`/api/benefit-configs/${selectedBenefitConfigId}`)
+        : apiUrl('/api/benefit-configs');
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
-          id: benefitHero.id || undefined,
+          id: isEdit ? selectedBenefitConfigId : undefined,
           title: benefitHero.title,
           description: benefitHero.description,
           categoryId: benefitHero.categoryId || null,
@@ -870,13 +882,40 @@ const AdminServicesPage = () => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save benefits copy');
-      setBenefitHero(normalizeBenefitConfig(data));
+      const normalized = normalizeBenefitConfig(data);
+      setBenefitHero(normalized);
+      setBenefitConfigs((prev) => {
+        const exists = prev.some((item) => String(item.id) === String(normalized.id));
+        if (exists) {
+          return prev.map((item) => (String(item.id) === String(normalized.id) ? normalized : item));
+        }
+        return [normalized, ...prev];
+      });
+      setSelectedBenefitConfigId(String(normalized.id));
       setBenefitHeroSaved(true);
       setTimeout(() => setBenefitHeroSaved(false), 3000);
     } catch (err) {
       handleRequestError(err, 'Unable to save benefits copy');
     }
   };
+
+  useEffect(() => {
+    if (benefitConfigs.length === 0) {
+      setSelectedBenefitConfigId('');
+      setBenefitHero(initialBenefitHero);
+      return;
+    }
+
+    if (!selectedBenefitConfigId) {
+      setSelectedBenefitConfigId(String(benefitConfigs[0].id));
+      return;
+    }
+
+    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
+    if (active) {
+      setBenefitHero(active);
+    }
+  }, [benefitConfigs, selectedBenefitConfigId]);
 
   const handleProcessChange = (field, value) => {
     setProcessForm((prev) => ({ ...prev, [field]: value }));
@@ -910,6 +949,15 @@ const AdminServicesPage = () => {
   };
 
   const handleContactButtonFormChange = (field, value) => {
+    if (field === 'category') {
+      setContactButtonForm((prev) => {
+        const allowedSubcategories = subcategoryLookup.get(value) || [];
+        const nextSubcategory = allowedSubcategories.includes(prev.subcategory) ? prev.subcategory : '';
+        return { ...prev, category: value, subcategory: nextSubcategory };
+      });
+      return;
+    }
+
     setContactButtonForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -1633,6 +1681,8 @@ const AdminServicesPage = () => {
       title: contactButtonForm.title,
       description: contactButtonForm.description,
       image: contactButtonForm.image,
+      category: contactButtonForm.category,
+      subcategory: contactButtonForm.subcategory,
     };
 
     const isEdit = contactButtonDialogMode === 'edit' && activeContactButton;
@@ -2088,6 +2138,11 @@ const AdminServicesPage = () => {
     if (!benefitForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
+
+  const contactButtonSubcategoryOptions = useMemo(() => {
+    if (!contactButtonForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(contactButtonForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, contactButtonForm.category, subcategoryLookup]);
 
   const hireServiceSubcategoryOptions = useMemo(() => {
     if (!hireServiceForm.category) return allSubcategoryOptions;
@@ -3285,6 +3340,37 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={2}
+              alignItems={{ xs: 'stretch', md: 'center' }}
+              mb={2}
+            >
+              <Autocomplete
+                options={benefitConfigs}
+                getOptionLabel={(option) =>
+                  option?.categoryName || option?.subcategoryName
+                    ? [option.categoryName, option.subcategoryName].filter(Boolean).join(' / ')
+                    : option?.title || 'Untitled'
+                }
+                value={benefitConfigs.find((item) => String(item.id) === String(selectedBenefitConfigId)) || null}
+                onChange={(event, value) => setSelectedBenefitConfigId(value?.id ? String(value.id) : '')}
+                renderInput={(params) => <TextField {...params} label="Select benefits config" />}
+                sx={{ minWidth: { xs: '100%', md: 320 } }}
+              />
+              <Button
+                variant="outlined"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={() => {
+                  setSelectedBenefitConfigId('');
+                  setBenefitHero(initialBenefitHero);
+                  setBenefitHeroSaved(false);
+                }}
+                sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
+              >
+                New config
+              </Button>
+            </Stack>
             <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
               <Typography variant="subtitle2" color="text.secondary">
                 Intro copy
@@ -3476,6 +3562,8 @@ const AdminServicesPage = () => {
                   <TableRow>
                     <TableCell>Title</TableCell>
                     <TableCell>Description</TableCell>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Subcategory</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
@@ -3487,6 +3575,16 @@ const AdminServicesPage = () => {
                       <TableCell sx={{ maxWidth: 360 }}>
                         <Typography variant="body2" color="text.secondary" noWrap>
                           {button.description || 'No description provided.'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 140 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {button.category || 'Not set'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 140 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {button.subcategory || 'Not set'}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -3523,7 +3621,7 @@ const AdminServicesPage = () => {
                   ))}
                   {contactButtons.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No contact buttons configured yet.
                         </Typography>
@@ -4247,6 +4345,37 @@ const AdminServicesPage = () => {
               fullWidth
               multiline
               minRows={2}
+            />
+            <Autocomplete
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={contactButtonForm.category}
+              onInputChange={(event, newValue) => handleContactButtonFormChange('category', newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  placeholder="Select or type category"
+                  fullWidth
+                />
+              )}
+            />
+            <Autocomplete
+              freeSolo
+              options={contactButtonSubcategoryOptions}
+              value={contactButtonForm.subcategory}
+              onInputChange={(event, newValue) =>
+                handleContactButtonFormChange('subcategory', newValue || '')
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Subcategory"
+                  placeholder="Select or type subcategory"
+                  fullWidth
+                />
+              )}
+              disabled={!contactButtonForm.category && contactButtonSubcategoryOptions.length === 0}
             />
             <ImageUpload
               label="Image"

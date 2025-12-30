@@ -5139,6 +5139,8 @@ const mapContactButtonToResponse = (button) => ({
   title: button.title,
   description: button.description || '',
   image: button.image || '',
+  category: button.category || '',
+  subcategory: button.subcategory || '',
   createdAt: button.createdAt,
   updatedAt: button.updatedAt,
 });
@@ -5159,6 +5161,28 @@ app.get('/api/benefits/config', async (_req, res) => {
   } catch (err) {
     console.error('GET /api/benefits/config error', err);
     return res.status(500).json({ error: 'Failed to fetch benefit configuration' });
+  }
+});
+
+// GET benefit configs (all)
+app.get('/api/benefit-configs', async (req, res) => {
+  try {
+    const parsedCategoryId = parseIntegerId(req.query.categoryId);
+    const parsedSubcategoryId = parseIntegerId(req.query.subcategoryId);
+
+    const configs = await prisma.benefitConfig.findMany({
+      where: {
+        ...(parsedCategoryId && { categoryId: parsedCategoryId }),
+        ...(parsedSubcategoryId && { subcategoryId: parsedSubcategoryId }),
+      },
+      orderBy: { createdAt: 'desc' },
+      include: { category: true, subcategory: true },
+    });
+
+    return res.json(configs.map(mapBenefitConfigToResponse));
+  } catch (err) {
+    console.error('GET /api/benefit-configs error', err);
+    return res.status(500).json({ error: 'Failed to fetch benefit configurations' });
   }
 });
 
@@ -5200,9 +5224,7 @@ app.post('/api/benefits/config', async (req, res) => {
       }
     }
 
-    const existing = id
-      ? await prisma.benefitConfig.findUnique({ where: { id } })
-      : await prisma.benefitConfig.findFirst({ orderBy: { createdAt: 'desc' } });
+    const existing = id ? await prisma.benefitConfig.findUnique({ where: { id } }) : null;
 
     const saved = existing
       ? await prisma.benefitConfig.update({
@@ -5219,6 +5241,117 @@ app.post('/api/benefits/config', async (req, res) => {
   } catch (err) {
     console.error('POST /api/benefits/config error', err);
     return res.status(500).json({ error: 'Failed to save benefit configuration' });
+  }
+});
+
+// CREATE benefit config
+app.post('/api/benefit-configs', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Both title and description are required' });
+    }
+
+    let category = null;
+    if (categoryId) {
+      category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+      if (!category) {
+        return res.status(400).json({ error: 'Category not found' });
+      }
+    }
+
+    let subcategory = null;
+    if (subcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+      if (!subcategory) {
+        return res.status(400).json({ error: 'Sub-category not found' });
+      }
+
+      if (category && subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+      }
+
+      if (!category) {
+        category = await prisma.serviceCategory.findUnique({ where: { id: subcategory.categoryId } });
+      }
+    }
+
+    const saved = await prisma.benefitConfig.create({
+      data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
+      include: { category: true, subcategory: true },
+    });
+
+    return res.status(201).json(mapBenefitConfigToResponse(saved));
+  } catch (err) {
+    console.error('POST /api/benefit-configs error', err);
+    return res.status(500).json({ error: 'Failed to create benefit configuration' });
+  }
+});
+
+// UPDATE benefit config
+app.put('/api/benefit-configs/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const parsedId = parseIntegerId(req.params.id);
+    if (!parsedId) {
+      return res.status(400).json({ error: 'Valid benefit config id required' });
+    }
+
+    const { title, description } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Both title and description are required' });
+    }
+
+    const existing = await prisma.benefitConfig.findUnique({ where: { id: parsedId } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Benefit configuration not found' });
+    }
+
+    let category = null;
+    if (categoryId) {
+      category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+      if (!category) {
+        return res.status(400).json({ error: 'Category not found' });
+      }
+    }
+
+    let subcategory = null;
+    if (subcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+      if (!subcategory) {
+        return res.status(400).json({ error: 'Sub-category not found' });
+      }
+
+      if (category && subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+      }
+
+      if (!category) {
+        category = await prisma.serviceCategory.findUnique({ where: { id: subcategory.categoryId } });
+      }
+    }
+
+    const saved = await prisma.benefitConfig.update({
+      where: { id: parsedId },
+      data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
+      include: { category: true, subcategory: true },
+    });
+
+    return res.json(mapBenefitConfigToResponse(saved));
+  } catch (err) {
+    console.error('PUT /api/benefit-configs/:id error', err);
+    return res.status(500).json({ error: 'Failed to update benefit configuration' });
   }
 });
 
@@ -5345,7 +5478,7 @@ app.post('/api/contact-buttons', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, image } = req.body ?? {};
+    const { title, description, image, category, subcategory } = req.body ?? {};
 
     if (!title || !image) {
       return res.status(400).json({ error: 'Title and image are required' });
@@ -5356,6 +5489,8 @@ app.post('/api/contact-buttons', async (req, res) => {
         title,
         description: description || null,
         image,
+        category: category || null,
+        subcategory: subcategory || null,
       },
     });
 
@@ -5377,7 +5512,7 @@ app.put('/api/contact-buttons/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid contact button id required' });
     }
 
-    const { title, description, image } = req.body ?? {};
+    const { title, description, image, category, subcategory } = req.body ?? {};
 
     const updated = await prisma.contactButton.update({
       where: { id },
@@ -5385,6 +5520,8 @@ app.put('/api/contact-buttons/:id', async (req, res) => {
         title,
         description: description || null,
         image,
+        category: category || null,
+        subcategory: subcategory || null,
       },
     });
 
