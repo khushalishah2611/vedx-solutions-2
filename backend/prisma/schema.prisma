@@ -302,6 +302,7 @@ model ServiceCategory {
 
   subCategories ServiceSubCategory[]
   benefitConfigs BenefitConfig[]
+  whyVedxItems  WhyVedx[]
 }
 
 model ServiceSubCategory {
@@ -318,6 +319,7 @@ model ServiceSubCategory {
 
   services    Service[]
   benefitConfigs BenefitConfig[]
+  whyVedxItems WhyVedx[]
 
   @@index([categoryId])
 }
