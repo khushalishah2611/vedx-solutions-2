@@ -928,6 +928,31 @@ const AdminServicesPage = () => {
     setBenefitPage(1);
   };
 
+  const handleNewWhyVedxHero = () => {
+    const defaultCategoryId = categoryFilter ? categoryNameToId.get(categoryFilter) || '' : '';
+    const matchedSubcategory = subcategoryFilter
+      ? serviceSubcategories.find(
+          (subcategory) =>
+            subcategory.name === subcategoryFilter &&
+            (!defaultCategoryId || String(subcategory.categoryId) === String(defaultCategoryId))
+        )
+      : null;
+    const defaultSubcategoryId = matchedSubcategory?.id || subcategoryNameToId.get(subcategoryFilter) || '';
+
+    setSelectedWhyVedxId('');
+    setWhyVedxHeroForm({
+      ...emptyWhyVedxHero,
+      category: categoryFilter || '',
+      categoryName: categoryFilter || '',
+      subcategory: subcategoryFilter || '',
+      subcategoryName: subcategoryFilter || '',
+      categoryId: defaultCategoryId || '',
+      subcategoryId: defaultSubcategoryId || '',
+    });
+    setWhyVedxReasons([]);
+    setWhyVedxPage(1);
+  };
+
   const handleHireServiceFormChange = (field, value) => {
     setHireServiceForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -1012,16 +1037,21 @@ const AdminServicesPage = () => {
     }
 
     const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
-    const preferredByFilters = !benefitConfigClearedRef.current && (categoryFilter || subcategoryFilter)
-      ? benefitConfigs.find(matchesFilters)
-      : null;
+    const preferredByFilters = categoryFilter || subcategoryFilter ? benefitConfigs.find(matchesFilters) : null;
+    const fallback = !benefitConfigClearedRef.current ? benefitConfigs[0] : null;
 
-    const nextConfig =
-      preferredByFilters ||
-      active ||
-      (!benefitConfigClearedRef.current ? benefitConfigs[0] : null);
+    let nextConfig = null;
+
+    if (categoryFilter || subcategoryFilter) {
+      nextConfig = preferredByFilters || (active && matchesFilters(active) ? active : null);
+    } else {
+      nextConfig = active || fallback;
+    }
 
     if (!nextConfig) {
+      setSelectedBenefitConfigId('');
+      setBenefitHero(initialBenefitHero);
+      setBenefitPage(1);
       return;
     }
 
@@ -1151,6 +1181,14 @@ const AdminServicesPage = () => {
     [serviceCategories]
   );
 
+  const categoryNameToId = useMemo(() => {
+    const lookup = new Map();
+    serviceCategories.forEach((category) => {
+      if (category.name) lookup.set(category.name, category.id);
+    });
+    return lookup;
+  }, [serviceCategories]);
+
   const categoryIdToName = useMemo(() => {
     const lookup = new Map();
     serviceCategories.forEach((category) => {
@@ -1163,6 +1201,14 @@ const AdminServicesPage = () => {
     const lookup = new Map();
     serviceSubcategories.forEach((subcategory) => {
       lookup.set(String(subcategory.id), subcategory.name);
+    });
+    return lookup;
+  }, [serviceSubcategories]);
+
+  const subcategoryNameToId = useMemo(() => {
+    const lookup = new Map();
+    serviceSubcategories.forEach((subcategory) => {
+      if (subcategory.name) lookup.set(subcategory.name, subcategory.id);
     });
     return lookup;
   }, [serviceSubcategories]);
@@ -1738,7 +1784,16 @@ const AdminServicesPage = () => {
   const openWhyServiceCreateDialog = () => {
     setWhyServiceDialogMode('create');
     setActiveWhyService(null);
-    resetWhyServiceForm();
+    const defaultCategory = categoryFilter || whyHeroForm.category || '';
+    const defaultSubcategory =
+      subcategoryFilter || (defaultCategory === whyHeroForm.category ? whyHeroForm.subcategory : '');
+
+    setWhyServiceForm((prev) => ({
+      ...prev,
+      ...emptyWhyServiceForm,
+      category: defaultCategory,
+      subcategory: defaultSubcategory,
+    }));
     setWhyServiceDialogOpen(true);
   };
 
@@ -1916,7 +1971,11 @@ const AdminServicesPage = () => {
   const openContactButtonCreateDialog = () => {
     setContactButtonDialogMode('create');
     setActiveContactButton(null);
-    setContactButtonForm(emptyContactButtonForm);
+    setContactButtonForm({
+      ...emptyContactButtonForm,
+      category: categoryFilter || '',
+      subcategory: subcategoryFilter || '',
+    });
     setContactButtonDialogOpen(true);
   };
 
@@ -2436,44 +2495,42 @@ const AdminServicesPage = () => {
         }}
       />
 
-      {activeTab !== 'process' && (
-        <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
+      <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
 
-          <Stack
-            spacing={2}
-            direction={{ xs: 'column', md: 'row' }}
-            alignItems={{ xs: 'stretch', md: 'flex-end' }}
-          >
-            <Autocomplete
-              sx={{ minWidth: 220 }}
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
-              value={categoryFilter}
-              onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
-              renderInput={(params) => (
-                <TextField {...params} label="Category filter" placeholder="All categories" />
-              )}
-            />
-            <Autocomplete
-              sx={{ minWidth: 220 }}
-              freeSolo
-              options={
-                categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
-              }
-              value={subcategoryFilter}
-              onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category filter"
-                  placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
-                />
-              )}
-              disabled={!categoryFilter && allSubcategoryOptions.length === 0}
-            />
-          </Stack>
+        <Stack
+          spacing={2}
+          direction={{ xs: 'column', md: 'row' }}
+          alignItems={{ xs: 'stretch', md: 'flex-end' }}
+        >
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            freeSolo
+            options={categoryOptions.map((option) => option.label)}
+            value={categoryFilter}
+            onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
+            renderInput={(params) => (
+              <TextField {...params} label="Category filter" placeholder="All categories" />
+            )}
+          />
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            freeSolo
+            options={
+              categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
+            }
+            value={subcategoryFilter}
+            onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Sub-category filter"
+                placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
+              />
+            )}
+            disabled={!categoryFilter && allSubcategoryOptions.length === 0}
+          />
         </Stack>
-      )}
+      </Stack>
 
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -2775,10 +2832,7 @@ const AdminServicesPage = () => {
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                   <Button
                     variant="outlined"
-                    onClick={() => {
-                      setSelectedWhyVedxId('');
-                      setWhyVedxHeroForm(emptyWhyVedxHero);
-                    }}
+                    onClick={handleNewWhyVedxHero}
                   >
                     Add new hero
                   </Button>
@@ -4329,11 +4383,10 @@ const AdminServicesPage = () => {
               select
               label="Category"
               value={whyServiceForm.category}
-              onChange={(event) =>
-                setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }))
-              }
               fullWidth
               required
+              disabled
+              helperText="Category is set by the current Why choose config"
             >
               {categoryOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -4345,16 +4398,9 @@ const AdminServicesPage = () => {
               select
               label="Sub-category"
               value={whyServiceForm.subcategory}
-              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
               fullWidth
-              disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
-              helperText={
-                !whyServiceForm.category
-                  ? 'Select a category first'
-                  : whySubcategoryOptions.length === 0
-                    ? 'No sub-categories available for this category'
-                    : undefined
-              }
+              disabled
+              helperText="Sub-category follows the selected Why choose config"
             >
               {whySubcategoryOptions.map((option) => (
                 <MenuItem key={option.name} value={option.name}>
