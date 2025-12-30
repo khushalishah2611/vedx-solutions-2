@@ -3383,83 +3383,69 @@ const AdminServicesPage = () => {
                 New config
               </Button>
             </Stack>
-            {!hasBenefitConfig && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Save a benefits config to enable adding benefit cards.
-              </Typography>
-            )}
+
             <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
-           
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Benefits title"
-                    value={benefitHero.title}
-                    onChange={(event) => handleBenefitHeroChange('title', event.target.value)}
-                    required
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Benefits description"
-                    value={benefitHero.description}
-                    onChange={(event) => handleBenefitHeroChange('description', event.target.value)}
-                    fullWidth
-                    multiline
-                    minRows={2}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    select
-                    label="Category"
-                    value={benefitHero.categoryId}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      handleBenefitHeroChange('categoryId', value);
+              <TextField
+                select
+                label="Category"
+                value={benefitHero.categoryId}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  handleBenefitHeroChange('categoryId', value);
 
-                      const allowedSubcategories = benefitHeroSubcategoryOptions
-                        .filter((option) => Number(option.categoryId) === Number(value))
-                        .map((option) => option.value);
+                  const allowedSubcategories = benefitHeroSubcategoryOptions
+                    .filter((option) => Number(option.categoryId) === Number(value))
+                    .map((option) => option.value);
 
-                      if (value && benefitHero.subcategoryId && !allowedSubcategories.includes(benefitHero.subcategoryId)) {
-                        handleBenefitHeroChange('subcategoryId', '');
-                      }
-                    }}
-                    helperText="Link the intro to a service category"
-                    fullWidth
-                  >
-                    <MenuItem value="">All categories</MenuItem>
-                    {benefitHeroCategoryOptions.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    select
-                    label="Sub-category"
-                    value={benefitHero.subcategoryId}
-                    onChange={(event) => handleBenefitHeroChange('subcategoryId', event.target.value)}
-                    helperText="Optional sub-category spotlight"
-                    fullWidth
-                    disabled={!benefitHeroCategoryOptions.length}
-                  >
-                    <MenuItem value="">All sub-categories</MenuItem>
-                    {benefitHeroSubcategoryOptions.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-              </Grid>
+                  if (value && benefitHero.subcategoryId && !allowedSubcategories.includes(benefitHero.subcategoryId)) {
+                    handleBenefitHeroChange('subcategoryId', '');
+                  }
+                }}
+
+                fullWidth
+              >
+                <MenuItem value="">All categories</MenuItem>
+                {benefitHeroCategoryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                label="Sub-category"
+                value={benefitHero.subcategoryId}
+                onChange={(event) => handleBenefitHeroChange('subcategoryId', event.target.value)}
+
+                fullWidth
+                disabled={!benefitHeroCategoryOptions.length}
+              >
+                <MenuItem value="">All sub-categories</MenuItem>
+                {benefitHeroSubcategoryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="Benefits title"
+                value={benefitHero.title}
+                onChange={(event) => handleBenefitHeroChange('title', event.target.value)}
+                required
+                fullWidth
+              />
+              <TextField
+                label="Benefits description"
+                value={benefitHero.description}
+                onChange={(event) => handleBenefitHeroChange('description', event.target.value)}
+                fullWidth
+                multiline
+                minRows={2}
+              />
+
               <Stack direction="row" spacing={1} alignItems="center">
                 <Button variant="contained" onClick={handleBenefitHeroSave}>
-                  Save intro
+                  Save Benefits
                 </Button>
                 {benefitHeroSaved && (
                   <Typography variant="body2" color="success.main">
