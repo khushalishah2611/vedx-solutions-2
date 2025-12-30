@@ -708,28 +708,39 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadWhyVedx = async () => {
-    try {
-      const response = await fetch(apiUrl('/api/why-vedx?includeReasons=true'));
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || '');
-      const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
+  const loadWhyVedx = useCallback(
+    async ({ category, subcategory } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        params.append('includeReasons', 'true');
 
-      setWhyVedxList(list);
+        const response = await fetch(apiUrl(`/api/why-vedx?${params.toString()}`));
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || '');
+        const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
 
-      const active = list[0] || emptyWhyVedxHero;
-      setSelectedWhyVedxId(active.id || '');
-      setWhyVedxHeroForm(active.id ? active : emptyWhyVedxHero);
-      setWhyVedxReasons(active.reasons || []);
-    } catch (err) {
-      console.error('Failed to load why VEDX config', err);
-    }
-  };
+        setWhyVedxList(list);
 
-  const loadWhyVedxReasons = async (whyVedxId) => {
+        const active =
+          list.find((item) => String(item.id) === String(selectedWhyVedxId)) || list[0] || emptyWhyVedxHero;
+        setSelectedWhyVedxId(active.id || '');
+        setWhyVedxHeroForm(active.id ? active : emptyWhyVedxHero);
+        setWhyVedxReasons(active.reasons || []);
+      } catch (err) {
+        console.error('Failed to load why VEDX config', err);
+      }
+    },
+    [selectedWhyVedxId]
+  );
+
+  const loadWhyVedxReasons = useCallback(async (whyVedxId, { category, subcategory } = {}) => {
     try {
       const params = new URLSearchParams();
       if (whyVedxId) params.append('whyVedxId', String(whyVedxId));
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
       const response = await fetch(apiUrl(`/api/why-vedx-reasons${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load reasons');
@@ -737,7 +748,7 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load why VEDX reasons', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadServiceCategories();
@@ -747,7 +758,7 @@ const AdminServicesPage = () => {
     loadWhyVedx();
     loadBenefitConfigs();
     loadContactButtons();
-  }, [loadBenefitConfigs]);
+  }, [loadBenefitConfigs, loadWhyVedx]);
 
   useEffect(() => {
     const filters = {
@@ -760,7 +771,8 @@ const AdminServicesPage = () => {
     loadBenefits(filters);
     loadHireServices(filters);
     loadWhyChoose(filters);
-  }, [categoryFilter, loadBenefits, loadHireServices, loadServiceMenus, loadTechnologies, loadWhyChoose, subcategoryFilter]);
+    loadWhyVedx(filters);
+  }, [categoryFilter, loadBenefits, loadHireServices, loadServiceMenus, loadTechnologies, loadWhyChoose, loadWhyVedx, subcategoryFilter]);
 
   useEffect(() => {
     if (!selectedWhyChooseId) {
@@ -786,13 +798,16 @@ const AdminServicesPage = () => {
     const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
     if (active) {
       setWhyVedxHeroForm(active);
-      loadWhyVedxReasons(active.id);
+      loadWhyVedxReasons(active.id, {
+        category: categoryFilter || undefined,
+        subcategory: subcategoryFilter || undefined,
+      });
     } else {
       setWhyVedxHeroForm(emptyWhyVedxHero);
       setWhyVedxReasons([]);
     }
     setWhyVedxPage(1);
-  }, [selectedWhyVedxId, whyVedxList]);
+  }, [categoryFilter, loadWhyVedxReasons, selectedWhyVedxId, subcategoryFilter, whyVedxList]);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
@@ -2341,42 +2356,44 @@ const AdminServicesPage = () => {
         }}
       />
 
-      <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
+      {activeTab !== 'process' && (
+        <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
 
-        <Stack
-          spacing={2}
-          direction={{ xs: 'column', md: 'row' }}
-          alignItems={{ xs: 'stretch', md: 'flex-end' }}
-        >
-          <Autocomplete
-            sx={{ minWidth: 220 }}
-            freeSolo
-            options={categoryOptions.map((option) => option.label)}
-            value={categoryFilter}
-            onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
-            renderInput={(params) => (
-              <TextField {...params} label="Category filter" placeholder="All categories" />
-            )}
-          />
-          <Autocomplete
-            sx={{ minWidth: 220 }}
-            freeSolo
-            options={
-              categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
-            }
-            value={subcategoryFilter}
-            onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Sub-category filter"
-                placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
-              />
-            )}
-            disabled={!categoryFilter && allSubcategoryOptions.length === 0}
-          />
+          <Stack
+            spacing={2}
+            direction={{ xs: 'column', md: 'row' }}
+            alignItems={{ xs: 'stretch', md: 'flex-end' }}
+          >
+            <Autocomplete
+              sx={{ minWidth: 220 }}
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={categoryFilter}
+              onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
+              renderInput={(params) => (
+                <TextField {...params} label="Category filter" placeholder="All categories" />
+              )}
+            />
+            <Autocomplete
+              sx={{ minWidth: 220 }}
+              freeSolo
+              options={
+                categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
+              }
+              value={subcategoryFilter}
+              onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sub-category filter"
+                  placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
+                />
+              )}
+              disabled={!categoryFilter && allSubcategoryOptions.length === 0}
+            />
+          </Stack>
         </Stack>
-      </Stack>
+      )}
 
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
