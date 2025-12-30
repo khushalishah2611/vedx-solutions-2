@@ -329,6 +329,7 @@ const AdminServicesPage = () => {
   const [activeBenefit, setActiveBenefit] = useState(null);
   const [benefitToDelete, setBenefitToDelete] = useState(null);
   const benefitConfigClearedRef = useRef(false);
+  const whyVedxConfigClearedRef = useRef(false);
 
   const [hireContent, setHireContent] = useState(initialHireDevelopers);
   const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
@@ -838,6 +839,11 @@ const AdminServicesPage = () => {
       setWhyVedxHeroForm(emptyWhyVedxHero);
       setWhyVedxReasons([]);
       setWhyVedxPage(1);
+      whyVedxConfigClearedRef.current = false;
+      return;
+    }
+
+    if (whyVedxConfigClearedRef.current && !selectedWhyVedxId) {
       return;
     }
 
@@ -860,6 +866,7 @@ const AdminServicesPage = () => {
       setWhyVedxReasons([]);
     }
     setWhyVedxPage(1);
+    whyVedxConfigClearedRef.current = false;
   }, [categoryFilter, loadWhyVedxReasons, selectedWhyVedxId, subcategoryFilter, whyVedxList]);
 
   const resetServiceForm = () =>
@@ -929,6 +936,7 @@ const AdminServicesPage = () => {
   };
 
   const handleNewWhyVedxHero = () => {
+    whyVedxConfigClearedRef.current = true;
     const defaultCategoryId = categoryFilter ? categoryNameToId.get(categoryFilter) || '' : '';
     const matchedSubcategory = subcategoryFilter
       ? serviceSubcategories.find(
@@ -2147,6 +2155,7 @@ const AdminServicesPage = () => {
       });
       setSelectedWhyVedxId(normalized.id);
       setWhyVedxHeroForm(normalized);
+      whyVedxConfigClearedRef.current = false;
       if (normalized.reasons?.length) {
         setWhyVedxReasons((prev) => {
           const remaining = prev.filter((reason) => reason.whyVedxId !== normalized.id);
@@ -2823,7 +2832,10 @@ const AdminServicesPage = () => {
                 <Autocomplete
                   options={whyVedxOptions}
                   value={whyVedxOptions.find((option) => String(option.value) === String(selectedWhyVedxId)) || null}
-                  onChange={(event, option) => setSelectedWhyVedxId(option?.value || '')}
+                  onChange={(event, option) => {
+                    whyVedxConfigClearedRef.current = false;
+                    setSelectedWhyVedxId(option?.value || '');
+                  }}
                   renderInput={(params) => (
                     <TextField {...params} label="Select hero" placeholder="Pick an existing hero card" fullWidth />
                   )}
