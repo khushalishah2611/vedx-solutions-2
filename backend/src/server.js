@@ -5234,13 +5234,9 @@ app.post('/api/benefits/config', async (req, res) => {
           data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
           include: { category: true, subcategory: true },
         })
-      : await prisma.$transaction(async (tx) => {
-          await tx.benefitConfig.deleteMany();
-
-          return tx.benefitConfig.create({
-            data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
-            include: { category: true, subcategory: true },
-          });
+      : await prisma.benefitConfig.create({
+          data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
+          include: { category: true, subcategory: true },
         });
 
     return res.json(mapBenefitConfigToResponse(saved));
@@ -5288,13 +5284,9 @@ app.post('/api/benefit-configs', async (req, res) => {
       }
     }
 
-    const saved = await prisma.$transaction(async (tx) => {
-      await tx.benefitConfig.deleteMany();
-
-      return tx.benefitConfig.create({
-        data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
-        include: { category: true, subcategory: true },
-      });
+    const saved = await prisma.benefitConfig.create({
+      data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
+      include: { category: true, subcategory: true },
     });
 
     return res.status(201).json(mapBenefitConfigToResponse(saved));
