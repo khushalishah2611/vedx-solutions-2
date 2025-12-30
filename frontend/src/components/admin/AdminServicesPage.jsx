@@ -935,8 +935,7 @@ const AdminServicesPage = () => {
     setBenefitPage(1);
   };
 
-  const handleNewWhyVedxHero = () => {
-    whyVedxConfigClearedRef.current = true;
+  const buildDefaultWhyVedxHero = () => {
     const defaultCategoryId = categoryFilter ? categoryNameToId.get(categoryFilter) || '' : '';
     const matchedSubcategory = subcategoryFilter
       ? serviceSubcategories.find(
@@ -945,10 +944,10 @@ const AdminServicesPage = () => {
             (!defaultCategoryId || String(subcategory.categoryId) === String(defaultCategoryId))
         )
       : null;
+
     const defaultSubcategoryId = matchedSubcategory?.id || subcategoryNameToId.get(subcategoryFilter) || '';
 
-    setSelectedWhyVedxId('');
-    setWhyVedxHeroForm({
+    return {
       ...emptyWhyVedxHero,
       category: categoryFilter || '',
       categoryName: categoryFilter || '',
@@ -956,8 +955,36 @@ const AdminServicesPage = () => {
       subcategoryName: subcategoryFilter || '',
       categoryId: defaultCategoryId || '',
       subcategoryId: defaultSubcategoryId || '',
-    });
+    };
+  };
+
+  const handleNewWhyVedxHero = () => {
+    whyVedxConfigClearedRef.current = true;
+    setSelectedWhyVedxId('');
+    setWhyVedxHeroForm(buildDefaultWhyVedxHero());
     setWhyVedxReasons([]);
+    setWhyVedxPage(1);
+  };
+
+  const handleWhyVedxSelect = (option) => {
+    const nextId = option?.value ? String(option.value) : '';
+    const isClearing = !nextId;
+
+    whyVedxConfigClearedRef.current = isClearing;
+    setSelectedWhyVedxId(nextId);
+
+    if (isClearing) {
+      setWhyVedxHeroForm(buildDefaultWhyVedxHero());
+      setWhyVedxReasons([]);
+      setWhyVedxPage(1);
+      return;
+    }
+
+    const matchingHero = whyVedxList.find((item) => String(item.id) === nextId);
+    if (matchingHero) {
+      setWhyVedxHeroForm(matchingHero);
+      setWhyVedxReasons(matchingHero.reasons || []);
+    }
     setWhyVedxPage(1);
   };
 
@@ -2832,10 +2859,7 @@ const AdminServicesPage = () => {
                 <Autocomplete
                   options={whyVedxOptions}
                   value={whyVedxOptions.find((option) => String(option.value) === String(selectedWhyVedxId)) || null}
-                  onChange={(event, option) => {
-                    whyVedxConfigClearedRef.current = false;
-                    setSelectedWhyVedxId(option?.value || '');
-                  }}
+                  onChange={(event, option) => handleWhyVedxSelect(option)}
                   renderInput={(params) => (
                     <TextField {...params} label="Select hero" placeholder="Pick an existing hero card" fullWidth />
                   )}
