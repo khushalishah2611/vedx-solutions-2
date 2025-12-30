@@ -147,6 +147,10 @@ const emptyWhyVedxForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  categoryId: '',
+  subcategoryId: '',
+  categoryName: '',
+  subcategoryName: '',
   whyVedxId: '',
 };
 
@@ -525,6 +529,10 @@ const AdminServicesPage = () => {
 
   const normalizeWhyVedxReason = (reason) => ({
     ...reason,
+    categoryId: reason.categoryId || '',
+    subcategoryId: reason.subcategoryId || '',
+    categoryName: reason.categoryName || '',
+    subcategoryName: reason.subcategoryName || '',
     whyVedxId: reason.whyVedxId || '',
   });
 
@@ -879,7 +887,15 @@ const AdminServicesPage = () => {
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
   const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
-  const resetWhyVedxForm = () => setWhyVedxForm({ ...emptyWhyVedxForm, whyVedxId: selectedWhyVedxId || '' });
+  const resetWhyVedxForm = () =>
+    setWhyVedxForm({
+      ...emptyWhyVedxForm,
+      whyVedxId: selectedWhyVedxId || '',
+      categoryId: whyVedxHeroForm.categoryId || '',
+      categoryName: whyVedxHeroForm.categoryName || '',
+      subcategoryId: whyVedxHeroForm.subcategoryId || '',
+      subcategoryName: whyVedxHeroForm.subcategoryName || '',
+    });
   const resetOurServiceForm = () => setOurServiceForm(emptyOurServiceForm);
   const resetIndustryForm = () => setIndustryForm(emptyIndustryForm);
   const resetTechSolutionForm = () => setTechSolutionForm(emptyTechSolutionForm);
@@ -1296,6 +1312,14 @@ const AdminServicesPage = () => {
 
     return base.map((subcategory) => ({ value: subcategory.id, label: subcategory.name }));
   }, [serviceSubcategories, whyVedxHeroForm.categoryId]);
+
+  const whyVedxReasonSubcategoryOptions = useMemo(() => {
+    const base = whyVedxForm.categoryId
+      ? serviceSubcategories.filter((item) => Number(item.categoryId) === Number(whyVedxForm.categoryId))
+      : serviceSubcategories;
+
+    return base.map((subcategory) => ({ value: subcategory.id, label: subcategory.name }));
+  }, [serviceSubcategories, whyVedxForm.categoryId]);
 
   const filteredServices = useMemo(
     () =>
@@ -2231,6 +2255,8 @@ const AdminServicesPage = () => {
       title: whyVedxForm.title,
       description: whyVedxForm.description,
       image: whyVedxForm.image,
+      categoryId: whyVedxForm.categoryId || null,
+      subcategoryId: whyVedxForm.subcategoryId || null,
       whyVedxId: whyVedxForm.whyVedxId || selectedWhyVedxId || null,
     };
 
@@ -2967,6 +2993,8 @@ const AdminServicesPage = () => {
                     <TableHead>
                       <TableRow>
                         <TableCell>Title</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Subcategory</TableCell>
                         <TableCell>Image</TableCell>
                         <TableCell>Description</TableCell>
                         <TableCell align="right">Actions</TableCell>
@@ -2978,6 +3006,8 @@ const AdminServicesPage = () => {
                         .map((item) => (
                           <TableRow key={item.id} hover>
                             <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                            <TableCell>{item.categoryName || '—'}</TableCell>
+                            <TableCell>{item.subcategoryName || '—'}</TableCell>
                             <TableCell>
                               <Box
                                 component="img"
@@ -3009,7 +3039,7 @@ const AdminServicesPage = () => {
                         ))}
                       {activeWhyVedxReasons.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={4}>
+                          <TableCell colSpan={6}>
                             <Typography variant="body2" color="text.secondary" align="center">
                               {selectedWhyVedxId
                                 ? 'No reasons added yet.'
@@ -4818,6 +4848,54 @@ const AdminServicesPage = () => {
         <DialogTitle>{whyVedxDialogMode === 'edit' ? 'Edit reason' : 'Add reason'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleWhyVedxSubmit}>
+            <Autocomplete
+              options={serviceCategories.map((category) => ({ value: category.id, label: category.name }))}
+              value={
+                serviceCategories
+                  .map((category) => ({ value: category.id, label: category.name }))
+                  .find((option) => String(option.value) === String(whyVedxForm.categoryId)) || null
+              }
+              onChange={(event, option) =>
+                setWhyVedxForm((prev) => ({
+                  ...prev,
+                  categoryId: option?.value || '',
+                  categoryName: option?.label || '',
+                  subcategoryId: '',
+                  subcategoryName: '',
+                }))
+              }
+              renderInput={(params) => <TextField {...params} label="Category" placeholder="Select category" fullWidth />}
+              fullWidth
+            />
+            <Autocomplete
+              options={whyVedxReasonSubcategoryOptions}
+              value={
+                whyVedxReasonSubcategoryOptions.find(
+                  (option) => String(option.value) === String(whyVedxForm.subcategoryId)
+                ) || null
+              }
+              onChange={(event, option) =>
+                setWhyVedxForm((prev) => ({
+                  ...prev,
+                  subcategoryId: option?.value || '',
+                  subcategoryName: option?.label || '',
+                }))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Subcategory"
+                  placeholder={
+                    whyVedxForm.categoryId
+                      ? 'Select a subcategory'
+                      : 'Select a category to filter subcategories'
+                  }
+                  fullWidth
+                />
+              )}
+              fullWidth
+              disabled={!whyVedxReasonSubcategoryOptions.length}
+            />
             <TextField
               label="Title"
               value={whyVedxForm.title}

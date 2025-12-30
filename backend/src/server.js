@@ -6201,7 +6201,9 @@ app.get('/api/why-vedx', async (req, res) => {
     const includeReasons = req.query.includeReasons === 'true';
     const whyVedx = await prisma.whyVedx.findMany({
       include: {
-        ...(includeReasons ? { reasons: true } : {}),
+        ...(includeReasons
+          ? { reasons: { include: { category: true, subcategory: true }, orderBy: { createdAt: 'desc' } } }
+          : {}),
         category: true,
         subcategory: true,
       },
@@ -6315,8 +6317,12 @@ app.delete('/api/why-vedx/:id', async (req, res) => {
 const mapWhyVedxReasonToResponse = (reason) => ({
   id: reason.id,
   title: reason.title,
-  description: reason.description,
-  image: reason.image,
+  description: reason.description || '',
+  image: reason.image || null,
+  categoryId: reason.categoryId || null,
+  categoryName: reason.category?.name || reason.categoryName || reason.category || '',
+  subcategoryId: reason.subcategoryId || null,
+  subcategoryName: reason.subcategory?.name || reason.subcategoryName || reason.subcategory || '',
   whyVedxId: reason.whyVedxId,
   createdAt: reason.createdAt,
   updatedAt: reason.updatedAt,
@@ -6326,10 +6332,16 @@ const mapWhyVedxReasonToResponse = (reason) => ({
 app.get('/api/why-vedx-reasons', async (req, res) => {
   try {
     const parsedWhyVedxId = parseIntegerId(req.query?.whyVedxId);
+    const categoryName = req.query?.category;
+    const subcategoryName = req.query?.subcategory;
+
     const reasons = await prisma.whyVedxReason.findMany({
       where: {
         ...(parsedWhyVedxId ? { whyVedxId: parsedWhyVedxId } : {}),
+        ...(categoryName ? { category: { name: categoryName } } : {}),
+        ...(subcategoryName ? { subcategory: { name: subcategoryName } } : {}),
       },
+      include: { category: true, subcategory: true },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -6347,6 +6359,8 @@ app.post('/api/why-vedx-reasons', async (req, res) => {
     if (!admin) return res.status(status).json({ message });
 
     const { title, description, image, whyVedxId } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
     if (!title || !description || !image) {
       return res.status(400).json({
@@ -6361,13 +6375,40 @@ app.post('/api/why-vedx-reasons', async (req, res) => {
       });
     }
 
+    let category = null;
+    if (categoryId) {
+      category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+      if (!category) {
+        return res.status(400).json({ error: 'Category not found' });
+      }
+    }
+
+    let subcategory = null;
+    if (subcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+      if (!subcategory) {
+        return res.status(400).json({ error: 'Sub-category not found' });
+      }
+
+      if (category && subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+      }
+
+      if (!category) {
+        category = await prisma.serviceCategory.findUnique({ where: { id: subcategory.categoryId } });
+      }
+    }
+
     const created = await prisma.whyVedxReason.create({
       data: {
         title,
         description,
         image,
         whyVedxId: resolvedWhyVedxId,
+        categoryId: category?.id || null,
+        subcategoryId: subcategory?.id || null,
       },
+      include: { category: true, subcategory: true },
     });
 
     res.status(201).json(mapWhyVedxReasonToResponse(created));
@@ -6389,6 +6430,8 @@ app.put('/api/why-vedx-reasons/:id', async (req, res) => {
     }
 
     const { title, description, image, whyVedxId } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
     const data = { title, description, image };
 
@@ -6403,9 +6446,44 @@ app.put('/api/why-vedx-reasons/:id', async (req, res) => {
       data.whyVedxId = resolvedWhyVedxId;
     }
 
+    if (categoryId !== undefined) {
+      if (categoryId === null || Number.isNaN(categoryId)) {
+        data.categoryId = null;
+      } else {
+        const category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+        if (!category) {
+          return res.status(400).json({ error: 'Category not found' });
+        }
+
+        data.categoryId = category.id;
+      }
+    }
+
+    if (subcategoryId !== undefined) {
+      if (subcategoryId === null || Number.isNaN(subcategoryId)) {
+        data.subcategoryId = null;
+      } else {
+        const subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+        if (!subcategory) {
+          return res.status(400).json({ error: 'Sub-category not found' });
+        }
+
+        if (data.categoryId && subcategory.categoryId !== data.categoryId) {
+          return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+        }
+
+        if (!data.categoryId) {
+          data.categoryId = subcategory.categoryId;
+        }
+
+        data.subcategoryId = subcategory.id;
+      }
+    }
+
     const updated = await prisma.whyVedxReason.update({
       where: { id },
       data,
+      include: { category: true, subcategory: true },
     });
 
     res.json(mapWhyVedxReasonToResponse(updated));

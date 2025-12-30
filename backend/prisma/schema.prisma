@@ -877,12 +877,19 @@ model WhyVedxReason {
   description String  @db.Text
   image     String @db.LongText
 
+  categoryId    Int?
+  category      ServiceCategory?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategoryId Int?
+  subcategory   ServiceSubCategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+
   whyVedxId Int?
   whyVedx   WhyVedx?  @relation(fields: [whyVedxId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  @@index([categoryId])
+  @@index([subcategoryId])
   @@index([whyVedxId])
 }
 
