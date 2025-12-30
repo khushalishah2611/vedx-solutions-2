@@ -1012,16 +1012,21 @@ const AdminServicesPage = () => {
     }
 
     const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
-    const preferredByFilters = !benefitConfigClearedRef.current && (categoryFilter || subcategoryFilter)
-      ? benefitConfigs.find(matchesFilters)
-      : null;
+    const preferredByFilters = categoryFilter || subcategoryFilter ? benefitConfigs.find(matchesFilters) : null;
+    const fallback = !benefitConfigClearedRef.current ? benefitConfigs[0] : null;
 
-    const nextConfig =
-      preferredByFilters ||
-      active ||
-      (!benefitConfigClearedRef.current ? benefitConfigs[0] : null);
+    let nextConfig = null;
+
+    if (categoryFilter || subcategoryFilter) {
+      nextConfig = preferredByFilters || (active && matchesFilters(active) ? active : null);
+    } else {
+      nextConfig = active || fallback;
+    }
 
     if (!nextConfig) {
+      setSelectedBenefitConfigId('');
+      setBenefitHero(initialBenefitHero);
+      setBenefitPage(1);
       return;
     }
 
@@ -1738,7 +1743,16 @@ const AdminServicesPage = () => {
   const openWhyServiceCreateDialog = () => {
     setWhyServiceDialogMode('create');
     setActiveWhyService(null);
-    resetWhyServiceForm();
+    const defaultCategory = categoryFilter || whyHeroForm.category || '';
+    const defaultSubcategory =
+      subcategoryFilter || (defaultCategory === whyHeroForm.category ? whyHeroForm.subcategory : '');
+
+    setWhyServiceForm((prev) => ({
+      ...prev,
+      ...emptyWhyServiceForm,
+      category: defaultCategory,
+      subcategory: defaultSubcategory,
+    }));
     setWhyServiceDialogOpen(true);
   };
 
@@ -1916,7 +1930,11 @@ const AdminServicesPage = () => {
   const openContactButtonCreateDialog = () => {
     setContactButtonDialogMode('create');
     setActiveContactButton(null);
-    setContactButtonForm(emptyContactButtonForm);
+    setContactButtonForm({
+      ...emptyContactButtonForm,
+      category: categoryFilter || '',
+      subcategory: subcategoryFilter || '',
+    });
     setContactButtonDialogOpen(true);
   };
 
@@ -2436,44 +2454,42 @@ const AdminServicesPage = () => {
         }}
       />
 
-      {activeTab !== 'process' && (
-        <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
+      <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
 
-          <Stack
-            spacing={2}
-            direction={{ xs: 'column', md: 'row' }}
-            alignItems={{ xs: 'stretch', md: 'flex-end' }}
-          >
-            <Autocomplete
-              sx={{ minWidth: 220 }}
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
-              value={categoryFilter}
-              onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
-              renderInput={(params) => (
-                <TextField {...params} label="Category filter" placeholder="All categories" />
-              )}
-            />
-            <Autocomplete
-              sx={{ minWidth: 220 }}
-              freeSolo
-              options={
-                categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
-              }
-              value={subcategoryFilter}
-              onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category filter"
-                  placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
-                />
-              )}
-              disabled={!categoryFilter && allSubcategoryOptions.length === 0}
-            />
-          </Stack>
+        <Stack
+          spacing={2}
+          direction={{ xs: 'column', md: 'row' }}
+          alignItems={{ xs: 'stretch', md: 'flex-end' }}
+        >
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            freeSolo
+            options={categoryOptions.map((option) => option.label)}
+            value={categoryFilter}
+            onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
+            renderInput={(params) => (
+              <TextField {...params} label="Category filter" placeholder="All categories" />
+            )}
+          />
+          <Autocomplete
+            sx={{ minWidth: 220 }}
+            freeSolo
+            options={
+              categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
+            }
+            value={subcategoryFilter}
+            onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Sub-category filter"
+                placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
+              />
+            )}
+            disabled={!categoryFilter && allSubcategoryOptions.length === 0}
+          />
         </Stack>
-      )}
+      </Stack>
 
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
