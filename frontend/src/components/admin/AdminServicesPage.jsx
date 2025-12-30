@@ -69,6 +69,10 @@ const emptyWhyVedxHero = {
   id: '',
   category: '',
   subcategory: '',
+  categoryId: '',
+  subcategoryId: '',
+  categoryName: '',
+  subcategoryName: '',
   heroTitle: '',
   heroDescription: '',
   heroImage: imagePlaceholder,
@@ -522,8 +526,12 @@ const AdminServicesPage = () => {
 
   const normalizeWhyVedx = (item) => ({
     id: item.id,
-    category: item.category || '',
-    subcategory: item.subcategory || '',
+    category: item.category || item.categoryName || '',
+    subcategory: item.subcategory || item.subcategoryName || '',
+    categoryId: item.categoryId || '',
+    subcategoryId: item.subcategoryId || '',
+    categoryName: item.categoryName || item.category || '',
+    subcategoryName: item.subcategoryName || item.subcategory || '',
     heroTitle: item.heroTitle || '',
     heroDescription: item.heroDescription || '',
     heroImage: item.heroImage || imagePlaceholder,
@@ -903,6 +911,7 @@ const AdminServicesPage = () => {
     if (benefitConfigs.length === 0) {
       setSelectedBenefitConfigId('');
       setBenefitHero(initialBenefitHero);
+      setBenefitPage(1);
       return;
     }
 
@@ -914,6 +923,7 @@ const AdminServicesPage = () => {
     const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
     if (active) {
       setBenefitHero(active);
+      setBenefitPage(1);
     }
   }, [benefitConfigs, selectedBenefitConfigId]);
 
@@ -925,11 +935,28 @@ const AdminServicesPage = () => {
     setWhyVedxHeroForm((prev) => {
       const next = { ...prev, [field]: value };
 
-      if (field === 'category') {
-        const availableSubcategories = subcategoryLookup.get(value) || allSubcategoryOptions;
-        if (next.subcategory && !availableSubcategories.includes(next.subcategory)) {
+      if (field === 'categoryId') {
+        const availableSubcategories = serviceSubcategories.filter(
+          (subcategory) => Number(subcategory.categoryId) === Number(value)
+        );
+
+        next.category = categoryIdToName.get(String(value)) || '';
+        next.categoryName = next.category;
+
+        if (
+          next.subcategoryId &&
+          !availableSubcategories.some((subcategory) => String(subcategory.id) === String(next.subcategoryId))
+        ) {
+          next.subcategoryId = '';
           next.subcategory = '';
+          next.subcategoryName = '';
         }
+      }
+
+      if (field === 'subcategoryId') {
+        const subcategoryName = subcategoryIdToName.get(String(value)) || '';
+        next.subcategory = subcategoryName;
+        next.subcategoryName = subcategoryName;
       }
 
       return next;
@@ -1012,6 +1039,22 @@ const AdminServicesPage = () => {
     [serviceCategories]
   );
 
+  const categoryIdToName = useMemo(() => {
+    const lookup = new Map();
+    serviceCategories.forEach((category) => {
+      lookup.set(String(category.id), category.name);
+    });
+    return lookup;
+  }, [serviceCategories]);
+
+  const subcategoryIdToName = useMemo(() => {
+    const lookup = new Map();
+    serviceSubcategories.forEach((subcategory) => {
+      lookup.set(String(subcategory.id), subcategory.name);
+    });
+    return lookup;
+  }, [serviceSubcategories]);
+
   const subcategoryLookup = useMemo(() => {
     const lookup = new Map();
 
@@ -1054,12 +1097,12 @@ const AdminServicesPage = () => {
   );
 
   const whyVedxSubcategoryOptions = useMemo(() => {
-    const base = whyVedxHeroForm.category
-      ? subcategoryLookup.get(whyVedxHeroForm.category) || []
-      : allSubcategoryOptions;
+    const base = whyVedxHeroForm.categoryId
+      ? serviceSubcategories.filter((item) => Number(item.categoryId) === Number(whyVedxHeroForm.categoryId))
+      : serviceSubcategories;
 
-    return base.map((subcategory) => ({ value: subcategory, label: subcategory }));
-  }, [allSubcategoryOptions, subcategoryLookup, whyVedxHeroForm.category]);
+    return base.map((subcategory) => ({ value: subcategory.id, label: subcategory.name }));
+  }, [serviceSubcategories, whyVedxHeroForm.categoryId]);
 
   const filteredServices = useMemo(
     () =>
@@ -1141,10 +1184,42 @@ const AdminServicesPage = () => {
     setServicePage((prev) => Math.min(prev, maxPage));
   }, [filteredServices.length, rowsPerPage]);
 
+  const activeBenefitConfig = useMemo(
+    () => benefitConfigs.find((item) => String(item.id) === String(selectedBenefitConfigId)),
+    [benefitConfigs, selectedBenefitConfigId]
+  );
+
+  const benefitConfigCategoryName = useMemo(() => {
+    if (!activeBenefitConfig?.categoryId) return activeBenefitConfig?.categoryName || '';
+    return categoryIdToName.get(String(activeBenefitConfig.categoryId)) || activeBenefitConfig.categoryName || '';
+  }, [activeBenefitConfig, categoryIdToName]);
+
+  const benefitConfigSubcategoryName = useMemo(() => {
+    if (!activeBenefitConfig?.subcategoryId) return activeBenefitConfig?.subcategoryName || '';
+    return (
+      subcategoryIdToName.get(String(activeBenefitConfig.subcategoryId)) || activeBenefitConfig.subcategoryName || ''
+    );
+  }, [activeBenefitConfig, subcategoryIdToName]);
+
+  const visibleBenefits = useMemo(() => {
+    if (!selectedBenefitConfigId) return [];
+
+    return benefits.filter((benefit) => {
+      const matchesCategory = benefitConfigCategoryName
+        ? benefit.category === benefitConfigCategoryName
+        : true;
+      const matchesSubcategory = benefitConfigSubcategoryName
+        ? benefit.subcategory === benefitConfigSubcategoryName
+        : true;
+
+      return matchesCategory && matchesSubcategory;
+    });
+  }, [benefits, benefitConfigCategoryName, benefitConfigSubcategoryName, selectedBenefitConfigId]);
+
   const pagedBenefits = useMemo(() => {
     const start = (benefitPage - 1) * rowsPerPage;
-    return benefits.slice(start, start + rowsPerPage);
-  }, [benefits, rowsPerPage, benefitPage]);
+    return visibleBenefits.slice(start, start + rowsPerPage);
+  }, [benefitPage, rowsPerPage, visibleBenefits]);
 
   const groupedBenefits = useMemo(() => {
     const lookup = new Map();
@@ -1219,10 +1294,25 @@ const AdminServicesPage = () => {
     return contactButtons.slice(start, start + rowsPerPage);
   }, [contactButtonPage, contactButtons, rowsPerPage]);
 
+  const groupedContactButtons = useMemo(() => {
+    const lookup = new Map();
+
+    pagedContactButtons.forEach((button) => {
+      const categoryKey = button.category || 'Uncategorised';
+      const existing = lookup.get(categoryKey) || [];
+      lookup.set(categoryKey, [...existing, button]);
+    });
+
+    return Array.from(lookup.entries()).map(([category, items]) => ({
+      category,
+      items,
+    }));
+  }, [pagedContactButtons]);
+
   useEffect(() => {
-    const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
+    const maxBenefitPage = Math.max(1, Math.ceil(visibleBenefits.length / rowsPerPage));
     setBenefitPage((prev) => Math.min(prev, maxBenefitPage));
-  }, [benefits.length, rowsPerPage]);
+  }, [rowsPerPage, visibleBenefits.length]);
 
   const hasBenefitConfig = Boolean(selectedBenefitConfigId);
 
@@ -1816,8 +1906,11 @@ const AdminServicesPage = () => {
         headers: authHeaders(),
         body: JSON.stringify({
           id: selectedWhyVedxId || undefined,
-          category: whyVedxHeroForm.category,
-          subcategory: whyVedxHeroForm.subcategory,
+          category: whyVedxHeroForm.category || categoryIdToName.get(String(whyVedxHeroForm.categoryId)) || '',
+          subcategory:
+            whyVedxHeroForm.subcategory || subcategoryIdToName.get(String(whyVedxHeroForm.subcategoryId)) || '',
+          categoryId: whyVedxHeroForm.categoryId || null,
+          subcategoryId: whyVedxHeroForm.subcategoryId || null,
           heroTitle: whyVedxHeroForm.heroTitle,
           heroDescription: whyVedxHeroForm.heroDescription,
           heroImage: whyVedxHeroForm.heroImage,
@@ -2530,11 +2623,13 @@ const AdminServicesPage = () => {
                   <Grid item xs={12} md={8}>
                     <Stack spacing={2}>
                       <Autocomplete
-                        options={categoryOptions}
+                        options={serviceCategories.map((category) => ({ value: category.id, label: category.name }))}
                         value={
-                          categoryOptions.find((option) => option.value === whyVedxHeroForm.category) || null
+                          serviceCategories
+                            .map((category) => ({ value: category.id, label: category.name }))
+                            .find((option) => String(option.value) === String(whyVedxHeroForm.categoryId)) || null
                         }
-                        onChange={(event, option) => handleWhyVedxHeroChange('category', option?.value || '')}
+                        onChange={(event, option) => handleWhyVedxHeroChange('categoryId', option?.value || '')}
                         renderInput={(params) => (
                           <TextField {...params} label="Category" placeholder="Select category" fullWidth />
                         )}
@@ -2544,18 +2639,16 @@ const AdminServicesPage = () => {
                         options={whyVedxSubcategoryOptions}
                         value={
                           whyVedxSubcategoryOptions.find(
-                            (option) => option.value === whyVedxHeroForm.subcategory
+                            (option) => String(option.value) === String(whyVedxHeroForm.subcategoryId)
                           ) || null
                         }
-                        onChange={(event, option) =>
-                          handleWhyVedxHeroChange('subcategory', option?.value || '')
-                        }
+                        onChange={(event, option) => handleWhyVedxHeroChange('subcategoryId', option?.value || '')}
                         renderInput={(params) => (
                           <TextField
                             {...params}
                             label="Subcategory"
                             placeholder={
-                              whyVedxHeroForm.category
+                              whyVedxHeroForm.categoryId
                                 ? 'Select a subcategory'
                                 : 'Select a category to filter subcategories'
                             }
@@ -3370,18 +3463,19 @@ const AdminServicesPage = () => {
                 renderInput={(params) => <TextField {...params} label="Select benefits config" />}
                 sx={{ minWidth: { xs: '100%', md: 320 } }}
               />
-              <Button
-                variant="outlined"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={() => {
-                  setSelectedBenefitConfigId('');
-                  setBenefitHero(initialBenefitHero);
-                  setBenefitHeroSaved(false);
-                }}
-                sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
-              >
-                New config
-              </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() => {
+                    setSelectedBenefitConfigId('');
+                    setBenefitHero(initialBenefitHero);
+                    setBenefitHeroSaved(false);
+                    setBenefitPage(1);
+                  }}
+                  sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
+                >
+                  New config
+                </Button>
             </Stack>
 
             <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
@@ -3522,7 +3616,7 @@ const AdminServicesPage = () => {
                   </AccordionDetails>
                 </Accordion>
               ))}
-              {benefits.length === 0 && (
+              {visibleBenefits.length === 0 && (
                 <Typography variant="body2" color="text.secondary" align="center">
                   No benefits configured yet.
                 </Typography>
@@ -3530,7 +3624,7 @@ const AdminServicesPage = () => {
             </Stack>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
-                count={Math.max(1, Math.ceil(benefits.length / rowsPerPage))}
+                count={Math.max(1, Math.ceil(visibleBenefits.length / rowsPerPage))}
                 page={benefitPage}
                 onChange={(event, page) => setBenefitPage(page)}
                 color="primary"
@@ -3557,81 +3651,87 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Subcategory</TableCell>
-                    <TableCell>Image</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedContactButtons.map((button) => (
-                    <TableRow key={button.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{button.title}</TableCell>
-                      <TableCell sx={{ maxWidth: 360 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {button.description || 'No description provided.'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 140 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {button.category || 'Not set'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 140 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {button.subcategory || 'Not set'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Box
-                          component="img"
-                          src={button.image || imagePlaceholder}
-                          alt={`${button.title} visual`}
-                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Edit">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() => openContactButtonEditDialog(button)}
-                            >
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openContactButtonDeleteDialog(button)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {contactButtons.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No contact buttons configured yet.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Stack spacing={2}>
+              {groupedContactButtons.map((group) => (
+                <Accordion key={group.category} defaultExpanded disableGutters>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle1">{group.category}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {group.items.length} contact CTA{group.items.length === 1 ? '' : 's'}
+                      </Typography>
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Title</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell>Sub-category</TableCell>
+                            <TableCell>Image</TableCell>
+                            <TableCell align="right">Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {group.items.map((button) => (
+                            <TableRow key={button.id} hover>
+                              <TableCell sx={{ fontWeight: 700 }}>{button.title}</TableCell>
+                              <TableCell sx={{ maxWidth: 360 }}>
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                  {button.description || 'No description provided.'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell sx={{ maxWidth: 140 }}>
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                  {button.subcategory || 'Not set'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Box
+                                  component="img"
+                                  src={button.image || imagePlaceholder}
+                                  alt={`${button.title} visual`}
+                                  sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                                />
+                              </TableCell>
+                              <TableCell align="right">
+                                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                  <Tooltip title="Edit">
+                                    <IconButton
+                                      size="small"
+                                      color="primary"
+                                      onClick={() => openContactButtonEditDialog(button)}
+                                    >
+                                      <EditOutlinedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() => openContactButtonDeleteDialog(button)}
+                                    >
+                                      <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Stack>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              {contactButtons.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center">
+                  No contact buttons configured yet.
+                </Typography>
+              )}
+            </Stack>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
                 count={Math.max(1, Math.ceil(contactButtons.length / rowsPerPage))}
