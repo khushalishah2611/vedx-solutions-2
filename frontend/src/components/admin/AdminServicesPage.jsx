@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
@@ -327,6 +327,7 @@ const AdminServicesPage = () => {
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
   const [activeBenefit, setActiveBenefit] = useState(null);
   const [benefitToDelete, setBenefitToDelete] = useState(null);
+  const benefitConfigClearedRef = useRef(false);
 
   const [hireContent, setHireContent] = useState(initialHireDevelopers);
   const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
@@ -839,6 +840,26 @@ const AdminServicesPage = () => {
     setBenefitHero((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleBenefitConfigSelect = (config) => {
+    const nextId = config?.id ? String(config.id) : '';
+    benefitConfigClearedRef.current = !nextId;
+    setSelectedBenefitConfigId(nextId);
+
+    if (!nextId) {
+      setBenefitHero(initialBenefitHero);
+      setBenefitHeroSaved(false);
+      setBenefitPage(1);
+    }
+  };
+
+  const handleNewBenefitConfig = () => {
+    benefitConfigClearedRef.current = true;
+    setSelectedBenefitConfigId('');
+    setBenefitHero(initialBenefitHero);
+    setBenefitHeroSaved(false);
+    setBenefitPage(1);
+  };
+
   const handleHireServiceFormChange = (field, value) => {
     setHireServiceForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -912,11 +933,14 @@ const AdminServicesPage = () => {
       setSelectedBenefitConfigId('');
       setBenefitHero(initialBenefitHero);
       setBenefitPage(1);
+      benefitConfigClearedRef.current = false;
       return;
     }
 
     if (!selectedBenefitConfigId) {
-      setSelectedBenefitConfigId(String(benefitConfigs[0].id));
+      if (!benefitConfigClearedRef.current) {
+        setSelectedBenefitConfigId(String(benefitConfigs[0].id));
+      }
       return;
     }
 
@@ -924,6 +948,7 @@ const AdminServicesPage = () => {
     if (active) {
       setBenefitHero(active);
       setBenefitPage(1);
+      benefitConfigClearedRef.current = false;
     }
   }, [benefitConfigs, selectedBenefitConfigId]);
 
@@ -3459,23 +3484,18 @@ const AdminServicesPage = () => {
                     : option?.title || 'Untitled'
                 }
                 value={benefitConfigs.find((item) => String(item.id) === String(selectedBenefitConfigId)) || null}
-                onChange={(event, value) => setSelectedBenefitConfigId(value?.id ? String(value.id) : '')}
+                onChange={(event, value) => handleBenefitConfigSelect(value)}
                 renderInput={(params) => <TextField {...params} label="Select benefits config" />}
                 sx={{ minWidth: { xs: '100%', md: 320 } }}
               />
-                <Button
-                  variant="outlined"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => {
-                    setSelectedBenefitConfigId('');
-                    setBenefitHero(initialBenefitHero);
-                    setBenefitHeroSaved(false);
-                    setBenefitPage(1);
-                  }}
-                  sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
-                >
-                  New config
-                </Button>
+              <Button
+                variant="outlined"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={handleNewBenefitConfig}
+                sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
+              >
+                New config
+              </Button>
             </Stack>
 
             <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
