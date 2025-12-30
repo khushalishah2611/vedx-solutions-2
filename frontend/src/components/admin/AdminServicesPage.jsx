@@ -607,13 +607,9 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadBenefitConfigs = useCallback(async ({ category, subcategory } = {}) => {
+  const loadBenefitConfigs = useCallback(async () => {
     try {
-      const params = new URLSearchParams();
-      if (category) params.append('category', category);
-      if (subcategory) params.append('subcategory', subcategory);
-
-      const response = await fetch(apiUrl(`/api/benefit-configs${params.toString() ? `?${params.toString()}` : ''}`));
+      const response = await fetch(apiUrl('/api/benefit-configs'));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load benefit configuration');
       const normalized = (data || []).map(normalizeBenefitConfig);
@@ -776,7 +772,7 @@ const AdminServicesPage = () => {
     loadHireServices(filters);
     loadWhyChoose(filters);
     loadWhyVedx(filters);
-    loadBenefitConfigs(filters);
+    loadBenefitConfigs();
   }, [
     categoryFilter,
     loadBenefitConfigs,
@@ -1643,9 +1639,12 @@ const AdminServicesPage = () => {
       return;
     }
 
+    const defaultCategory = benefitConfigCategoryName || '';
+    const defaultSubcategory = benefitConfigSubcategoryName || '';
+
     setBenefitDialogMode('create');
     setActiveBenefit(null);
-    resetBenefitForm();
+    setBenefitForm({ ...emptyBenefitForm, category: defaultCategory, subcategory: defaultSubcategory });
     setBenefitDialogOpen(true);
   };
 
