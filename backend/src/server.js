@@ -5114,10 +5114,12 @@ app.delete('/api/technologies/:id', async (req, res) => {
 const mapBenefitToResponse = (benefit) => ({
   id: benefit.id,
   title: benefit.title,
-  category: benefit.category || '',
-  subcategory: benefit.subcategory || '',
+  category: benefit.benefitConfig?.category?.name || benefit.category || '',
+  subcategory: benefit.benefitConfig?.subcategory?.name || benefit.subcategory || '',
   description: benefit.description,
   image: benefit.image,
+  benefitConfigId: benefit.benefitConfigId || null,
+  benefitConfigTitle: benefit.benefitConfig?.title || '',
   createdAt: benefit.createdAt,
   updatedAt: benefit.updatedAt,
 });
@@ -5366,14 +5368,17 @@ app.put('/api/benefit-configs/:id', async (req, res) => {
 // GET all benefits
 app.get('/api/benefits', async (req, res) => {
   try {
-    const { category, subcategory } = req.query;
+    const { category, subcategory, benefitConfigId } = req.query;
+    const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
 
     const benefits = await prisma.benefit.findMany({
       where: {
         ...(category && { category }),
         ...(subcategory && { subcategory }),
+        ...(parsedBenefitConfigId && { benefitConfigId: parsedBenefitConfigId }),
       },
       orderBy: { createdAt: 'desc' },
+      include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
 
     res.json(benefits.map(mapBenefitToResponse));
@@ -5389,7 +5394,7 @@ app.post('/api/benefits', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, category, subcategory, description, image } = req.body ?? {};
+    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
 
     if (!title || !description || !image) {
       return res.status(400).json({
@@ -5397,14 +5402,30 @@ app.post('/api/benefits', async (req, res) => {
       });
     }
 
+    const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
+    if (!parsedBenefitConfigId) {
+      return res.status(400).json({ error: 'benefitConfigId is required; please create the Benefit config first' });
+    }
+
+    const config = await prisma.benefitConfig.findUnique({
+      where: { id: parsedBenefitConfigId },
+      include: { category: true, subcategory: true },
+    });
+
+    if (!config) {
+      return res.status(404).json({ error: 'Benefit configuration not found' });
+    }
+
     const created = await prisma.benefit.create({
       data: {
         title,
-        category: category || null,
-        subcategory: subcategory || null,
+        category: category || config.category?.name || null,
+        subcategory: subcategory || config.subcategory?.name || null,
         description,
         image,
+        benefitConfigId: config.id,
       },
+      include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
 
     res.status(201).json(mapBenefitToResponse(created));
@@ -5425,17 +5446,33 @@ app.put('/api/benefits/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid benefit id required' });
     }
 
-    const { title, category, subcategory, description, image } = req.body ?? {};
+    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
+
+    const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
+    if (!parsedBenefitConfigId) {
+      return res.status(400).json({ error: 'benefitConfigId is required; please create the Benefit config first' });
+    }
+
+    const config = await prisma.benefitConfig.findUnique({
+      where: { id: parsedBenefitConfigId },
+      include: { category: true, subcategory: true },
+    });
+
+    if (!config) {
+      return res.status(404).json({ error: 'Benefit configuration not found' });
+    }
 
     const updated = await prisma.benefit.update({
       where: { id },
       data: {
         title,
-        category,
-        subcategory,
+        category: category || config.category?.name || null,
+        subcategory: subcategory || config.subcategory?.name || null,
         description,
         image,
+        benefitConfigId: config.id,
       },
+      include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
 
     res.json(mapBenefitToResponse(updated));
