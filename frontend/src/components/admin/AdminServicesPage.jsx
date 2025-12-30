@@ -928,6 +928,31 @@ const AdminServicesPage = () => {
     setBenefitPage(1);
   };
 
+  const handleNewWhyVedxHero = () => {
+    const defaultCategoryId = categoryFilter ? categoryNameToId.get(categoryFilter) || '' : '';
+    const matchedSubcategory = subcategoryFilter
+      ? serviceSubcategories.find(
+          (subcategory) =>
+            subcategory.name === subcategoryFilter &&
+            (!defaultCategoryId || String(subcategory.categoryId) === String(defaultCategoryId))
+        )
+      : null;
+    const defaultSubcategoryId = matchedSubcategory?.id || subcategoryNameToId.get(subcategoryFilter) || '';
+
+    setSelectedWhyVedxId('');
+    setWhyVedxHeroForm({
+      ...emptyWhyVedxHero,
+      category: categoryFilter || '',
+      categoryName: categoryFilter || '',
+      subcategory: subcategoryFilter || '',
+      subcategoryName: subcategoryFilter || '',
+      categoryId: defaultCategoryId || '',
+      subcategoryId: defaultSubcategoryId || '',
+    });
+    setWhyVedxReasons([]);
+    setWhyVedxPage(1);
+  };
+
   const handleHireServiceFormChange = (field, value) => {
     setHireServiceForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -1156,6 +1181,14 @@ const AdminServicesPage = () => {
     [serviceCategories]
   );
 
+  const categoryNameToId = useMemo(() => {
+    const lookup = new Map();
+    serviceCategories.forEach((category) => {
+      if (category.name) lookup.set(category.name, category.id);
+    });
+    return lookup;
+  }, [serviceCategories]);
+
   const categoryIdToName = useMemo(() => {
     const lookup = new Map();
     serviceCategories.forEach((category) => {
@@ -1168,6 +1201,14 @@ const AdminServicesPage = () => {
     const lookup = new Map();
     serviceSubcategories.forEach((subcategory) => {
       lookup.set(String(subcategory.id), subcategory.name);
+    });
+    return lookup;
+  }, [serviceSubcategories]);
+
+  const subcategoryNameToId = useMemo(() => {
+    const lookup = new Map();
+    serviceSubcategories.forEach((subcategory) => {
+      if (subcategory.name) lookup.set(subcategory.name, subcategory.id);
     });
     return lookup;
   }, [serviceSubcategories]);
@@ -2791,10 +2832,7 @@ const AdminServicesPage = () => {
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                   <Button
                     variant="outlined"
-                    onClick={() => {
-                      setSelectedWhyVedxId('');
-                      setWhyVedxHeroForm(emptyWhyVedxHero);
-                    }}
+                    onClick={handleNewWhyVedxHero}
                   >
                     Add new hero
                   </Button>
@@ -4345,11 +4383,10 @@ const AdminServicesPage = () => {
               select
               label="Category"
               value={whyServiceForm.category}
-              onChange={(event) =>
-                setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }))
-              }
               fullWidth
               required
+              disabled
+              helperText="Category is set by the current Why choose config"
             >
               {categoryOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -4361,16 +4398,9 @@ const AdminServicesPage = () => {
               select
               label="Sub-category"
               value={whyServiceForm.subcategory}
-              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
               fullWidth
-              disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
-              helperText={
-                !whyServiceForm.category
-                  ? 'Select a category first'
-                  : whySubcategoryOptions.length === 0
-                    ? 'No sub-categories available for this category'
-                    : undefined
-              }
+              disabled
+              helperText="Sub-category follows the selected Why choose config"
             >
               {whySubcategoryOptions.map((option) => (
                 <MenuItem key={option.name} value={option.name}>
