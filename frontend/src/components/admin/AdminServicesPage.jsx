@@ -1219,6 +1219,21 @@ const AdminServicesPage = () => {
     return contactButtons.slice(start, start + rowsPerPage);
   }, [contactButtonPage, contactButtons, rowsPerPage]);
 
+  const groupedContactButtons = useMemo(() => {
+    const lookup = new Map();
+
+    pagedContactButtons.forEach((button) => {
+      const categoryKey = button.category || 'Uncategorised';
+      const existing = lookup.get(categoryKey) || [];
+      lookup.set(categoryKey, [...existing, button]);
+    });
+
+    return Array.from(lookup.entries()).map(([category, items]) => ({
+      category,
+      items,
+    }));
+  }, [pagedContactButtons]);
+
   useEffect(() => {
     const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
     setBenefitPage((prev) => Math.min(prev, maxBenefitPage));
@@ -3557,81 +3572,87 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Subcategory</TableCell>
-                    <TableCell>Image</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedContactButtons.map((button) => (
-                    <TableRow key={button.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{button.title}</TableCell>
-                      <TableCell sx={{ maxWidth: 360 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {button.description || 'No description provided.'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 140 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {button.category || 'Not set'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 140 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {button.subcategory || 'Not set'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Box
-                          component="img"
-                          src={button.image || imagePlaceholder}
-                          alt={`${button.title} visual`}
-                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Edit">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() => openContactButtonEditDialog(button)}
-                            >
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openContactButtonDeleteDialog(button)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {contactButtons.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No contact buttons configured yet.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Stack spacing={2}>
+              {groupedContactButtons.map((group) => (
+                <Accordion key={group.category} defaultExpanded disableGutters>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle1">{group.category}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {group.items.length} contact CTA{group.items.length === 1 ? '' : 's'}
+                      </Typography>
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Title</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell>Sub-category</TableCell>
+                            <TableCell>Image</TableCell>
+                            <TableCell align="right">Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {group.items.map((button) => (
+                            <TableRow key={button.id} hover>
+                              <TableCell sx={{ fontWeight: 700 }}>{button.title}</TableCell>
+                              <TableCell sx={{ maxWidth: 360 }}>
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                  {button.description || 'No description provided.'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell sx={{ maxWidth: 140 }}>
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                  {button.subcategory || 'Not set'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Box
+                                  component="img"
+                                  src={button.image || imagePlaceholder}
+                                  alt={`${button.title} visual`}
+                                  sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                                />
+                              </TableCell>
+                              <TableCell align="right">
+                                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                  <Tooltip title="Edit">
+                                    <IconButton
+                                      size="small"
+                                      color="primary"
+                                      onClick={() => openContactButtonEditDialog(button)}
+                                    >
+                                      <EditOutlinedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() => openContactButtonDeleteDialog(button)}
+                                    >
+                                      <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Stack>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              {contactButtons.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center">
+                  No contact buttons configured yet.
+                </Typography>
+              )}
+            </Stack>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
                 count={Math.max(1, Math.ceil(contactButtons.length / rowsPerPage))}
