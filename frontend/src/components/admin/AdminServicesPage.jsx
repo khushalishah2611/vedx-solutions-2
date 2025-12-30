@@ -1224,6 +1224,8 @@ const AdminServicesPage = () => {
     setBenefitPage((prev) => Math.min(prev, maxBenefitPage));
   }, [benefits.length, rowsPerPage]);
 
+  const hasBenefitConfig = Boolean(selectedBenefitConfigId);
+
   useEffect(() => {
     const maxWhyPage = Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage));
     setWhyServicePage((prev) => Math.min(prev, maxWhyPage));
@@ -1404,6 +1406,11 @@ const AdminServicesPage = () => {
   };
 
   const openBenefitCreateDialog = () => {
+    if (!hasBenefitConfig) {
+      handleRequestError(new Error('Please create and save a benefit config before adding benefits'));
+      return;
+    }
+
     setBenefitDialogMode('create');
     setActiveBenefit(null);
     resetBenefitForm();
@@ -3333,7 +3340,12 @@ const AdminServicesPage = () => {
             title="Benefits"
             subheader="Control benefit cards with images and rich descriptions."
             action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openBenefitCreateDialog}>
+              <Button
+                variant="contained"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={openBenefitCreateDialog}
+                disabled={!hasBenefitConfig}
+              >
                 Add benefit
               </Button>
             }
@@ -3371,10 +3383,13 @@ const AdminServicesPage = () => {
                 New config
               </Button>
             </Stack>
-            <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Intro copy
+            {!hasBenefitConfig && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Save a benefits config to enable adding benefit cards.
               </Typography>
+            )}
+            <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
+           
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
                   <TextField
