@@ -5126,6 +5126,10 @@ const mapBenefitConfigToResponse = (config) => ({
   id: config.id,
   title: config.title,
   description: config.description || '',
+  categoryId: config.categoryId || null,
+  subcategoryId: config.subcategoryId || null,
+  categoryName: config.category?.name || '',
+  subcategoryName: config.subcategory?.name || '',
   createdAt: config.createdAt,
   updatedAt: config.updatedAt,
 });
@@ -5142,7 +5146,10 @@ const mapContactButtonToResponse = (button) => ({
 // GET benefit hero/config
 app.get('/api/benefits/config', async (_req, res) => {
   try {
-    const config = await prisma.benefitConfig.findFirst({ orderBy: { createdAt: 'desc' } });
+    const config = await prisma.benefitConfig.findFirst({
+      orderBy: { createdAt: 'desc' },
+      include: { category: true, subcategory: true },
+    });
 
     if (!config) {
       return res.json(null);
@@ -5162,9 +5169,35 @@ app.post('/api/benefits/config', async (req, res) => {
     if (!admin) return res.status(status).json({ message });
 
     const { id, title, description } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
     if (!title || !description) {
       return res.status(400).json({ error: 'Both title and description are required' });
+    }
+
+    let category = null;
+    if (categoryId) {
+      category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+      if (!category) {
+        return res.status(400).json({ error: 'Category not found' });
+      }
+    }
+
+    let subcategory = null;
+    if (subcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+      if (!subcategory) {
+        return res.status(400).json({ error: 'Sub-category not found' });
+      }
+
+      if (category && subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+      }
+
+      if (!category) {
+        category = await prisma.serviceCategory.findUnique({ where: { id: subcategory.categoryId } });
+      }
     }
 
     const existing = id
@@ -5174,9 +5207,13 @@ app.post('/api/benefits/config', async (req, res) => {
     const saved = existing
       ? await prisma.benefitConfig.update({
           where: { id: existing.id },
-          data: { title, description },
+          data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
+          include: { category: true, subcategory: true },
         })
-      : await prisma.benefitConfig.create({ data: { title, description } });
+      : await prisma.benefitConfig.create({
+          data: { title, description, categoryId: category?.id || null, subcategoryId: subcategory?.id || null },
+          include: { category: true, subcategory: true },
+        });
 
     return res.json(mapBenefitConfigToResponse(saved));
   } catch (err) {

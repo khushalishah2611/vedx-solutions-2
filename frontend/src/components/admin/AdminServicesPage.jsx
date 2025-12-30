@@ -43,7 +43,14 @@ const imagePlaceholder = '';
 const initialServices = [];
 const initialTechnologies = [];
 const initialBenefits = [];
-const initialBenefitHero = { title: '', description: '' };
+const initialBenefitHero = {
+  title: '',
+  description: '',
+  categoryId: '',
+  subcategoryId: '',
+  categoryName: '',
+  subcategoryName: '',
+};
 const initialHireDevelopers = { title: '', description: '', heroImage: imagePlaceholder, services: [] };
 const initialWhyChoose = {
   id: '',
@@ -444,6 +451,10 @@ const AdminServicesPage = () => {
     id: config?.id || '',
     title: config?.title || '',
     description: config?.description || '',
+    categoryId: config?.categoryId || '',
+    subcategoryId: config?.subcategoryId || '',
+    categoryName: config?.categoryName || '',
+    subcategoryName: config?.subcategoryName || '',
   });
 
   const normalizeContactButton = (button) => ({
@@ -853,6 +864,8 @@ const AdminServicesPage = () => {
           id: benefitHero.id || undefined,
           title: benefitHero.title,
           description: benefitHero.description,
+          categoryId: benefitHero.categoryId || null,
+          subcategoryId: benefitHero.subcategoryId || null,
         }),
       });
       const data = await response.json();
@@ -940,10 +953,14 @@ const AdminServicesPage = () => {
             .map((category) => category.name)
             .filter((name) => Boolean(name && name.trim()))
         )
-      ).map((category) => ({
-        value: category,
-        label: category,
-      })),
+      ).map((categoryName) => {
+        const category = serviceCategories.find((item) => item.name === categoryName);
+        return {
+          value: categoryName,
+          label: categoryName,
+          id: category?.id || '',
+        };
+      }),
     [serviceCategories]
   );
 
@@ -1042,6 +1059,23 @@ const AdminServicesPage = () => {
     setWhyServicePage(1);
   }, [categoryFilter, subcategoryFilter]);
 
+  const benefitHeroCategoryOptions = useMemo(
+    () => serviceCategories.map((category) => ({ value: category.id, label: category.name })),
+    [serviceCategories]
+  );
+
+  const benefitHeroSubcategoryOptions = useMemo(() => {
+    const base = benefitHero.categoryId
+      ? serviceSubcategories.filter((item) => Number(item.categoryId) === Number(benefitHero.categoryId))
+      : serviceSubcategories;
+
+    return base.map((subcategory) => ({
+      value: subcategory.id,
+      label: subcategory.name,
+      categoryId: subcategory.categoryId,
+    }));
+  }, [benefitHero.categoryId, serviceSubcategories]);
+
   useEffect(() => {
     if (!categoryFilter) {
       setSubcategoryFilter('');
@@ -1063,6 +1097,18 @@ const AdminServicesPage = () => {
     const start = (benefitPage - 1) * rowsPerPage;
     return benefits.slice(start, start + rowsPerPage);
   }, [benefits, rowsPerPage, benefitPage]);
+
+  const groupedBenefits = useMemo(() => {
+    const lookup = new Map();
+
+    pagedBenefits.forEach((benefit) => {
+      const categoryKey = benefit.category || 'Uncategorised';
+      const existing = lookup.get(categoryKey) || [];
+      lookup.set(categoryKey, [...existing, benefit]);
+    });
+
+    return Array.from(lookup.entries()).map(([category, items]) => ({ category, items }));
+  }, [pagedBenefits]);
 
   const groupedTechnologies = useMemo(() => {
     const lookup = new Map();
@@ -3263,6 +3309,52 @@ const AdminServicesPage = () => {
                     minRows={2}
                   />
                 </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    select
+                    label="Category"
+                    value={benefitHero.categoryId}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      handleBenefitHeroChange('categoryId', value);
+
+                      const allowedSubcategories = benefitHeroSubcategoryOptions
+                        .filter((option) => Number(option.categoryId) === Number(value))
+                        .map((option) => option.value);
+
+                      if (value && benefitHero.subcategoryId && !allowedSubcategories.includes(benefitHero.subcategoryId)) {
+                        handleBenefitHeroChange('subcategoryId', '');
+                      }
+                    }}
+                    helperText="Link the intro to a service category"
+                    fullWidth
+                  >
+                    <MenuItem value="">All categories</MenuItem>
+                    {benefitHeroCategoryOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    select
+                    label="Sub-category"
+                    value={benefitHero.subcategoryId}
+                    onChange={(event) => handleBenefitHeroChange('subcategoryId', event.target.value)}
+                    helperText="Optional sub-category spotlight"
+                    fullWidth
+                    disabled={!benefitHeroCategoryOptions.length}
+                  >
+                    <MenuItem value="">All sub-categories</MenuItem>
+                    {benefitHeroSubcategoryOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
               </Grid>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Button variant="contained" onClick={handleBenefitHeroSave}>
@@ -3276,69 +3368,79 @@ const AdminServicesPage = () => {
               </Stack>
             </Stack>
             <Divider sx={{ mb: 2 }} />
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
-                    <TableCell>Image</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedBenefits.map((benefit) => (
-                    <TableRow key={benefit.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
-                      <TableCell>{benefit.category || '-'}</TableCell>
-                      <TableCell>{benefit.subcategory || '-'}</TableCell>
-                      <TableCell sx={{ maxWidth: 200 }}>
-                        <Box
-                          component="img"
-                          src={benefit.image || imagePlaceholder}
-                          alt={`${benefit.title} visual`}
-                          sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 240 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {benefit.description}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openBenefitDeleteDialog(benefit)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {benefits.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No benefits configured yet.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Stack spacing={2}>
+              {groupedBenefits.map((group) => (
+                <Accordion key={group.category} defaultExpanded disableGutters>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle1">{group.category}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {group.items.length} benefit{group.items.length === 1 ? '' : 's'}
+                      </Typography>
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Title</TableCell>
+                            <TableCell>Sub-category</TableCell>
+                            <TableCell>Image</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell align="right">Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {group.items.map((benefit) => (
+                            <TableRow key={benefit.id} hover>
+                              <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
+                              <TableCell>{benefit.subcategory || '-'}</TableCell>
+                              <TableCell sx={{ maxWidth: 200 }}>
+                                <Box
+                                  component="img"
+                                  src={benefit.image || imagePlaceholder}
+                                  alt={`${benefit.title} visual`}
+                                  sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                                />
+                              </TableCell>
+                              <TableCell sx={{ maxWidth: 240 }}>
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                  {benefit.description}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="right">
+                                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                  <Tooltip title="Edit">
+                                    <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
+                                      <EditOutlinedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() => openBenefitDeleteDialog(benefit)}
+                                    >
+                                      <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Stack>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              {benefits.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center">
+                  No benefits configured yet.
+                </Typography>
+              )}
+            </Stack>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
                 count={Math.max(1, Math.ceil(benefits.length / rowsPerPage))}
