@@ -1643,9 +1643,12 @@ const AdminServicesPage = () => {
       return;
     }
 
+    const defaultCategory = benefitConfigCategoryName || '';
+    const defaultSubcategory = benefitConfigSubcategoryName || '';
+
     setBenefitDialogMode('create');
     setActiveBenefit(null);
-    resetBenefitForm();
+    setBenefitForm({ ...emptyBenefitForm, category: defaultCategory, subcategory: defaultSubcategory });
     setBenefitDialogOpen(true);
   };
 
