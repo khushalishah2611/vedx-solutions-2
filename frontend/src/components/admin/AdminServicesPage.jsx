@@ -100,8 +100,6 @@ const emptyServiceForm = {
 
 const emptyTechnologyForm = {
   id: '',
-  category: '',
-  subcategory: '',
   title: '',
   image: imagePlaceholder,
   items: [],
@@ -453,8 +451,6 @@ const AdminServicesPage = () => {
   const normalizeTechnology = (tech) => ({
     ...tech,
     items: tech.items || [],
-    category: tech.category || '',
-    subcategory: tech.subcategory || '',
   });
 
   const normalizeBenefit = (benefit) => ({
@@ -566,13 +562,9 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadTechnologies = useCallback(async ({ category, subcategory } = {}) => {
+  const loadTechnologies = useCallback(async () => {
     try {
-      const params = new URLSearchParams();
-      if (category) params.append('category', category);
-      if (subcategory) params.append('subcategory', subcategory);
-
-      const response = await fetch(apiUrl(`/api/technologies${params.toString() ? `?${params.toString()}` : ''}`));
+      const response = await fetch(apiUrl('/api/technologies'));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
       setTechnologies((data || []).map(normalizeTechnology));
@@ -779,7 +771,7 @@ const AdminServicesPage = () => {
     };
 
     loadServiceMenus(filters);
-    loadTechnologies(filters);
+    loadTechnologies();
     loadHireServices(filters);
     loadWhyChoose(filters);
     loadWhyVedx(filters);
@@ -952,26 +944,7 @@ const AdminServicesPage = () => {
   };
 
   const buildDefaultWhyVedxHero = () => {
-    const defaultCategoryId = categoryFilter ? categoryNameToId.get(categoryFilter) || '' : '';
-    const matchedSubcategory = subcategoryFilter
-      ? serviceSubcategories.find(
-          (subcategory) =>
-            subcategory.name === subcategoryFilter &&
-            (!defaultCategoryId || String(subcategory.categoryId) === String(defaultCategoryId))
-        )
-      : null;
-
-    const defaultSubcategoryId = matchedSubcategory?.id || subcategoryNameToId.get(subcategoryFilter) || '';
-
-    return {
-      ...emptyWhyVedxHero,
-      category: categoryFilter || '',
-      categoryName: categoryFilter || '',
-      subcategory: subcategoryFilter || '',
-      subcategoryName: subcategoryFilter || '',
-      categoryId: defaultCategoryId || '',
-      subcategoryId: defaultSubcategoryId || '',
-    };
+    return { ...emptyWhyVedxHero };
   };
 
   const handleNewWhyVedxHero = () => {
@@ -1470,26 +1443,15 @@ const AdminServicesPage = () => {
     return Array.from(lookup.entries()).map(([category, items]) => ({ category, items }));
   }, [pagedBenefits]);
 
-  const groupedTechnologies = useMemo(() => {
-    const lookup = new Map();
-
-    technologies.forEach((tech) => {
-      const title = tech.title || 'Untitled';
-      const existing = lookup.get(title) || [];
-      lookup.set(title, [...existing, tech]);
-    });
-
-    return Array.from(lookup.entries()).map(([title, items]) => ({
-      title,
-      items: items.sort((a, b) => {
-        const categoryCompare = (a.category || '').localeCompare(b.category || '');
-        if (categoryCompare !== 0) return categoryCompare;
-        const subcategoryCompare = (a.subcategory || '').localeCompare(b.subcategory || '');
-        if (subcategoryCompare !== 0) return subcategoryCompare;
+  const sortedTechnologies = useMemo(
+    () =>
+      [...technologies].sort((a, b) => {
+        const titleCompare = (a.title || '').localeCompare(b.title || '');
+        if (titleCompare !== 0) return titleCompare;
         return String(a.id ?? '').localeCompare(String(b.id ?? ''));
       }),
-    }));
-  }, [technologies]);
+    [technologies]
+  );
 
   const activeWhyVedxReasons = useMemo(() => {
     if (!selectedWhyVedxId) return whyVedxReasons;
@@ -1695,11 +1657,9 @@ const AdminServicesPage = () => {
 
   const handleTechnologySubmit = async (event) => {
     event?.preventDefault();
-    if (!technologyForm.title.trim() || !technologyForm.category.trim() || !technologyForm.image) return;
+    if (!technologyForm.title.trim() || !technologyForm.image) return;
 
     const payload = {
-      category: technologyForm.category,
-      subcategory: technologyForm.subcategory || '',
       title: technologyForm.title,
       image: technologyForm.image,
       items: technologyForm.items || [],
@@ -2511,11 +2471,6 @@ const AdminServicesPage = () => {
     if (!serviceForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, serviceForm.category, subcategoryLookup]);
-
-  const technologySubcategoryOptions = useMemo(() => {
-    if (!technologyForm.category) return allSubcategoryOptions;
-    return subcategoryLookup.get(technologyForm.category) || allSubcategoryOptions;
-  }, [allSubcategoryOptions, subcategoryLookup, technologyForm.category]);
 
   const benefitSubcategoryOptions = useMemo(() => {
     if (!benefitForm.category) return allSubcategoryOptions;
@@ -3617,95 +3572,61 @@ const AdminServicesPage = () => {
           <Divider />
           <CardContent>
             <Stack spacing={1.5}>
-              {groupedTechnologies.map(({ title, items }) => (
-                <Accordion key={title} defaultExpanded>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                      <Typography variant="subtitle1" fontWeight={700}>
-                        {title}
-                      </Typography>
-                      <Chip label={`${items.length} entr${items.length === 1 ? 'y' : 'ies'}`} size="small" />
+              {sortedTechnologies.map((tech) => (
+                <Card key={tech.id} variant="outlined">
+                  <CardContent>
+                    <Stack spacing={2}>
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'stretch' }}>
+                        <Stack spacing={1} flex={1}>
+                          <Typography variant="subtitle1" fontWeight={700}>
+                            {tech.title || 'Untitled'}
+                          </Typography>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Technologies
+                          </Typography>
+                          <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                            {tech.items.length > 0 ? (
+                              tech.items.map((item) => (
+                                <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
+                              ))
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                No items added yet.
+                              </Typography>
+                            )}
+                          </Stack>
+                        </Stack>
+                        <Stack spacing={1} minWidth={220}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Preview
+                          </Typography>
+                          <Box
+                            component="img"
+                            src={tech.image || imagePlaceholder}
+                            alt={`${tech.title} preview`}
+                            sx={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 1 }}
+                          />
+                        </Stack>
+                      </Stack>
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <Tooltip title="Edit">
+                          <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
+                            <EditOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton size="small" color="error" onClick={() => openTechnologyDeleteDialog(tech)}>
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
                     </Stack>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Stack spacing={1.5}>
-                      {items.map((tech) => (
-                        <Card key={tech.id} variant="outlined">
-                          <CardContent>
-                            <Stack spacing={2}>
-                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'stretch' }}>
-                                <Stack spacing={1} flex={1}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Category / Sub-category
-                                  </Typography>
-                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                                    <Chip
-                                      label={tech.category || 'Uncategorised'}
-                                      size="small"
-                                      color={tech.category ? 'default' : 'warning'}
-                                    />
-                                    {tech.subcategory ? (
-                                      <Chip label={tech.subcategory} size="small" color="primary" variant="outlined" />
-                                    ) : (
-                                      <Chip label="No sub-category" size="small" variant="outlined" color="default" />
-                                    )}
-                                  </Stack>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Technologies
-                                  </Typography>
-                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                                    {tech.items.length > 0 ? (
-                                      tech.items.map((item) => (
-                                        <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
-                                      ))
-                                    ) : (
-                                      <Typography variant="body2" color="text.secondary">
-                                        No items added yet.
-                                      </Typography>
-                                    )}
-                                  </Stack>
-                                </Stack>
-                                <Stack spacing={1} minWidth={220}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Preview
-                                  </Typography>
-                                  <Box
-                                    component="img"
-                                    src={tech.image || imagePlaceholder}
-                                    alt={`${tech.title} preview`}
-                                    sx={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 1 }}
-                                  />
-                                  <Typography variant="body2" fontWeight={600} noWrap>
-                                    {tech.title}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary" noWrap>
-                                    {tech.subcategory || 'No sub-category selected'}
-                                  </Typography>
-                                </Stack>
-                              </Stack>
-                              <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                <Tooltip title="Edit">
-                                  <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
-                                    <EditOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton size="small" color="error" onClick={() => openTechnologyDeleteDialog(tech)}>
-                                    <DeleteOutlineIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Stack>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </Stack>
-                  </AccordionDetails>
-                </Accordion>
+                  </CardContent>
+                </Card>
               ))}
               {technologies.length === 0 && (
                 <Typography variant="body2" color="text.secondary" align="center">
-                  No technology groups configured yet.
+                  No technology blocks configured yet.
                 </Typography>
               )}
             </Stack>
@@ -4522,42 +4443,6 @@ const AdminServicesPage = () => {
         <DialogTitle>{technologyDialogMode === 'edit' ? 'Edit technology block' : 'Add technology block'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleTechnologySubmit}>
-            <TextField
-              select
-              label="Category"
-              value={technologyForm.category}
-              onChange={(event) =>
-                setTechnologyForm((prev) => ({
-                  ...prev,
-                  category: event.target.value,
-                  subcategory: '',
-                }))
-              }
-              fullWidth
-              required
-              helperText="Match the service category for this technology block"
-            >
-              {categoryOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Sub-category"
-              value={technologyForm.subcategory}
-              onChange={(event) => handleTechnologyFormChange('subcategory', event.target.value)}
-              fullWidth
-              disabled={!technologyForm.category || technologySubcategoryOptions.length === 0}
-              helperText="Keep stacks aligned to category and sub-category"
-            >
-              {technologySubcategoryOptions.map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </TextField>
             <TextField
               label="Title"
               value={technologyForm.title}

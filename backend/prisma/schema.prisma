@@ -704,16 +704,12 @@ model ServiceMenuFaq {
 /// ----------------------------------------------------------
 model Technology {
   id          Int      @id @default(autoincrement())
-  category    String
-  subcategory String?
   title       String
   image       String @db.LongText
   items       Json     // MySQL: use Json instead of String[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@index([category, subcategory])
 }
 
 model Benefit {
