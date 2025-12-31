@@ -413,6 +413,15 @@ const AdminServicesPage = () => {
   // Contact button tab uses its own filters (other tabs should remain unchanged).
   const [contactCategoryFilter, setContactCategoryFilter] = useState('');
   const [contactSubcategoryFilter, setContactSubcategoryFilter] = useState('');
+  // Benefits tab uses its own filters.
+  const [benefitCategoryFilter, setBenefitCategoryFilter] = useState('');
+  const [benefitSubcategoryFilter, setBenefitSubcategoryFilter] = useState('');
+  // Why choose this service tab uses its own filters.
+  const [whyServiceCategoryFilter, setWhyServiceCategoryFilter] = useState('');
+  const [whyServiceSubcategoryFilter, setWhyServiceSubcategoryFilter] = useState('');
+  // Why choose VedX tab uses its own filters.
+  const [whyVedxCategoryFilter, setWhyVedxCategoryFilter] = useState('');
+  const [whyVedxSubcategoryFilter, setWhyVedxSubcategoryFilter] = useState('');
   const [servicePage, setServicePage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
@@ -768,19 +777,31 @@ const AdminServicesPage = () => {
     loadServiceMenus(filters);
     loadTechnologies();
     loadHireServices(filters);
+  }, [categoryFilter, loadHireServices, loadServiceMenus, loadTechnologies, subcategoryFilter]);
+
+  // Benefits tab filters (independent from other tabs)
+  useEffect(() => {
+    // benefit configs are loaded separately; this effect exists just to reset paging when filters change.
+    setBenefitPage(1);
+  }, [benefitCategoryFilter, benefitSubcategoryFilter]);
+
+  // Why choose this service tab filters (independent from other tabs)
+  useEffect(() => {
+    const filters = {
+      category: whyServiceCategoryFilter || undefined,
+      subcategory: whyServiceSubcategoryFilter || undefined,
+    };
     loadWhyChoose(filters);
+  }, [loadWhyChoose, whyServiceCategoryFilter, whyServiceSubcategoryFilter]);
+
+  // Why choose VedX tab filters (independent from other tabs)
+  useEffect(() => {
+    const filters = {
+      category: whyVedxCategoryFilter || undefined,
+      subcategory: whyVedxSubcategoryFilter || undefined,
+    };
     loadWhyVedx(filters);
-    loadBenefitConfigs();
-  }, [
-    categoryFilter,
-    loadBenefitConfigs,
-    loadHireServices,
-    loadServiceMenus,
-    loadTechnologies,
-    loadWhyChoose,
-    loadWhyVedx,
-    subcategoryFilter,
-  ]);
+  }, [loadWhyVedx, whyVedxCategoryFilter, whyVedxSubcategoryFilter]);
 
   useEffect(() => {
     if (!selectedBenefitConfigId) {
@@ -789,13 +810,13 @@ const AdminServicesPage = () => {
     }
 
     const filters = {
-      category: categoryFilter || undefined,
-      subcategory: subcategoryFilter || undefined,
+      category: benefitCategoryFilter || undefined,
+      subcategory: benefitSubcategoryFilter || undefined,
       benefitConfigId: selectedBenefitConfigId,
     };
 
     loadBenefits(filters);
-  }, [categoryFilter, loadBenefits, selectedBenefitConfigId, subcategoryFilter]);
+  }, [benefitCategoryFilter, benefitSubcategoryFilter, loadBenefits, selectedBenefitConfigId]);
 
   useEffect(() => {
     if (!selectedWhyChooseId) {
@@ -811,18 +832,18 @@ const AdminServicesPage = () => {
       setWhyHeroForm(existing);
       setWhyServicePage(1);
       loadWhyServices(existing.id, {
-        category: categoryFilter || undefined,
-        subcategory: subcategoryFilter || undefined,
+        category: whyServiceCategoryFilter || undefined,
+        subcategory: whyServiceSubcategoryFilter || undefined,
       });
     }
-  }, [categoryFilter, loadWhyServices, selectedWhyChooseId, subcategoryFilter, whyChooseList]);
+  }, [loadWhyServices, selectedWhyChooseId, whyChooseList, whyServiceCategoryFilter, whyServiceSubcategoryFilter]);
 
   useEffect(() => {
     const matchesFilters = (item) => {
-      const matchesCategory = categoryFilter
+      const matchesCategory = whyVedxCategoryFilter
         ? item.categoryName === categoryFilter || item.category === categoryFilter
         : true;
-      const matchesSubcategory = subcategoryFilter
+      const matchesSubcategory = whyVedxSubcategoryFilter
         ? item.subcategoryName === subcategoryFilter || item.subcategory === subcategoryFilter
         : true;
 
@@ -843,7 +864,7 @@ const AdminServicesPage = () => {
     }
 
     const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
-    const preferred = (categoryFilter || subcategoryFilter) ? whyVedxList.find(matchesFilters) : null;
+    const preferred = (whyVedxCategoryFilter || whyVedxSubcategoryFilter) ? whyVedxList.find(matchesFilters) : null;
     const next = preferred || active || whyVedxList[0];
 
     if (String(next?.id || '') !== String(selectedWhyVedxId || '')) {
@@ -853,8 +874,8 @@ const AdminServicesPage = () => {
     if (next) {
       setWhyVedxHeroForm(next);
       loadWhyVedxReasons(next.id, {
-        category: categoryFilter || undefined,
-        subcategory: subcategoryFilter || undefined,
+        category: whyVedxCategoryFilter || undefined,
+        subcategory: whyVedxSubcategoryFilter || undefined,
       });
     } else {
       setWhyVedxHeroForm(emptyWhyVedxHero);
@@ -862,7 +883,7 @@ const AdminServicesPage = () => {
     }
     setWhyVedxPage(1);
     whyVedxConfigClearedRef.current = false;
-  }, [categoryFilter, loadWhyVedxReasons, selectedWhyVedxId, subcategoryFilter, whyVedxList]);
+  }, [loadWhyVedxReasons, selectedWhyVedxId, whyVedxList, whyVedxCategoryFilter, whyVedxSubcategoryFilter]);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
@@ -1042,8 +1063,8 @@ const AdminServicesPage = () => {
 
   useEffect(() => {
     const matchesFilters = (config) => {
-      const matchesCategory = categoryFilter ? config.categoryName === categoryFilter : true;
-      const matchesSubcategory = subcategoryFilter ? config.subcategoryName === subcategoryFilter : true;
+      const matchesCategory = benefitCategoryFilter ? config.categoryName === benefitCategoryFilter : true;
+      const matchesSubcategory = benefitSubcategoryFilter ? config.subcategoryName === benefitSubcategoryFilter : true;
       return matchesCategory && matchesSubcategory;
     };
 
@@ -1056,12 +1077,12 @@ const AdminServicesPage = () => {
     }
 
     const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
-    const preferredByFilters = categoryFilter || subcategoryFilter ? benefitConfigs.find(matchesFilters) : null;
+    const preferredByFilters = benefitCategoryFilter || benefitSubcategoryFilter ? benefitConfigs.find(matchesFilters) : null;
     const fallback = !benefitConfigClearedRef.current ? benefitConfigs[0] : null;
 
     let nextConfig = null;
 
-    if (categoryFilter || subcategoryFilter) {
+    if (benefitCategoryFilter || benefitSubcategoryFilter) {
       nextConfig = preferredByFilters || (active && matchesFilters(active) ? active : null);
     } else {
       nextConfig = active || fallback;
@@ -1083,9 +1104,9 @@ const AdminServicesPage = () => {
     benefitConfigClearedRef.current = false;
   }, [
     benefitConfigs,
-    categoryFilter,
+    benefitCategoryFilter,
     selectedBenefitConfigId,
-    subcategoryFilter,
+    benefitSubcategoryFilter,
   ]);
 
   const handleProcessChange = (field, value) => {
@@ -1303,10 +1324,10 @@ const AdminServicesPage = () => {
   const filteredServices = useMemo(
     () =>
       services.filter((service) => {
-        const matchesCategory = categoryFilter
+        const matchesCategory = whyVedxCategoryFilter
           ? service.category === categoryFilter
           : true;
-        const matchesSubcategory = subcategoryFilter
+        const matchesSubcategory = whyVedxSubcategoryFilter
           ? service.subcategories.some((subcategory) => subcategory.name === subcategoryFilter)
           : true;
 
@@ -1345,8 +1366,8 @@ const AdminServicesPage = () => {
     () =>
       processList.filter((item) => {
         const linkedService = serviceLookupById.get(String(item.serviceId));
-        const matchesCategory = categoryFilter ? linkedService?.category === categoryFilter : true;
-        const matchesSubcategory = subcategoryFilter
+        const matchesCategory = whyVedxCategoryFilter ? linkedService?.category === categoryFilter : true;
+        const matchesSubcategory = whyVedxSubcategoryFilter
           ? item.subcategory === subcategoryFilter ||
           linkedService?.subcategories?.some((subcategory) => subcategory.name === subcategoryFilter)
           : true;
@@ -1366,9 +1387,7 @@ const AdminServicesPage = () => {
   }, [categoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, subcategoryFilter]);
 
   useEffect(() => {
-    setBenefitPage(1);
     setHireServicePage(1);
-    setWhyServicePage(1);
     setProcessPage(1);
   }, [categoryFilter, subcategoryFilter]);
 
@@ -1416,6 +1435,53 @@ const AdminServicesPage = () => {
       setContactSubcategoryFilter('');
     }
   }, [contactCategoryFilter, contactSubcategoryFilter, subcategoryLookup]);
+
+  // Keep dependent filters valid for Benefits tab
+  useEffect(() => {
+    if (!benefitCategoryFilter) {
+      setBenefitSubcategoryFilter('');
+      return;
+    }
+
+    const allowed = subcategoryLookup.get(benefitCategoryFilter) || [];
+    if (benefitSubcategoryFilter && !allowed.includes(benefitSubcategoryFilter)) {
+      setBenefitSubcategoryFilter('');
+    }
+  }, [benefitCategoryFilter, benefitSubcategoryFilter, subcategoryLookup]);
+
+  // Keep dependent filters valid for Why choose this service tab
+  useEffect(() => {
+    if (!whyServiceCategoryFilter) {
+      setWhyServiceSubcategoryFilter('');
+      return;
+    }
+
+    const allowed = subcategoryLookup.get(whyServiceCategoryFilter) || [];
+    if (whyServiceSubcategoryFilter && !allowed.includes(whyServiceSubcategoryFilter)) {
+      setWhyServiceSubcategoryFilter('');
+    }
+  }, [whyServiceCategoryFilter, whyServiceSubcategoryFilter, subcategoryLookup]);
+
+  // Keep dependent filters valid for Why choose VedX tab
+  useEffect(() => {
+    if (!whyVedxCategoryFilter) {
+      setWhyVedxSubcategoryFilter('');
+      return;
+    }
+
+    const allowed = subcategoryLookup.get(whyVedxCategoryFilter) || [];
+    if (whyVedxSubcategoryFilter && !allowed.includes(whyVedxSubcategoryFilter)) {
+      setWhyVedxSubcategoryFilter('');
+    }
+  }, [whyVedxCategoryFilter, whyVedxSubcategoryFilter, subcategoryLookup]);
+
+  useEffect(() => {
+    setWhyServicePage(1);
+  }, [whyServiceCategoryFilter, whyServiceSubcategoryFilter]);
+
+  useEffect(() => {
+    setWhyVedxPage(1);
+  }, [whyVedxCategoryFilter, whyVedxSubcategoryFilter]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredServices.length / rowsPerPage));
@@ -1511,8 +1577,8 @@ const AdminServicesPage = () => {
   const filteredHireServices = useMemo(
     () =>
       hireContent.services.filter((service) => {
-        const matchesCategory = categoryFilter ? service.category === categoryFilter : true;
-        const matchesSubcategory = subcategoryFilter ? service.subcategory === subcategoryFilter : true;
+        const matchesCategory = whyVedxCategoryFilter ? service.category === categoryFilter : true;
+        const matchesSubcategory = whyVedxSubcategoryFilter ? service.subcategory === subcategoryFilter : true;
         return matchesCategory && matchesSubcategory;
       }),
     [categoryFilter, hireContent.services, subcategoryFilter]
@@ -2889,6 +2955,43 @@ const AdminServicesPage = () => {
           <Divider />
           <CardContent>
             <Stack spacing={3}>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                <TextField
+                  select
+                  label="Category filter"
+                  value={whyVedxCategoryFilter}
+                  onChange={(event) => setWhyVedxCategoryFilter(event.target.value)}
+                  fullWidth
+                >
+                  <MenuItem value="">All categories</MenuItem>
+                  {categoryOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  label="Sub-category filter"
+                  value={whyVedxSubcategoryFilter}
+                  onChange={(event) => setWhyVedxSubcategoryFilter(event.target.value)}
+                  fullWidth
+                  disabled={
+                    whyVedxCategoryFilter
+                      ? (subcategoryLookup.get(whyVedxCategoryFilter) || []).length === 0
+                      : allSubcategoryOptions.length === 0
+                  }
+                >
+                  <MenuItem value="">All sub-categories</MenuItem>
+                  {(whyVedxCategoryFilter ? subcategoryLookup.get(whyVedxCategoryFilter) || [] : allSubcategoryOptions).map(
+                    (option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    )
+                  )}
+                </TextField>
+              </Stack>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
                 <Autocomplete
                   options={whyVedxOptions}
@@ -3415,6 +3518,44 @@ const AdminServicesPage = () => {
           <Divider />
           <CardContent>
             <Stack spacing={3}>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                <TextField
+                  select
+                  label="Category filter"
+                  value={whyServiceCategoryFilter}
+                  onChange={(event) => setWhyServiceCategoryFilter(event.target.value)}
+                  fullWidth
+                >
+                  <MenuItem value="">All categories</MenuItem>
+                  {categoryOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  label="Sub-category filter"
+                  value={whyServiceSubcategoryFilter}
+                  onChange={(event) => setWhyServiceSubcategoryFilter(event.target.value)}
+                  fullWidth
+                  disabled={
+                    whyServiceCategoryFilter
+                      ? (subcategoryLookup.get(whyServiceCategoryFilter) || []).length === 0
+                      : allSubcategoryOptions.length === 0
+                  }
+                >
+                  <MenuItem value="">All sub-categories</MenuItem>
+                  {(whyServiceCategoryFilter
+                    ? subcategoryLookup.get(whyServiceCategoryFilter) || []
+                    : allSubcategoryOptions
+                  ).map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
                 <Autocomplete
                   options={whyChooseList}
@@ -3755,6 +3896,44 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={2}>
+              <TextField
+                select
+                label="Category filter"
+                value={benefitCategoryFilter}
+                onChange={(event) => setBenefitCategoryFilter(event.target.value)}
+                fullWidth
+              >
+                <MenuItem value="">All categories</MenuItem>
+                {categoryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                label="Sub-category filter"
+                value={benefitSubcategoryFilter}
+                onChange={(event) => setBenefitSubcategoryFilter(event.target.value)}
+                fullWidth
+                disabled={
+                  benefitCategoryFilter
+                    ? (subcategoryLookup.get(benefitCategoryFilter) || []).length === 0
+                    : allSubcategoryOptions.length === 0
+                }
+              >
+                <MenuItem value="">All sub-categories</MenuItem>
+                {(benefitCategoryFilter ? subcategoryLookup.get(benefitCategoryFilter) || [] : allSubcategoryOptions).map(
+                  (option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  )
+                )}
+              </TextField>
+            </Stack>
+
             <Stack
               direction={{ xs: 'column', md: 'row' }}
               spacing={2}
