@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
@@ -100,8 +100,6 @@ const emptyServiceForm = {
 
 const emptyTechnologyForm = {
   id: '',
-  category: '',
-  subcategory: '',
   title: '',
   image: imagePlaceholder,
   items: [],
@@ -114,6 +112,7 @@ const emptyBenefitForm = {
   subcategory: '',
   description: '',
   image: imagePlaceholder,
+  benefitConfigId: '',
 };
 
 const emptyHireServiceForm = {
@@ -146,6 +145,10 @@ const emptyWhyVedxForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  categoryId: '',
+  subcategoryId: '',
+  categoryName: '',
+  subcategoryName: '',
   whyVedxId: '',
 };
 
@@ -327,6 +330,8 @@ const AdminServicesPage = () => {
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
   const [activeBenefit, setActiveBenefit] = useState(null);
   const [benefitToDelete, setBenefitToDelete] = useState(null);
+  const benefitConfigClearedRef = useRef(false);
+  const whyVedxConfigClearedRef = useRef(false);
 
   const [hireContent, setHireContent] = useState(initialHireDevelopers);
   const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
@@ -446,12 +451,11 @@ const AdminServicesPage = () => {
   const normalizeTechnology = (tech) => ({
     ...tech,
     items: tech.items || [],
-    category: tech.category || '',
-    subcategory: tech.subcategory || '',
   });
 
   const normalizeBenefit = (benefit) => ({
     ...benefit,
+    benefitConfigId: benefit.benefitConfigId ? String(benefit.benefitConfigId) : '',
     category: benefit.category || '',
     subcategory: benefit.subcategory || '',
   });
@@ -521,6 +525,10 @@ const AdminServicesPage = () => {
 
   const normalizeWhyVedxReason = (reason) => ({
     ...reason,
+    categoryId: reason.categoryId || '',
+    subcategoryId: reason.subcategoryId || '',
+    categoryName: reason.categoryName || '',
+    subcategoryName: reason.subcategoryName || '',
     whyVedxId: reason.whyVedxId || '',
   });
 
@@ -554,13 +562,9 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadTechnologies = useCallback(async ({ category, subcategory } = {}) => {
+  const loadTechnologies = useCallback(async () => {
     try {
-      const params = new URLSearchParams();
-      if (category) params.append('category', category);
-      if (subcategory) params.append('subcategory', subcategory);
-
-      const response = await fetch(apiUrl(`/api/technologies${params.toString() ? `?${params.toString()}` : ''}`));
+      const response = await fetch(apiUrl('/api/technologies'));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
       setTechnologies((data || []).map(normalizeTechnology));
@@ -591,11 +595,12 @@ const AdminServicesPage = () => {
     }
   };
 
-  const loadBenefits = useCallback(async ({ category, subcategory } = {}) => {
+  const loadBenefits = useCallback(async ({ category, subcategory, benefitConfigId } = {}) => {
     try {
       const params = new URLSearchParams();
       if (category) params.append('category', category);
       if (subcategory) params.append('subcategory', subcategory);
+      if (benefitConfigId) params.append('benefitConfigId', benefitConfigId);
 
       const response = await fetch(apiUrl(`/api/benefits${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
@@ -707,28 +712,39 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadWhyVedx = async () => {
-    try {
-      const response = await fetch(apiUrl('/api/why-vedx?includeReasons=true'));
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || '');
-      const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
+  const loadWhyVedx = useCallback(
+    async ({ category, subcategory } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        params.append('includeReasons', 'true');
 
-      setWhyVedxList(list);
+        const response = await fetch(apiUrl(`/api/why-vedx?${params.toString()}`));
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || '');
+        const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
 
-      const active = list[0] || emptyWhyVedxHero;
-      setSelectedWhyVedxId(active.id || '');
-      setWhyVedxHeroForm(active.id ? active : emptyWhyVedxHero);
-      setWhyVedxReasons(active.reasons || []);
-    } catch (err) {
-      console.error('Failed to load why VEDX config', err);
-    }
-  };
+        setWhyVedxList(list);
 
-  const loadWhyVedxReasons = async (whyVedxId) => {
+        const active =
+          list.find((item) => String(item.id) === String(selectedWhyVedxId)) || list[0] || emptyWhyVedxHero;
+        setSelectedWhyVedxId(active.id || '');
+        setWhyVedxHeroForm(active.id ? active : emptyWhyVedxHero);
+        setWhyVedxReasons(active.reasons || []);
+      } catch (err) {
+        console.error('Failed to load why VEDX config', err);
+      }
+    },
+    [selectedWhyVedxId]
+  );
+
+  const loadWhyVedxReasons = useCallback(async (whyVedxId, { category, subcategory } = {}) => {
     try {
       const params = new URLSearchParams();
       if (whyVedxId) params.append('whyVedxId', String(whyVedxId));
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
       const response = await fetch(apiUrl(`/api/why-vedx-reasons${params.toString() ? `?${params.toString()}` : ''}`));
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load reasons');
@@ -736,7 +752,7 @@ const AdminServicesPage = () => {
     } catch (err) {
       console.error('Failed to load why VEDX reasons', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadServiceCategories();
@@ -746,7 +762,7 @@ const AdminServicesPage = () => {
     loadWhyVedx();
     loadBenefitConfigs();
     loadContactButtons();
-  }, [loadBenefitConfigs]);
+  }, [loadBenefitConfigs, loadWhyVedx]);
 
   useEffect(() => {
     const filters = {
@@ -755,11 +771,36 @@ const AdminServicesPage = () => {
     };
 
     loadServiceMenus(filters);
-    loadTechnologies(filters);
-    loadBenefits(filters);
+    loadTechnologies();
     loadHireServices(filters);
     loadWhyChoose(filters);
-  }, [categoryFilter, loadBenefits, loadHireServices, loadServiceMenus, loadTechnologies, loadWhyChoose, subcategoryFilter]);
+    loadWhyVedx(filters);
+    loadBenefitConfigs();
+  }, [
+    categoryFilter,
+    loadBenefitConfigs,
+    loadHireServices,
+    loadServiceMenus,
+    loadTechnologies,
+    loadWhyChoose,
+    loadWhyVedx,
+    subcategoryFilter,
+  ]);
+
+  useEffect(() => {
+    if (!selectedBenefitConfigId) {
+      setBenefits([]);
+      return;
+    }
+
+    const filters = {
+      category: categoryFilter || undefined,
+      subcategory: subcategoryFilter || undefined,
+      benefitConfigId: selectedBenefitConfigId,
+    };
+
+    loadBenefits(filters);
+  }, [categoryFilter, loadBenefits, selectedBenefitConfigId, subcategoryFilter]);
 
   useEffect(() => {
     if (!selectedWhyChooseId) {
@@ -782,16 +823,51 @@ const AdminServicesPage = () => {
   }, [categoryFilter, loadWhyServices, selectedWhyChooseId, subcategoryFilter, whyChooseList]);
 
   useEffect(() => {
+    const matchesFilters = (item) => {
+      const matchesCategory = categoryFilter
+        ? item.categoryName === categoryFilter || item.category === categoryFilter
+        : true;
+      const matchesSubcategory = subcategoryFilter
+        ? item.subcategoryName === subcategoryFilter || item.subcategory === subcategoryFilter
+        : true;
+
+      return matchesCategory && matchesSubcategory;
+    };
+
+    if (whyVedxList.length === 0) {
+      setSelectedWhyVedxId('');
+      setWhyVedxHeroForm(emptyWhyVedxHero);
+      setWhyVedxReasons([]);
+      setWhyVedxPage(1);
+      whyVedxConfigClearedRef.current = false;
+      return;
+    }
+
+    if (whyVedxConfigClearedRef.current && !selectedWhyVedxId) {
+      return;
+    }
+
     const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
-    if (active) {
-      setWhyVedxHeroForm(active);
-      loadWhyVedxReasons(active.id);
+    const preferred = (categoryFilter || subcategoryFilter) ? whyVedxList.find(matchesFilters) : null;
+    const next = preferred || active || whyVedxList[0];
+
+    if (String(next?.id || '') !== String(selectedWhyVedxId || '')) {
+      setSelectedWhyVedxId(next?.id ? String(next.id) : '');
+    }
+
+    if (next) {
+      setWhyVedxHeroForm(next);
+      loadWhyVedxReasons(next.id, {
+        category: categoryFilter || undefined,
+        subcategory: subcategoryFilter || undefined,
+      });
     } else {
       setWhyVedxHeroForm(emptyWhyVedxHero);
       setWhyVedxReasons([]);
     }
     setWhyVedxPage(1);
-  }, [selectedWhyVedxId, whyVedxList]);
+    whyVedxConfigClearedRef.current = false;
+  }, [categoryFilter, loadWhyVedxReasons, selectedWhyVedxId, subcategoryFilter, whyVedxList]);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
@@ -803,7 +879,15 @@ const AdminServicesPage = () => {
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
   const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
-  const resetWhyVedxForm = () => setWhyVedxForm({ ...emptyWhyVedxForm, whyVedxId: selectedWhyVedxId || '' });
+  const resetWhyVedxForm = () =>
+    setWhyVedxForm({
+      ...emptyWhyVedxForm,
+      whyVedxId: selectedWhyVedxId || '',
+      categoryId: whyVedxHeroForm.categoryId || '',
+      categoryName: whyVedxHeroForm.categoryName || '',
+      subcategoryId: whyVedxHeroForm.subcategoryId || '',
+      subcategoryName: whyVedxHeroForm.subcategoryName || '',
+    });
   const resetOurServiceForm = () => setOurServiceForm(emptyOurServiceForm);
   const resetIndustryForm = () => setIndustryForm(emptyIndustryForm);
   const resetTechSolutionForm = () => setTechSolutionForm(emptyTechSolutionForm);
@@ -837,6 +921,60 @@ const AdminServicesPage = () => {
   const handleBenefitHeroChange = (field, value) => {
     setBenefitHeroSaved(false);
     setBenefitHero((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBenefitConfigSelect = (config) => {
+    const nextId = config?.id ? String(config.id) : '';
+    benefitConfigClearedRef.current = !nextId;
+    setSelectedBenefitConfigId(nextId);
+
+    if (!nextId) {
+      setBenefitHero(initialBenefitHero);
+      setBenefitHeroSaved(false);
+      setBenefitPage(1);
+    }
+  };
+
+  const handleNewBenefitConfig = () => {
+    benefitConfigClearedRef.current = true;
+    setSelectedBenefitConfigId('');
+    setBenefitHero(initialBenefitHero);
+    setBenefitHeroSaved(false);
+    setBenefitPage(1);
+  };
+
+  const buildDefaultWhyVedxHero = () => {
+    return { ...emptyWhyVedxHero };
+  };
+
+  const handleNewWhyVedxHero = () => {
+    whyVedxConfigClearedRef.current = true;
+    setSelectedWhyVedxId('');
+    setWhyVedxHeroForm(buildDefaultWhyVedxHero());
+    setWhyVedxReasons([]);
+    setWhyVedxPage(1);
+  };
+
+  const handleWhyVedxSelect = (option) => {
+    const nextId = option?.value ? String(option.value) : '';
+    const isClearing = !nextId;
+
+    whyVedxConfigClearedRef.current = isClearing;
+    setSelectedWhyVedxId(nextId);
+
+    if (isClearing) {
+      setWhyVedxHeroForm(buildDefaultWhyVedxHero());
+      setWhyVedxReasons([]);
+      setWhyVedxPage(1);
+      return;
+    }
+
+    const matchingHero = whyVedxList.find((item) => String(item.id) === nextId);
+    if (matchingHero) {
+      setWhyVedxHeroForm(matchingHero);
+      setWhyVedxReasons(matchingHero.reasons || []);
+    }
+    setWhyVedxPage(1);
   };
 
   const handleHireServiceFormChange = (field, value) => {
@@ -908,24 +1046,52 @@ const AdminServicesPage = () => {
   };
 
   useEffect(() => {
+    const matchesFilters = (config) => {
+      const matchesCategory = categoryFilter ? config.categoryName === categoryFilter : true;
+      const matchesSubcategory = subcategoryFilter ? config.subcategoryName === subcategoryFilter : true;
+      return matchesCategory && matchesSubcategory;
+    };
+
     if (benefitConfigs.length === 0) {
+      setSelectedBenefitConfigId('');
+      setBenefitHero(initialBenefitHero);
+      setBenefitPage(1);
+      benefitConfigClearedRef.current = false;
+      return;
+    }
+
+    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
+    const preferredByFilters = categoryFilter || subcategoryFilter ? benefitConfigs.find(matchesFilters) : null;
+    const fallback = !benefitConfigClearedRef.current ? benefitConfigs[0] : null;
+
+    let nextConfig = null;
+
+    if (categoryFilter || subcategoryFilter) {
+      nextConfig = preferredByFilters || (active && matchesFilters(active) ? active : null);
+    } else {
+      nextConfig = active || fallback;
+    }
+
+    if (!nextConfig) {
       setSelectedBenefitConfigId('');
       setBenefitHero(initialBenefitHero);
       setBenefitPage(1);
       return;
     }
 
-    if (!selectedBenefitConfigId) {
-      setSelectedBenefitConfigId(String(benefitConfigs[0].id));
-      return;
+    if (String(nextConfig.id) !== selectedBenefitConfigId) {
+      setSelectedBenefitConfigId(String(nextConfig.id));
     }
 
-    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
-    if (active) {
-      setBenefitHero(active);
-      setBenefitPage(1);
-    }
-  }, [benefitConfigs, selectedBenefitConfigId]);
+    setBenefitHero(nextConfig);
+    setBenefitPage(1);
+    benefitConfigClearedRef.current = false;
+  }, [
+    benefitConfigs,
+    categoryFilter,
+    selectedBenefitConfigId,
+    subcategoryFilter,
+  ]);
 
   const handleProcessChange = (field, value) => {
     setProcessForm((prev) => ({ ...prev, [field]: value }));
@@ -1039,6 +1205,14 @@ const AdminServicesPage = () => {
     [serviceCategories]
   );
 
+  const categoryNameToId = useMemo(() => {
+    const lookup = new Map();
+    serviceCategories.forEach((category) => {
+      if (category.name) lookup.set(category.name, category.id);
+    });
+    return lookup;
+  }, [serviceCategories]);
+
   const categoryIdToName = useMemo(() => {
     const lookup = new Map();
     serviceCategories.forEach((category) => {
@@ -1051,6 +1225,14 @@ const AdminServicesPage = () => {
     const lookup = new Map();
     serviceSubcategories.forEach((subcategory) => {
       lookup.set(String(subcategory.id), subcategory.name);
+    });
+    return lookup;
+  }, [serviceSubcategories]);
+
+  const subcategoryNameToId = useMemo(() => {
+    const lookup = new Map();
+    serviceSubcategories.forEach((subcategory) => {
+      if (subcategory.name) lookup.set(subcategory.name, subcategory.id);
     });
     return lookup;
   }, [serviceSubcategories]);
@@ -1104,6 +1286,14 @@ const AdminServicesPage = () => {
     return base.map((subcategory) => ({ value: subcategory.id, label: subcategory.name }));
   }, [serviceSubcategories, whyVedxHeroForm.categoryId]);
 
+  const whyVedxReasonSubcategoryOptions = useMemo(() => {
+    const base = whyVedxForm.categoryId
+      ? serviceSubcategories.filter((item) => Number(item.categoryId) === Number(whyVedxForm.categoryId))
+      : serviceSubcategories;
+
+    return base.map((subcategory) => ({ value: subcategory.id, label: subcategory.name }));
+  }, [serviceSubcategories, whyVedxForm.categoryId]);
+
   const filteredServices = useMemo(
     () =>
       services.filter((service) => {
@@ -1140,6 +1330,31 @@ const AdminServicesPage = () => {
     return Array.from(lookup.entries()).map(([category, services]) => ({ category, services }));
   }, [pagedServices]);
 
+  const serviceLookupById = useMemo(
+    () => new Map(services.map((service) => [String(service.id), service])),
+    [services]
+  );
+
+  const filteredProcesses = useMemo(
+    () =>
+      processList.filter((item) => {
+        const linkedService = serviceLookupById.get(String(item.serviceId));
+        const matchesCategory = categoryFilter ? linkedService?.category === categoryFilter : true;
+        const matchesSubcategory = subcategoryFilter
+          ? item.subcategory === subcategoryFilter ||
+            linkedService?.subcategories?.some((subcategory) => subcategory.name === subcategoryFilter)
+          : true;
+
+        return matchesCategory && matchesSubcategory;
+      }),
+    [categoryFilter, processList, serviceLookupById, subcategoryFilter]
+  );
+
+  const pagedProcesses = useMemo(() => {
+    const start = (processPage - 1) * rowsPerPage;
+    return filteredProcesses.slice(start, start + rowsPerPage);
+  }, [filteredProcesses, processPage, rowsPerPage]);
+
   useEffect(() => {
     setServicePage(1);
   }, [categoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, subcategoryFilter]);
@@ -1148,6 +1363,8 @@ const AdminServicesPage = () => {
     setBenefitPage(1);
     setHireServicePage(1);
     setWhyServicePage(1);
+    setProcessPage(1);
+    setContactButtonPage(1);
   }, [categoryFilter, subcategoryFilter]);
 
   const benefitHeroCategoryOptions = useMemo(
@@ -1204,17 +1421,10 @@ const AdminServicesPage = () => {
   const visibleBenefits = useMemo(() => {
     if (!selectedBenefitConfigId) return [];
 
-    return benefits.filter((benefit) => {
-      const matchesCategory = benefitConfigCategoryName
-        ? benefit.category === benefitConfigCategoryName
-        : true;
-      const matchesSubcategory = benefitConfigSubcategoryName
-        ? benefit.subcategory === benefitConfigSubcategoryName
-        : true;
-
-      return matchesCategory && matchesSubcategory;
-    });
-  }, [benefits, benefitConfigCategoryName, benefitConfigSubcategoryName, selectedBenefitConfigId]);
+    return benefits.filter(
+      (benefit) => String(benefit.benefitConfigId) === String(selectedBenefitConfigId)
+    );
+  }, [benefits, selectedBenefitConfigId]);
 
   const pagedBenefits = useMemo(() => {
     const start = (benefitPage - 1) * rowsPerPage;
@@ -1233,26 +1443,27 @@ const AdminServicesPage = () => {
     return Array.from(lookup.entries()).map(([category, items]) => ({ category, items }));
   }, [pagedBenefits]);
 
+  const sortedTechnologies = useMemo(
+    () =>
+      [...technologies].sort((a, b) => {
+        const titleCompare = (a.title || '').localeCompare(b.title || '');
+        if (titleCompare !== 0) return titleCompare;
+        return String(a.id ?? '').localeCompare(String(b.id ?? ''));
+      }),
+    [technologies]
+  );
+
   const groupedTechnologies = useMemo(() => {
     const lookup = new Map();
 
-    technologies.forEach((tech) => {
-      const title = tech.title || 'Untitled';
-      const existing = lookup.get(title) || [];
-      lookup.set(title, [...existing, tech]);
+    sortedTechnologies.forEach((tech) => {
+      const titleKey = tech.title?.trim() || 'Untitled';
+      const existing = lookup.get(titleKey) || [];
+      lookup.set(titleKey, [...existing, tech]);
     });
 
-    return Array.from(lookup.entries()).map(([title, items]) => ({
-      title,
-      items: items.sort((a, b) => {
-        const categoryCompare = (a.category || '').localeCompare(b.category || '');
-        if (categoryCompare !== 0) return categoryCompare;
-        const subcategoryCompare = (a.subcategory || '').localeCompare(b.subcategory || '');
-        if (subcategoryCompare !== 0) return subcategoryCompare;
-        return String(a.id ?? '').localeCompare(String(b.id ?? ''));
-      }),
-    }));
-  }, [technologies]);
+    return Array.from(lookup.entries()).map(([title, items]) => ({ title, items }));
+  }, [sortedTechnologies]);
 
   const activeWhyVedxReasons = useMemo(() => {
     if (!selectedWhyVedxId) return whyVedxReasons;
@@ -1289,10 +1500,20 @@ const AdminServicesPage = () => {
     }));
   }, [pagedHireServices]);
 
+  const filteredContactButtons = useMemo(
+    () =>
+      contactButtons.filter((button) => {
+        const matchesCategory = categoryFilter ? button.category === categoryFilter : true;
+        const matchesSubcategory = subcategoryFilter ? button.subcategory === subcategoryFilter : true;
+        return matchesCategory && matchesSubcategory;
+      }),
+    [categoryFilter, contactButtons, subcategoryFilter]
+  );
+
   const pagedContactButtons = useMemo(() => {
     const start = (contactButtonPage - 1) * rowsPerPage;
-    return contactButtons.slice(start, start + rowsPerPage);
-  }, [contactButtonPage, contactButtons, rowsPerPage]);
+    return filteredContactButtons.slice(start, start + rowsPerPage);
+  }, [contactButtonPage, filteredContactButtons, rowsPerPage]);
 
   const groupedContactButtons = useMemo(() => {
     const lookup = new Map();
@@ -1327,9 +1548,14 @@ const AdminServicesPage = () => {
   }, [hireContent.services.length, rowsPerPage]);
 
   useEffect(() => {
-    const maxContactPage = Math.max(1, Math.ceil(contactButtons.length / rowsPerPage));
+    const maxProcessPage = Math.max(1, Math.ceil(filteredProcesses.length / rowsPerPage));
+    setProcessPage((prev) => Math.min(prev, maxProcessPage));
+  }, [filteredProcesses.length, rowsPerPage]);
+
+  useEffect(() => {
+    const maxContactPage = Math.max(1, Math.ceil(filteredContactButtons.length / rowsPerPage));
     setContactButtonPage((prev) => Math.min(prev, maxContactPage));
-  }, [contactButtons.length, rowsPerPage]);
+  }, [filteredContactButtons.length, rowsPerPage]);
 
   useEffect(() => {
     setOurServicesHeroForm((prev) => ({
@@ -1443,11 +1669,9 @@ const AdminServicesPage = () => {
 
   const handleTechnologySubmit = async (event) => {
     event?.preventDefault();
-    if (!technologyForm.title.trim() || !technologyForm.category.trim() || !technologyForm.image) return;
+    if (!technologyForm.title.trim() || !technologyForm.image) return;
 
     const payload = {
-      category: technologyForm.category,
-      subcategory: technologyForm.subcategory || '',
       title: technologyForm.title,
       image: technologyForm.image,
       items: technologyForm.items || [],
@@ -1501,9 +1725,17 @@ const AdminServicesPage = () => {
       return;
     }
 
+    const defaultCategory = benefitConfigCategoryName || '';
+    const defaultSubcategory = benefitConfigSubcategoryName || '';
+
     setBenefitDialogMode('create');
     setActiveBenefit(null);
-    resetBenefitForm();
+    setBenefitForm({
+      ...emptyBenefitForm,
+      category: defaultCategory,
+      subcategory: defaultSubcategory,
+      benefitConfigId: selectedBenefitConfigId,
+    });
     setBenefitDialogOpen(true);
   };
 
@@ -1523,12 +1755,19 @@ const AdminServicesPage = () => {
     event?.preventDefault();
     if (!benefitForm.title.trim() || !benefitForm.description.trim() || !benefitForm.image) return;
 
+    const benefitConfigId = benefitForm.benefitConfigId || selectedBenefitConfigId;
+    if (!benefitConfigId) {
+      handleRequestError(new Error('Please select a benefit config before saving benefits'));
+      return;
+    }
+
     const payload = {
       title: benefitForm.title,
       category: benefitForm.category,
       subcategory: benefitForm.subcategory,
       description: benefitForm.description,
       image: benefitForm.image,
+      benefitConfigId,
     };
 
     const isEdit = benefitDialogMode === 'edit' && activeBenefit;
@@ -1576,7 +1815,16 @@ const AdminServicesPage = () => {
   const openWhyServiceCreateDialog = () => {
     setWhyServiceDialogMode('create');
     setActiveWhyService(null);
-    resetWhyServiceForm();
+    const defaultCategory = categoryFilter || whyHeroForm.category || '';
+    const defaultSubcategory =
+      subcategoryFilter || (defaultCategory === whyHeroForm.category ? whyHeroForm.subcategory : '');
+
+    setWhyServiceForm((prev) => ({
+      ...prev,
+      ...emptyWhyServiceForm,
+      category: defaultCategory,
+      subcategory: defaultSubcategory,
+    }));
     setWhyServiceDialogOpen(true);
   };
 
@@ -1754,7 +2002,11 @@ const AdminServicesPage = () => {
   const openContactButtonCreateDialog = () => {
     setContactButtonDialogMode('create');
     setActiveContactButton(null);
-    setContactButtonForm(emptyContactButtonForm);
+    setContactButtonForm({
+      ...emptyContactButtonForm,
+      category: categoryFilter || '',
+      subcategory: subcategoryFilter || '',
+    });
     setContactButtonDialogOpen(true);
   };
 
@@ -1926,6 +2178,7 @@ const AdminServicesPage = () => {
       });
       setSelectedWhyVedxId(normalized.id);
       setWhyVedxHeroForm(normalized);
+      whyVedxConfigClearedRef.current = false;
       if (normalized.reasons?.length) {
         setWhyVedxReasons((prev) => {
           const remaining = prev.filter((reason) => reason.whyVedxId !== normalized.id);
@@ -1974,6 +2227,8 @@ const AdminServicesPage = () => {
       title: whyVedxForm.title,
       description: whyVedxForm.description,
       image: whyVedxForm.image,
+      categoryId: whyVedxForm.categoryId || null,
+      subcategoryId: whyVedxForm.subcategoryId || null,
       whyVedxId: whyVedxForm.whyVedxId || selectedWhyVedxId || null,
     };
 
@@ -2228,11 +2483,6 @@ const AdminServicesPage = () => {
     if (!serviceForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, serviceForm.category, subcategoryLookup]);
-
-  const technologySubcategoryOptions = useMemo(() => {
-    if (!technologyForm.category) return allSubcategoryOptions;
-    return subcategoryLookup.get(technologyForm.category) || allSubcategoryOptions;
-  }, [allSubcategoryOptions, subcategoryLookup, technologyForm.category]);
 
   const benefitSubcategoryOptions = useMemo(() => {
     if (!benefitForm.category) return allSubcategoryOptions;
@@ -2531,7 +2781,7 @@ const AdminServicesPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
+                  {pagedProcesses.map((item) => (
                     <TableRow key={item.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                       <TableCell>
@@ -2563,11 +2813,13 @@ const AdminServicesPage = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {processList.length === 0 && (
+                  {pagedProcesses.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
-                          No process steps added yet.
+                          {processList.length === 0
+                            ? 'No process steps added yet.'
+                            : 'No process steps match the selected filters.'}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -2577,7 +2829,7 @@ const AdminServicesPage = () => {
             </TableContainer>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
-                count={Math.max(1, Math.ceil(processList.length / rowsPerPage))}
+                count={Math.max(1, Math.ceil(filteredProcesses.length / rowsPerPage))}
                 page={processPage}
                 onChange={(event, page) => setProcessPage(page)}
                 color="primary"
@@ -2600,7 +2852,7 @@ const AdminServicesPage = () => {
                 <Autocomplete
                   options={whyVedxOptions}
                   value={whyVedxOptions.find((option) => String(option.value) === String(selectedWhyVedxId)) || null}
-                  onChange={(event, option) => setSelectedWhyVedxId(option?.value || '')}
+                  onChange={(event, option) => handleWhyVedxSelect(option)}
                   renderInput={(params) => (
                     <TextField {...params} label="Select hero" placeholder="Pick an existing hero card" fullWidth />
                   )}
@@ -2609,10 +2861,7 @@ const AdminServicesPage = () => {
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                   <Button
                     variant="outlined"
-                    onClick={() => {
-                      setSelectedWhyVedxId('');
-                      setWhyVedxHeroForm(emptyWhyVedxHero);
-                    }}
+                    onClick={handleNewWhyVedxHero}
                   >
                     Add new hero
                   </Button>
@@ -2711,6 +2960,8 @@ const AdminServicesPage = () => {
                     <TableHead>
                       <TableRow>
                         <TableCell>Title</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Subcategory</TableCell>
                         <TableCell>Image</TableCell>
                         <TableCell>Description</TableCell>
                         <TableCell align="right">Actions</TableCell>
@@ -2722,6 +2973,8 @@ const AdminServicesPage = () => {
                         .map((item) => (
                           <TableRow key={item.id} hover>
                             <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                            <TableCell>{item.categoryName || '—'}</TableCell>
+                            <TableCell>{item.subcategoryName || '—'}</TableCell>
                             <TableCell>
                               <Box
                                 component="img"
@@ -2753,7 +3006,7 @@ const AdminServicesPage = () => {
                         ))}
                       {activeWhyVedxReasons.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={4}>
+                          <TableCell colSpan={6}>
                             <Typography variant="body2" color="text.secondary" align="center">
                               {selectedWhyVedxId
                                 ? 'No reasons added yet.'
@@ -3331,95 +3584,71 @@ const AdminServicesPage = () => {
           <Divider />
           <CardContent>
             <Stack spacing={1.5}>
-              {groupedTechnologies.map(({ title, items }) => (
-                <Accordion key={title} defaultExpanded>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                      <Typography variant="subtitle1" fontWeight={700}>
-                        {title}
-                      </Typography>
-                      <Chip label={`${items.length} entr${items.length === 1 ? 'y' : 'ies'}`} size="small" />
-                    </Stack>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Stack spacing={1.5}>
-                      {items.map((tech) => (
-                        <Card key={tech.id} variant="outlined">
-                          <CardContent>
-                            <Stack spacing={2}>
-                              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'stretch' }}>
-                                <Stack spacing={1} flex={1}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Category / Sub-category
-                                  </Typography>
-                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                                    <Chip
-                                      label={tech.category || 'Uncategorised'}
-                                      size="small"
-                                      color={tech.category ? 'default' : 'warning'}
-                                    />
-                                    {tech.subcategory ? (
-                                      <Chip label={tech.subcategory} size="small" color="primary" variant="outlined" />
-                                    ) : (
-                                      <Chip label="No sub-category" size="small" variant="outlined" color="default" />
-                                    )}
-                                  </Stack>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Technologies
-                                  </Typography>
-                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                                    {tech.items.length > 0 ? (
-                                      tech.items.map((item) => (
-                                        <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
-                                      ))
-                                    ) : (
-                                      <Typography variant="body2" color="text.secondary">
-                                        No items added yet.
-                                      </Typography>
-                                    )}
-                                  </Stack>
-                                </Stack>
-                                <Stack spacing={1} minWidth={220}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    Preview
-                                  </Typography>
-                                  <Box
-                                    component="img"
-                                    src={tech.image || imagePlaceholder}
-                                    alt={`${tech.title} preview`}
-                                    sx={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 1 }}
-                                  />
-                                  <Typography variant="body2" fontWeight={600} noWrap>
-                                    {tech.title}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary" noWrap>
-                                    {tech.subcategory || 'No sub-category selected'}
-                                  </Typography>
+              {groupedTechnologies.map((group) => (
+                <Stack key={group.title} spacing={1}>
+                  <Typography variant="h6" fontWeight={700} px={1}>
+                    {group.title}
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {group.items.map((tech) => (
+                      <Card key={tech.id} variant="outlined">
+                        <CardContent>
+                          <Stack spacing={2}>
+                            <Stack
+                              direction={{ xs: 'column', md: 'row' }}
+                              spacing={2}
+                              alignItems={{ md: 'stretch' }}
+                            >
+                              <Stack spacing={1} flex={1}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Technologies
+                                </Typography>
+                                <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                  {tech.items.length > 0 ? (
+                                    tech.items.map((item) => (
+                                      <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
+                                    ))
+                                  ) : (
+                                    <Typography variant="body2" color="text.secondary">
+                                      No items added yet.
+                                    </Typography>
+                                  )}
                                 </Stack>
                               </Stack>
-                              <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                <Tooltip title="Edit">
-                                  <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
-                                    <EditOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton size="small" color="error" onClick={() => openTechnologyDeleteDialog(tech)}>
-                                    <DeleteOutlineIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
+                              <Stack spacing={1} minWidth={220}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Preview
+                                </Typography>
+                                <Box
+                                  component="img"
+                                  src={tech.image || imagePlaceholder}
+                                  alt={`${tech.title} preview`}
+                                  sx={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 1 }}
+                                />
                               </Stack>
                             </Stack>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </Stack>
-                  </AccordionDetails>
-                </Accordion>
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton size="small" color="error" onClick={() => openTechnologyDeleteDialog(tech)}>
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Stack>
+                </Stack>
               ))}
-              {technologies.length === 0 && (
+              {groupedTechnologies.length === 0 && (
                 <Typography variant="body2" color="text.secondary" align="center">
-                  No technology groups configured yet.
+                  No technology blocks added yet. Use "Add technology block" to create one.
                 </Typography>
               )}
             </Stack>
@@ -3459,23 +3688,18 @@ const AdminServicesPage = () => {
                     : option?.title || 'Untitled'
                 }
                 value={benefitConfigs.find((item) => String(item.id) === String(selectedBenefitConfigId)) || null}
-                onChange={(event, value) => setSelectedBenefitConfigId(value?.id ? String(value.id) : '')}
+                onChange={(event, value) => handleBenefitConfigSelect(value)}
                 renderInput={(params) => <TextField {...params} label="Select benefits config" />}
                 sx={{ minWidth: { xs: '100%', md: 320 } }}
               />
-                <Button
-                  variant="outlined"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => {
-                    setSelectedBenefitConfigId('');
-                    setBenefitHero(initialBenefitHero);
-                    setBenefitHeroSaved(false);
-                    setBenefitPage(1);
-                  }}
-                  sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
-                >
-                  New config
-                </Button>
+              <Button
+                variant="outlined"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={handleNewBenefitConfig}
+                sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
+              >
+                New config
+              </Button>
             </Stack>
 
             <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
@@ -3726,15 +3950,17 @@ const AdminServicesPage = () => {
                   </AccordionDetails>
                 </Accordion>
               ))}
-              {contactButtons.length === 0 && (
+              {groupedContactButtons.length === 0 && (
                 <Typography variant="body2" color="text.secondary" align="center">
-                  No contact buttons configured yet.
+                  {contactButtons.length === 0
+                    ? 'No contact buttons configured yet.'
+                    : 'No contact buttons match the selected filters.'}
                 </Typography>
               )}
             </Stack>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
-                count={Math.max(1, Math.ceil(contactButtons.length / rowsPerPage))}
+                count={Math.max(1, Math.ceil(filteredContactButtons.length / rowsPerPage))}
                 page={contactButtonPage}
                 onChange={(event, page) => setContactButtonPage(page)}
                 color="primary"
@@ -4166,11 +4392,10 @@ const AdminServicesPage = () => {
               select
               label="Category"
               value={whyServiceForm.category}
-              onChange={(event) =>
-                setWhyServiceForm((prev) => ({ ...prev, category: event.target.value, subcategory: '' }))
-              }
               fullWidth
               required
+              disabled
+              helperText="Category is set by the current Why choose config"
             >
               {categoryOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -4182,16 +4407,9 @@ const AdminServicesPage = () => {
               select
               label="Sub-category"
               value={whyServiceForm.subcategory}
-              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
               fullWidth
-              disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
-              helperText={
-                !whyServiceForm.category
-                  ? 'Select a category first'
-                  : whySubcategoryOptions.length === 0
-                    ? 'No sub-categories available for this category'
-                    : undefined
-              }
+              disabled
+              helperText="Sub-category follows the selected Why choose config"
             >
               {whySubcategoryOptions.map((option) => (
                 <MenuItem key={option.name} value={option.name}>
@@ -4248,42 +4466,6 @@ const AdminServicesPage = () => {
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleTechnologySubmit}>
             <TextField
-              select
-              label="Category"
-              value={technologyForm.category}
-              onChange={(event) =>
-                setTechnologyForm((prev) => ({
-                  ...prev,
-                  category: event.target.value,
-                  subcategory: '',
-                }))
-              }
-              fullWidth
-              required
-              helperText="Match the service category for this technology block"
-            >
-              {categoryOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Sub-category"
-              value={technologyForm.subcategory}
-              onChange={(event) => handleTechnologyFormChange('subcategory', event.target.value)}
-              fullWidth
-              disabled={!technologyForm.category || technologySubcategoryOptions.length === 0}
-              helperText="Keep stacks aligned to category and sub-category"
-            >
-              {technologySubcategoryOptions.map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
               label="Title"
               value={technologyForm.title}
               onChange={(event) => handleTechnologyFormChange('title', event.target.value)}
@@ -4297,7 +4479,7 @@ const AdminServicesPage = () => {
               required
             />
             <TextField
-              label="Technologies (comma separated)"
+              label="Technologies"
               value={technologyItemsInput}
               onChange={(event) => {
                 const nextValue = event.target.value;
@@ -4361,6 +4543,7 @@ const AdminServicesPage = () => {
               }
               helperText="Link the benefit to a service category"
               fullWidth
+              disabled
             >
               {categoryOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -4373,8 +4556,9 @@ const AdminServicesPage = () => {
               label="Sub-category"
               value={benefitForm.subcategory}
               onChange={(event) => handleBenefitFormChange('subcategory', event.target.value)}
-              disabled={!benefitForm.category && benefitSubcategoryOptions.length === 0}
+              disabled
               fullWidth
+              InputProps={{ readOnly: true }}
             >
               {benefitSubcategoryOptions.map((option) => (
                 <MenuItem key={option} value={option}>
@@ -4571,6 +4755,54 @@ const AdminServicesPage = () => {
         <DialogTitle>{whyVedxDialogMode === 'edit' ? 'Edit reason' : 'Add reason'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleWhyVedxSubmit}>
+            <Autocomplete
+              options={serviceCategories.map((category) => ({ value: category.id, label: category.name }))}
+              value={
+                serviceCategories
+                  .map((category) => ({ value: category.id, label: category.name }))
+                  .find((option) => String(option.value) === String(whyVedxForm.categoryId)) || null
+              }
+              onChange={(event, option) =>
+                setWhyVedxForm((prev) => ({
+                  ...prev,
+                  categoryId: option?.value || '',
+                  categoryName: option?.label || '',
+                  subcategoryId: '',
+                  subcategoryName: '',
+                }))
+              }
+              renderInput={(params) => <TextField {...params} label="Category" placeholder="Select category" fullWidth />}
+              fullWidth
+            />
+            <Autocomplete
+              options={whyVedxReasonSubcategoryOptions}
+              value={
+                whyVedxReasonSubcategoryOptions.find(
+                  (option) => String(option.value) === String(whyVedxForm.subcategoryId)
+                ) || null
+              }
+              onChange={(event, option) =>
+                setWhyVedxForm((prev) => ({
+                  ...prev,
+                  subcategoryId: option?.value || '',
+                  subcategoryName: option?.label || '',
+                }))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Subcategory"
+                  placeholder={
+                    whyVedxForm.categoryId
+                      ? 'Select a subcategory'
+                      : 'Select a category to filter subcategories'
+                  }
+                  fullWidth
+                />
+              )}
+              fullWidth
+              disabled={!whyVedxReasonSubcategoryOptions.length}
+            />
             <TextField
               label="Title"
               value={whyVedxForm.title}

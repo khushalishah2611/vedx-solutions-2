@@ -302,6 +302,8 @@ model ServiceCategory {
 
   subCategories ServiceSubCategory[]
   benefitConfigs BenefitConfig[]
+  whyVedxItems  WhyVedx[]
+   whyVedxReasons  WhyVedxReason[]
 }
 
 model ServiceSubCategory {
@@ -318,6 +320,8 @@ model ServiceSubCategory {
 
   services    Service[]
   benefitConfigs BenefitConfig[]
+  whyVedxItems WhyVedx[]
+   whyVedxReasons  WhyVedxReason[]
 
   @@index([categoryId])
 }
@@ -700,16 +704,12 @@ model ServiceMenuFaq {
 /// ----------------------------------------------------------
 model Technology {
   id          Int      @id @default(autoincrement())
-  category    String
-  subcategory String?
   title       String
   image       String @db.LongText
   items       Json     // MySQL: use Json instead of String[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@index([category, subcategory])
 }
 
 model Benefit {
@@ -719,11 +719,14 @@ model Benefit {
   subcategory String?
   description String  @db.LongText
   image       String @db.LongText
+  benefitConfigId Int?
+  benefitConfig   BenefitConfig? @relation(fields: [benefitConfigId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([category, subcategory])
+  @@index([benefitConfigId])
 }
 
 model BenefitConfig {
@@ -734,6 +737,7 @@ model BenefitConfig {
   category    ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   subcategoryId Int?
   subcategory   ServiceSubCategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  benefits     Benefit[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -853,9 +857,16 @@ model WhyVedx {
   heroImage       String   @db.LongText
 
   reasons         WhyVedxReason[]
+  categoryId      Int?
+  category        ServiceCategory?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategoryId   Int?
+  subcategory     ServiceSubCategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+
+  @@index([categoryId])
+  @@index([subcategoryId])
 }
 
 model WhyVedxReason {
@@ -864,12 +875,19 @@ model WhyVedxReason {
   description String  @db.Text
   image     String @db.LongText
 
+  categoryId    Int?
+  category      ServiceCategory?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategoryId Int?
+  subcategory   ServiceSubCategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+
   whyVedxId Int?
   whyVedx   WhyVedx?  @relation(fields: [whyVedxId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  @@index([categoryId])
+  @@index([subcategoryId])
   @@index([whyVedxId])
 }
 

@@ -4997,8 +4997,6 @@ app.delete('/api/service-menus/:id', async (req, res) => {
 
 const mapTechnologyToResponse = (tech) => ({
   id: tech.id,
-  category: tech.category,
-  subcategory: tech.subcategory || '',
   title: tech.title,
   image: tech.image,
   items: tech.items || [],
@@ -5009,15 +5007,7 @@ const mapTechnologyToResponse = (tech) => ({
 // GET all technologies
 app.get('/api/technologies', async (req, res) => {
   try {
-    const { category, subcategory } = req.query;
-
-    const technologies = await prisma.technology.findMany({
-      where: {
-        ...(category && { category }),
-        ...(subcategory && { subcategory }),
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const technologies = await prisma.technology.findMany({ orderBy: { createdAt: 'desc' } });
 
     res.json(technologies.map(mapTechnologyToResponse));
   } catch (err) {
@@ -5032,18 +5022,16 @@ app.post('/api/technologies', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { category, subcategory, title, image, items } = req.body ?? {};
+    const { title, image, items } = req.body ?? {};
 
-    if (!category || !title || !image) {
+    if (!title || !image) {
       return res.status(400).json({
-        error: 'category, title, and image are required'
+        error: 'title and image are required'
       });
     }
 
     const created = await prisma.technology.create({
       data: {
-        category,
-        subcategory: subcategory || null,
         title,
         image,
         items: Array.isArray(items) ? items : [],
@@ -5068,13 +5056,11 @@ app.put('/api/technologies/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid technology id required' });
     }
 
-    const { category, subcategory, title, image, items } = req.body ?? {};
+    const { title, image, items } = req.body ?? {};
 
     const updated = await prisma.technology.update({
       where: { id },
       data: {
-        category,
-        subcategory,
         title,
         image,
         items: Array.isArray(items) ? items : undefined,
@@ -5114,10 +5100,12 @@ app.delete('/api/technologies/:id', async (req, res) => {
 const mapBenefitToResponse = (benefit) => ({
   id: benefit.id,
   title: benefit.title,
-  category: benefit.category || '',
-  subcategory: benefit.subcategory || '',
+  category: benefit.benefitConfig?.category?.name || benefit.category || '',
+  subcategory: benefit.benefitConfig?.subcategory?.name || benefit.subcategory || '',
   description: benefit.description,
   image: benefit.image,
+  benefitConfigId: benefit.benefitConfigId || null,
+  benefitConfigTitle: benefit.benefitConfig?.title || '',
   createdAt: benefit.createdAt,
   updatedAt: benefit.updatedAt,
 });
@@ -5358,14 +5346,17 @@ app.put('/api/benefit-configs/:id', async (req, res) => {
 // GET all benefits
 app.get('/api/benefits', async (req, res) => {
   try {
-    const { category, subcategory } = req.query;
+    const { category, subcategory, benefitConfigId } = req.query;
+    const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
 
     const benefits = await prisma.benefit.findMany({
       where: {
         ...(category && { category }),
         ...(subcategory && { subcategory }),
+        ...(parsedBenefitConfigId && { benefitConfigId: parsedBenefitConfigId }),
       },
       orderBy: { createdAt: 'desc' },
+      include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
 
     res.json(benefits.map(mapBenefitToResponse));
@@ -5381,7 +5372,7 @@ app.post('/api/benefits', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, category, subcategory, description, image } = req.body ?? {};
+    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
 
     if (!title || !description || !image) {
       return res.status(400).json({
@@ -5389,14 +5380,30 @@ app.post('/api/benefits', async (req, res) => {
       });
     }
 
+    const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
+    if (!parsedBenefitConfigId) {
+      return res.status(400).json({ error: 'benefitConfigId is required; please create the Benefit config first' });
+    }
+
+    const config = await prisma.benefitConfig.findUnique({
+      where: { id: parsedBenefitConfigId },
+      include: { category: true, subcategory: true },
+    });
+
+    if (!config) {
+      return res.status(404).json({ error: 'Benefit configuration not found' });
+    }
+
     const created = await prisma.benefit.create({
       data: {
         title,
-        category: category || null,
-        subcategory: subcategory || null,
+        category: category || config.category?.name || null,
+        subcategory: subcategory || config.subcategory?.name || null,
         description,
         image,
+        benefitConfigId: config.id,
       },
+      include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
 
     res.status(201).json(mapBenefitToResponse(created));
@@ -5417,17 +5424,33 @@ app.put('/api/benefits/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid benefit id required' });
     }
 
-    const { title, category, subcategory, description, image } = req.body ?? {};
+    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
+
+    const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
+    if (!parsedBenefitConfigId) {
+      return res.status(400).json({ error: 'benefitConfigId is required; please create the Benefit config first' });
+    }
+
+    const config = await prisma.benefitConfig.findUnique({
+      where: { id: parsedBenefitConfigId },
+      include: { category: true, subcategory: true },
+    });
+
+    if (!config) {
+      return res.status(404).json({ error: 'Benefit configuration not found' });
+    }
 
     const updated = await prisma.benefit.update({
       where: { id },
       data: {
         title,
-        category,
-        subcategory,
+        category: category || config.category?.name || null,
+        subcategory: subcategory || config.subcategory?.name || null,
         description,
         image,
+        benefitConfigId: config.id,
       },
+      include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
 
     res.json(mapBenefitToResponse(updated));
@@ -6133,6 +6156,10 @@ const mapWhyVedxToResponse = (whyVedx) => ({
   heroTitle: whyVedx.heroTitle,
   heroDescription: whyVedx.heroDescription,
   heroImage: whyVedx.heroImage,
+  categoryId: whyVedx.categoryId || null,
+  subcategoryId: whyVedx.subcategoryId || null,
+  categoryName: whyVedx.category?.name || '',
+  subcategoryName: whyVedx.subcategory?.name || '',
   reasons: whyVedx.reasons?.map((r) => ({
     id: r.id,
     title: r.title,
@@ -6159,7 +6186,13 @@ app.get('/api/why-vedx', async (req, res) => {
   try {
     const includeReasons = req.query.includeReasons === 'true';
     const whyVedx = await prisma.whyVedx.findMany({
-      include: includeReasons ? { reasons: true } : undefined,
+      include: {
+        ...(includeReasons
+          ? { reasons: { include: { category: true, subcategory: true }, orderBy: { createdAt: 'desc' } } }
+          : {}),
+        category: true,
+        subcategory: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -6177,11 +6210,37 @@ app.post('/api/why-vedx', async (req, res) => {
     if (!admin) return res.status(status).json({ message });
 
     const { id, heroTitle, heroDescription, heroImage } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
     if (!heroTitle || !heroDescription || !heroImage) {
       return res.status(400).json({
         error: 'heroTitle, heroDescription, and heroImage are required'
       });
+    }
+
+    let category = null;
+    if (categoryId) {
+      category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+      if (!category) {
+        return res.status(400).json({ error: 'Category not found' });
+      }
+    }
+
+    let subcategory = null;
+    if (subcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+      if (!subcategory) {
+        return res.status(400).json({ error: 'Sub-category not found' });
+      }
+
+      if (category && subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+      }
+
+      if (!category) {
+        category = await prisma.serviceCategory.findUnique({ where: { id: subcategory.categoryId } });
+      }
     }
 
     let result;
@@ -6191,13 +6250,25 @@ app.post('/api/why-vedx', async (req, res) => {
 
       result = await prisma.whyVedx.update({
         where: { id: parsedId },
-        data: { heroTitle, heroDescription, heroImage },
-        include: { reasons: true },
+        data: {
+          heroTitle,
+          heroDescription,
+          heroImage,
+          categoryId: category?.id || null,
+          subcategoryId: subcategory?.id || null,
+        },
+        include: { reasons: true, category: true, subcategory: true },
       });
     } else {
       result = await prisma.whyVedx.create({
-        data: { heroTitle, heroDescription, heroImage },
-        include: { reasons: true },
+        data: {
+          heroTitle,
+          heroDescription,
+          heroImage,
+          categoryId: category?.id || null,
+          subcategoryId: subcategory?.id || null,
+        },
+        include: { reasons: true, category: true, subcategory: true },
       });
     }
 
@@ -6232,8 +6303,12 @@ app.delete('/api/why-vedx/:id', async (req, res) => {
 const mapWhyVedxReasonToResponse = (reason) => ({
   id: reason.id,
   title: reason.title,
-  description: reason.description,
-  image: reason.image,
+  description: reason.description || '',
+  image: reason.image || null,
+  categoryId: reason.categoryId || null,
+  categoryName: reason.category?.name || reason.categoryName || reason.category || '',
+  subcategoryId: reason.subcategoryId || null,
+  subcategoryName: reason.subcategory?.name || reason.subcategoryName || reason.subcategory || '',
   whyVedxId: reason.whyVedxId,
   createdAt: reason.createdAt,
   updatedAt: reason.updatedAt,
@@ -6243,10 +6318,16 @@ const mapWhyVedxReasonToResponse = (reason) => ({
 app.get('/api/why-vedx-reasons', async (req, res) => {
   try {
     const parsedWhyVedxId = parseIntegerId(req.query?.whyVedxId);
+    const categoryName = req.query?.category;
+    const subcategoryName = req.query?.subcategory;
+
     const reasons = await prisma.whyVedxReason.findMany({
       where: {
         ...(parsedWhyVedxId ? { whyVedxId: parsedWhyVedxId } : {}),
+        ...(categoryName ? { category: { name: categoryName } } : {}),
+        ...(subcategoryName ? { subcategory: { name: subcategoryName } } : {}),
       },
+      include: { category: true, subcategory: true },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -6264,6 +6345,8 @@ app.post('/api/why-vedx-reasons', async (req, res) => {
     if (!admin) return res.status(status).json({ message });
 
     const { title, description, image, whyVedxId } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
     if (!title || !description || !image) {
       return res.status(400).json({
@@ -6278,13 +6361,40 @@ app.post('/api/why-vedx-reasons', async (req, res) => {
       });
     }
 
+    let category = null;
+    if (categoryId) {
+      category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+      if (!category) {
+        return res.status(400).json({ error: 'Category not found' });
+      }
+    }
+
+    let subcategory = null;
+    if (subcategoryId) {
+      subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+      if (!subcategory) {
+        return res.status(400).json({ error: 'Sub-category not found' });
+      }
+
+      if (category && subcategory.categoryId !== category.id) {
+        return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+      }
+
+      if (!category) {
+        category = await prisma.serviceCategory.findUnique({ where: { id: subcategory.categoryId } });
+      }
+    }
+
     const created = await prisma.whyVedxReason.create({
       data: {
         title,
         description,
         image,
         whyVedxId: resolvedWhyVedxId,
+        categoryId: category?.id || null,
+        subcategoryId: subcategory?.id || null,
       },
+      include: { category: true, subcategory: true },
     });
 
     res.status(201).json(mapWhyVedxReasonToResponse(created));
@@ -6306,6 +6416,8 @@ app.put('/api/why-vedx-reasons/:id', async (req, res) => {
     }
 
     const { title, description, image, whyVedxId } = req.body ?? {};
+    const categoryId = parseIntegerId(req.body?.categoryId);
+    const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
     const data = { title, description, image };
 
@@ -6320,9 +6432,44 @@ app.put('/api/why-vedx-reasons/:id', async (req, res) => {
       data.whyVedxId = resolvedWhyVedxId;
     }
 
+    if (categoryId !== undefined) {
+      if (categoryId === null || Number.isNaN(categoryId)) {
+        data.categoryId = null;
+      } else {
+        const category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+        if (!category) {
+          return res.status(400).json({ error: 'Category not found' });
+        }
+
+        data.categoryId = category.id;
+      }
+    }
+
+    if (subcategoryId !== undefined) {
+      if (subcategoryId === null || Number.isNaN(subcategoryId)) {
+        data.subcategoryId = null;
+      } else {
+        const subcategory = await prisma.serviceSubCategory.findUnique({ where: { id: subcategoryId } });
+        if (!subcategory) {
+          return res.status(400).json({ error: 'Sub-category not found' });
+        }
+
+        if (data.categoryId && subcategory.categoryId !== data.categoryId) {
+          return res.status(400).json({ error: 'Sub-category does not belong to the selected category' });
+        }
+
+        if (!data.categoryId) {
+          data.categoryId = subcategory.categoryId;
+        }
+
+        data.subcategoryId = subcategory.id;
+      }
+    }
+
     const updated = await prisma.whyVedxReason.update({
       where: { id },
       data,
+      include: { category: true, subcategory: true },
     });
 
     res.json(mapWhyVedxReasonToResponse(updated));
