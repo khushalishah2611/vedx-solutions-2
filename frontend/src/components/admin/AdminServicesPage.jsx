@@ -4479,7 +4479,7 @@ const AdminServicesPage = () => {
               required
             />
             <TextField
-              label="Technologies (comma separated)"
+              label="Technologies"
               value={technologyItemsInput}
               onChange={(event) => {
                 const nextValue = event.target.value;
