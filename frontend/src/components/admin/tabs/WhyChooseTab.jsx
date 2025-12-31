@@ -103,6 +103,7 @@ const WhyChooseTab = ({
     const category = String(whyHeroForm?.category || '').trim();
     const subcategory = String(whyHeroForm?.subcategory || '').trim();
     const heroTitle = String(whyHeroForm?.heroTitle || '').trim();
+    const heroDescription = String(whyHeroForm?.heroDescription || '').trim();
     const heroImage = whyHeroForm?.heroImage;
 
     if (!category) errors.push('Category is required.');
@@ -119,6 +120,7 @@ const WhyChooseTab = ({
     }
 
     if (!heroTitle) errors.push('Hero title is required.');
+    if (!heroDescription) errors.push('Hero description is required.');
     if (!heroImage) errors.push('Hero image is required.');
 
     return errors;
@@ -310,6 +312,7 @@ const WhyChooseTab = ({
                       value={whyHeroForm.heroDescription}
                       onChange={(event) => handleWhyHeroChange('heroDescription', event.target.value)}
                       fullWidth
+                      required
                       multiline
                       minRows={3}
                     />

@@ -37,6 +37,29 @@ import {
 import PropTypes from 'prop-types';
 import SelectClearAdornment from '../SelectClearAdornment.jsx';
 
+/** ✅ MUI Alert Dialog (required validation) */
+function ValidationDialog({ open, title, messages, onClose }) {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{title || 'Validation'}</DialogTitle>
+      <DialogContent dividers>
+        <Stack spacing={1.25}>
+          {(messages || []).map((msg, idx) => (
+            <Alert key={idx} severity="error" variant="outlined">
+              {msg}
+            </Alert>
+          ))}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} variant="contained">
+          OK
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 /**
  * Small helpers
  */
@@ -47,17 +70,6 @@ const safeStr = (v) => (v == null ? '' : String(v));
 const normalizeId = (v) => (v === '' || v == null ? '' : String(v));
 
 const optionLabelForConfig = (option) => {
-
-
-const [validationOpen, setValidationOpen] = React.useState(false);
-const [validationTitle, setValidationTitle] = React.useState('Validation');
-const [validationMessages, setValidationMessages] = React.useState([]);
-
-const showValidation = (messages, title = 'Validation') => {
-  setValidationTitle(title);
-  setValidationMessages(Array.isArray(messages) ? messages : [String(messages)]);
-  setValidationOpen(true);
-};
   if (!option) return '';
   const left = safeStr(option.categoryName).trim();
   const right = safeStr(option.subcategoryName).trim();
@@ -85,10 +97,12 @@ function validateBenefitHero(hero, benefitHeroSubcategoryOptions) {
   const errors = {};
 
   const title = safeStr(hero?.title).trim();
+  const description = safeStr(hero?.description).trim();
   const categoryId = normalizeId(hero?.categoryId);
   const subcategoryId = normalizeId(hero?.subcategoryId);
 
   if (isBlank(title)) errors.title = 'Title is required.';
+  if (isBlank(description)) errors.description = 'Description is required.';
 
   // If your UI truly supports "All categories" for hero, remove this check.
   // In most CMS, hero is tied to a category/subcategory => we enforce.
@@ -198,6 +212,16 @@ const BenefitsTab = ({
   openBenefitDeleteDialog,
   imagePlaceholder,
 }) => {
+  const [validationOpen, setValidationOpen] = React.useState(false);
+  const [validationTitle, setValidationTitle] = React.useState('Validation');
+  const [validationMessages, setValidationMessages] = React.useState([]);
+
+  const showValidation = (messages, title = 'Validation') => {
+    setValidationTitle(title);
+    setValidationMessages(Array.isArray(messages) ? messages : [String(messages)]);
+    setValidationOpen(true);
+  };
+
   /**
    * Derived: validate everything for UI feedback
    */
@@ -492,6 +516,9 @@ const BenefitsTab = ({
             value={safeStr(benefitHero.description)}
             onChange={(event) => handleBenefitHeroChange('description', event.target.value)}
             fullWidth
+            required
+            error={Boolean(heroErrors.description)}
+            helperText={heroErrors.description || ' '}
             multiline
             minRows={2}
           />

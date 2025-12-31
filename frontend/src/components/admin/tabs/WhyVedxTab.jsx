@@ -1,4 +1,7 @@
 import * as React from 'react';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Autocomplete,
   Box,
@@ -27,12 +30,9 @@ import {
   DialogActions,
   Alert,
 } from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import SelectClearAdornment from '../SelectClearAdornment.jsx';
 
-/** ✅ Dialog component (keep outside main component) */
+/** ✅ Dialog component */
 function ValidationDialog({ open, title, messages, onClose }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -55,33 +55,35 @@ function ValidationDialog({ open, title, messages, onClose }) {
   );
 }
 
-const WhyVedxTab = ({
-  categoryOptions,
+const isBlank = (v) => String(v ?? '').trim().length === 0;
+
+export default function WhyVedxTab({
+  categoryOptions = [],
   whyVedxCategoryFilter,
   setWhyVedxCategoryFilter,
   whyVedxSubcategoryFilter,
   setWhyVedxSubcategoryFilter,
   subcategoryLookup,
-  allSubcategoryOptions,
-  whyVedxOptions,
+  allSubcategoryOptions = [],
+  whyVedxOptions = [],
   selectedWhyVedxId,
   handleWhyVedxSelect,
   handleNewWhyVedxHero,
-  serviceCategories,
+  serviceCategories = [],
   whyVedxHeroForm,
   handleWhyVedxHeroChange,
   handleWhyVedxHeroSave,
   ImageUpload,
-  whyVedxSubcategoryOptions,
-  activeWhyVedxReasons,
-  rowsPerPage,
-  whyVedxPage,
+  whyVedxSubcategoryOptions = [],
+  activeWhyVedxReasons = [],
+  rowsPerPage = 10,
+  whyVedxPage = 1,
   setWhyVedxPage,
   imagePlaceholder,
   openWhyVedxCreateDialog,
   openWhyVedxEditDialog,
   openWhyVedxDeleteDialog,
-}) => {
+}) {
   const [validationOpen, setValidationOpen] = React.useState(false);
   const [validationTitle, setValidationTitle] = React.useState('Validation');
   const [validationMessages, setValidationMessages] = React.useState([]);
@@ -103,13 +105,13 @@ const WhyVedxTab = ({
 
     if (!categoryId) errors.push('Category is required.');
 
-    // If subcategories exist for this category, require selection
+    // If this category has subcategories, require it
     if (categoryId && (whyVedxSubcategoryOptions || []).length > 0 && !subcategoryId) {
       errors.push('Subcategory is required for this category.');
     }
 
-    if (!title) errors.push('Title is required.');
-    if (!description) errors.push('Description is required.');
+    if (isBlank(title)) errors.push('Title is required.');
+    if (isBlank(description)) errors.push('Description is required.');
     if (!heroImage) errors.push('Hero image is required.');
 
     return errors;
@@ -120,18 +122,13 @@ const WhyVedxTab = ({
     ? subcategoryLookup?.get?.(whyVedxCategoryFilter) || []
     : allSubcategoryOptions || [];
 
-  const pagedReasons = (activeWhyVedxReasons || []).slice(
-    (whyVedxPage - 1) * rowsPerPage,
-    whyVedxPage * rowsPerPage
-  );
+  const pageCount = Math.max(1, Math.ceil((activeWhyVedxReasons || []).length / rowsPerPage));
+  const pagedReasons = (activeWhyVedxReasons || []).slice((whyVedxPage - 1) * rowsPerPage, whyVedxPage * rowsPerPage);
 
   return (
     <>
       <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-        <CardHeader
-          title="Why choose VedX Solutions"
-          subheader="Control headline, description, and proof points."
-        />
+        <CardHeader title="Why choose VedX Solutions" subheader="Control headline, description, and proof points." />
         <Divider />
         <CardContent>
           <Stack spacing={3}>
@@ -235,14 +232,9 @@ const WhyVedxTab = ({
                 clearOnEscape
                 options={whyVedxOptions || []}
                 value={(whyVedxOptions || []).find((o) => String(o.value) === String(selectedWhyVedxId)) || null}
-                onChange={(event, option) => handleWhyVedxSelect(option)}
+                onChange={(event, option) => handleWhyVedxSelect?.(option)}
                 renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Select why choose config"
-                    placeholder="Select category / subcategory"
-                    fullWidth
-                  />
+                  <TextField {...params} label="Select why choose config" placeholder="Select category / subcategory" fullWidth />
                 )}
                 sx={{ minWidth: 260, flex: 1 }}
               />
@@ -281,18 +273,18 @@ const WhyVedxTab = ({
                       }
                       onChange={(event, option) => {
                         const next = option?.value || '';
-                        handleWhyVedxHeroChange('categoryId', next);
+                        handleWhyVedxHeroChange?.('categoryId', next);
 
                         // clear subcategory if invalid
                         if (!next) {
-                          if (whyVedxHeroForm?.subcategoryId) handleWhyVedxHeroChange('subcategoryId', '');
+                          if (whyVedxHeroForm?.subcategoryId) handleWhyVedxHeroChange?.('subcategoryId', '');
                           return;
                         }
 
                         if (whyVedxHeroForm?.subcategoryId) {
                           const allowed = (whyVedxSubcategoryOptions || []).map((o) => String(o.value));
                           if (allowed.length > 0 && !allowed.includes(String(whyVedxHeroForm.subcategoryId))) {
-                            handleWhyVedxHeroChange('subcategoryId', '');
+                            handleWhyVedxHeroChange?.('subcategoryId', '');
                           }
                         }
                       }}
@@ -304,19 +296,13 @@ const WhyVedxTab = ({
                       disableClearable={false}
                       clearOnEscape
                       options={whyVedxSubcategoryOptions || []}
-                      value={
-                        (whyVedxSubcategoryOptions || []).find(
-                          (o) => String(o.value) === String(whyVedxHeroForm?.subcategoryId)
-                        ) || null
-                      }
-                      onChange={(event, option) => handleWhyVedxHeroChange('subcategoryId', option?.value || '')}
+                      value={(whyVedxSubcategoryOptions || []).find((o) => String(o.value) === String(whyVedxHeroForm?.subcategoryId)) || null}
+                      onChange={(event, option) => handleWhyVedxHeroChange?.('subcategoryId', option?.value || '')}
                       renderInput={(params) => (
                         <TextField
                           {...params}
                           label="Subcategory"
-                          placeholder={
-                            whyVedxHeroForm?.categoryId ? 'Select a subcategory' : 'Select a category to filter subcategories'
-                          }
+                          placeholder={whyVedxHeroForm?.categoryId ? 'Select a subcategory' : 'Select a category to filter subcategories'}
                           fullWidth
                         />
                       )}
@@ -327,102 +313,86 @@ const WhyVedxTab = ({
                     <TextField
                       label="Title"
                       value={whyVedxHeroForm?.heroTitle || ''}
-                      onChange={(event) => handleWhyVedxHeroChange('heroTitle', event.target.value)}
+                      onChange={(event) => handleWhyVedxHeroChange?.('heroTitle', event.target.value)}
                       fullWidth
+                      required
                     />
 
                     <TextField
                       label="Description"
                       value={whyVedxHeroForm?.heroDescription || ''}
-                      onChange={(event) => handleWhyVedxHeroChange('heroDescription', event.target.value)}
+                      onChange={(event) => handleWhyVedxHeroChange?.('heroDescription', event.target.value)}
                       fullWidth
+                      required
                       multiline
                       minRows={3}
                     />
 
-                    <Button type="submit" variant="contained" sx={{ alignSelf: 'flex-start' }}>
+                    <Button type="submit" variant="contained">
                       Save hero content
                     </Button>
                   </Stack>
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <ImageUpload
-                    label="Hero image"
-                    value={whyVedxHeroForm?.heroImage || ''}
-                    onChange={(value) => handleWhyVedxHeroChange('heroImage', value)}
-                    required
-                  />
+                  {ImageUpload ? (
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyVedxHeroForm?.heroImage}
+                      onChange={(val) => handleWhyVedxHeroChange?.('heroImage', val)}
+                      required
+                      placeholder={imagePlaceholder}
+                    />
+                  ) : null}
                 </Grid>
               </Grid>
             </Box>
 
-            {/* Reasons */}
+            {/* Reasons table */}
             <Stack spacing={1}>
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 justifyContent="space-between"
                 alignItems={{ xs: 'flex-start', sm: 'center' }}
               >
-                <Box>
-                  <Typography variant="h6">Reasons to choose us</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Add visuals, titles, and descriptions that appear below the hero section.
-                  </Typography>
-                </Box>
-
+                <Typography variant="h6">Reasons</Typography>
                 <Button
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={openWhyVedxCreateDialog}
-                  sx={{ mt: { xs: 1, sm: 0 } }}
-                  disabled={!selectedWhyVedxId}
+                  sx={{ whiteSpace: 'nowrap' }}
                 >
                   Add reason
                 </Button>
               </Stack>
 
-              <TableContainer>
+              <TableContainer sx={{ border: '1px solid', borderColor: 'divider' }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell>Title</TableCell>
-                      <TableCell>Category</TableCell>
-                      <TableCell>Subcategory</TableCell>
-                      <TableCell>Image</TableCell>
                       <TableCell>Description</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
-
                   <TableBody>
-                    {pagedReasons.map((item) => (
-                      <TableRow key={item.id} hover>
-                        <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                        <TableCell>{item.categoryName || '—'}</TableCell>
-                        <TableCell>{item.subcategoryName || '—'}</TableCell>
-                        <TableCell>
-                          <Box
-                            component="img"
-                            src={item.image || imagePlaceholder}
-                            alt={`${item.title} visual`}
-                            sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ maxWidth: 280 }}>
+                    {pagedReasons.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell>{row.title}</TableCell>
+                        <TableCell sx={{ maxWidth: 520 }}>
                           <Typography variant="body2" color="text.secondary" noWrap>
-                            {item.description}
+                            {row.description}
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <Tooltip title="Edit">
-                              <IconButton size="small" color="primary" onClick={() => openWhyVedxEditDialog(item)}>
+                              <IconButton size="small" onClick={() => openWhyVedxEditDialog?.(row)}>
                                 <EditOutlinedIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Delete">
-                              <IconButton size="small" color="error" onClick={() => openWhyVedxDeleteDialog(item)}>
+                              <IconButton size="small" onClick={() => openWhyVedxDeleteDialog?.(row)}>
                                 <DeleteOutlineIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
@@ -431,11 +401,11 @@ const WhyVedxTab = ({
                       </TableRow>
                     ))}
 
-                    {(activeWhyVedxReasons || []).length === 0 && (
+                    {pagedReasons.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={6}>
+                        <TableCell colSpan={3}>
                           <Typography variant="body2" color="text.secondary" align="center">
-                            {selectedWhyVedxId ? 'No reasons added yet.' : 'Select a hero card to start adding reasons.'}
+                            No reasons found.
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -444,20 +414,15 @@ const WhyVedxTab = ({
                 </Table>
               </TableContainer>
 
-              <Stack mt={2} alignItems="flex-end">
-                <Pagination
-                  count={Math.max(1, Math.ceil((activeWhyVedxReasons || []).length / rowsPerPage))}
-                  page={whyVedxPage}
-                  onChange={(event, page) => setWhyVedxPage(page)}
-                  color="primary"
-                />
+              <Stack alignItems="flex-end">
+                <Pagination count={pageCount} page={whyVedxPage} onChange={(e, p) => setWhyVedxPage?.(p)} />
               </Stack>
             </Stack>
           </Stack>
         </CardContent>
       </Card>
 
-      {/* ✅ Validation dialog mounted correctly */}
+      {/* ✅ This MUST be rendered (previously it was missing -> dialog never showed) */}
       <ValidationDialog
         open={validationOpen}
         title={validationTitle}
@@ -466,6 +431,4 @@ const WhyVedxTab = ({
       />
     </>
   );
-};
-
-export default WhyVedxTab;
+}
