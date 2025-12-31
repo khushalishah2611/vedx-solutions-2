@@ -1,10 +1,3 @@
-// AdminServicesPage.jsx (single-file, cleaned + optimized + bugfixes)
-// ✅ Removed unused imports/states (industries/expertise/our-services) from your pasted version
-// ✅ Fixed wrong filter conditions (was incorrectly using whyVedxCategoryFilter flags)
-// ✅ Deduped/clamped pagination logic
-// ✅ Memoized loaders used in effects
-// ✅ Safer normalizers + stable deps
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
@@ -1234,7 +1227,7 @@ const AdminServicesPage = () => {
   // ---------- Benefit Config selection ----------
   const handleBenefitConfigSelect = (config) => {
     const nextId = config?.id ? String(config.id) : '';
-    benefitConfigClearedRef.current = !nextId;
+    benefitConfigClearedRef.current = false;
     setSelectedBenefitConfigId(nextId);
 
     if (!nextId) {
@@ -1337,7 +1330,9 @@ const AdminServicesPage = () => {
     const nextId = option?.value ? String(option.value) : '';
     const isClearing = !nextId;
 
-    whyVedxConfigClearedRef.current = isClearing;
+    // Clearing selection should NOT block auto-pick by Category/Subcategory filters.
+    // We only block auto-pick when user explicitly clicks "Add new hero".
+    whyVedxConfigClearedRef.current = false;
     setSelectedWhyVedxId(nextId);
 
     if (isClearing) {
