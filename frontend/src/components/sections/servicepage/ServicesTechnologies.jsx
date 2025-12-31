@@ -10,62 +10,19 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
-import { technologyTabs as defaultTechnologyTabs } from '../../../data/servicesPage.js';
-import { apiUrl } from '../../../utils/const.js';
+import { useMemo, useState } from 'react';
+import { technologyTabs } from '../../../data/servicesPage.js';
 
 const ServicesTechnologies = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const [activeTab, setActiveTab] = useState(0);
-  const [technologyTabs, setTechnologyTabs] = useState([]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchTechnologies = async () => {
-      try {
-        const response = await fetch(apiUrl('/api/technologies'));
-        if (!response.ok) throw new Error('Failed to load technologies');
-
-        const data = await response.json();
-        if (isMounted) setTechnologyTabs(data);
-      } catch (err) {
-        console.error(err);
-        if (isMounted) setTechnologyTabs([]);
-      }
-    };
-
-    fetchTechnologies();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const tabList = technologyTabs.length ? technologyTabs : defaultTechnologyTabs;
 
   const technologies = useMemo(
-    () => {
-      if (!tabList.length) return [];
-
-      const safeIndex = Math.min(activeTab, tabList.length - 1);
-      const currentTab = tabList[safeIndex];
-
-      return (currentTab.items ?? currentTab.technologies ?? []).map((item) =>
-        typeof item === 'string'
-          ? { name: item, icon: currentTab.image || '' }
-          : item
-      );
-    },
-    [activeTab, tabList]
+    () => technologyTabs[activeTab]?.technologies ?? [],
+    [activeTab]
   );
-
-  useEffect(() => {
-    if (!tabList.length) return;
-    setActiveTab((prev) => Math.min(prev, tabList.length - 1));
-  }, [tabList.length]);
 
   return (
     <Box component="section" sx={{ mt: { xs: 6, md: 8 } }}>
@@ -124,10 +81,10 @@ const ServicesTechnologies = () => {
             },
           }}
         >
-          {tabList.map((tab, index) => (
+          {technologyTabs.map((tab, index) => (
             <Tab
-              key={tab.id ?? tab.title ?? tab.category ?? index}
-              label={tab.title ?? tab.category ?? 'Untitled'}
+              key={tab.category}
+              label={tab.category}
               value={index}
               sx={{
                 textTransform: 'none',
@@ -198,19 +155,15 @@ const ServicesTechnologies = () => {
               }}
             >
               <Avatar
-                src={tech.icon || ''}
+                src={tech.icon}
                 alt={tech.name}
                 variant="rounded"
                 sx={{
                   width: 56,
                   height: 56,
                   bgcolor: alpha(theme.palette.primary.main, 0.08),
-                  color: tech.icon ? undefined : theme.palette.text.primary,
-                  fontWeight: 700,
                 }}
-              >
-                {!tech.icon && tech.name ? tech.name.charAt(0) : null}
-              </Avatar>
+              />
               <Typography
                 variant="body2"
                 sx={{
