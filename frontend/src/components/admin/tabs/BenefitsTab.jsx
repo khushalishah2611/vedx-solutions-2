@@ -1,3 +1,4 @@
+import * as React from 'react';
 // BenefitsTab.jsx
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -27,6 +28,11 @@ import {
   Tooltip,
   Typography,
   Autocomplete,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
 } from '@mui/material';
 import PropTypes from 'prop-types';
 import SelectClearAdornment from '../SelectClearAdornment.jsx';
@@ -41,6 +47,17 @@ const safeStr = (v) => (v == null ? '' : String(v));
 const normalizeId = (v) => (v === '' || v == null ? '' : String(v));
 
 const optionLabelForConfig = (option) => {
+
+
+const [validationOpen, setValidationOpen] = React.useState(false);
+const [validationTitle, setValidationTitle] = React.useState('Validation');
+const [validationMessages, setValidationMessages] = React.useState([]);
+
+const showValidation = (messages, title = 'Validation') => {
+  setValidationTitle(title);
+  setValidationMessages(Array.isArray(messages) ? messages : [String(messages)]);
+  setValidationOpen(true);
+};
   if (!option) return '';
   const left = safeStr(option.categoryName).trim();
   const right = safeStr(option.subcategoryName).trim();
@@ -233,7 +250,7 @@ const BenefitsTab = ({
     const errors = validateBenefitHero(benefitHero, benefitHeroSubcategoryOptions);
 
     if (Object.keys(errors).length > 0) {
-      // do NOT save if invalid
+      showValidation(Object.values(errors), 'Benefits validation');
       return;
     }
     // call parent save handler
@@ -241,7 +258,8 @@ const BenefitsTab = ({
   };
 
   return (
-    <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+    <>
+      <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
       <CardHeader
         title="Benefits"
         subheader="Control benefit cards with images and rich descriptions."
@@ -595,6 +613,14 @@ const BenefitsTab = ({
         </Stack>
       </CardContent>
     </Card>
+  
+    <ValidationDialog
+      open={validationOpen}
+      title={validationTitle}
+      messages={validationMessages}
+      onClose={() => setValidationOpen(false)}
+    />
+  </>
   );
 };
 
