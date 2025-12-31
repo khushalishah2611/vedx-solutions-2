@@ -4997,8 +4997,6 @@ app.delete('/api/service-menus/:id', async (req, res) => {
 
 const mapTechnologyToResponse = (tech) => ({
   id: tech.id,
-  category: tech.category,
-  subcategory: tech.subcategory || '',
   title: tech.title,
   image: tech.image,
   items: tech.items || [],
@@ -5009,15 +5007,7 @@ const mapTechnologyToResponse = (tech) => ({
 // GET all technologies
 app.get('/api/technologies', async (req, res) => {
   try {
-    const { category, subcategory } = req.query;
-
-    const technologies = await prisma.technology.findMany({
-      where: {
-        ...(category && { category }),
-        ...(subcategory && { subcategory }),
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const technologies = await prisma.technology.findMany({ orderBy: { createdAt: 'desc' } });
 
     res.json(technologies.map(mapTechnologyToResponse));
   } catch (err) {
@@ -5032,18 +5022,16 @@ app.post('/api/technologies', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { category, subcategory, title, image, items } = req.body ?? {};
+    const { title, image, items } = req.body ?? {};
 
-    if (!category || !title || !image) {
+    if (!title || !image) {
       return res.status(400).json({
-        error: 'category, title, and image are required'
+        error: 'title and image are required'
       });
     }
 
     const created = await prisma.technology.create({
       data: {
-        category,
-        subcategory: subcategory || null,
         title,
         image,
         items: Array.isArray(items) ? items : [],
@@ -5068,13 +5056,11 @@ app.put('/api/technologies/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid technology id required' });
     }
 
-    const { category, subcategory, title, image, items } = req.body ?? {};
+    const { title, image, items } = req.body ?? {};
 
     const updated = await prisma.technology.update({
       where: { id },
       data: {
-        category,
-        subcategory,
         title,
         image,
         items: Array.isArray(items) ? items : undefined,
