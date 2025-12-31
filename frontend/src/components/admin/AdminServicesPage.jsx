@@ -32,7 +32,6 @@ import {
   Typography
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
@@ -40,7 +39,15 @@ import AdminSectionTabs from './AdminSectionTabs.jsx';
 import ServicesTab from './tabs/ServicesTab.jsx';
 import ProcessTab from './tabs/ProcessTab.jsx';
 import WhyVedxTab from './tabs/WhyVedxTab.jsx';
-import SelectClearAdornment from './SelectClearAdornment.jsx';
+import ImageUpload from './ImageUpload.jsx';
+import IndustriesTab from './tabs/IndustriesTab.jsx';
+import TechSolutionsTab from './tabs/TechSolutionsTab.jsx';
+import ExpertiseTab from './tabs/ExpertiseTab.jsx';
+import WhyChooseTab from './tabs/WhyChooseTab.jsx';
+import TechnologiesTab from './tabs/TechnologiesTab.jsx';
+import BenefitsTab from './tabs/BenefitsTab.jsx';
+import ContactButtonsTab from './tabs/ContactButtonsTab.jsx';
+import HireTab from './tabs/HireTab.jsx';
 import adminServiceTabs from './adminServiceTabs.js';
 
 const imagePlaceholder = '';
@@ -247,63 +254,6 @@ const matchesDateFilter = (value, filter, range) => {
       return true;
   }
 };
-
-const ImageUpload = ({ label, value, onChange, required }) => {
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      onChange(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  return (
-    <Stack spacing={1.5}>
-      <Typography variant="subtitle2">{label}</Typography>
-      <Box
-        sx={{
-          width: '100%',
-          borderRadius: 1,
-          border: '1px dashed',
-          borderColor: 'divider',
-          p: 1,
-          backgroundColor: 'background.default',
-          minHeight: 220,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {value ? (
-          <Box
-            component="img"
-            src={value}
-            alt={`${label} preview`}
-            sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: 1,
-            }}
-          />
-        ) : (
-          <Typography variant="body2" color="text.secondary" textAlign="center" px={2}>
-            Banner preview will appear here once you add a title and choose an image.
-          </Typography>
-        )}
-      </Box>
-      <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
-        Choose image
-        <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
-      </Button>
-    </Stack>
-  );
-};
-
-
 
 const AdminServicesPage = () => {
   const [activeTab, setActiveTab] = useState('services');
@@ -1208,6 +1158,12 @@ const AdminServicesPage = () => {
       handleRequestError(err, 'Unable to save Why Choose hero');
     }
   };
+
+  const handleWhyChooseNewConfig = useCallback(() => {
+    setSelectedWhyChooseId('');
+    setWhyHeroForm(initialWhyChoose);
+    setWhyChoose(initialWhyChoose);
+  }, []);
 
   const categoryOptions = useMemo(
     () =>
@@ -2709,1385 +2665,159 @@ const AdminServicesPage = () => {
         />
       )}
       {activeTab === 'industries' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Industry we serve"
-            subheader="Set the headline and list of industries with imagery."
-          />
-          <Divider />
-          <CardContent>
-            <Stack spacing={3}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Title"
-                    value={industries.title}
-                    onChange={(event) => setIndustries((prev) => ({ ...prev, title: event.target.value }))}
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Description"
-                    value={industries.description}
-                    onChange={(event) => setIndustries((prev) => ({ ...prev, description: event.target.value }))}
-                    fullWidth
-                  />
-                </Grid>
-              </Grid>
-              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                <Box>
-                  <Typography variant="h6">Industries</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Upload images, set titles, and describe each industry you support.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={openIndustryCreateDialog}
-                  sx={{ mt: { xs: 1, sm: 0 } }}
-                >
-                  Add industry
-                </Button>
-              </Stack>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {industries.items
-                      .slice((industryPage - 1) * rowsPerPage, industryPage * rowsPerPage)
-                      .map((item) => (
-                        <TableRow key={item.id} hover>
-                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                          <TableCell>
-                            <Box
-                              component="img"
-                              src={item.image || imagePlaceholder}
-                              alt={`${item.title} visual`}
-                              sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                            />
-                          </TableCell>
-                          <TableCell sx={{ maxWidth: 260 }}>
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {item.description}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <Tooltip title="Edit">
-                                <IconButton size="small" color="primary" onClick={() => openIndustryEditDialog(item)}>
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton size="small" color="error" onClick={() => openIndustryDeleteDialog(item)}>
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    {industries.items.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={4}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No industries configured yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Stack mt={2} alignItems="flex-end">
-                <Pagination
-                  count={Math.max(1, Math.ceil(industries.items.length / rowsPerPage))}
-                  page={industryPage}
-                  onChange={(event, page) => setIndustryPage(page)}
-                  color="primary"
-                />
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
+        <IndustriesTab
+          industries={industries}
+          setIndustries={setIndustries}
+          imagePlaceholder={imagePlaceholder}
+          rowsPerPage={rowsPerPage}
+          industryPage={industryPage}
+          setIndustryPage={setIndustryPage}
+          openIndustryCreateDialog={openIndustryCreateDialog}
+          openIndustryEditDialog={openIndustryEditDialog}
+          openIndustryDeleteDialog={openIndustryDeleteDialog}
+        />
       )}
 
       {activeTab === 'tech-solutions' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Tech solutions for all business types"
-            subheader="Control heading, copy, and business-type specific solutions."
-          />
-          <Divider />
-          <CardContent>
-            <Stack spacing={3}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Title"
-                    value={techSolutions.title}
-                    onChange={(event) => setTechSolutions((prev) => ({ ...prev, title: event.target.value }))}
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Description"
-                    value={techSolutions.description}
-                    onChange={(event) => setTechSolutions((prev) => ({ ...prev, description: event.target.value }))}
-                    fullWidth
-                  />
-                </Grid>
-              </Grid>
-              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                <Box>
-                  <Typography variant="h6">Business solutions</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Add solution cards for each business type with concise descriptions.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={openTechSolutionCreateDialog}
-                  sx={{ mt: { xs: 1, sm: 0 } }}
-                >
-                  Add solution
-                </Button>
-              </Stack>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {techSolutions.solutions
-                      .slice((techSolutionPage - 1) * rowsPerPage, techSolutionPage * rowsPerPage)
-                      .map((item) => (
-                        <TableRow key={item.id} hover>
-                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                          <TableCell sx={{ maxWidth: 360 }}>
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {item.description}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <Tooltip title="Edit">
-                                <IconButton size="small" color="primary" onClick={() => openTechSolutionEditDialog(item)}>
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton size="small" color="error" onClick={() => openTechSolutionDeleteDialog(item)}>
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    {techSolutions.solutions.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={3}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No tech solutions yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Stack mt={2} alignItems="flex-end">
-                <Pagination
-                  count={Math.max(1, Math.ceil(techSolutions.solutions.length / rowsPerPage))}
-                  page={techSolutionPage}
-                  onChange={(event, page) => setTechSolutionPage(page)}
-                  color="primary"
-                />
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
+        <TechSolutionsTab
+          techSolutions={techSolutions}
+          setTechSolutions={setTechSolutions}
+          rowsPerPage={rowsPerPage}
+          techSolutionPage={techSolutionPage}
+          setTechSolutionPage={setTechSolutionPage}
+          openTechSolutionCreateDialog={openTechSolutionCreateDialog}
+          openTechSolutionEditDialog={openTechSolutionEditDialog}
+          openTechSolutionDeleteDialog={openTechSolutionDeleteDialog}
+        />
       )}
 
       {activeTab === 'expertise' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader title="Ways to choose our expertise" subheader="Control headline, description, and expert cards." />
-          <Divider />
-          <CardContent>
-            <Stack spacing={3}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Title"
-                    value={expertiseHeroForm.title}
-                    onChange={(event) => handleExpertiseHeroChange('title', event.target.value)}
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Description"
-                    value={expertiseHeroForm.description}
-                    onChange={(event) => handleExpertiseHeroChange('description', event.target.value)}
-                    fullWidth
-                  />
-                </Grid>
-              </Grid>
-              <Button variant="contained" onClick={handleExpertiseHeroSave} sx={{ alignSelf: 'flex-start' }}>
-                Save intro
-              </Button>
-
-              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                <Box>
-                  <Typography variant="h6">Expertise options</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Add cards with images, titles, and descriptions for each engagement model.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={openExpertiseCreateDialog}
-                  sx={{ mt: { xs: 1, sm: 0 } }}
-                >
-                  Add option
-                </Button>
-              </Stack>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {expertise.items
-                      .slice((expertisePage - 1) * rowsPerPage, expertisePage * rowsPerPage)
-                      .map((item) => (
-                        <TableRow key={item.id} hover>
-                          <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                          <TableCell>
-                            <Box
-                              component="img"
-                              src={item.image || imagePlaceholder}
-                              alt={`${item.title} visual`}
-                              sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                            />
-                          </TableCell>
-                          <TableCell sx={{ maxWidth: 260 }}>
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {item.description}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <Tooltip title="Edit">
-                                <IconButton size="small" color="primary" onClick={() => openExpertiseEditDialog(item)}>
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton size="small" color="error" onClick={() => openExpertiseDeleteDialog(item)}>
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    {expertise.items.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={4}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No expertise cards configured yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Stack mt={2} alignItems="flex-end">
-                <Pagination
-                  count={Math.max(1, Math.ceil(expertise.items.length / rowsPerPage))}
-                  page={expertisePage}
-                  onChange={(event, page) => setExpertisePage(page)}
-                  color="primary"
-                />
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
+        <ExpertiseTab
+          expertiseHeroForm={expertiseHeroForm}
+          handleExpertiseHeroChange={handleExpertiseHeroChange}
+          handleExpertiseHeroSave={handleExpertiseHeroSave}
+          expertise={expertise}
+          openExpertiseCreateDialog={openExpertiseCreateDialog}
+          openExpertiseEditDialog={openExpertiseEditDialog}
+          openExpertiseDeleteDialog={openExpertiseDeleteDialog}
+          rowsPerPage={rowsPerPage}
+          expertisePage={expertisePage}
+          setExpertisePage={setExpertisePage}
+          imagePlaceholder={imagePlaceholder}
+        />
       )}
 
       {activeTab === 'why-choose' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Why choose this service"
-            subheader="Set the hero headline, supporting description, and highlight cards per category/sub-category."
-          />
-          <Divider />
-          <CardContent>
-            <Stack spacing={3}>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                <TextField
-                  select
-                  label="Category filter"
-                  value={whyServiceCategoryFilter}
-                  onChange={(event) => setWhyServiceCategoryFilter(event.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <SelectClearAdornment
-                        visible={Boolean(whyServiceCategoryFilter)}
-                        onClear={() => setWhyServiceCategoryFilter('')}
-                      />
-                    ),
-                  }}
-                  fullWidth
-                >
-                  <MenuItem value="">All categories</MenuItem>
-                  {categoryOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  select
-                  label="Sub-category filter"
-                  value={whyServiceSubcategoryFilter}
-                  onChange={(event) => setWhyServiceSubcategoryFilter(event.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <SelectClearAdornment
-                        visible={Boolean(whyServiceSubcategoryFilter)}
-                        onClear={() => setWhyServiceSubcategoryFilter('')}
-                      />
-                    ),
-                  }}
-                  fullWidth
-                  disabled={
-                    whyServiceCategoryFilter
-                      ? (subcategoryLookup.get(whyServiceCategoryFilter) || []).length === 0
-                      : allSubcategoryOptions.length === 0
-                  }
-                >
-                  <MenuItem value="">All sub-categories</MenuItem>
-                  {(whyServiceCategoryFilter
-                    ? subcategoryLookup.get(whyServiceCategoryFilter) || []
-                    : allSubcategoryOptions
-                  ).map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Stack>
-              <Stack
-                direction="row"
-                spacing={2}
-                alignItems="center"
-                flexWrap="nowrap"
-              >
-                <Autocomplete
-                  disableClearable={false}
-                  clearOnEscape
-                  options={whyChooseList}
-                  getOptionLabel={(option) =>
-                    [option.category, option.subcategory].filter(Boolean).join(' / ') || 'Untitled'
-                  }
-                  fullWidth
-                  value={
-                    whyChooseList.find(
-                      (item) => String(item.id) === String(selectedWhyChooseId)
-                    ) || null
-                  }
-                  onChange={(event, value) =>
-                    setSelectedWhyChooseId(value?.id ? String(value.id) : '')
-                  }
-                  renderInput={(params) => (
-                    <TextField {...params} label="Select why choose config" />
-                  )}
-                  sx={{ minWidth: 0 }}
-                />
-
-                <Button
-                  variant="outlined"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => {
-                    setSelectedWhyChooseId('');
-                    setWhyHeroForm(initialWhyChoose);
-                    setWhyChoose(initialWhyChoose);
-                  }}
-                  sx={{ whiteSpace: 'nowrap' }}
-                >
-                  New config
-                </Button>
-              </Stack>
-              <Box
-                component="form"
-                onSubmit={handleWhyHeroSave}
-                sx={{ border: '1px dashed', borderColor: 'divider', borderRadius: 1, p: 2 }}
-              >
-                <Grid container spacing={2} alignItems="flex-start">
-                  <Grid item xs={12} md={8}>
-                    <Stack spacing={2}>
-                      <TextField
-                        select
-                        label="Category"
-                        value={whyHeroForm.category}
-                        onChange={(event) => handleWhyHeroChange('category', event.target.value)}
-                        fullWidth
-                        required
-                      >
-                        {categoryOptions.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                      <TextField
-                        select
-                        label="Sub-category"
-                        value={whyHeroForm.subcategory}
-                        onChange={(event) => handleWhyHeroChange('subcategory', event.target.value)}
-                        fullWidth
-                        disabled={!whyHeroForm.category || (subcategoryLookup.get(whyHeroForm.category) || []).length === 0}
-
-                      >
-                        {(subcategoryLookup.get(whyHeroForm.category) || []).map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                      <TextField
-                        label="Hero title"
-                        value={whyHeroForm.heroTitle}
-                        onChange={(event) => handleWhyHeroChange('heroTitle', event.target.value)}
-                        fullWidth
-                        required
-                      />
-                      <TextField
-                        label="Hero description"
-                        value={whyHeroForm.heroDescription}
-                        onChange={(event) => handleWhyHeroChange('heroDescription', event.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={3}
-                      />
-                      <TextField
-                        label="Service table title"
-                        value={whyHeroForm.tableTitle}
-                        onChange={(event) => handleWhyHeroChange('tableTitle', event.target.value)}
-                        fullWidth
-                      />
-                      <TextField
-                        label="Service table description"
-                        value={whyHeroForm.tableDescription}
-                        onChange={(event) => handleWhyHeroChange('tableDescription', event.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={2}
-                      />
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <Button type="submit" variant="contained">
-                          Save hero content
-                        </Button>
-
-                      </Stack>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <ImageUpload
-                      label="Hero image"
-                      value={whyHeroForm.heroImage}
-                      onChange={(value) => handleWhyHeroChange('heroImage', value)}
-                      required
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Stack spacing={1}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                  <Box>
-                    <Typography variant="h6">{whyChoose.tableTitle || 'Service highlights'}</Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={openWhyServiceCreateDialog}
-                    disabled={!selectedWhyChooseId}
-                    sx={{ mt: { xs: 1, sm: 0 } }}
-                  >
-                    Add highlight
-                  </Button>
-                </Stack>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Category</TableCell>
-                        <TableCell>Sub-category</TableCell>
-                        <TableCell>Title</TableCell>
-                        <TableCell>Description</TableCell>
-                        <TableCell align="right">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {pagedWhyServices.map((service) => (
-                        <TableRow key={service.id} hover>
-                          <TableCell>{service.category || '-'}</TableCell>
-                          <TableCell>{service.subcategory || '-'}</TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>{service.title}</TableCell>
-                          <TableCell sx={{ maxWidth: 340 }}>
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {service.description}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <Tooltip title="Edit">
-                                <IconButton
-                                  size="small"
-                                  color="primary"
-                                  onClick={() => openWhyServiceEditDialog(service)}
-                                >
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => openWhyServiceDeleteDialog(service)}
-                                >
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {whyChoose.services.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5}>
-                            <Typography variant="body2" color="text.secondary" align="center">
-                              No highlights yet. Use "Add highlight" to create category-wise reasons to choose you.
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <Stack mt={2} alignItems="flex-end">
-                  <Pagination
-                    count={Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage))}
-                    page={whyServicePage}
-                    onChange={(event, page) => setWhyServicePage(page)}
-                    color="primary"
-                  />
-                </Stack>
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
+        <WhyChooseTab
+          categoryOptions={categoryOptions}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          whyServiceCategoryFilter={whyServiceCategoryFilter}
+          setWhyServiceCategoryFilter={setWhyServiceCategoryFilter}
+          whyServiceSubcategoryFilter={whyServiceSubcategoryFilter}
+          setWhyServiceSubcategoryFilter={setWhyServiceSubcategoryFilter}
+          whyChooseList={whyChooseList}
+          selectedWhyChooseId={selectedWhyChooseId}
+          setSelectedWhyChooseId={setSelectedWhyChooseId}
+          onNewConfig={handleWhyChooseNewConfig}
+          whyHeroForm={whyHeroForm}
+          handleWhyHeroChange={handleWhyHeroChange}
+          handleWhyHeroSave={handleWhyHeroSave}
+          openWhyServiceCreateDialog={openWhyServiceCreateDialog}
+          pagedWhyServices={pagedWhyServices}
+          whyChoose={whyChoose}
+          openWhyServiceEditDialog={openWhyServiceEditDialog}
+          openWhyServiceDeleteDialog={openWhyServiceDeleteDialog}
+          rowsPerPage={rowsPerPage}
+          whyServicePage={whyServicePage}
+          setWhyServicePage={setWhyServicePage}
+        />
       )}
 
       {activeTab === 'technologies' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Technologies we support"
-            subheader="Group technology blocks (Frontend / Backend) and keep the services page dynamic."
-            action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
-                Add technology block
-              </Button>
-            }
-          />
-          <Divider />
-          <CardContent>
-            <Stack spacing={2}>
-              {groupedTechnologies.map((group) => (
-                <Accordion
-                  key={group.key}
-                  disableGutters
-                  elevation={0}
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    '&:before': { display: 'none' },
-                  }}
-                >
-                  {/* GROUP HEADER */}
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="h6">
-                      {group.key} ({group.items.length})
-                    </Typography>
-                  </AccordionSummary>
-
-                  {/* GROUP CONTENT */}
-                  <AccordionDetails>
-                    <Stack spacing={1.5}>
-                      {group.items.map((tech) => (
-                        <Box
-                          key={tech.id}
-                          sx={{
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            borderRadius: 1,
-                            p: 1.5,
-                          }}
-                        >
-                          <Stack direction="row" spacing={2} alignItems="flex-start">
-                            {/* LEFT CONTENT */}
-                            <Stack spacing={1} flex={1}>
-                              <Stack direction="row" spacing={1} flexWrap="wrap">
-                                {tech.items?.length > 0 ? (
-                                  tech.items.map((item, index) => (
-                                    <Chip
-                                      key={index}
-                                      label={item}
-                                      size="small"
-                                      color="primary"
-                                      variant="outlined"
-                                    />
-                                  ))
-                                ) : (
-                                  <Typography variant="body2" color="text.secondary">
-                                    No items added yet.
-                                  </Typography>
-                                )}
-                              </Stack>
-
-                              <Box
-                                component="img"
-                                src={tech.image || imagePlaceholder}
-                                alt={`${tech.title} preview`}
-                                sx={{
-                                  width: 180,
-                                  height: 100,
-                                  objectFit: 'cover',
-                                  borderRadius: 1,
-                                }}
-                              />
-                            </Stack>
-
-                            {/* RIGHT ACTIONS */}
-                            <Stack direction="row" spacing={1}>
-                              <Tooltip title="Edit">
-                                <IconButton
-                                  size="small"
-                                  color="primary"
-                                  onClick={() => openTechnologyEditDialog(tech)}
-                                >
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => openTechnologyDeleteDialog(tech)}
-                                >
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </Stack>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-
-              {/* EMPTY STATE */}
-              {groupedTechnologies.length === 0 && (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  {technologies.length === 0
-                    ? 'No technology blocks configured yet.'
-                    : 'No technology blocks found.'}
-                </Typography>
-              )}
-            </Stack>
-          </CardContent>
-
-
-
-        </Card>
+        <TechnologiesTab
+          groupedTechnologies={groupedTechnologies}
+          technologies={technologies}
+          openTechnologyCreateDialog={openTechnologyCreateDialog}
+          openTechnologyEditDialog={openTechnologyEditDialog}
+          openTechnologyDeleteDialog={openTechnologyDeleteDialog}
+          imagePlaceholder={imagePlaceholder}
+        />
       )}
 
       {activeTab === 'benefits' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Benefits"
-            subheader="Control benefit cards with images and rich descriptions."
-            action={
-              <Button
-                variant="contained"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={openBenefitCreateDialog}
-                disabled={!hasBenefitConfig}
-              >
-                Add benefit
-              </Button>
-            }
-          />
-          <Divider />
-          <CardContent>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={2}>
-              <TextField
-                select
-                label="Category filter"
-                value={benefitCategoryFilter}
-                onChange={(event) => setBenefitCategoryFilter(event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={Boolean(benefitCategoryFilter)}
-                      onClear={() => setBenefitCategoryFilter('')}
-                    />
-                  ),
-                }}
-                fullWidth
-              >
-                <MenuItem value="">All categories</MenuItem>
-                {categoryOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                select
-                label="Sub-category filter"
-                value={benefitSubcategoryFilter}
-                onChange={(event) => setBenefitSubcategoryFilter(event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={Boolean(benefitSubcategoryFilter)}
-                      onClear={() => setBenefitSubcategoryFilter('')}
-                    />
-                  ),
-                }}
-                fullWidth
-                disabled={
-                  benefitCategoryFilter
-                    ? (subcategoryLookup.get(benefitCategoryFilter) || []).length === 0
-                    : allSubcategoryOptions.length === 0
-                }
-              >
-                <MenuItem value="">All sub-categories</MenuItem>
-                {(benefitCategoryFilter ? subcategoryLookup.get(benefitCategoryFilter) || [] : allSubcategoryOptions).map(
-                  (option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  )
-                )}
-              </TextField>
-            </Stack>
-
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              mb={2}
-              flexWrap="nowrap"
-            >
-              <Autocomplete
-                  disableClearable={false}
-                  clearOnEscape
-                options={benefitConfigs}
-                getOptionLabel={(option) =>
-                  option?.categoryName || option?.subcategoryName
-                    ? [option.categoryName, option.subcategoryName].filter(Boolean).join(' / ')
-                    : option?.title || 'Untitled'
-                }
-                fullWidth
-                value={
-                  benefitConfigs.find(
-                    (item) => String(item.id) === String(selectedBenefitConfigId)
-                  ) || null
-                }
-                onChange={(event, value) => handleBenefitConfigSelect(value)}
-                renderInput={(params) => (
-                  <TextField {...params} label="Select benefits config" />
-                )}
-                sx={{ minWidth: 0 }}
-              />
-
-              <Button
-                variant="outlined"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={handleNewBenefitConfig}
-                sx={{ whiteSpace: 'nowrap' }}
-              >
-                New config
-              </Button>
-            </Stack>
-
-            <Stack spacing={2} mb={3} component="form" onSubmit={handleBenefitHeroSave}>
-              <TextField
-                select
-                label="Category"
-                value={benefitHero.categoryId}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  handleBenefitHeroChange('categoryId', value);
-
-                  const allowedSubcategories = benefitHeroSubcategoryOptions
-                    .filter((option) => Number(option.categoryId) === Number(value))
-                    .map((option) => option.value);
-
-                  if (value && benefitHero.subcategoryId && !allowedSubcategories.includes(benefitHero.subcategoryId)) {
-                    handleBenefitHeroChange('subcategoryId', '');
-                  }
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={Boolean(benefitHero.categoryId)}
-                      onClear={() => handleBenefitHeroChange('categoryId', '')}
-                    />
-                  ),
-                }}
-                fullWidth
-              >
-                <MenuItem value="">All categories</MenuItem>
-                {benefitHeroCategoryOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                select
-                label="Sub-category"
-                value={benefitHero.subcategoryId}
-                onChange={(event) => handleBenefitHeroChange('subcategoryId', event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={Boolean(benefitHero.subcategoryId)}
-                      onClear={() => handleBenefitHeroChange('subcategoryId', '')}
-                    />
-                  ),
-                }}
-                fullWidth
-                disabled={!benefitHeroCategoryOptions.length}
-              >
-                <MenuItem value="">All sub-categories</MenuItem>
-                {benefitHeroSubcategoryOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="Benefits title"
-                value={benefitHero.title}
-                onChange={(event) => handleBenefitHeroChange('title', event.target.value)}
-                required
-                fullWidth
-              />
-              <TextField
-                label="Benefits description"
-                value={benefitHero.description}
-                onChange={(event) => handleBenefitHeroChange('description', event.target.value)}
-                fullWidth
-                multiline
-                minRows={2}
-              />
-
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Button variant="contained" onClick={handleBenefitHeroSave}>
-                  Save Benefits
-                </Button>
-                {benefitHeroSaved && (
-                  <Typography variant="body2" color="success.main">
-                    Saved
-                  </Typography>
-                )}
-              </Stack>
-            </Stack>
-
-            <Divider sx={{ mb: 2 }} />
-            <Stack spacing={2}>
-              {groupedBenefits.map((group) => (
-                <Accordion key={group.category} defaultExpanded disableGutters>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Stack spacing={0.5}>
-                      <Typography variant="subtitle1">{group.category}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {group.items.length} benefit{group.items.length === 1 ? '' : 's'}
-                      </Typography>
-                    </Stack>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <TableContainer>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Title</TableCell>
-                            <TableCell>Sub-category</TableCell>
-                            <TableCell>Image</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell align="right">Actions</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {group.items.map((benefit) => (
-                            <TableRow key={benefit.id} hover>
-                              <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
-                              <TableCell>{benefit.subcategory || '-'}</TableCell>
-                              <TableCell sx={{ maxWidth: 200 }}>
-                                <Box
-                                  component="img"
-                                  src={benefit.image || imagePlaceholder}
-                                  alt={`${benefit.title} visual`}
-                                  sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                                />
-                              </TableCell>
-                              <TableCell sx={{ maxWidth: 240 }}>
-                                <Typography variant="body2" color="text.secondary" noWrap>
-                                  {benefit.description}
-                                </Typography>
-                              </TableCell>
-                              <TableCell align="right">
-                                <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                  <Tooltip title="Edit">
-                                    <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
-                                      <EditOutlinedIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title="Delete">
-                                    <IconButton
-                                      size="small"
-                                      color="error"
-                                      onClick={() => openBenefitDeleteDialog(benefit)}
-                                    >
-                                      <DeleteOutlineIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Stack>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-              {visibleBenefits.length === 0 && (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  No benefits configured yet.
-                </Typography>
-              )}
-            </Stack>
-
-            <Stack mt={2} alignItems="flex-end">
-              <Pagination
-                count={Math.max(1, Math.ceil(visibleBenefits.length / rowsPerPage))}
-                page={benefitPage}
-                onChange={(event, page) => setBenefitPage(page)}
-                color="primary"
-              />
-            </Stack>
-          </CardContent>
-        </Card>
+        <BenefitsTab
+          categoryOptions={categoryOptions}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          benefitCategoryFilter={benefitCategoryFilter}
+          setBenefitCategoryFilter={setBenefitCategoryFilter}
+          benefitSubcategoryFilter={benefitSubcategoryFilter}
+          setBenefitSubcategoryFilter={setBenefitSubcategoryFilter}
+          benefitConfigs={benefitConfigs}
+          selectedBenefitConfigId={selectedBenefitConfigId}
+          handleBenefitConfigSelect={handleBenefitConfigSelect}
+          handleNewBenefitConfig={handleNewBenefitConfig}
+          benefitHero={benefitHero}
+          benefitHeroCategoryOptions={benefitHeroCategoryOptions}
+          benefitHeroSubcategoryOptions={benefitHeroSubcategoryOptions}
+          handleBenefitHeroChange={handleBenefitHeroChange}
+          handleBenefitHeroSave={handleBenefitHeroSave}
+          benefitHeroSaved={benefitHeroSaved}
+          hasBenefitConfig={hasBenefitConfig}
+          groupedBenefits={groupedBenefits}
+          visibleBenefits={visibleBenefits}
+          rowsPerPage={rowsPerPage}
+          benefitPage={benefitPage}
+          setBenefitPage={setBenefitPage}
+          openBenefitCreateDialog={openBenefitCreateDialog}
+          openBenefitEditDialog={openBenefitEditDialog}
+          openBenefitDeleteDialog={openBenefitDeleteDialog}
+          imagePlaceholder={imagePlaceholder}
+        />
       )}
 
       {activeTab === 'contact-buttons' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Contact buttons"
-            subheader="Showcase contact CTAs with supporting copy and imagery."
-            action={
-              <Button
-                variant="contained"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={openContactButtonCreateDialog}
-              >
-                Add contact button
-              </Button>
-            }
-          />
-          <Divider />
-          <CardContent>
-            <Stack
-              spacing={2}
-              direction={{ xs: 'column', md: 'row' }}
-              alignItems={{ xs: 'stretch', md: 'flex-end' }}
-              mb={2}
-            >
-              <TextField
-                select
-                label="Category"
-                value={contactCategoryFilter}
-                onChange={(event) => setContactCategoryFilter(event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={Boolean(contactCategoryFilter)}
-                      onClear={() => setContactCategoryFilter('')}
-                    />
-                  ),
-                }}
-                sx={{ minWidth: 220 }}
-              >
-                <MenuItem value="">All categories</MenuItem>
-                {categoryOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                select
-                label="Sub-category"
-                value={contactSubcategoryFilter}
-                onChange={(event) => setContactSubcategoryFilter(event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={Boolean(contactSubcategoryFilter)}
-                      onClear={() => setContactSubcategoryFilter('')}
-                    />
-                  ),
-                }}
-                sx={{ minWidth: 240 }}
-              >
-                <MenuItem value="">All sub-categories</MenuItem>
-                {(contactCategoryFilter
-                  ? subcategoryLookup.get(contactCategoryFilter) || []
-                  : allSubcategoryOptions
-                ).map((name) => (
-                  <MenuItem key={name} value={name}>
-                    {name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Stack>
-            <Stack spacing={2}>
-              {groupedContactButtons.map((group) => (
-                <Accordion key={group.category} defaultExpanded disableGutters>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Stack spacing={0.5}>
-                      <Typography variant="subtitle1">{group.category}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {group.items.length} contact CTA{group.items.length === 1 ? '' : 's'}
-                      </Typography>
-                    </Stack>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <TableContainer>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Title</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>Sub-category</TableCell>
-                            <TableCell>Image</TableCell>
-                            <TableCell align="right">Actions</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {group.items.map((button) => (
-                            <TableRow key={button.id} hover>
-                              <TableCell sx={{ fontWeight: 700 }}>{button.title}</TableCell>
-                              <TableCell sx={{ maxWidth: 360 }}>
-                                <Typography variant="body2" color="text.secondary" noWrap>
-                                  {button.description || 'No description provided.'}
-                                </Typography>
-                              </TableCell>
-                              <TableCell sx={{ maxWidth: 140 }}>
-                                <Typography variant="body2" color="text.secondary" noWrap>
-                                  {button.subcategory || 'Not set'}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <Box
-                                  component="img"
-                                  src={button.image || imagePlaceholder}
-                                  alt={`${button.title} visual`}
-                                  sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                                />
-                              </TableCell>
-                              <TableCell align="right">
-                                <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                  <Tooltip title="Edit">
-                                    <IconButton
-                                      size="small"
-                                      color="primary"
-                                      onClick={() => openContactButtonEditDialog(button)}
-                                    >
-                                      <EditOutlinedIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title="Delete">
-                                    <IconButton
-                                      size="small"
-                                      color="error"
-                                      onClick={() => openContactButtonDeleteDialog(button)}
-                                    >
-                                      <DeleteOutlineIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Stack>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-              {groupedContactButtons.length === 0 && (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  {contactButtons.length === 0
-                    ? 'No contact buttons configured yet.'
-                    : 'No contact buttons match the selected filters.'}
-                </Typography>
-              )}
-            </Stack>
-            <Stack mt={2} alignItems="flex-end">
-              <Pagination
-                count={Math.max(1, Math.ceil(filteredContactButtons.length / rowsPerPage))}
-                page={contactButtonPage}
-                onChange={(event, page) => setContactButtonPage(page)}
-                color="primary"
-              />
-            </Stack>
-          </CardContent>
-        </Card>
+        <ContactButtonsTab
+          categoryOptions={categoryOptions}
+          contactCategoryFilter={contactCategoryFilter}
+          setContactCategoryFilter={setContactCategoryFilter}
+          contactSubcategoryFilter={contactSubcategoryFilter}
+          setContactSubcategoryFilter={setContactSubcategoryFilter}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          groupedContactButtons={groupedContactButtons}
+          contactButtons={contactButtons}
+          filteredContactButtons={filteredContactButtons}
+          rowsPerPage={rowsPerPage}
+          contactButtonPage={contactButtonPage}
+          setContactButtonPage={setContactButtonPage}
+          openContactButtonCreateDialog={openContactButtonCreateDialog}
+          openContactButtonEditDialog={openContactButtonEditDialog}
+          openContactButtonDeleteDialog={openContactButtonDeleteDialog}
+          imagePlaceholder={imagePlaceholder}
+        />
       )}
 
       {activeTab === 'hire' && (
-        <Stack spacing={3}>
-          {/* <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-            <CardHeader
-              title="Development services hero"
-              subheader="Control the title, description, and hero image used on the development services section."
-            />
-            <Divider />
-            <CardContent>
-              <Stack spacing={2}>
-                <TextField
-                  label="Title"
-                  value={hireContent.title}
-                  onChange={(event) => handleHireContentChange('title', event.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Description"
-                  value={hireContent.description}
-                  onChange={(event) => handleHireContentChange('description', event.target.value)}
-                  fullWidth
-                  multiline
-                  minRows={3}
-                />
-                <ImageUpload
-                  label="Hero image"
-                  value={hireContent.heroImage}
-                  onChange={(value) => handleHireContentChange('heroImage', value)}
-                  required
-                />
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Button variant="contained" onClick={handleHeroSave}>
-                    Save hero
-                  </Button>
-                  {heroSaved && (
-                    <Typography variant="body2" color="success.main">
-                      Saved
-                    </Typography>
-                  )}
-                </Stack>
-              </Stack>
-            </CardContent>
-          </Card> */}
-
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-            <CardHeader
-              title="Development services"
-              subheader="Manage the service tiles shown within the development services menu."
-              action={
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={openHireServiceCreateDialog}
-                >
-                  Add service
-                </Button>
-              }
-            />
-            <Divider />
-            <CardContent>
-              <Stack
-                spacing={2}
-                direction={{ xs: 'column', md: 'row' }}
-                alignItems={{ xs: 'stretch', md: 'flex-end' }}
-                mb={2}
-              >
-                <TextField
-                  select
-                  label="Category"
-                  value={categoryFilter}
-                  onChange={(event) => setCategoryFilter(event.target.value)}
-                  sx={{ minWidth: 220 }}
-                >
-                  <MenuItem value="">All categories</MenuItem>
-                  {categoryOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  select
-                  label="Sub-category"
-                  value={subcategoryFilter}
-                  onChange={(event) => setSubcategoryFilter(event.target.value)}
-                  sx={{ minWidth: 240 }}
-                >
-                  <MenuItem value="">All sub-categories</MenuItem>
-                  {(categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions).map((name) => (
-                    <MenuItem key={name} value={name}>
-                      {name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Stack>
-
-              <Stack spacing={1.5}>
-                {groupedHireServices.map(({ category, services }) => (
-                  <Accordion key={category} defaultExpanded>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                        <Typography variant="subtitle1" fontWeight={700}>
-                          {category}
-                        </Typography>
-                        <Chip
-                          label={`${services.length} service${services.length === 1 ? '' : 's'}`}
-                          size="small"
-                        />
-                      </Stack>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Grid container spacing={2}>
-                        {services.map((service) => (
-                          <Grid item xs={12} md={6} key={service.id}>
-                            <Card variant="outlined" sx={{ height: '100%' }}>
-                              <CardContent>
-                                <Stack spacing={1.5} height="100%">
-                                  <Stack
-                                    direction={{ xs: 'column', sm: 'row' }}
-                                    spacing={2}
-                                    alignItems={{ sm: 'flex-start' }}
-                                  >
-                                    <Stack spacing={0.5} flex={1}>
-                                      <Typography variant="subtitle1" fontWeight={700}>
-                                        {service.title}
-                                      </Typography>
-                                      <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                                        <Chip
-                                          label={service.category || 'Uncategorised'}
-                                          size="small"
-                                          color={service.category ? 'default' : 'warning'}
-                                        />
-                                        <Chip
-                                          label={service.subcategory || 'No sub-category'}
-                                          size="small"
-                                          variant="outlined"
-                                          color={service.subcategory ? 'primary' : 'default'}
-                                        />
-                                      </Stack>
-                                    </Stack>
-                                    <Box
-                                      component="img"
-                                      src={service.image || imagePlaceholder}
-                                      alt={`${service.title} preview`}
-                                      sx={{ width: 140, height: 90, objectFit: 'cover', borderRadius: 1 }}
-                                    />
-                                  </Stack>
-
-                                  <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
-                                    {service.description || 'No description added yet.'}
-                                  </Typography>
-
-                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    <Tooltip title="Edit">
-                                      <IconButton
-                                        size="small"
-                                        color="primary"
-                                        onClick={() => openHireServiceEditDialog(service)}
-                                      >
-                                        <EditOutlinedIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Delete">
-                                      <IconButton
-                                        size="small"
-                                        color="error"
-                                        onClick={() => openHireServiceDeleteDialog(service)}
-                                      >
-                                        <DeleteOutlineIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
-                                  </Stack>
-                                </Stack>
-                              </CardContent>
-                            </Card>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-                {hireContent.services.length === 0 && (
-                  <Typography variant="body2" color="text.secondary" align="center">
-                    No development services configured yet.
-                  </Typography>
-                )}
-              </Stack>
-              <Stack mt={2} alignItems="flex-end">
-                <Pagination
-                  count={Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage))}
-                  page={hireServicePage}
-                  onChange={(event, page) => setHireServicePage(page)}
-                  color="primary"
-                />
-              </Stack>
-            </CardContent>
-          </Card>
-        </Stack>
+        <HireTab
+          categoryOptions={categoryOptions}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          subcategoryFilter={subcategoryFilter}
+          setSubcategoryFilter={setSubcategoryFilter}
+          groupedHireServices={groupedHireServices}
+          hireContent={hireContent}
+          rowsPerPage={rowsPerPage}
+          hireServicePage={hireServicePage}
+          setHireServicePage={setHireServicePage}
+          openHireServiceCreateDialog={openHireServiceCreateDialog}
+          openHireServiceEditDialog={openHireServiceEditDialog}
+          openHireServiceDeleteDialog={openHireServiceDeleteDialog}
+          imagePlaceholder={imagePlaceholder}
+        />
       )}
 
       <Dialog open={serviceDialogOpen} onClose={closeServiceDialog} maxWidth="md" fullWidth>
