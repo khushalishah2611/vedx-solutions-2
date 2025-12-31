@@ -69,7 +69,7 @@ const ServicesTab = ({
       >
         <TextField
           select
-          label="Date filter"
+         
           value={serviceDateFilter}
           onChange={(event) => setServiceDateFilter(event.target.value)}
           InputProps={{

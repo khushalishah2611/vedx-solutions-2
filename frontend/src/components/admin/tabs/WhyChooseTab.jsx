@@ -74,7 +74,7 @@ const WhyChooseTab = ({
                 />
               ),
             }}
-            fullWidth
+              sx={{ minWidth: 240 }}
           >
             <MenuItem value="">All categories</MenuItem>
             {categoryOptions.map((option) => (
@@ -96,7 +96,7 @@ const WhyChooseTab = ({
                 />
               ),
             }}
-            fullWidth
+                sx={{ minWidth: 240 }}
             disabled={
               whyServiceCategoryFilter
                 ? (subcategoryLookup.get(whyServiceCategoryFilter) || []).length === 0

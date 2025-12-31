@@ -2644,20 +2644,7 @@ const AdminServicesPage = () => {
           openWhyVedxDeleteDialog={openWhyVedxDeleteDialog}
         />
       )}
-      {activeTab === 'industries' && (
-        <IndustriesTab
-          industries={industries}
-          setIndustries={setIndustries}
-          imagePlaceholder={imagePlaceholder}
-          rowsPerPage={rowsPerPage}
-          industryPage={industryPage}
-          setIndustryPage={setIndustryPage}
-          openIndustryCreateDialog={openIndustryCreateDialog}
-          openIndustryEditDialog={openIndustryEditDialog}
-          openIndustryDeleteDialog={openIndustryDeleteDialog}
-        />
-      )}
-
+ 
       {activeTab === 'tech-solutions' && (
         <TechSolutionsTab
           techSolutions={techSolutions}
@@ -2668,22 +2655,6 @@ const AdminServicesPage = () => {
           openTechSolutionCreateDialog={openTechSolutionCreateDialog}
           openTechSolutionEditDialog={openTechSolutionEditDialog}
           openTechSolutionDeleteDialog={openTechSolutionDeleteDialog}
-        />
-      )}
-
-      {activeTab === 'expertise' && (
-        <ExpertiseTab
-          expertiseHeroForm={expertiseHeroForm}
-          handleExpertiseHeroChange={handleExpertiseHeroChange}
-          handleExpertiseHeroSave={handleExpertiseHeroSave}
-          expertise={expertise}
-          openExpertiseCreateDialog={openExpertiseCreateDialog}
-          openExpertiseEditDialog={openExpertiseEditDialog}
-          openExpertiseDeleteDialog={openExpertiseDeleteDialog}
-          rowsPerPage={rowsPerPage}
-          expertisePage={expertisePage}
-          setExpertisePage={setExpertisePage}
-          imagePlaceholder={imagePlaceholder}
         />
       )}
 

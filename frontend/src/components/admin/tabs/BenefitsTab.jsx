@@ -90,7 +90,7 @@ const BenefitsTab = ({
               />
             ),
           }}
-          fullWidth
+              sx={{ minWidth: 240 }}
         >
           <MenuItem value="">All categories</MenuItem>
           {categoryOptions.map((option) => (
@@ -112,7 +112,7 @@ const BenefitsTab = ({
               />
             ),
           }}
-          fullWidth
+              sx={{ minWidth: 240 }}
           disabled={
             benefitCategoryFilter
               ? (subcategoryLookup.get(benefitCategoryFilter) || []).length === 0

@@ -64,7 +64,7 @@ const WhyVedxTab = ({
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
           <TextField
             select
-            label="Category filter"
+            label="Category"
             value={whyVedxCategoryFilter}
             onChange={(event) => setWhyVedxCategoryFilter(event.target.value)}
             InputProps={{
@@ -75,7 +75,7 @@ const WhyVedxTab = ({
                 />
               ),
             }}
-            fullWidth
+                sx={{ minWidth: 240 }}
           >
             <MenuItem value="">All categories</MenuItem>
             {categoryOptions.map((option) => (
@@ -86,7 +86,7 @@ const WhyVedxTab = ({
           </TextField>
           <TextField
             select
-            label="Sub-category filter"
+            label="Sub-category"
             value={whyVedxSubcategoryFilter}
             onChange={(event) => setWhyVedxSubcategoryFilter(event.target.value)}
             InputProps={{
@@ -97,7 +97,7 @@ const WhyVedxTab = ({
                 />
               ),
             }}
-            fullWidth
+                sx={{ minWidth: 240 }}
             disabled={
               whyVedxCategoryFilter
                 ? (subcategoryLookup.get(whyVedxCategoryFilter) || []).length === 0
