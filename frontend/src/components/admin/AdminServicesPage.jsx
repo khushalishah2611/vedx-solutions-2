@@ -1453,6 +1453,18 @@ const AdminServicesPage = () => {
     [technologies]
   );
 
+  const groupedTechnologies = useMemo(() => {
+    const lookup = new Map();
+
+    sortedTechnologies.forEach((tech) => {
+      const titleKey = tech.title?.trim() || 'Untitled';
+      const existing = lookup.get(titleKey) || [];
+      lookup.set(titleKey, [...existing, tech]);
+    });
+
+    return Array.from(lookup.entries()).map(([title, items]) => ({ title, items }));
+  }, [sortedTechnologies]);
+
   const activeWhyVedxReasons = useMemo(() => {
     if (!selectedWhyVedxId) return whyVedxReasons;
     return whyVedxReasons.filter((reason) => String(reason.whyVedxId) === String(selectedWhyVedxId));
@@ -3572,61 +3584,71 @@ const AdminServicesPage = () => {
           <Divider />
           <CardContent>
             <Stack spacing={1.5}>
-              {sortedTechnologies.map((tech) => (
-                <Card key={tech.id} variant="outlined">
-                  <CardContent>
-                    <Stack spacing={2}>
-                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'stretch' }}>
-                        <Stack spacing={1} flex={1}>
-                          <Typography variant="subtitle1" fontWeight={700}>
-                            {tech.title || 'Untitled'}
-                          </Typography>
-                          <Typography variant="subtitle2" color="text.secondary">
-                            Technologies
-                          </Typography>
-                          <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                            {tech.items.length > 0 ? (
-                              tech.items.map((item) => (
-                                <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
-                              ))
-                            ) : (
-                              <Typography variant="body2" color="text.secondary">
-                                No items added yet.
-                              </Typography>
-                            )}
+              {groupedTechnologies.map((group) => (
+                <Stack key={group.title} spacing={1}>
+                  <Typography variant="h6" fontWeight={700} px={1}>
+                    {group.title}
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {group.items.map((tech) => (
+                      <Card key={tech.id} variant="outlined">
+                        <CardContent>
+                          <Stack spacing={2}>
+                            <Stack
+                              direction={{ xs: 'column', md: 'row' }}
+                              spacing={2}
+                              alignItems={{ md: 'stretch' }}
+                            >
+                              <Stack spacing={1} flex={1}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Technologies
+                                </Typography>
+                                <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                  {tech.items.length > 0 ? (
+                                    tech.items.map((item) => (
+                                      <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
+                                    ))
+                                  ) : (
+                                    <Typography variant="body2" color="text.secondary">
+                                      No items added yet.
+                                    </Typography>
+                                  )}
+                                </Stack>
+                              </Stack>
+                              <Stack spacing={1} minWidth={220}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Preview
+                                </Typography>
+                                <Box
+                                  component="img"
+                                  src={tech.image || imagePlaceholder}
+                                  alt={`${tech.title} preview`}
+                                  sx={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 1 }}
+                                />
+                              </Stack>
+                            </Stack>
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Edit">
+                                <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton size="small" color="error" onClick={() => openTechnologyDeleteDialog(tech)}>
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
                           </Stack>
-                        </Stack>
-                        <Stack spacing={1} minWidth={220}>
-                          <Typography variant="subtitle2" color="text.secondary">
-                            Preview
-                          </Typography>
-                          <Box
-                            component="img"
-                            src={tech.image || imagePlaceholder}
-                            alt={`${tech.title} preview`}
-                            sx={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 1 }}
-                          />
-                        </Stack>
-                      </Stack>
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <Tooltip title="Edit">
-                          <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
-                            <EditOutlinedIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton size="small" color="error" onClick={() => openTechnologyDeleteDialog(tech)}>
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </Stack>
-                  </CardContent>
-                </Card>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Stack>
+                </Stack>
               ))}
-              {technologies.length === 0 && (
+              {groupedTechnologies.length === 0 && (
                 <Typography variant="body2" color="text.secondary" align="center">
-                  No technology blocks configured yet.
+                  No technology blocks added yet. Use "Add technology block" to create one.
                 </Typography>
               )}
             </Stack>
