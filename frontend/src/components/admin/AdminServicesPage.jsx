@@ -712,33 +712,23 @@ const AdminServicesPage = () => {
     }
   }, []);
 
-  const loadWhyVedx = useCallback(
-    async ({ category, subcategory } = {}) => {
-      try {
-        const params = new URLSearchParams();
-        if (category) params.append('category', category);
-        if (subcategory) params.append('subcategory', subcategory);
-        params.append('includeReasons', 'true');
+  const loadWhyVedx = useCallback(async ({ category, subcategory } = {}) => {
+    try {
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (subcategory) params.append('subcategory', subcategory);
+      params.append('includeReasons', 'true');
 
-        const response = await fetch(apiUrl(`/api/why-vedx?${params.toString()}`));
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || '');
-        const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
+      const response = await fetch(apiUrl(`/api/why-vedx?${params.toString()}`));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || '');
 
-        setWhyVedxList(list);
-
-        const active =
-          list.find((item) => String(item.id) === String(selectedWhyVedxId)) || list[0] || emptyWhyVedxHero;
-        setSelectedWhyVedxId(active.id || '');
-        setWhyVedxHeroForm(active.id ? active : emptyWhyVedxHero);
-        setWhyVedxReasons(active.reasons || []);
-      } catch (err) {
-        console.error('Failed to load why VEDX config', err);
-      }
-    },
-    [selectedWhyVedxId]
-  );
-
+      const list = Array.isArray(data) ? data.map(normalizeWhyVedx) : data ? [normalizeWhyVedx(data)] : [];
+      setWhyVedxList(list);
+    } catch (err) {
+      console.error('Failed to load why VEDX config', err);
+    }
+  }, []);
   const loadWhyVedxReasons = useCallback(async (whyVedxId, { category, subcategory } = {}) => {
     try {
       const params = new URLSearchParams();
@@ -1342,7 +1332,7 @@ const AdminServicesPage = () => {
         const matchesCategory = categoryFilter ? linkedService?.category === categoryFilter : true;
         const matchesSubcategory = subcategoryFilter
           ? item.subcategory === subcategoryFilter ||
-            linkedService?.subcategories?.some((subcategory) => subcategory.name === subcategoryFilter)
+          linkedService?.subcategories?.some((subcategory) => subcategory.name === subcategoryFilter)
           : true;
 
         return matchesCategory && matchesSubcategory;
@@ -2523,43 +2513,6 @@ const AdminServicesPage = () => {
           background: 'linear-gradient(135deg, #0b1120 0%, #111827 100%)',
         }}
       />
-
-      <Stack spacing={1} sx={{ px: { xs: 0, md: 1 } }}>
-
-        <Stack
-          spacing={2}
-          direction={{ xs: 'column', md: 'row' }}
-          alignItems={{ xs: 'stretch', md: 'flex-end' }}
-        >
-          <Autocomplete
-            sx={{ minWidth: 220 }}
-            freeSolo
-            options={categoryOptions.map((option) => option.label)}
-            value={categoryFilter}
-            onInputChange={(event, newValue) => setCategoryFilter(newValue || '')}
-            renderInput={(params) => (
-              <TextField {...params} label="Category filter" placeholder="All categories" />
-            )}
-          />
-          <Autocomplete
-            sx={{ minWidth: 220 }}
-            freeSolo
-            options={
-              categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions
-            }
-            value={subcategoryFilter}
-            onInputChange={(event, newValue) => setSubcategoryFilter(newValue || '')}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Sub-category filter"
-                placeholder={categoryFilter ? 'Filter by sub-category' : 'All sub-categories'}
-              />
-            )}
-            disabled={!categoryFilter && allSubcategoryOptions.length === 0}
-          />
-        </Stack>
-      </Stack>
 
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
