@@ -410,6 +410,9 @@ const AdminServicesPage = () => {
   const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
   const [categoryFilter, setCategoryFilter] = useState('');
   const [subcategoryFilter, setSubcategoryFilter] = useState('');
+  // Contact button tab uses its own filters (other tabs should remain unchanged).
+  const [contactCategoryFilter, setContactCategoryFilter] = useState('');
+  const [contactSubcategoryFilter, setContactSubcategoryFilter] = useState('');
   const [servicePage, setServicePage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
@@ -450,6 +453,8 @@ const AdminServicesPage = () => {
 
   const normalizeTechnology = (tech) => ({
     ...tech,
+    category: tech.category || '',
+    subcategory: tech.subcategory || '',
     items: tech.items || [],
   });
 
@@ -1354,8 +1359,11 @@ const AdminServicesPage = () => {
     setHireServicePage(1);
     setWhyServicePage(1);
     setProcessPage(1);
-    setContactButtonPage(1);
   }, [categoryFilter, subcategoryFilter]);
+
+  useEffect(() => {
+    setContactButtonPage(1);
+  }, [contactCategoryFilter, contactSubcategoryFilter]);
 
   const benefitHeroCategoryOptions = useMemo(
     () => serviceCategories.map((category) => ({ value: category.id, label: category.name })),
@@ -1385,6 +1393,18 @@ const AdminServicesPage = () => {
       setSubcategoryFilter('');
     }
   }, [categoryFilter, subcategoryFilter, subcategoryLookup]);
+
+  useEffect(() => {
+    if (!contactCategoryFilter) {
+      setContactSubcategoryFilter('');
+      return;
+    }
+
+    const allowed = subcategoryLookup.get(contactCategoryFilter) || [];
+    if (contactSubcategoryFilter && !allowed.includes(contactSubcategoryFilter)) {
+      setContactSubcategoryFilter('');
+    }
+  }, [contactCategoryFilter, contactSubcategoryFilter, subcategoryLookup]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredServices.length / rowsPerPage));
@@ -1443,17 +1463,24 @@ const AdminServicesPage = () => {
     [technologies]
   );
 
-  const groupedTechnologies = useMemo(() => {
-    const lookup = new Map();
+  // Technologies tab should NOT be filtered by category/sub-category.
+  const filteredTechnologies = useMemo(() => sortedTechnologies, [sortedTechnologies]);
 
-    sortedTechnologies.forEach((tech) => {
-      const titleKey = tech.title?.trim() || 'Untitled';
-      const existing = lookup.get(titleKey) || [];
-      lookup.set(titleKey, [...existing, tech]);
+  const groupedTechnologies = useMemo(() => {
+    const groups = new Map();
+
+    filteredTechnologies.forEach((tech) => {
+      const key = (tech?.title || '').trim() || 'Untitled';
+
+      const existing = groups.get(key) || [];
+      groups.set(key, [...existing, tech]);
     });
 
-    return Array.from(lookup.entries()).map(([title, items]) => ({ title, items }));
-  }, [sortedTechnologies]);
+    // Sort groups by title (optional but nice)
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, items]) => ({ key, items }));
+  }, [filteredTechnologies]);
 
   const activeWhyVedxReasons = useMemo(() => {
     if (!selectedWhyVedxId) return whyVedxReasons;
@@ -1470,10 +1497,25 @@ const AdminServicesPage = () => {
     return whyChoose.services.slice(start, start + rowsPerPage);
   }, [whyChoose.services, rowsPerPage, whyServicePage]);
 
+  const filteredHireServices = useMemo(
+    () =>
+      hireContent.services.filter((service) => {
+        const matchesCategory = categoryFilter ? service.category === categoryFilter : true;
+        const matchesSubcategory = subcategoryFilter ? service.subcategory === subcategoryFilter : true;
+        return matchesCategory && matchesSubcategory;
+      }),
+    [categoryFilter, hireContent.services, subcategoryFilter]
+  );
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredHireServices.length / rowsPerPage));
+    setHireServicePage((prev) => Math.min(prev, maxPage));
+  }, [filteredHireServices.length, rowsPerPage]);
+
   const pagedHireServices = useMemo(() => {
     const start = (hireServicePage - 1) * rowsPerPage;
-    return hireContent.services.slice(start, start + rowsPerPage);
-  }, [hireContent.services, rowsPerPage, hireServicePage]);
+    return filteredHireServices.slice(start, start + rowsPerPage);
+  }, [filteredHireServices, rowsPerPage, hireServicePage]);
 
   const groupedHireServices = useMemo(() => {
     const lookup = new Map();
@@ -1493,11 +1535,11 @@ const AdminServicesPage = () => {
   const filteredContactButtons = useMemo(
     () =>
       contactButtons.filter((button) => {
-        const matchesCategory = categoryFilter ? button.category === categoryFilter : true;
-        const matchesSubcategory = subcategoryFilter ? button.subcategory === subcategoryFilter : true;
+        const matchesCategory = contactCategoryFilter ? button.category === contactCategoryFilter : true;
+        const matchesSubcategory = contactSubcategoryFilter ? button.subcategory === contactSubcategoryFilter : true;
         return matchesCategory && matchesSubcategory;
       }),
-    [categoryFilter, contactButtons, subcategoryFilter]
+    [contactButtons, contactCategoryFilter, contactSubcategoryFilter]
   );
 
   const pagedContactButtons = useMemo(() => {
@@ -1646,7 +1688,13 @@ const AdminServicesPage = () => {
   const openTechnologyEditDialog = (technology) => {
     setTechnologyDialogMode('edit');
     setActiveTechnology(technology);
-    setTechnologyForm({ ...technology });
+    setTechnologyForm({
+      ...emptyTechnologyForm,
+      id: technology?.id ?? '',
+      title: technology?.title ?? '',
+      image: technology?.image ?? imagePlaceholder,
+      items: Array.isArray(technology?.items) ? technology.items : [],
+    });
     setTechnologyItemsInput((technology.items || []).join(', '));
     setTechnologyDialogOpen(true);
   };
@@ -1994,8 +2042,8 @@ const AdminServicesPage = () => {
     setActiveContactButton(null);
     setContactButtonForm({
       ...emptyContactButtonForm,
-      category: categoryFilter || '',
-      subcategory: subcategoryFilter || '',
+      category: contactCategoryFilter || '',
+      subcategory: contactSubcategoryFilter || '',
     });
     setContactButtonDialogOpen(true);
   };
@@ -2546,6 +2594,35 @@ const AdminServicesPage = () => {
                   </MenuItem>
                 ))}
               </TextField>
+              <TextField
+                select
+                label="Category"
+                value={categoryFilter}
+                onChange={(event) => setCategoryFilter(event.target.value)}
+                sx={{ minWidth: 220 }}
+              >
+                <MenuItem value="">All categories</MenuItem>
+                {categoryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                label="Sub-category"
+                value={subcategoryFilter}
+                onChange={(event) => setSubcategoryFilter(event.target.value)}
+                sx={{ minWidth: 240 }}
+              >
+                <MenuItem value="">All sub-categories</MenuItem>
+                {(categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions).map((name) => (
+                  <MenuItem key={name} value={name}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </TextField>
+
               {serviceDateFilter === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                   <TextField
@@ -3527,7 +3604,7 @@ const AdminServicesPage = () => {
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
             title="Technologies we support"
-            subheader="Organise tech stacks per category to keep the services page dynamic."
+            subheader="Group technology blocks (Frontend / Backend) and keep the services page dynamic."
             action={
               <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
                 Add technology block
@@ -3536,76 +3613,116 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
-            <Stack spacing={1.5}>
+            <Stack spacing={2}>
               {groupedTechnologies.map((group) => (
-                <Stack key={group.title} spacing={1}>
-                  <Typography variant="h6" fontWeight={700} px={1}>
-                    {group.title}
-                  </Typography>
-                  <Stack spacing={1.5}>
-                    {group.items.map((tech) => (
-                      <Card key={tech.id} variant="outlined">
-                        <CardContent>
-                          <Stack spacing={2}>
-                            <Stack
-                              direction={{ xs: 'column', md: 'row' }}
-                              spacing={2}
-                              alignItems={{ md: 'stretch' }}
-                            >
-                              <Stack spacing={1} flex={1}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  Technologies
-                                </Typography>
-                                <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                                  {tech.items.length > 0 ? (
-                                    tech.items.map((item) => (
-                                      <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
-                                    ))
-                                  ) : (
-                                    <Typography variant="body2" color="text.secondary">
-                                      No items added yet.
-                                    </Typography>
-                                  )}
-                                </Stack>
+                <Accordion
+                  key={group.key}
+                  disableGutters
+                  elevation={0}
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    '&:before': { display: 'none' },
+                  }}
+                >
+                  {/* GROUP HEADER */}
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="h6">
+                      {group.key} ({group.items.length})
+                    </Typography>
+                  </AccordionSummary>
+
+                  {/* GROUP CONTENT */}
+                  <AccordionDetails>
+                    <Stack spacing={1.5}>
+                      {group.items.map((tech) => (
+                        <Box
+                          key={tech.id}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 1,
+                            p: 1.5,
+                          }}
+                        >
+                          <Stack direction="row" spacing={2} alignItems="flex-start">
+                            {/* LEFT CONTENT */}
+                            <Stack spacing={1} flex={1}>
+                              <Stack direction="row" spacing={1} flexWrap="wrap">
+                                {tech.items?.length > 0 ? (
+                                  tech.items.map((item, index) => (
+                                    <Chip
+                                      key={index}
+                                      label={item}
+                                      size="small"
+                                      color="primary"
+                                      variant="outlined"
+                                    />
+                                  ))
+                                ) : (
+                                  <Typography variant="body2" color="text.secondary">
+                                    No items added yet.
+                                  </Typography>
+                                )}
                               </Stack>
-                              <Stack spacing={1} minWidth={220}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  Preview
-                                </Typography>
-                                <Box
-                                  component="img"
-                                  src={tech.image || imagePlaceholder}
-                                  alt={`${tech.title} preview`}
-                                  sx={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 1 }}
-                                />
-                              </Stack>
+
+                              <Box
+                                component="img"
+                                src={tech.image || imagePlaceholder}
+                                alt={`${tech.title} preview`}
+                                sx={{
+                                  width: 180,
+                                  height: 100,
+                                  objectFit: 'cover',
+                                  borderRadius: 1,
+                                }}
+                              />
                             </Stack>
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+
+                            {/* RIGHT ACTIONS */}
+                            <Stack direction="row" spacing={1}>
                               <Tooltip title="Edit">
-                                <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => openTechnologyEditDialog(tech)}
+                                >
                                   <EditOutlinedIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
+
                               <Tooltip title="Delete">
-                                <IconButton size="small" color="error" onClick={() => openTechnologyDeleteDialog(tech)}>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => openTechnologyDeleteDialog(tech)}
+                                >
                                   <DeleteOutlineIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                             </Stack>
                           </Stack>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </Stack>
-                </Stack>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
               ))}
+
+              {/* EMPTY STATE */}
               {groupedTechnologies.length === 0 && (
                 <Typography variant="body2" color="text.secondary" align="center">
-                  No technology blocks added yet. Use "Add technology block" to create one.
+                  {technologies.length === 0
+                    ? 'No technology blocks configured yet.'
+                    : 'No technology blocks found.'}
                 </Typography>
               )}
             </Stack>
           </CardContent>
+
+
+
         </Card>
       )}
 
@@ -3828,6 +3945,44 @@ const AdminServicesPage = () => {
           />
           <Divider />
           <CardContent>
+            <Stack
+              spacing={2}
+              direction={{ xs: 'column', md: 'row' }}
+              alignItems={{ xs: 'stretch', md: 'flex-end' }}
+              mb={2}
+            >
+              <TextField
+                select
+                label="Category"
+                value={contactCategoryFilter}
+                onChange={(event) => setContactCategoryFilter(event.target.value)}
+                sx={{ minWidth: 220 }}
+              >
+                <MenuItem value="">All categories</MenuItem>
+                {categoryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                label="Sub-category"
+                value={contactSubcategoryFilter}
+                onChange={(event) => setContactSubcategoryFilter(event.target.value)}
+                sx={{ minWidth: 240 }}
+              >
+                <MenuItem value="">All sub-categories</MenuItem>
+                {(contactCategoryFilter
+                  ? subcategoryLookup.get(contactCategoryFilter) || []
+                  : allSubcategoryOptions
+                ).map((name) => (
+                  <MenuItem key={name} value={name}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
             <Stack spacing={2}>
               {groupedContactButtons.map((group) => (
                 <Accordion key={group.category} defaultExpanded disableGutters>
@@ -3983,6 +4138,42 @@ const AdminServicesPage = () => {
             />
             <Divider />
             <CardContent>
+              <Stack
+                spacing={2}
+                direction={{ xs: 'column', md: 'row' }}
+                alignItems={{ xs: 'stretch', md: 'flex-end' }}
+                mb={2}
+              >
+                <TextField
+                  select
+                  label="Category"
+                  value={categoryFilter}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                  sx={{ minWidth: 220 }}
+                >
+                  <MenuItem value="">All categories</MenuItem>
+                  {categoryOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  label="Sub-category"
+                  value={subcategoryFilter}
+                  onChange={(event) => setSubcategoryFilter(event.target.value)}
+                  sx={{ minWidth: 240 }}
+                >
+                  <MenuItem value="">All sub-categories</MenuItem>
+                  {(categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions).map((name) => (
+                    <MenuItem key={name} value={name}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+
               <Stack spacing={1.5}>
                 {groupedHireServices.map(({ category, services }) => (
                   <Accordion key={category} defaultExpanded>
