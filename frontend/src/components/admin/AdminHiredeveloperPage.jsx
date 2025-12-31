@@ -32,7 +32,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import AdminSectionTabs from './AdminSectionTabs.jsx';
+import AdminSectionTabs from './tabs/AdminSectionTabs.jsx';
 
 const imagePlaceholder = '';
 

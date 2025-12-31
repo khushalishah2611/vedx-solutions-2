@@ -2,6 +2,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SelectClearAdornment from '../SelectClearAdornment.jsx';
 import {
   Accordion,
   AccordionDetails,
@@ -69,6 +70,14 @@ const HireTab = ({
           label="Category"
           value={categoryFilter}
           onChange={(event) => setCategoryFilter(event.target.value)}
+          InputProps={{
+            endAdornment: (
+              <SelectClearAdornment
+                visible={Boolean(categoryFilter)}
+                onClear={() => setCategoryFilter('')}
+              />
+            ),
+          }}
           sx={{ minWidth: 220 }}
         >
           <MenuItem value="">All categories</MenuItem>
@@ -83,6 +92,14 @@ const HireTab = ({
           label="Sub-category"
           value={subcategoryFilter}
           onChange={(event) => setSubcategoryFilter(event.target.value)}
+          InputProps={{
+            endAdornment: (
+              <SelectClearAdornment
+                visible={Boolean(subcategoryFilter)}
+                onClear={() => setSubcategoryFilter('')}
+              />
+            ),
+          }}
           sx={{ minWidth: 240 }}
         >
           <MenuItem value="">All sub-categories</MenuItem>

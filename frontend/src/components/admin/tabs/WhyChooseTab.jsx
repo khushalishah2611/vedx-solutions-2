@@ -25,7 +25,7 @@ import {
   Typography,
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import ImageUpload from '../ImageUpload.jsx';
+import ImageUpload from './ImageUpload.jsx';
 import SelectClearAdornment from '../SelectClearAdornment.jsx';
 
 const WhyChooseTab = ({

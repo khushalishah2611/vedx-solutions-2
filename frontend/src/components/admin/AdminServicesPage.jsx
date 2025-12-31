@@ -27,7 +27,7 @@ import {
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
-import AdminSectionTabs from './AdminSectionTabs.jsx';
+import AdminSectionTabs from './tabs/AdminSectionTabs.jsx';
 import ServicesTab from './tabs/ServicesTab.jsx';
 import ProcessTab from './tabs/ProcessTab.jsx';
 import WhyVedxTab from './tabs/WhyVedxTab.jsx';
@@ -38,8 +38,8 @@ import ContactButtonsTab from './tabs/ContactButtonsTab.jsx';
 import HireTab from './tabs/HireTab.jsx';
 import TechSolutionsTab from './tabs/TechSolutionsTab.jsx';
 
-import ImageUpload from './ImageUpload.jsx';
-import adminServiceTabs from './adminServiceTabs.js';
+import ImageUpload from './tabs/ImageUpload.jsx';
+import adminServiceTabs from './tabs/adminServiceTabs.js';
 
 const imagePlaceholder = '';
 const rowsPerPage = 20;
