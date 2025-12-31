@@ -18,7 +18,6 @@ import {
   Divider,
   Grid,
   IconButton,
-  InputAdornment,
   MenuItem,
   Pagination,
   Stack,
@@ -34,11 +33,15 @@ import {
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import AdminSectionTabs from './AdminSectionTabs.jsx';
+import ServicesTab from './tabs/ServicesTab.jsx';
+import ProcessTab from './tabs/ProcessTab.jsx';
+import WhyVedxTab from './tabs/WhyVedxTab.jsx';
+import SelectClearAdornment from './SelectClearAdornment.jsx';
+import adminServiceTabs from './adminServiceTabs.js';
 
 const imagePlaceholder = '';
 
@@ -301,26 +304,6 @@ const ImageUpload = ({ label, value, onChange, required }) => {
 };
 
 
-
-const SelectClearAdornment = ({ visible, onClear }) => {
-  if (!visible) return null;
-
-  return (
-    <InputAdornment position="end" sx={{ mr: 0.5 }}>
-      <IconButton
-        size="small"
-        aria-label="Clear selection"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onClear();
-        }}
-      >
-        <CloseIcon fontSize="small" />
-      </IconButton>
-    </InputAdornment>
-  );
-};
 
 const AdminServicesPage = () => {
   const [activeTab, setActiveTab] = useState('services');
@@ -2648,606 +2631,83 @@ const AdminServicesPage = () => {
       <AdminSectionTabs
         value={activeTab}
         onChange={(event, value) => setActiveTab(value)}
-        tabs={[
-          { value: 'services', label: 'Service menu' },
-          { value: 'process', label: 'Process' },
-          { value: 'why-vedx', label: 'Why choose VedX' },
-          { value: 'why-choose', label: 'Why choose service' },
-          { value: 'technologies', label: 'Technologies we support' },
-          { value: 'benefits', label: 'Benefits' },
-          { value: 'contact-buttons', label: 'Contact buttons' },
-          { value: 'hire', label: 'Development services' },
-        ]}
+        tabs={adminServiceTabs}
         sx={{
           background: 'linear-gradient(135deg, #0b1120 0%, #111827 100%)',
         }}
       />
 
       {activeTab === 'services' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Service menu"
-            subheader="Manage category wise banners, sub-categories, and project statistics."
-            action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openServiceCreateDialog}>
-                Add service
-              </Button>
-            }
-          />
-          <Divider />
-          <CardContent>
-            <Stack
-              spacing={2}
-              direction={{ xs: 'column', md: 'row' }}
-              alignItems={{ xs: 'stretch', md: 'flex-end' }}
-              mb={2}
-            >
-              <TextField
-                select
-                label="Date filter"
-                value={serviceDateFilter}
-                onChange={(event) => setServiceDateFilter(event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={serviceDateFilter !== 'all'}
-                      onClear={() => setServiceDateFilter('all')}
-                    />
-                  ),
-                }}
-                sx={{ minWidth: 220 }}
-              >
-                {dateFilterOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                select
-                label="Category"
-                value={categoryFilter}
-                onChange={(event) => setCategoryFilter(event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={Boolean(categoryFilter)}
-                      onClear={() => setCategoryFilter('')}
-                    />
-                  ),
-                }}
-                sx={{ minWidth: 220 }}
-              >
-                <MenuItem value="">All categories</MenuItem>
-                {categoryOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                select
-                label="Sub-category"
-                value={subcategoryFilter}
-                onChange={(event) => setSubcategoryFilter(event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <SelectClearAdornment
-                      visible={Boolean(subcategoryFilter)}
-                      onClear={() => setSubcategoryFilter('')}
-                    />
-                  ),
-                }}
-                sx={{ minWidth: 240 }}
-              >
-                <MenuItem value="">All sub-categories</MenuItem>
-                {(categoryFilter ? subcategoryLookup.get(categoryFilter) || [] : allSubcategoryOptions).map((name) => (
-                  <MenuItem key={name} value={name}>
-                    {name}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              {serviceDateFilter === 'custom' && (
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
-                  <TextField
-                    type="date"
-                    label="From"
-                    value={serviceDateRange.start}
-                    onChange={(event) =>
-                      setServiceDateRange((prev) => ({ ...prev, start: event.target.value }))
-                    }
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                  />
-                  <TextField
-                    type="date"
-                    label="To"
-                    value={serviceDateRange.end}
-                    onChange={(event) =>
-                      setServiceDateRange((prev) => ({ ...prev, end: event.target.value }))
-                    }
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                  />
-                </Stack>
-              )}
-            </Stack>
-            <Stack spacing={1.5}>
-              {groupedServices.map(({ category, services }) => (
-                <Accordion key={category} defaultExpanded>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                      <Typography variant="subtitle1" fontWeight={700}>
-                        {category}
-                      </Typography>
-                      <Chip label={`${services.length} entr${services.length === 1 ? 'y' : 'ies'}`} size="small" />
-                      <Chip
-                        label={`${services.reduce((sum, item) => sum + (item.subcategories?.length || 0), 0)} sub-categories`}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                      />
-                    </Stack>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Stack spacing={1.5}>
-                      {services.map((service) => (
-                        <Card key={service.id} variant="outlined">
-                          <CardContent>
-                            <Grid container spacing={2}>
-                              {/* LEFT: Sub-categories */}
-                              <Grid item xs={12} md={4}>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                  Sub-categories
-                                </Typography>
-
-                                <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                                  {service.subcategories.map((item) => (
-                                    <Chip key={item.name} label={item.name} size="small" />
-                                  ))}
-                                </Stack>
-
-                                <Chip
-                                  label={`${service.faqs?.length || 0} FAQs`}
-                                  size="small"
-                                  sx={{ mt: 1 }}
-                                />
-                              </Grid>
-
-                              {/* CENTER: Banner Preview */}
-                              <Grid item xs={12} md={4}>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                  Banner Preview
-                                </Typography>
-
-                                <Box
-                                  component="img"
-                                  src={service.bannerImage || imagePlaceholder}
-                                  alt={`${service.category} banner`}
-                                  sx={{
-                                    width: '100%',
-                                    height: 120,
-                                    objectFit: 'cover',
-                                    borderRadius: 1,
-                                  }}
-                                />
-
-                                <Typography variant="body2" fontWeight={600} noWrap mt={1}>
-                                  {service.bannerTitle}
-                                </Typography>
-                              </Grid>
-
-                              {/* RIGHT: Totals */}
-                              <Grid item xs={12} md={3}>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                  Totals
-                                </Typography>
-
-                                <Typography variant="body2">
-                                  Services: {service.totalServices}
-                                </Typography>
-                                <Typography variant="body2">
-                                  Projects: {service.totalProjects}
-                                </Typography>
-                                <Typography variant="body2">
-                                  Clients: {service.totalClients}
-                                </Typography>
-                              </Grid>
-
-                              {/* ACTION BUTTONS */}
-                              <Grid item xs={12} md={1} display="flex" alignItems="flex-end">
-                                <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                  <Tooltip title="View details">
-                                    <IconButton size="small" onClick={() => setViewService(service)}>
-                                      <VisibilityOutlinedIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-
-                                  <Tooltip title="Edit">
-                                    <IconButton
-                                      size="small"
-                                      color="primary"
-                                      onClick={() => openServiceEditDialog(service)}
-                                    >
-                                      <EditOutlinedIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-
-                                  <Tooltip title="Delete">
-                                    <IconButton
-                                      size="small"
-                                      color="error"
-                                      onClick={() => openServiceDeleteDialog(service)}
-                                    >
-                                      <DeleteOutlineIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Stack>
-                              </Grid>
-                            </Grid>
-
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </Stack>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-              {filteredServices.length === 0 && (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  No service categories yet. Click "Add service" to create your first entry.
-                </Typography>
-              )}
-            </Stack>
-            <Stack mt={2} alignItems="flex-end">
-              <Pagination
-                count={Math.max(1, Math.ceil(filteredServices.length / rowsPerPage))}
-                page={servicePage}
-                onChange={(event, page) => setServicePage(page)}
-                color="primary"
-              />
-            </Stack>
-          </CardContent>
-        </Card>
+        <ServicesTab
+          dateFilterOptions={dateFilterOptions}
+          serviceDateFilter={serviceDateFilter}
+          setServiceDateFilter={setServiceDateFilter}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          categoryOptions={categoryOptions}
+          subcategoryFilter={subcategoryFilter}
+          setSubcategoryFilter={setSubcategoryFilter}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          serviceDateRange={serviceDateRange}
+          setServiceDateRange={setServiceDateRange}
+          groupedServices={groupedServices}
+          imagePlaceholder={imagePlaceholder}
+          setViewService={setViewService}
+          openServiceEditDialog={openServiceEditDialog}
+          openServiceDeleteDialog={openServiceDeleteDialog}
+          filteredServices={filteredServices}
+          rowsPerPage={rowsPerPage}
+          servicePage={servicePage}
+          setServicePage={setServicePage}
+          openServiceCreateDialog={openServiceCreateDialog}
+        />
       )}
 
       {activeTab === 'process' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Process"
-            subheader="Capture delivery steps with visuals."
-            action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openProcessCreateDialog}>
-                Add process step
-              </Button>
-            }
-          />
-          <Divider />
-          <CardContent>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Image</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedProcesses.map((item) => (
-                    <TableRow key={item.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                      <TableCell>
-                        <Box
-                          component="img"
-                          src={item.image || imagePlaceholder}
-                          alt={`${item.title} visual`}
-                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 240 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {item.description}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" color="primary" onClick={() => openProcessEditDialog(item)}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton size="small" color="error" onClick={() => openProcessDeleteDialog(item)}>
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {pagedProcesses.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          {processList.length === 0
-                            ? 'No process steps added yet.'
-                            : 'No process steps match the selected filters.'}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Stack mt={2} alignItems="flex-end">
-              <Pagination
-                count={Math.max(1, Math.ceil(filteredProcesses.length / rowsPerPage))}
-                page={processPage}
-                onChange={(event, page) => setProcessPage(page)}
-                color="primary"
-              />
-            </Stack>
-          </CardContent>
-        </Card>
+        <ProcessTab
+          pagedProcesses={pagedProcesses}
+          imagePlaceholder={imagePlaceholder}
+          openProcessCreateDialog={openProcessCreateDialog}
+          filteredProcesses={filteredProcesses}
+          rowsPerPage={rowsPerPage}
+          processPage={processPage}
+          setProcessPage={setProcessPage}
+          processList={processList}
+          openProcessEditDialog={openProcessEditDialog}
+          openProcessDeleteDialog={openProcessDeleteDialog}
+        />
       )}
 
       {activeTab === 'why-vedx' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Why choose VedX Solutions"
-            subheader="Control headline, description, and proof points."
-          />
-          <Divider />
-          <CardContent>
-            <Stack spacing={3}>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                <TextField
-                  select
-                  label="Category filter"
-                  value={whyVedxCategoryFilter}
-                  onChange={(event) => setWhyVedxCategoryFilter(event.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <SelectClearAdornment
-                        visible={Boolean(whyVedxCategoryFilter)}
-                        onClear={() => setWhyVedxCategoryFilter('')}
-                      />
-                    ),
-                  }}
-                  fullWidth
-                >
-                  <MenuItem value="">All categories</MenuItem>
-                  {categoryOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  select
-                  label="Sub-category filter"
-                  value={whyVedxSubcategoryFilter}
-                  onChange={(event) => setWhyVedxSubcategoryFilter(event.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <SelectClearAdornment
-                        visible={Boolean(whyVedxSubcategoryFilter)}
-                        onClear={() => setWhyVedxSubcategoryFilter('')}
-                      />
-                    ),
-                  }}
-                  fullWidth
-                  disabled={
-                    whyVedxCategoryFilter
-                      ? (subcategoryLookup.get(whyVedxCategoryFilter) || []).length === 0
-                      : allSubcategoryOptions.length === 0
-                  }
-                >
-                  <MenuItem value="">All sub-categories</MenuItem>
-                  {(whyVedxCategoryFilter ? subcategoryLookup.get(whyVedxCategoryFilter) || [] : allSubcategoryOptions).map(
-                    (option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    )
-                  )}
-                </TextField>
-              </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
-                <Autocomplete
-                  disableClearable={false}
-                  clearOnEscape
-                  options={whyVedxOptions}
-                  value={whyVedxOptions.find((option) => String(option.value) === String(selectedWhyVedxId)) || null}
-                  onChange={(event, option) => handleWhyVedxSelect(option)}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Select why choose config" placeholder="Select category / subcategory" fullWidth />
-                  )}
-                  sx={{ minWidth: 260, flex: 1 }}
-                />
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                  <Button
-                    variant="outlined"
-                    onClick={handleNewWhyVedxHero}
-                  >
-                    Add new hero
-                  </Button>
-                </Stack>
-              </Stack>
-              <Box component="form" onSubmit={handleWhyVedxHeroSave} sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={8}>
-                    <Stack spacing={2}>
-                      <Autocomplete
-                  disableClearable={false}
-                  clearOnEscape
-                        options={serviceCategories.map((category) => ({ value: category.id, label: category.name }))}
-                        value={
-                          serviceCategories
-                            .map((category) => ({ value: category.id, label: category.name }))
-                            .find((option) => String(option.value) === String(whyVedxHeroForm.categoryId)) || null
-                        }
-                        onChange={(event, option) => handleWhyVedxHeroChange('categoryId', option?.value || '')}
-                        renderInput={(params) => (
-                          <TextField {...params} label="Category" placeholder="Select category" fullWidth />
-                        )}
-                        fullWidth
-                      />
-                      <Autocomplete
-                  disableClearable={false}
-                  clearOnEscape
-                        options={whyVedxSubcategoryOptions}
-                        value={
-                          whyVedxSubcategoryOptions.find(
-                            (option) => String(option.value) === String(whyVedxHeroForm.subcategoryId)
-                          ) || null
-                        }
-                        onChange={(event, option) => handleWhyVedxHeroChange('subcategoryId', option?.value || '')}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Subcategory"
-                            placeholder={
-                              whyVedxHeroForm.categoryId
-                                ? 'Select a subcategory'
-                                : 'Select a category to filter subcategories'
-                            }
-                            fullWidth
-                          />
-                        )}
-                        fullWidth
-                        disabled={!whyVedxSubcategoryOptions.length}
-                      />
-                      <TextField
-                        label="Title"
-                        value={whyVedxHeroForm.heroTitle}
-                        onChange={(event) => handleWhyVedxHeroChange('heroTitle', event.target.value)}
-                        fullWidth
-                      />
-                      <TextField
-                        label="Description"
-                        value={whyVedxHeroForm.heroDescription}
-                        onChange={(event) => handleWhyVedxHeroChange('heroDescription', event.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={3}
-                      />
-                      <Button type="submit" variant="contained" sx={{ alignSelf: 'flex-start' }}>
-                        Save hero content
-                      </Button>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <ImageUpload
-                      label="Hero image"
-                      value={whyVedxHeroForm.heroImage}
-                      onChange={(value) => handleWhyVedxHeroChange('heroImage', value)}
-                      required
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Stack spacing={1}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                  <Box>
-                    <Typography variant="h6">Reasons to choose us</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Add visuals, titles, and descriptions that appear below the hero section.
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={openWhyVedxCreateDialog}
-                    sx={{ mt: { xs: 1, sm: 0 } }}
-                    disabled={!selectedWhyVedxId}
-                  >
-                    Add reason
-                  </Button>
-                </Stack>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Title</TableCell>
-                        <TableCell>Category</TableCell>
-                        <TableCell>Subcategory</TableCell>
-                        <TableCell>Image</TableCell>
-                        <TableCell>Description</TableCell>
-                        <TableCell align="right">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {activeWhyVedxReasons
-                        .slice((whyVedxPage - 1) * rowsPerPage, whyVedxPage * rowsPerPage)
-                        .map((item) => (
-                          <TableRow key={item.id} hover>
-                            <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                            <TableCell>{item.categoryName || '—'}</TableCell>
-                            <TableCell>{item.subcategoryName || '—'}</TableCell>
-                            <TableCell>
-                              <Box
-                                component="img"
-                                src={item.image || imagePlaceholder}
-                                alt={`${item.title} visual`}
-                                sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                              />
-                            </TableCell>
-                            <TableCell sx={{ maxWidth: 280 }}>
-                              <Typography variant="body2" color="text.secondary" noWrap>
-                                {item.description}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                <Tooltip title="Edit">
-                                  <IconButton size="small" color="primary" onClick={() => openWhyVedxEditDialog(item)}>
-                                    <EditOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton size="small" color="error" onClick={() => openWhyVedxDeleteDialog(item)}>
-                                    <DeleteOutlineIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Stack>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      {activeWhyVedxReasons.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={6}>
-                            <Typography variant="body2" color="text.secondary" align="center">
-                              {selectedWhyVedxId
-                                ? 'No reasons added yet.'
-                                : 'Select a hero card to start adding reasons.'}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <Stack mt={2} alignItems="flex-end">
-                  <Pagination
-                    count={Math.max(1, Math.ceil(activeWhyVedxReasons.length / rowsPerPage))}
-                    page={whyVedxPage}
-                    onChange={(event, page) => setWhyVedxPage(page)}
-                    color="primary"
-                  />
-                </Stack>
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
+        <WhyVedxTab
+          categoryOptions={categoryOptions}
+          whyVedxCategoryFilter={whyVedxCategoryFilter}
+          setWhyVedxCategoryFilter={setWhyVedxCategoryFilter}
+          whyVedxSubcategoryFilter={whyVedxSubcategoryFilter}
+          setWhyVedxSubcategoryFilter={setWhyVedxSubcategoryFilter}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          whyVedxOptions={whyVedxOptions}
+          selectedWhyVedxId={selectedWhyVedxId}
+          handleWhyVedxSelect={handleWhyVedxSelect}
+          handleNewWhyVedxHero={handleNewWhyVedxHero}
+          serviceCategories={serviceCategories}
+          whyVedxHeroForm={whyVedxHeroForm}
+          handleWhyVedxHeroChange={handleWhyVedxHeroChange}
+          handleWhyVedxHeroSave={handleWhyVedxHeroSave}
+          ImageUpload={ImageUpload}
+          whyVedxSubcategoryOptions={whyVedxSubcategoryOptions}
+          activeWhyVedxReasons={activeWhyVedxReasons}
+          rowsPerPage={rowsPerPage}
+          whyVedxPage={whyVedxPage}
+          setWhyVedxPage={setWhyVedxPage}
+          imagePlaceholder={imagePlaceholder}
+          openWhyVedxCreateDialog={openWhyVedxCreateDialog}
+          openWhyVedxEditDialog={openWhyVedxEditDialog}
+          openWhyVedxDeleteDialog={openWhyVedxDeleteDialog}
+        />
       )}
-
-
-
       {activeTab === 'industries' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
