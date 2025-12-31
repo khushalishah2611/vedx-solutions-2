@@ -841,10 +841,10 @@ const AdminServicesPage = () => {
   useEffect(() => {
     const matchesFilters = (item) => {
       const matchesCategory = whyVedxCategoryFilter
-        ? item.categoryName === categoryFilter || item.category === categoryFilter
+        ? item.categoryName === whyVedxCategoryFilter || item.category === categoryFilter
         : true;
       const matchesSubcategory = whyVedxSubcategoryFilter
-        ? item.subcategoryName === subcategoryFilter || item.subcategory === subcategoryFilter
+        ? item.subcategoryName === whyVedxSubcategoryFilter || item.subcategory === subcategoryFilter
         : true;
 
       return matchesCategory && matchesSubcategory;
@@ -3556,17 +3556,32 @@ const AdminServicesPage = () => {
                   ))}
                 </TextField>
               </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
+              <Stack
+                direction="row"
+                spacing={2}
+                alignItems="center"
+                flexWrap="nowrap"
+              >
                 <Autocomplete
                   options={whyChooseList}
                   getOptionLabel={(option) =>
                     [option.category, option.subcategory].filter(Boolean).join(' / ') || 'Untitled'
                   }
-                  value={whyChooseList.find((item) => String(item.id) === String(selectedWhyChooseId)) || null}
-                  onChange={(event, value) => setSelectedWhyChooseId(value?.id ? String(value.id) : '')}
-                  renderInput={(params) => <TextField {...params} label="Select why choose config" />}
-                  sx={{ minWidth: { xs: '100%', md: 320 } }}
+                  fullWidth
+                  value={
+                    whyChooseList.find(
+                      (item) => String(item.id) === String(selectedWhyChooseId)
+                    ) || null
+                  }
+                  onChange={(event, value) =>
+                    setSelectedWhyChooseId(value?.id ? String(value.id) : '')
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Select why choose config" />
+                  )}
+                  sx={{ minWidth: 0 }}
                 />
+
                 <Button
                   variant="outlined"
                   startIcon={<AddCircleOutlineIcon />}
@@ -3575,7 +3590,7 @@ const AdminServicesPage = () => {
                     setWhyHeroForm(initialWhyChoose);
                     setWhyChoose(initialWhyChoose);
                   }}
-                  sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
+                  sx={{ whiteSpace: 'nowrap' }}
                 >
                   New config
                 </Button>
@@ -3935,10 +3950,11 @@ const AdminServicesPage = () => {
             </Stack>
 
             <Stack
-              direction={{ xs: 'column', md: 'row' }}
+              direction="row"
               spacing={2}
-              alignItems={{ xs: 'stretch', md: 'center' }}
+              alignItems="center"
               mb={2}
+              flexWrap="nowrap"
             >
               <Autocomplete
                 options={benefitConfigs}
@@ -3947,16 +3963,24 @@ const AdminServicesPage = () => {
                     ? [option.categoryName, option.subcategoryName].filter(Boolean).join(' / ')
                     : option?.title || 'Untitled'
                 }
-                value={benefitConfigs.find((item) => String(item.id) === String(selectedBenefitConfigId)) || null}
+                fullWidth
+                value={
+                  benefitConfigs.find(
+                    (item) => String(item.id) === String(selectedBenefitConfigId)
+                  ) || null
+                }
                 onChange={(event, value) => handleBenefitConfigSelect(value)}
-                renderInput={(params) => <TextField {...params} label="Select benefits config" />}
-                sx={{ minWidth: { xs: '100%', md: 320 } }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Select benefits config" />
+                )}
+                sx={{ minWidth: 0 }}
               />
+
               <Button
                 variant="outlined"
                 startIcon={<AddCircleOutlineIcon />}
                 onClick={handleNewBenefitConfig}
-                sx={{ alignSelf: { xs: 'stretch', md: 'flex-start' } }}
+                sx={{ whiteSpace: 'nowrap' }}
               >
                 New config
               </Button>
@@ -4032,6 +4056,7 @@ const AdminServicesPage = () => {
                 )}
               </Stack>
             </Stack>
+
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={2}>
               {groupedBenefits.map((group) => (
@@ -4106,6 +4131,7 @@ const AdminServicesPage = () => {
                 </Typography>
               )}
             </Stack>
+
             <Stack mt={2} alignItems="flex-end">
               <Pagination
                 count={Math.max(1, Math.ceil(visibleBenefits.length / rowsPerPage))}
@@ -4482,36 +4508,31 @@ const AdminServicesPage = () => {
                     handleServiceFormChange('category', newValue || '')
                   }
                   renderInput={(params) => (
-                    <TextField {...params} label="Category" required helperText="Choose or type a category" />
+                    <TextField {...params} label="Category" required />
                   )}
                 />
               </Grid>
               <Grid item xs={12}>
                 <Autocomplete
-                  multiple
-                  freeSolo
                   options={serviceFormSubcategoryOptions}
-                  value={serviceForm.subcategories.map((item) => item.name)}
+                  value={serviceForm.subcategories[0]?.name || null}
                   onChange={(event, newValue) =>
                     setServiceForm((prev) => ({
                       ...prev,
-                      subcategories: newValue.map((name) => ({ name })),
+                      subcategories: newValue ? [{ name: newValue }] : [],
                     }))
                   }
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Sub-categories"
-                      placeholder="Select or type sub-categories"
-                      helperText={
-                        serviceForm.category
-                          ? 'Linked to the selected service category'
-                          : 'No category selected—showing all known sub-categories'
-                      }
+                      label="Sub-category"
+                      placeholder="Select sub-category"
+                      required
                     />
                   )}
                 />
               </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Banner title"
@@ -5096,6 +5117,7 @@ const AdminServicesPage = () => {
                   .map((category) => ({ value: category.id, label: category.name }))
                   .find((option) => String(option.value) === String(whyVedxForm.categoryId)) || null
               }
+              disabled
               onChange={(event, option) =>
                 setWhyVedxForm((prev) => ({
                   ...prev,
@@ -5115,6 +5137,7 @@ const AdminServicesPage = () => {
                   (option) => String(option.value) === String(whyVedxForm.subcategoryId)
                 ) || null
               }
+
               onChange={(event, option) =>
                 setWhyVedxForm((prev) => ({
                   ...prev,
@@ -5135,7 +5158,7 @@ const AdminServicesPage = () => {
                 />
               )}
               fullWidth
-              disabled={!whyVedxReasonSubcategoryOptions.length}
+              disabled
             />
             <TextField
               label="Title"
