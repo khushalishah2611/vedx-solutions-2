@@ -1268,10 +1268,21 @@ const AdminServicesPage = () => {
     [serviceSubcategories]
   );
 
-  const whyVedxOptions = useMemo(
-    () => whyVedxList.map((item) => ({ value: item.id, label: item.heroTitle || `Hero ${item.id}` })),
-    [whyVedxList]
-  );
+  const whyVedxOptions = useMemo(() => {
+    const buildLabel = (item) => {
+      const category = (item.categoryName || item.category || '').trim();
+      const subcategory = (item.subcategoryName || item.subcategory || '').trim();
+
+      if (category && subcategory) return `${category} / ${subcategory}`;
+      if (category) return category;
+      if (subcategory) return subcategory;
+
+      const title = (item.heroTitle || '').trim();
+      return title ? title : `Hero ${item.id}`;
+    };
+
+    return whyVedxList.map((item) => ({ value: item.id, label: buildLabel(item) }));
+  }, [whyVedxList]);
 
   const whyVedxSubcategoryOptions = useMemo(() => {
     const base = whyVedxHeroForm.categoryId
@@ -2884,7 +2895,7 @@ const AdminServicesPage = () => {
                   value={whyVedxOptions.find((option) => String(option.value) === String(selectedWhyVedxId)) || null}
                   onChange={(event, option) => handleWhyVedxSelect(option)}
                   renderInput={(params) => (
-                    <TextField {...params} label="Select hero" placeholder="Pick an existing hero card" fullWidth />
+                    <TextField {...params} label="Select why choose config" placeholder="Select category / subcategory" fullWidth />
                   )}
                   sx={{ minWidth: 260, flex: 1 }}
                 />
