@@ -18,6 +18,7 @@ import {
   Divider,
   Grid,
   IconButton,
+  InputAdornment,
   MenuItem,
   Pagination,
   Stack,
@@ -33,6 +34,7 @@ import {
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
@@ -295,6 +297,28 @@ const ImageUpload = ({ label, value, onChange, required }) => {
         <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
       </Button>
     </Stack>
+  );
+};
+
+
+
+const SelectClearAdornment = ({ visible, onClear }) => {
+  if (!visible) return null;
+
+  return (
+    <InputAdornment position="end" sx={{ mr: 0.5 }}>
+      <IconButton
+        size="small"
+        aria-label="Clear selection"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClear();
+        }}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </InputAdornment>
   );
 };
 
@@ -2663,6 +2687,14 @@ const AdminServicesPage = () => {
                 label="Date filter"
                 value={serviceDateFilter}
                 onChange={(event) => setServiceDateFilter(event.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={serviceDateFilter !== 'all'}
+                      onClear={() => setServiceDateFilter('all')}
+                    />
+                  ),
+                }}
                 sx={{ minWidth: 220 }}
               >
                 {dateFilterOptions.map((option) => (
@@ -2676,6 +2708,14 @@ const AdminServicesPage = () => {
                 label="Category"
                 value={categoryFilter}
                 onChange={(event) => setCategoryFilter(event.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={Boolean(categoryFilter)}
+                      onClear={() => setCategoryFilter('')}
+                    />
+                  ),
+                }}
                 sx={{ minWidth: 220 }}
               >
                 <MenuItem value="">All categories</MenuItem>
@@ -2690,6 +2730,14 @@ const AdminServicesPage = () => {
                 label="Sub-category"
                 value={subcategoryFilter}
                 onChange={(event) => setSubcategoryFilter(event.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={Boolean(subcategoryFilter)}
+                      onClear={() => setSubcategoryFilter('')}
+                    />
+                  ),
+                }}
                 sx={{ minWidth: 240 }}
               >
                 <MenuItem value="">All sub-categories</MenuItem>
@@ -2961,6 +3009,14 @@ const AdminServicesPage = () => {
                   label="Category filter"
                   value={whyVedxCategoryFilter}
                   onChange={(event) => setWhyVedxCategoryFilter(event.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <SelectClearAdornment
+                        visible={Boolean(whyVedxCategoryFilter)}
+                        onClear={() => setWhyVedxCategoryFilter('')}
+                      />
+                    ),
+                  }}
                   fullWidth
                 >
                   <MenuItem value="">All categories</MenuItem>
@@ -2975,6 +3031,14 @@ const AdminServicesPage = () => {
                   label="Sub-category filter"
                   value={whyVedxSubcategoryFilter}
                   onChange={(event) => setWhyVedxSubcategoryFilter(event.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <SelectClearAdornment
+                        visible={Boolean(whyVedxSubcategoryFilter)}
+                        onClear={() => setWhyVedxSubcategoryFilter('')}
+                      />
+                    ),
+                  }}
                   fullWidth
                   disabled={
                     whyVedxCategoryFilter
@@ -2994,6 +3058,8 @@ const AdminServicesPage = () => {
               </Stack>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
                 <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
                   options={whyVedxOptions}
                   value={whyVedxOptions.find((option) => String(option.value) === String(selectedWhyVedxId)) || null}
                   onChange={(event, option) => handleWhyVedxSelect(option)}
@@ -3016,6 +3082,8 @@ const AdminServicesPage = () => {
                   <Grid item xs={12} md={8}>
                     <Stack spacing={2}>
                       <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
                         options={serviceCategories.map((category) => ({ value: category.id, label: category.name }))}
                         value={
                           serviceCategories
@@ -3029,6 +3097,8 @@ const AdminServicesPage = () => {
                         fullWidth
                       />
                       <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
                         options={whyVedxSubcategoryOptions}
                         value={
                           whyVedxSubcategoryOptions.find(
@@ -3524,6 +3594,14 @@ const AdminServicesPage = () => {
                   label="Category filter"
                   value={whyServiceCategoryFilter}
                   onChange={(event) => setWhyServiceCategoryFilter(event.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <SelectClearAdornment
+                        visible={Boolean(whyServiceCategoryFilter)}
+                        onClear={() => setWhyServiceCategoryFilter('')}
+                      />
+                    ),
+                  }}
                   fullWidth
                 >
                   <MenuItem value="">All categories</MenuItem>
@@ -3538,6 +3616,14 @@ const AdminServicesPage = () => {
                   label="Sub-category filter"
                   value={whyServiceSubcategoryFilter}
                   onChange={(event) => setWhyServiceSubcategoryFilter(event.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <SelectClearAdornment
+                        visible={Boolean(whyServiceSubcategoryFilter)}
+                        onClear={() => setWhyServiceSubcategoryFilter('')}
+                      />
+                    ),
+                  }}
                   fullWidth
                   disabled={
                     whyServiceCategoryFilter
@@ -3563,6 +3649,8 @@ const AdminServicesPage = () => {
                 flexWrap="nowrap"
               >
                 <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
                   options={whyChooseList}
                   getOptionLabel={(option) =>
                     [option.category, option.subcategory].filter(Boolean).join(' / ') || 'Untitled'
@@ -3917,6 +4005,14 @@ const AdminServicesPage = () => {
                 label="Category filter"
                 value={benefitCategoryFilter}
                 onChange={(event) => setBenefitCategoryFilter(event.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={Boolean(benefitCategoryFilter)}
+                      onClear={() => setBenefitCategoryFilter('')}
+                    />
+                  ),
+                }}
                 fullWidth
               >
                 <MenuItem value="">All categories</MenuItem>
@@ -3931,6 +4027,14 @@ const AdminServicesPage = () => {
                 label="Sub-category filter"
                 value={benefitSubcategoryFilter}
                 onChange={(event) => setBenefitSubcategoryFilter(event.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={Boolean(benefitSubcategoryFilter)}
+                      onClear={() => setBenefitSubcategoryFilter('')}
+                    />
+                  ),
+                }}
                 fullWidth
                 disabled={
                   benefitCategoryFilter
@@ -3957,6 +4061,8 @@ const AdminServicesPage = () => {
               flexWrap="nowrap"
             >
               <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
                 options={benefitConfigs}
                 getOptionLabel={(option) =>
                   option?.categoryName || option?.subcategoryName
@@ -4003,7 +4109,14 @@ const AdminServicesPage = () => {
                     handleBenefitHeroChange('subcategoryId', '');
                   }
                 }}
-
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={Boolean(benefitHero.categoryId)}
+                      onClear={() => handleBenefitHeroChange('categoryId', '')}
+                    />
+                  ),
+                }}
                 fullWidth
               >
                 <MenuItem value="">All categories</MenuItem>
@@ -4018,7 +4131,14 @@ const AdminServicesPage = () => {
                 label="Sub-category"
                 value={benefitHero.subcategoryId}
                 onChange={(event) => handleBenefitHeroChange('subcategoryId', event.target.value)}
-
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={Boolean(benefitHero.subcategoryId)}
+                      onClear={() => handleBenefitHeroChange('subcategoryId', '')}
+                    />
+                  ),
+                }}
                 fullWidth
                 disabled={!benefitHeroCategoryOptions.length}
               >
@@ -4172,6 +4292,14 @@ const AdminServicesPage = () => {
                 label="Category"
                 value={contactCategoryFilter}
                 onChange={(event) => setContactCategoryFilter(event.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={Boolean(contactCategoryFilter)}
+                      onClear={() => setContactCategoryFilter('')}
+                    />
+                  ),
+                }}
                 sx={{ minWidth: 220 }}
               >
                 <MenuItem value="">All categories</MenuItem>
@@ -4186,6 +4314,14 @@ const AdminServicesPage = () => {
                 label="Sub-category"
                 value={contactSubcategoryFilter}
                 onChange={(event) => setContactSubcategoryFilter(event.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <SelectClearAdornment
+                      visible={Boolean(contactSubcategoryFilter)}
+                      onClear={() => setContactSubcategoryFilter('')}
+                    />
+                  ),
+                }}
                 sx={{ minWidth: 240 }}
               >
                 <MenuItem value="">All sub-categories</MenuItem>
@@ -4501,6 +4637,8 @@ const AdminServicesPage = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
                   freeSolo
                   options={categoryOptions.map((option) => option.label)}
                   value={serviceForm.category}
@@ -4514,6 +4652,8 @@ const AdminServicesPage = () => {
               </Grid>
               <Grid item xs={12}>
                 <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
                   options={serviceFormSubcategoryOptions}
                   value={serviceForm.subcategories[0]?.name || null}
                   onChange={(event, newValue) =>
@@ -4987,6 +5127,8 @@ const AdminServicesPage = () => {
               minRows={2}
             />
             <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
               freeSolo
               options={categoryOptions.map((option) => option.label)}
               value={contactButtonForm.category}
@@ -5001,6 +5143,8 @@ const AdminServicesPage = () => {
               )}
             />
             <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
               freeSolo
               options={contactButtonSubcategoryOptions}
               value={contactButtonForm.subcategory}
@@ -5111,6 +5255,8 @@ const AdminServicesPage = () => {
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleWhyVedxSubmit}>
             <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
               options={serviceCategories.map((category) => ({ value: category.id, label: category.name }))}
               value={
                 serviceCategories
@@ -5131,6 +5277,8 @@ const AdminServicesPage = () => {
               fullWidth
             />
             <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
               options={whyVedxReasonSubcategoryOptions}
               value={
                 whyVedxReasonSubcategoryOptions.find(
@@ -5417,6 +5565,8 @@ const AdminServicesPage = () => {
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleHireServiceSubmit}>
             <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
               freeSolo
               options={categoryOptions.map((option) => option.label)}
               value={hireServiceForm.category}
@@ -5436,6 +5586,8 @@ const AdminServicesPage = () => {
               )}
             />
             <Autocomplete
+                  disableClearable={false}
+                  clearOnEscape
               freeSolo
               options={hireServiceSubcategoryOptions}
               value={hireServiceForm.subcategory}
