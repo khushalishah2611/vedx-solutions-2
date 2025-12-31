@@ -279,6 +279,7 @@ const AdminServicesPage = () => {
   const [selectedWhyChooseId, setSelectedWhyChooseId] = useState('');
   const [whyChoose, setWhyChoose] = useState(initialWhyChoose);
   const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChoose);
+  const whyChooseConfigClearedRef = useRef(false);
 
   const [processList, setProcessList] = useState(initialProcess);
 
@@ -804,24 +805,55 @@ const AdminServicesPage = () => {
 
   // Select active whyChoose -> load services
   useEffect(() => {
-    if (!selectedWhyChooseId) {
+    const matchesFilters = (item) => {
+      const matchesCategory = whyServiceCategoryFilter
+        ? item.categoryName === whyServiceCategoryFilter || item.category === whyServiceCategoryFilter
+        : true;
+      const matchesSubcategory = whyServiceSubcategoryFilter
+        ? item.subcategoryName === whyServiceSubcategoryFilter || item.subcategory === whyServiceSubcategoryFilter
+        : true;
+      return matchesCategory && matchesSubcategory;
+    };
+
+    if (whyChooseList.length === 0) {
+      setSelectedWhyChooseId('');
       setWhyChoose(initialWhyChoose);
       setWhyHeroForm(initialWhyChoose);
       setWhyServicePage(1);
+      whyChooseConfigClearedRef.current = false;
       return;
     }
 
-    const existing = whyChooseList.find((item) => String(item.id) === String(selectedWhyChooseId));
-    if (existing) {
-      setWhyChoose(existing);
-      setWhyHeroForm(existing);
+    // If user clicked "Add new hero", do not auto-pick.
+    if (whyChooseConfigClearedRef.current && !selectedWhyChooseId) return;
+
+    const active = whyChooseList.find((item) => String(item.id) === String(selectedWhyChooseId));
+    const preferred = whyChooseList.find(matchesFilters) || whyChooseList[0];
+
+    const next = active ? (matchesFilters(active) ? active : preferred) : preferred;
+
+    if (!next) {
+      setSelectedWhyChooseId('');
+      setWhyChoose(initialWhyChoose);
+      setWhyHeroForm(initialWhyChoose);
       setWhyServicePage(1);
-      loadWhyServices(existing.id, {
-        category: whyServiceCategoryFilter || undefined,
-        subcategory: whyServiceSubcategoryFilter || undefined,
-      });
+      whyChooseConfigClearedRef.current = false;
+      return;
     }
+
+    if (String(next.id) !== String(selectedWhyChooseId)) {
+      setSelectedWhyChooseId(String(next.id));
+    }
+
+    setWhyChoose(next);
+    setWhyHeroForm(next);
+    setWhyServicePage(1);
+    loadWhyServices(next.id, {
+      category: whyServiceCategoryFilter || undefined,
+      subcategory: whyServiceSubcategoryFilter || undefined,
+    });
   }, [loadWhyServices, selectedWhyChooseId, whyChooseList, whyServiceCategoryFilter, whyServiceSubcategoryFilter]);
+
 
   // Ensure active WhyVedx hero selection + reasons load
   useEffect(() => {
@@ -844,7 +876,11 @@ const AdminServicesPage = () => {
       return;
     }
 
-    if (whyVedxConfigClearedRef.current && !selectedWhyVedxId) return;
+    if (
+      whyVedxConfigClearedRef.current &&
+      !selectedWhyVedxId &&
+      !(whyVedxCategoryFilter || whyVedxSubcategoryFilter)
+    ) return;
 
     const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
     const preferred = (whyVedxCategoryFilter || whyVedxSubcategoryFilter) ? whyVedxList.find(matchesFilters) : null;
@@ -1319,7 +1355,14 @@ const AdminServicesPage = () => {
 
   // ---------- WhyVedx hero new/select ----------
   const handleNewWhyVedxHero = () => {
+    // Add new hero = start fresh entry mode
     whyVedxConfigClearedRef.current = true;
+
+    // Also clear filters (Category/Subcategory) so the user can create a totally new hero.
+    // If filters remain selected, the auto-pick logic will immediately select an existing hero.
+    setWhyVedxCategoryFilter('');
+    setWhyVedxSubcategoryFilter('');
+
     setSelectedWhyVedxId('');
     setWhyVedxHeroForm({ ...emptyWhyVedxHero });
     setWhyVedxReasons([]);
@@ -1352,12 +1395,21 @@ const AdminServicesPage = () => {
 
   // ---------- WhyChoose new config ----------
   const handleWhyChooseNewConfig = useCallback(() => {
+    // When user explicitly clicks "Add new hero", we should NOT auto-pick a hero by filters.
+    whyChooseConfigClearedRef.current = true;
     setSelectedWhyChooseId('');
     setWhyHeroForm(initialWhyChoose);
     setWhyChoose(initialWhyChoose);
+    setWhyServicePage(1);
   }, []);
 
-  // ---------- Subcategory options for forms ----------
+    const setSelectedWhyChooseIdSafe = useCallback((value) => {
+    // Clearing selection SHOULD allow auto-pick by filters.
+    whyChooseConfigClearedRef.current = false;
+    setSelectedWhyChooseId(value ? String(value) : '');
+  }, []);
+
+// ---------- Subcategory options for forms ----------
   const serviceFormSubcategoryOptions = useMemo(() => {
     if (!serviceForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
@@ -2268,7 +2320,7 @@ const AdminServicesPage = () => {
           setWhyServiceSubcategoryFilter={setWhyServiceSubcategoryFilter}
           whyChooseList={whyChooseList}
           selectedWhyChooseId={selectedWhyChooseId}
-          setSelectedWhyChooseId={setSelectedWhyChooseId}
+          setSelectedWhyChooseId={setSelectedWhyChooseIdSafe}
           onNewConfig={handleWhyChooseNewConfig}
           whyHeroForm={whyHeroForm}
           handleWhyHeroChange={(field, value) => setWhyHeroForm((p) => ({ ...p, [field]: value }))}
