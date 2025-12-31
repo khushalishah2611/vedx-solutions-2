@@ -865,10 +865,10 @@ const AdminServicesPage = () => {
   useEffect(() => {
     const matchesFilters = (item) => {
       const matchesCategory = whyVedxCategoryFilter
-        ? item.categoryName === whyVedxCategoryFilter || item.category === categoryFilter
+        ? item.categoryName === whyVedxCategoryFilter || item.category === whyVedxCategoryFilter
         : true;
       const matchesSubcategory = whyVedxSubcategoryFilter
-        ? item.subcategoryName === whyVedxSubcategoryFilter || item.subcategory === subcategoryFilter
+        ? item.subcategoryName === whyVedxSubcategoryFilter || item.subcategory === whyVedxSubcategoryFilter
         : true;
 
       return matchesCategory && matchesSubcategory;
