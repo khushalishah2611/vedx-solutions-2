@@ -6155,7 +6155,6 @@ const mapWhyVedxToResponse = (whyVedx) => ({
   id: whyVedx.id,
   heroTitle: whyVedx.heroTitle,
   heroDescription: whyVedx.heroDescription,
-  heroImage: whyVedx.heroImage,
   categoryId: whyVedx.categoryId || null,
   subcategoryId: whyVedx.subcategoryId || null,
   categoryName: whyVedx.category?.name || '',
@@ -6209,13 +6208,13 @@ app.post('/api/why-vedx', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { id, heroTitle, heroDescription, heroImage } = req.body ?? {};
+    const { id, heroTitle, heroDescription } = req.body ?? {};
     const categoryId = parseIntegerId(req.body?.categoryId);
     const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
-    if (!heroTitle || !heroDescription || !heroImage) {
+    if (!heroTitle || !heroDescription) {
       return res.status(400).json({
-        error: 'heroTitle, heroDescription, and heroImage are required'
+        error: 'heroTitle and heroDescription are required'
       });
     }
 
@@ -6253,7 +6252,6 @@ app.post('/api/why-vedx', async (req, res) => {
         data: {
           heroTitle,
           heroDescription,
-          heroImage,
           categoryId: category?.id || null,
           subcategoryId: subcategory?.id || null,
         },
@@ -6264,7 +6262,6 @@ app.post('/api/why-vedx', async (req, res) => {
         data: {
           heroTitle,
           heroDescription,
-          heroImage,
           categoryId: category?.id || null,
           subcategoryId: subcategory?.id || null,
         },

@@ -73,13 +73,11 @@ export default function WhyVedxTab({
   whyVedxHeroForm,
   handleWhyVedxHeroChange,
   handleWhyVedxHeroSave,
-  ImageUpload,
   whyVedxSubcategoryOptions = [],
   activeWhyVedxReasons = [],
   rowsPerPage = 10,
   whyVedxPage = 1,
   setWhyVedxPage,
-  imagePlaceholder,
   openWhyVedxCreateDialog,
   openWhyVedxEditDialog,
   openWhyVedxDeleteDialog,
@@ -101,7 +99,6 @@ export default function WhyVedxTab({
     const subcategoryId = String(whyVedxHeroForm?.subcategoryId || '').trim();
     const title = String(whyVedxHeroForm?.heroTitle || '').trim();
     const description = String(whyVedxHeroForm?.heroDescription || '').trim();
-    const heroImage = whyVedxHeroForm?.heroImage;
 
     if (!categoryId) errors.push('Category is required.');
 
@@ -112,7 +109,6 @@ export default function WhyVedxTab({
 
     if (isBlank(title)) errors.push('Title is required.');
     if (isBlank(description)) errors.push('Description is required.');
-    if (!heroImage) errors.push('Hero image is required.');
 
     return errors;
   };
@@ -260,7 +256,7 @@ export default function WhyVedxTab({
               sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}
             >
               <Grid container spacing={2}>
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12}>
                   <Stack spacing={2}>
                     <Autocomplete
                       disableClearable={false}
@@ -333,18 +329,6 @@ export default function WhyVedxTab({
                     </Button>
                   </Stack>
                 </Grid>
-
-                <Grid item xs={12} md={4}>
-                  {ImageUpload ? (
-                    <ImageUpload
-                      label="Hero image"
-                      value={whyVedxHeroForm?.heroImage}
-                      onChange={(val) => handleWhyVedxHeroChange?.('heroImage', val)}
-                      required
-                      placeholder={imagePlaceholder}
-                    />
-                  ) : null}
-                </Grid>
               </Grid>
             </Box>
 
@@ -366,23 +350,45 @@ export default function WhyVedxTab({
                 </Button>
               </Stack>
 
-              <TableContainer sx={{ border: '1px solid', borderColor: 'divider' }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {pagedReasons.map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell>{row.title}</TableCell>
-                        <TableCell sx={{ maxWidth: 520 }}>
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {row.description}
-                          </Typography>
+                  <TableContainer sx={{ border: '1px solid', borderColor: 'divider' }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Image</TableCell>
+                          <TableCell>Title</TableCell>
+                          <TableCell>Description</TableCell>
+                          <TableCell align="right">Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {pagedReasons.map((row) => (
+                          <TableRow key={row.id}>
+                            <TableCell width={120}>
+                              {row.image ? (
+                                <Box
+                                  component="img"
+                                  src={row.image}
+                                  alt={row.title || 'Reason image'}
+                                  sx={{
+                                    width: 96,
+                                    height: 64,
+                                    objectFit: 'cover',
+                                    borderRadius: 1,
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                  }}
+                                />
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                  No image
+                                </Typography>
+                              )}
+                            </TableCell>
+                            <TableCell>{row.title}</TableCell>
+                            <TableCell sx={{ maxWidth: 520 }}>
+                              <Typography variant="body2" color="text.secondary" noWrap>
+                                {row.description}
+                              </Typography>
                         </TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -401,14 +407,14 @@ export default function WhyVedxTab({
                       </TableRow>
                     ))}
 
-                    {pagedReasons.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={3}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No reasons found.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
+                        {pagedReasons.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={4}>
+                              <Typography variant="body2" color="text.secondary" align="center">
+                                No reasons found.
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
                     )}
                   </TableBody>
                 </Table>
