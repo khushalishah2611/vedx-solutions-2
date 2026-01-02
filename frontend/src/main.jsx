@@ -3,6 +3,20 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import ColorModeProvider from './contexts/ColorModeContext.jsx';
 
+const registerCopyPrevention = () => {
+  document.addEventListener('contextmenu', (event) => event.preventDefault());
+
+  const blockDefaultAction = (event) => event.preventDefault();
+  document.addEventListener('selectstart', blockDefaultAction);
+  document.addEventListener('dragstart', blockDefaultAction);
+
+  document.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && ['c', 'x', 's', 'p'].includes(event.key.toLowerCase())) {
+      event.preventDefault();
+    }
+  });
+};
+
 const hideSplashScreen = () => {
   const splash = document.getElementById('splash-screen');
   if (splash) {
@@ -21,4 +35,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 
+registerCopyPrevention();
 hideSplashScreen();
