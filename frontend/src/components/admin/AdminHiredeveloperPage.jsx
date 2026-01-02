@@ -2280,7 +2280,7 @@ const AdminHiredeveloperPage = () => {
                     <TableCell>Category</TableCell>
                     <TableCell>Sub-categories</TableCell>
                     <TableCell>Banner</TableCell>
-                    <TableCell>Created</TableCell>
+                   
                     <TableCell>FAQs</TableCell>
                     <TableCell>Totals</TableCell>
                     <TableCell align="right">Actions</TableCell>
@@ -2317,7 +2317,7 @@ const AdminHiredeveloperPage = () => {
                           </Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell>{service.createdAt || '-'}</TableCell>
+                    
                       <TableCell>
                         <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" />
                       </TableCell>
