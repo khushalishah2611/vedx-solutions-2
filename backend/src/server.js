@@ -6840,17 +6840,14 @@ app.delete('/api/hire-developer/services/:id', async (req, res) => {
  * ============================================================
  */
 
-// GET technologies (optional category / subcategory)
-app.get('/api/hire-developer/technologies', async (req, res) => {
+// GET technologies (ordered by title)
+app.get('/api/hire-developer/technologies', async (_req, res) => {
   try {
-    const { category, subcategory } = req.query;
-
     const technologies = await prisma.hireDeveloperTechnology.findMany({
-      where: {
-        ...(category && { category: String(category) }),
-        ...(subcategory && { subcategory: String(subcategory) }),
-      },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { title: 'asc' },
+        { createdAt: 'desc' },
+      ],
     });
 
     res.json(technologies);
@@ -6866,10 +6863,10 @@ app.post('/api/hire-developer/technologies', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { category, subcategory, title, image, items } = req.body;
+    const { title, image, items } = req.body;
 
-    if (!category || !String(category).trim() || !title || !String(title).trim()) {
-      return res.status(400).json({ error: 'Category and title are required' });
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ error: 'Title is required' });
     }
     if (!image || !String(image).trim()) {
       return res.status(400).json({ error: 'Image is required' });
@@ -6877,8 +6874,6 @@ app.post('/api/hire-developer/technologies', async (req, res) => {
 
     const technology = await prisma.hireDeveloperTechnology.create({
       data: {
-        category: String(category).trim(),
-        subcategory: subcategory?.trim() || null,
         title: String(title).trim(),
         image: String(image).trim(),
         items: items ?? [],
@@ -6901,13 +6896,11 @@ app.put('/api/hire-developer/technologies/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const { category, subcategory, title, image, items } = req.body;
+    const { title, image, items } = req.body;
 
     const updated = await prisma.hireDeveloperTechnology.update({
       where: { id },
       data: {
-        ...(category !== undefined && { category: String(category).trim() }),
-        subcategory: subcategory?.trim() || null,
         ...(title !== undefined && { title: String(title).trim() }),
         ...(image !== undefined && { image: String(image).trim() }),
         ...(items !== undefined && { items }),

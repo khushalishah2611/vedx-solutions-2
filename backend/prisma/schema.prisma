@@ -914,9 +914,7 @@ model HireDeveloperService {
 
 model HireDeveloperTechnology {
   id          Int      @id @default(autoincrement())
-  category    String
-  subcategory String?
-  title       String 
+  title       String
   image       String @db.LongText
   items       Json     // Array of strings
 
