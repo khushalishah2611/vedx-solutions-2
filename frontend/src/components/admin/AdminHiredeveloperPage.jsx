@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
   Card,
@@ -32,6 +35,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AdminSectionTabs from './tabs/AdminSectionTabs.jsx';
 
 const imagePlaceholder = '';
@@ -554,7 +558,6 @@ const AdminHiredeveloperPage = () => {
   const [serviceCategoryFilter, setServiceCategoryFilter] = useState('');
   const [serviceSubcategoryFilter, setServiceSubcategoryFilter] = useState('');
   const [servicePage, setServicePage] = useState(1);
-  const [technologyPage, setTechnologyPage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
   const [hirePricingPage, setHirePricingPage] = useState(1);
@@ -1135,6 +1138,11 @@ const AdminHiredeveloperPage = () => {
     ).filter(Boolean);
   }, [hireMasterCategories, hireMasterSubcategories, services]);
 
+  const technologySubcategoryOptions = useMemo(() => {
+    if (!technologyForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(technologyForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, subcategoryLookup, technologyForm.category]);
+
   const filteredServices = useMemo(
     () =>
       services.filter((service) => {
@@ -1143,9 +1151,9 @@ const AdminHiredeveloperPage = () => {
           : true;
         const matchesSubcategory = serviceSubcategoryFilter
           ? service.subcategories.some(
-              (subcategory) =>
-                (subcategory?.name || subcategory || '') === serviceSubcategoryFilter
-            )
+            (subcategory) =>
+              (subcategory?.name || subcategory || '') === serviceSubcategoryFilter
+          )
           : true;
 
         return (
@@ -1183,10 +1191,18 @@ const AdminHiredeveloperPage = () => {
     setServicePage((prev) => Math.min(prev, maxPage));
   }, [filteredServices.length, rowsPerPage]);
 
-  const pagedTechnologies = useMemo(() => {
-    const start = (technologyPage - 1) * rowsPerPage;
-    return technologies.slice(start, start + rowsPerPage);
-  }, [technologies, rowsPerPage, technologyPage]);
+  const groupedTechnologies = useMemo(() => {
+    const sorted = [...technologies].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    const groups = new Map();
+    sorted.forEach((tech) => {
+      const key = (tech?.title || '').trim() || 'Untitled';
+      const existing = groups.get(key) || [];
+      groups.set(key, [...existing, tech]);
+    });
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, items]) => ({ key, items }));
+  }, [technologies]);
 
   const pagedBenefits = useMemo(() => {
     const start = (benefitPage - 1) * rowsPerPage;
@@ -1207,11 +1223,6 @@ const AdminHiredeveloperPage = () => {
     const start = (hireServicePage - 1) * rowsPerPage;
     return hireContent.services.slice(start, start + rowsPerPage);
   }, [hireContent.services, rowsPerPage, hireServicePage]);
-
-  useEffect(() => {
-    const maxTechPage = Math.max(1, Math.ceil(technologies.length / rowsPerPage));
-    setTechnologyPage((prev) => Math.min(prev, maxTechPage));
-  }, [rowsPerPage, technologies.length]);
 
   useEffect(() => {
     const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
@@ -1382,6 +1393,7 @@ const AdminHiredeveloperPage = () => {
     setTechnologyDialogMode('create');
     setActiveTechnology(null);
     resetTechnologyForm();
+    setTechnologyItemsInput('');
     setTechnologyDialogOpen(true);
   };
 
@@ -2215,7 +2227,7 @@ const AdminHiredeveloperPage = () => {
                     {...params}
                     label="Category filter"
                     placeholder="All categories"
-                  
+
                   />
                 )}
               />
@@ -2234,7 +2246,7 @@ const AdminHiredeveloperPage = () => {
                     {...params}
                     label="Sub-category filter"
                     placeholder="All sub-categories"
-                
+
                   />
                 )}
                 disabled={!serviceCategoryFilter && allSubcategoryOptions.length === 0}
@@ -2583,7 +2595,7 @@ const AdminHiredeveloperPage = () => {
         </Card>
       )}
 
-     
+
 
       {activeTab === 'industries' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -3076,7 +3088,7 @@ const AdminHiredeveloperPage = () => {
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
             title="Technologies we support"
-            subheader="Manage technology blocks by title and keep the services page dynamic."
+            subheader="Group technology blocks (Frontend/Backend) and keep the services page dynamic."
             action={
               <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
                 Add technology block
@@ -3085,74 +3097,119 @@ const AdminHiredeveloperPage = () => {
           />
           <Divider />
           <CardContent>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Image</TableCell>
-                    <TableCell>Technologies</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedTechnologies.map((tech) => (
-                    <TableRow key={tech.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{tech.title}</TableCell>
-                      <TableCell>
+            <Stack spacing={2}>
+              {groupedTechnologies.map((group) => (
+                <Accordion
+                  key={group.key}
+                  disableGutters
+                  elevation={0}
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    '&:before': { display: 'none' },
+                  }}
+                >
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="h6">
+                      {group.key} ({group.items.length})
+                    </Typography>
+                  </AccordionSummary>
+
+                  <AccordionDetails>
+                    <Stack spacing={1.5}>
+                      {group.items.map((tech) => (
                         <Box
-                          component="img"
-                          src={tech.image || imagePlaceholder}
-                          alt={`${tech.title} preview`}
-                          sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 220 }}>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                          {tech.items.map((item) => (
-                            <Chip key={item} label={item} size="small" color="primary" variant="outlined" />
-                          ))}
-                        </Stack>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(tech)}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openTechnologyDeleteDialog(tech)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {technologies.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No technology groups configured yet.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Stack mt={2} alignItems="flex-end">
-              <Pagination
-                count={Math.max(1, Math.ceil(technologies.length / rowsPerPage))}
-                page={technologyPage}
-                onChange={(event, page) => setTechnologyPage(page)}
-                color="primary"
-              />
+                          key={tech.id}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 1,
+                            p: 1.5,
+                          }}
+                        >
+                          <Stack direction="row" spacing={2} alignItems="flex-start">
+                            <Stack spacing={1} flex={1}>
+                              <Stack direction="row" spacing={1} flexWrap="wrap">
+                                {tech.items?.length > 0 ? (
+                                  tech.items.map((item, index) => (
+                                    <Chip
+                                      key={index}
+                                      label={item}
+                                      size="small"
+                                      color="primary"
+                                      variant="outlined"
+                                    />
+                                  ))
+                                ) : (
+                                  <Typography variant="body2" color="text.secondary">
+                                    No items added yet.
+                                  </Typography>
+                                )}
+                              </Stack>
+
+                              <Box
+                                sx={{
+                                  width: 180,
+                                  height: 100,
+                                  borderRadius: 1,
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  bgcolor: 'background.default',
+                                }}
+                              >
+                                <Box
+                                  component="img"
+                                  src={tech.image || imagePlaceholder}
+                                  alt={`${tech.title} preview`}
+                                  sx={{
+                                    maxWidth: '100%',
+                                    maxHeight: '100%',
+                                    objectFit: 'contain',
+                                  }}
+                                />
+                              </Box>
+                            </Stack>
+
+                            <Stack direction="row" spacing={1}>
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => openTechnologyEditDialog(tech)}
+                                >
+                                  <EditOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => openTechnologyDeleteDialog(tech)}
+                                >
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </Stack>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+
+              {groupedTechnologies.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center">
+                  {technologies.length === 0
+                    ? 'No technology blocks configured yet.'
+                    : 'No technology blocks found.'}
+                </Typography>
+              )}
             </Stack>
           </CardContent>
         </Card>
@@ -3741,10 +3798,10 @@ const AdminHiredeveloperPage = () => {
                   <Typography variant="body2" color="text.secondary">
                     No FAQs added for this service yet.
                   </Typography>
-              )}
+                )}
+              </Stack>
             </Stack>
-          </Stack>
-        )}
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setViewService(null)} color="inherit">
@@ -3811,16 +3868,16 @@ const AdminHiredeveloperPage = () => {
                   helperText="Add the inclusions for this pricing plan"
                   fullWidth
                 />
-               
+
               </Stack>
-               <Button
-                  variant="outlined"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={addHirePricingService}
-                  sx={{ mt: { xs: 0, sm: '4px' } }}
-                >
-                  Add service
-                </Button>
+              <Button
+                variant="outlined"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={addHirePricingService}
+                sx={{ mt: { xs: 0, sm: '4px' } }}
+              >
+                Add service
+              </Button>
               <Stack spacing={1} useFlexGap>
                 {hirePricingForm.services?.length ? (
                   hirePricingForm.services.map((service) => (
@@ -3961,8 +4018,8 @@ const AdminHiredeveloperPage = () => {
                 !whyServiceForm.category
                   ? 'Select a category first'
                   : whySubcategoryOptions.length === 0
-                  ? 'No sub-categories available for this category'
-                  : undefined
+                    ? 'No sub-categories available for this category'
+                    : undefined
               }
             >
               {whySubcategoryOptions.map((option) => (
