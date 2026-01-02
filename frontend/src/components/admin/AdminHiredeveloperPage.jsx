@@ -108,8 +108,6 @@ const emptyServiceForm = {
 
 const emptyTechnologyForm = {
   id: '',
-  category: '',
-  subcategory: '',
   title: '',
   image: imagePlaceholder,
   items: [],
@@ -230,8 +228,6 @@ const normalizeService = (service) => ({
 
 const normalizeTechnology = (tech) => ({
   id: tech.id,
-  category: tech.category || '',
-  subcategory: tech.subcategory || '',
   title: tech.title || '',
   image: tech.image || imagePlaceholder,
   items: tech.items || [],
@@ -1405,7 +1401,7 @@ const AdminHiredeveloperPage = () => {
 
   const handleTechnologySubmit = async (event) => {
     event?.preventDefault();
-    if (!technologyForm.title.trim() || !technologyForm.category.trim() || !technologyForm.image) return;
+    if (!technologyForm.title.trim() || !technologyForm.image) return;
 
     try {
       if (technologyDialogMode === 'edit' && activeTechnology) {
@@ -2140,11 +2136,6 @@ const AdminHiredeveloperPage = () => {
     if (!serviceForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, serviceForm.category, subcategoryLookup]);
-
-  const technologySubcategoryOptions = useMemo(() => {
-    if (!technologyForm.category) return allSubcategoryOptions;
-    return subcategoryLookup.get(technologyForm.category) || allSubcategoryOptions;
-  }, [allSubcategoryOptions, subcategoryLookup, technologyForm.category]);
 
   const hireSubcategoryOptions = useMemo(() => {
     if (!hireServiceForm.category) return allSubcategoryOptions;
@@ -3085,7 +3076,7 @@ const AdminHiredeveloperPage = () => {
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
             title="Technologies we support"
-            subheader="Organise tech stacks per category to keep the services page dynamic."
+            subheader="Manage technology blocks by title and keep the services page dynamic."
             action={
               <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
                 Add technology block
@@ -3098,19 +3089,15 @@ const AdminHiredeveloperPage = () => {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
                     <TableCell>Title</TableCell>
                     <TableCell>Image</TableCell>
-                    <TableCell>Items</TableCell>
+                    <TableCell>Technologies</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {pagedTechnologies.map((tech) => (
                     <TableRow key={tech.id} hover>
-                      <TableCell>{tech.category || '-'}</TableCell>
-                      <TableCell>{tech.subcategory || '-'}</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>{tech.title}</TableCell>
                       <TableCell>
                         <Box
@@ -3149,7 +3136,7 @@ const AdminHiredeveloperPage = () => {
                   ))}
                   {technologies.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No technology groups configured yet.
                         </Typography>
@@ -4032,42 +4019,6 @@ const AdminHiredeveloperPage = () => {
         <DialogTitle>{technologyDialogMode === 'edit' ? 'Edit technology block' : 'Add technology block'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleTechnologySubmit}>
-            <Autocomplete
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
-              value={technologyForm.category}
-              onInputChange={(event, newValue) =>
-                setTechnologyForm((prev) => ({
-                  ...prev,
-                  category: newValue || '',
-                  subcategory: newValue === prev.category ? prev.subcategory : '',
-                }))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Category"
-                  required
-                  helperText="Match the service category for this technology block"
-                />
-              )}
-            />
-            <Autocomplete
-              freeSolo
-              options={technologySubcategoryOptions}
-              value={technologyForm.subcategory}
-              onInputChange={(event, newValue) =>
-                handleTechnologyFormChange('subcategory', newValue || '')
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category"
-                  helperText="Keep stacks aligned to category and sub-category"
-                />
-              )}
-              disabled={!technologyForm.category && technologySubcategoryOptions.length === 0}
-            />
             <TextField
               label="Title"
               value={technologyForm.title}
