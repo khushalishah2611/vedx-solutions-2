@@ -21,6 +21,32 @@
         margin: 0;
         font-family: 'Manrope', sans-serif;
         background-color: #050505;
+        user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+      }
+
+      .privacy-overlay {
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+            135deg,
+            rgba(5, 5, 5, 0.9) 0,
+            rgba(5, 5, 5, 0.9) 10px,
+            rgba(15, 15, 15, 0.95) 10px,
+            rgba(15, 15, 15, 0.95) 20px
+          ),
+          rgba(0, 0, 0, 0.85);
+        color: #e0e0e0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        z-index: 10000;
+        backdrop-filter: blur(6px);
+        font-weight: 600;
+        letter-spacing: 0.5px;
       }
 
       /* Center the splash screen */
@@ -73,6 +99,10 @@
 
     <!-- React Root -->
     <div id="root"></div>
+
+    <div id="privacy-overlay" class="privacy-overlay">
+      Screenshots and screen recordings are blocked on this site.
+    </div>
 
     <script type="module" src="/src/main.jsx"></script>
   </body>
