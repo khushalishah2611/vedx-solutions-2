@@ -1170,6 +1170,20 @@ const AdminHiredeveloperPage = () => {
     return filteredServices.slice(start, start + rowsPerPage);
   }, [filteredServices, rowsPerPage, servicePage]);
 
+
+  const groupedFilteredServices = useMemo(() => {
+    const groups = new Map();
+    filteredServices.forEach((service) => {
+      const key = (service.category || '').trim() || 'Uncategorized';
+      const existing = groups.get(key) || [];
+      groups.set(key, [...existing, service]);
+    });
+
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([category, items]) => ({ category, items }));
+  }, [filteredServices]);
+
   useEffect(() => {
     setServicePage(1);
   }, [serviceCategoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, serviceSubcategoryFilter]);
@@ -1209,6 +1223,22 @@ const AdminHiredeveloperPage = () => {
     return benefits.slice(start, start + rowsPerPage);
   }, [benefits, rowsPerPage, benefitPage]);
 
+
+  const groupedBenefits = useMemo(() => {
+    const sorted = [...benefits].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    const groups = new Map();
+
+    sorted.forEach((benefit) => {
+      const key = (benefit.category || '').trim() || 'Uncategorized';
+      const existing = groups.get(key) || [];
+      groups.set(key, [...existing, benefit]);
+    });
+
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([category, items]) => ({ category, items }));
+  }, [benefits]);
+
   const pagedWhyServices = useMemo(() => {
     const start = (whyServicePage - 1) * rowsPerPage;
     return whyChoose.services.slice(start, start + rowsPerPage);
@@ -1223,6 +1253,25 @@ const AdminHiredeveloperPage = () => {
     const start = (hireServicePage - 1) * rowsPerPage;
     return hireContent.services.slice(start, start + rowsPerPage);
   }, [hireContent.services, rowsPerPage, hireServicePage]);
+
+  const groupedHireServices = useMemo(() => {
+    const sorted = [...hireContent.services].sort((a, b) => {
+      const categoryCompare = (a.category || '').localeCompare(b.category || '');
+      if (categoryCompare !== 0) return categoryCompare;
+      return (a.title || '').localeCompare(b.title || '');
+    });
+
+    const groups = new Map();
+    sorted.forEach((service) => {
+      const key = (service.category || '').trim() || 'Uncategorized';
+      const existing = groups.get(key) || [];
+      groups.set(key, [...existing, service]);
+    });
+
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([category, items]) => ({ category, items }));
+  }, [hireContent.services]);
 
   useEffect(() => {
     const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
@@ -2276,109 +2325,128 @@ const AdminHiredeveloperPage = () => {
                 </Stack>
               )}
             </Stack>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-categories</TableCell>
-                    <TableCell>Banner</TableCell>
-                    <TableCell>Created</TableCell>
-                    <TableCell>FAQs</TableCell>
-                    <TableCell>Totals</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedServices.map((service) => (
-                    <TableRow key={service.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{service.category}</TableCell>
-                      <TableCell sx={{ maxWidth: 200 }}>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                          {service.subcategories.map((item) => (
-                            <Chip
-                              key={item.name}
-                              label={item.name}
-                              size="small"
-                            />
-                          ))}
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Stack spacing={0.5}>
-                          <Box
-                            component="img"
-                            src={service.bannerImage || imagePlaceholder}
-                            alt={`${service.category} banner`}
-                            sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                          />
-                          <Typography variant="body2" fontWeight={600}>
-                            {service.bannerTitle}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary" noWrap>
-                            {service.bannerSubtitle}
-                          </Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>{service.createdAt || '-'}</TableCell>
-                      <TableCell>
-                        <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" />
-                      </TableCell>
-                      <TableCell>
-                        <Stack spacing={0.5}>
-                          <Typography variant="body2">Services: {service.totalServices}</Typography>
-                          <Typography variant="body2">Projects: {service.totalProjects}</Typography>
-                          <Typography variant="body2">Clients: {service.totalClients}</Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="View details">
-                            <IconButton size="small" onClick={() => setViewService(service)}>
-                              <VisibilityOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Edit">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() => openServiceEditDialog(service)}
-                            >
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openServiceDeleteDialog(service)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {filteredServices.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No service categories yet. Click "Add service" to create your first entry.
+
+            <Stack spacing={2}>
+              {groupedFilteredServices.map((group) => {
+                const subcategoryCount = Array.from(
+                  new Set(
+                    group.items.flatMap((service) =>
+                      (service.subcategories || []).map((item) => item?.name || item || '')
+                    )
+                  )
+                ).filter(Boolean).length;
+
+                return (
+                  <Accordion key={group.category} defaultExpanded>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                        <Typography variant="subtitle1" fontWeight={800}>
+                          {group.category}
                         </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Stack mt={2} alignItems="flex-end">
-              <Pagination
-                count={Math.max(1, Math.ceil(filteredServices.length / rowsPerPage))}
-                page={servicePage}
-                onChange={(event, page) => setServicePage(page)}
-                color="primary"
-              />
+                        <Chip
+                          label={`${group.items.length} ${group.items.length === 1 ? 'entry' : 'entries'}`}
+                          size="small"
+                        />
+                        <Chip
+                          label={`${subcategoryCount} ${subcategoryCount === 1 ? 'sub-category' : 'sub-categories'}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Stack>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Sub-categories</TableCell>
+                              <TableCell>Banner</TableCell>
+                              <TableCell>Created</TableCell>
+                              <TableCell>FAQs</TableCell>
+                              <TableCell>Totals</TableCell>
+                              <TableCell align="right">Actions</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {group.items.map((service) => (
+                              <TableRow key={service.id} hover>
+                                <TableCell sx={{ maxWidth: 240 }}>
+                                  <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                                    {(service.subcategories || []).map((item) => (
+                                      <Chip key={item?.name || item} label={item?.name || item} size="small" />
+                                    ))}
+                                  </Stack>
+                                </TableCell>
+                                <TableCell>
+                                  <Stack spacing={0.5}>
+                                    <Box
+                                      component="img"
+                                      src={service.bannerImage || imagePlaceholder}
+                                      alt={`${service.category} banner`}
+                                      sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                                    />
+                                    <Typography variant="body2" fontWeight={600}>
+                                      {service.bannerTitle}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary" noWrap>
+                                      {service.bannerSubtitle}
+                                    </Typography>
+                                  </Stack>
+                                </TableCell>
+                                <TableCell>{service.createdAt || '-'}</TableCell>
+                                <TableCell>
+                                  <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" />
+                                </TableCell>
+                                <TableCell>
+                                  <Stack spacing={0.5}>
+                                    <Typography variant="body2">Services: {service.totalServices}</Typography>
+                                    <Typography variant="body2">Projects: {service.totalProjects}</Typography>
+                                    <Typography variant="body2">Clients: {service.totalClients}</Typography>
+                                  </Stack>
+                                </TableCell>
+                                <TableCell align="right">
+                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                    <Tooltip title="View details">
+                                      <IconButton size="small" onClick={() => setViewService(service)}>
+                                        <VisibilityOutlinedIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Edit">
+                                      <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={() => openServiceEditDialog(service)}
+                                      >
+                                        <EditOutlinedIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete">
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => openServiceDeleteDialog(service)}
+                                      >
+                                        <DeleteOutlineIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Stack>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </AccordionDetails>
+                  </Accordion>
+                );
+              })}
+
+              {filteredServices.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+                  No service categories yet. Click "Add service" to create your first entry.
+                </Typography>
+              )}
+
             </Stack>
           </CardContent>
         </Card>
@@ -3228,76 +3296,83 @@ const AdminHiredeveloperPage = () => {
           />
           <Divider />
           <CardContent>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
-                    <TableCell>Image</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedBenefits.map((benefit) => (
-                    <TableRow key={benefit.id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
-                      <TableCell>{benefit.category || '-'}</TableCell>
-                      <TableCell>{benefit.subcategory || '-'}</TableCell>
-                      <TableCell sx={{ maxWidth: 200 }}>
-                        <Box
-                          component="img"
-                          src={benefit.image || imagePlaceholder}
-                          alt={`${benefit.title} visual`}
-                          sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ maxWidth: 240 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {benefit.description}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="Edit">
-                            <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => openBenefitDeleteDialog(benefit)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {benefits.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <Typography variant="body2" color="text.secondary" align="center">
-                          No benefits configured yet.
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Stack mt={2} alignItems="flex-end">
-              <Pagination
-                count={Math.max(1, Math.ceil(benefits.length / rowsPerPage))}
-                page={benefitPage}
-                onChange={(event, page) => setBenefitPage(page)}
-                color="primary"
-              />
+
+            <Stack spacing={2}>
+              {groupedBenefits.map((group) => (
+                <Accordion key={group.category} defaultExpanded>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                      <Typography variant="subtitle1" fontWeight={800}>
+                        {group.category}
+                      </Typography>
+                      <Chip
+                        label={`${group.items.length} ${group.items.length === 1 ? 'benefit' : 'benefits'}`}
+                        size="small"
+                      />
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Title</TableCell>
+                            <TableCell>Sub-category</TableCell>
+                            <TableCell>Image</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell align="right">Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {group.items.map((benefit) => (
+                            <TableRow key={benefit.id} hover>
+                              <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
+                              <TableCell>{benefit.subcategory || '-'}</TableCell>
+                              <TableCell sx={{ maxWidth: 200 }}>
+                                <Box
+                                  component="img"
+                                  src={benefit.image || imagePlaceholder}
+                                  alt={`${benefit.title} visual`}
+                                  sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                                />
+                              </TableCell>
+                              <TableCell sx={{ maxWidth: 240 }}>
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                  {benefit.description}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="right">
+                                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                  <Tooltip title="Edit">
+                                    <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
+                                      <EditOutlinedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() => openBenefitDeleteDialog(benefit)}
+                                    >
+                                      <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Stack>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+
+              {benefits.length === 0 && (
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+                  No benefits configured yet.
+                </Typography>
+              )}
             </Stack>
           </CardContent>
         </Card>
@@ -3442,48 +3517,35 @@ const AdminHiredeveloperPage = () => {
 
       {activeTab === 'hire' && (
         <Stack spacing={3}>
-          {/* <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-            <CardHeader
-              title="Development services hero"
-              subheader="Control the title, description, and hero image used on the development services section."
-            />
-            <Divider />
-            <CardContent>
-              <Stack spacing={2}>
-                <TextField
-                  label="Title"
-                  value={hireContent.title}
-                  onChange={(event) => handleHireContentChange('title', event.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Description"
-                  value={hireContent.description}
-                  onChange={(event) => handleHireContentChange('description', event.target.value)}
-                  fullWidth
-                  multiline
-                  minRows={3}
-                />
-                <ImageUpload
-                  label="Hero image"
-                  value={hireContent.heroImage}
-                  onChange={(value) => handleHireContentChange('heroImage', value)}
-                  required
-                />
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Button variant="contained" onClick={handleHeroSave}>
-                    Save hero
-                  </Button>
-                  {heroSaved && (
-                    <Typography variant="body2" color="success.main">
-                      Saved
-                    </Typography>
-                  )}
-                </Stack>
-              </Stack>
-            </CardContent>
-          </Card> */}
+          {/* HERO CARD (optional) - uncomment if needed
+    <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+      <CardHeader
+        title="Development services hero"
+        subheader="Control the title, description, and hero image used on the development services section."
+      />
+      <Divider />
+      <CardContent>
+        <Stack spacing={2}>
+          <TextField
+            label="Title"
+            value={hireContent.title}
+            onChange={(event) => handleHireContentChange('title', event.target.value)}
+            fullWidth
+          />
+          <TextField
+            label="Description"
+            value={hireContent.description}
+            onChange={(event) => handleHireContentChange('description', event.target.value)}
+            fullWidth
+            multiline
+            minRows={3}
+          />
+        </Stack>
+      </CardContent>
+    </Card>
+    */}
 
+          {/* SERVICES CARD */}
           <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
             <CardHeader
               title="Development services"
@@ -3499,86 +3561,120 @@ const AdminHiredeveloperPage = () => {
               }
             />
             <Divider />
+
             <CardContent>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Category</TableCell>
-                      <TableCell>Sub-category</TableCell>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {pagedHireServices.map((service) => (
-                      <TableRow key={service.id} hover>
-                        <TableCell>{service.category || '-'}</TableCell>
-                        <TableCell>{service.subcategory || '-'}</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>{service.title}</TableCell>
-                        <TableCell>
-                          <Box
-                            component="img"
-                            src={service.image || imagePlaceholder}
-                            alt={`${service.title} visual`}
-                            sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ maxWidth: 320 }}>
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {service.description}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Stack direction="row" spacing={1} justifyContent="flex-end">
-                            <Tooltip title="Edit">
-                              <IconButton
-                                size="small"
-                                color="primary"
-                                onClick={() => openHireServiceEditDialog(service)}
-                              >
-                                <EditOutlinedIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Delete">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => openHireServiceDeleteDialog(service)}
-                              >
-                                <DeleteOutlineIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {hireContent.services.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5}>
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            No development services configured yet.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Stack mt={2} alignItems="flex-end">
-                <Pagination
-                  count={Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage))}
-                  page={hireServicePage}
-                  onChange={(event, page) => setHireServicePage(page)}
-                  color="primary"
-                />
+              <Stack spacing={2}>
+                {groupedHireServices.map((group) => (
+                  <Accordion
+                    key={group.category}
+                    disableGutters
+                    elevation={0}
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      '&:before': { display: 'none' },
+                    }}
+                  >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                        <Typography variant="h6">{group.category}</Typography>
+                        <Chip
+                          label={`${group.items.length} service${group.items.length === 1 ? '' : 's'}`}
+                          size="small"
+                          variant="outlined"
+                          color="primary"
+                        />
+                      </Stack>
+                    </AccordionSummary>
+
+                    <AccordionDetails>
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Sub-category</TableCell>
+                              <TableCell>Title</TableCell>
+                              <TableCell>Image</TableCell>
+                              <TableCell>Description</TableCell>
+                              <TableCell align="right">Actions</TableCell>
+                            </TableRow>
+                          </TableHead>
+
+                          <TableBody>
+                            {group.items.map((service) => (
+                              <TableRow key={service.id} hover>
+                                <TableCell>{service.subcategory || '-'}</TableCell>
+
+                                <TableCell sx={{ fontWeight: 700 }}>
+                                  {service.title}
+                                </TableCell>
+
+                                <TableCell>
+                                  <Box
+                                    component="img"
+                                    src={service.image || imagePlaceholder}
+                                    alt={`${service.title} visual`}
+                                    sx={{
+                                      width: 120,
+                                      height: 70,
+                                      objectFit: 'cover',
+                                      borderRadius: 1,
+                                      border: '1px solid',
+                                      borderColor: 'divider',
+                                    }}
+                                  />
+                                </TableCell>
+
+                                <TableCell sx={{ maxWidth: 360 }}>
+                                  <Typography variant="body2" color="text.secondary" noWrap>
+                                    {service.description || '-'}
+                                  </Typography>
+                                </TableCell>
+
+                                <TableCell align="right">
+                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                    <Tooltip title="Edit">
+                                      <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={() => openHireServiceEditDialog(service)}
+                                      >
+                                        <EditOutlinedIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+
+                                    <Tooltip title="Delete">
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => openHireServiceDeleteDialog(service)}
+                                      >
+                                        <DeleteOutlineIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Stack>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+
+                {hireContent.services.length === 0 && (
+                  <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+                    No development services configured yet.
+                  </Typography>
+                )}
               </Stack>
             </CardContent>
           </Card>
         </Stack>
       )}
+
 
       <Dialog open={serviceDialogOpen} onClose={closeServiceDialog} maxWidth="md" fullWidth>
         <DialogTitle>{serviceDialogMode === 'edit' ? 'Edit service menu' : 'Add service menu'}</DialogTitle>
@@ -4090,7 +4186,7 @@ const AdminHiredeveloperPage = () => {
               required
             />
             <TextField
-              label="Technologies (comma separated)"
+              label="Technologies"
               value={technologyItemsInput}
               onChange={(event) => {
                 const nextValue = event.target.value;
