@@ -2448,7 +2448,7 @@ const AdminServicesPage = () => {
                     setServiceForm((prev) => ({ ...prev, subcategories: newValue ? [{ name: newValue }] : [] }))
                   }
                   renderInput={(params) => (
-                    <TextField {...params} label="Sub-category" placeholder="Select sub-category" required />
+                    <TextField {...params} label="Sub-category" placeholder="Select sub-category" />
                   )}
                 />
               </Grid>
@@ -2458,7 +2458,7 @@ const AdminServicesPage = () => {
                   label="Banner title"
                   value={serviceForm.bannerTitle}
                   onChange={(e) => setServiceForm((p) => ({ ...p, bannerTitle: e.target.value }))}
-                  fullWidth
+                  fullWidth required
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -2466,13 +2466,13 @@ const AdminServicesPage = () => {
                   label="Banner subtitle"
                   value={serviceForm.bannerSubtitle}
                   onChange={(e) => setServiceForm((p) => ({ ...p, bannerSubtitle: e.target.value }))}
-                  fullWidth
+                  fullWidth required
                 />
               </Grid>
 
               <Grid item xs={12}>
                 <ImageUpload
-                  label="Banner image"
+                  label="Banner image *"
                   value={serviceForm.bannerImage}
                   onChange={(value) => setServiceForm((p) => ({ ...p, bannerImage: value }))}
                   required
@@ -2486,7 +2486,7 @@ const AdminServicesPage = () => {
                   value={serviceForm.totalServices}
                   onChange={(e) => setServiceForm((p) => ({ ...p, totalServices: Number(e.target.value) }))}
                   fullWidth
-                  inputProps={{ min: 0 }}
+                  inputProps={{ min: 0 }}  required
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -2496,7 +2496,7 @@ const AdminServicesPage = () => {
                   value={serviceForm.totalProjects}
                   onChange={(e) => setServiceForm((p) => ({ ...p, totalProjects: Number(e.target.value) }))}
                   fullWidth
-                  inputProps={{ min: 0 }}
+                  inputProps={{ min: 0 }} required
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -2506,7 +2506,7 @@ const AdminServicesPage = () => {
                   value={serviceForm.totalClients}
                   onChange={(e) => setServiceForm((p) => ({ ...p, totalClients: Number(e.target.value) }))}
                   fullWidth
-                  inputProps={{ min: 0 }}
+                  inputProps={{ min: 0 }} required
                 />
               </Grid>
 
@@ -2520,7 +2520,7 @@ const AdminServicesPage = () => {
                         label="Question"
                         value={faqDraft.question}
                         onChange={(e) => setFaqDraft((p) => ({ ...p, question: e.target.value }))}
-                        fullWidth
+                        fullWidth required
                       />
                     </Grid>
                     <Grid item xs={12} sm={5}>
@@ -2528,7 +2528,7 @@ const AdminServicesPage = () => {
                         label="Answer"
                         value={faqDraft.answer}
                         onChange={(e) => setFaqDraft((p) => ({ ...p, answer: e.target.value }))}
-                        fullWidth
+                        fullWidth required
                       />
                     </Grid>
                     <Grid item xs={12} sm={2}>
@@ -2723,6 +2723,7 @@ const AdminServicesPage = () => {
               fullWidth
               multiline
               minRows={3}
+              required
             />
           </Stack>
         </DialogContent>
@@ -2767,7 +2768,7 @@ const AdminServicesPage = () => {
               required
             />
             <ImageUpload
-              label="Image selection"
+              label="Image selection *"
               value={technologyForm.image}
               onChange={(value) => setTechnologyForm((p) => ({ ...p, image: value }))}
               required
@@ -2787,6 +2788,7 @@ const AdminServicesPage = () => {
                 }));
               }}
               fullWidth
+              required
             />
           </Stack>
         </DialogContent>
@@ -2845,7 +2847,7 @@ const AdminServicesPage = () => {
               ))}
             </TextField>
             <ImageUpload
-              label="Image"
+              label="Image*"
               value={benefitForm.image}
               onChange={(value) => setBenefitForm((p) => ({ ...p, image: value }))}
               required
@@ -2908,6 +2910,7 @@ const AdminServicesPage = () => {
               fullWidth
               multiline
               minRows={2}
+              required
             />
 
             <Autocomplete
@@ -2916,7 +2919,7 @@ const AdminServicesPage = () => {
               options={categoryOptions.map((o) => o.label)}
               value={contactButtonForm.category}
               onInputChange={(e, v) => handleContactButtonFormChange('category', v || '')}
-              renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth />}
+              renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth  required/>}
             />
 
             <Autocomplete
@@ -2925,12 +2928,12 @@ const AdminServicesPage = () => {
               options={contactButtonSubcategoryOptions}
               value={contactButtonForm.subcategory}
               onInputChange={(e, v) => handleContactButtonFormChange('subcategory', v || '')}
-              renderInput={(params) => <TextField {...params} label="Subcategory" placeholder="Select or type subcategory" fullWidth />}
+              renderInput={(params) => <TextField {...params} label="Subcategory" placeholder="Select or type subcategory" fullWidth  required/>}
               disabled={!contactButtonForm.category && contactButtonSubcategoryOptions.length === 0}
             />
 
             <ImageUpload
-              label="Image"
+              label="Image*"
               value={contactButtonForm.image}
               onChange={(value) => handleContactButtonFormChange('image', value)}
               required
@@ -2983,10 +2986,10 @@ const AdminServicesPage = () => {
               onChange={(e) => setProcessForm((p) => ({ ...p, description: e.target.value }))}
               fullWidth
               multiline
-              minRows={3}
+              minRows={3} required
             />
             <ImageUpload
-              label="Process image"
+              label="Process image *"
               value={processForm.image}
               onChange={(value) => setProcessForm((p) => ({ ...p, image: value }))}
               required
@@ -3064,10 +3067,10 @@ const AdminServicesPage = () => {
               onChange={(e) => setWhyVedxForm((p) => ({ ...p, description: e.target.value }))}
               fullWidth
               multiline
-              minRows={3}
+              minRows={3} required
             />
             <ImageUpload
-              label="Reason image"
+              label="Reason image*"
               value={whyVedxForm.image}
               onChange={(value) => setWhyVedxForm((p) => ({ ...p, image: value }))}
               required
@@ -3115,7 +3118,7 @@ const AdminServicesPage = () => {
               onInputChange={(e, v) =>
                 setHireServiceForm((p) => ({ ...p, category: v || '', subcategory: v === p.category ? p.subcategory : '' }))
               }
-              renderInput={(params) => <TextField {...params} label="Service category" helperText="Link hire cards to a service category" />}
+              renderInput={(params) => <TextField {...params} label="Service category" required />}
             />
             <Autocomplete
               freeSolo
@@ -3123,8 +3126,8 @@ const AdminServicesPage = () => {
               options={hireServiceSubcategoryOptions}
               value={hireServiceForm.subcategory}
               onInputChange={(e, v) => setHireServiceForm((p) => ({ ...p, subcategory: v || '' }))}
-              renderInput={(params) => <TextField {...params} label="Sub-category" helperText="Pick the matching sub-category" />}
-              disabled={!hireServiceForm.category && hireServiceSubcategoryOptions.length === 0}
+              renderInput={(params) => <TextField {...params} label="Sub-category" />}
+              disabled={!hireServiceForm.category && hireServiceSubcategoryOptions.length === 0} 
             />
             <TextField
               label="Title"
@@ -3140,9 +3143,10 @@ const AdminServicesPage = () => {
               fullWidth
               multiline
               minRows={3}
+              required
             />
             <ImageUpload
-              label="Service image"
+              label="Service image *"
               value={hireServiceForm.image}
               onChange={(value) => setHireServiceForm((p) => ({ ...p, image: value }))}
               required

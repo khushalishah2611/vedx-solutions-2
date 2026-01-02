@@ -903,7 +903,7 @@ model HireDeveloperService {
   totalServices  Int      @default(0)
   totalProjects  Int      @default(0)
   totalClients   Int      @default(0)
-  description    String?  @db.Text
+  description    String?  @db.LongText
   faqs           Json?    // Array of {id, question, answer}
 
   createdAt      DateTime @default(now())
@@ -931,7 +931,7 @@ model HireDeveloperBenefit {
   title       String
   category    String?
   subcategory String?
-  description String?  @db.Text
+  description String?  @db.LongText
   image       String @db.LongText
 
   createdAt   DateTime @default(now())
@@ -944,12 +944,12 @@ model HireDeveloperPricing {
   id              Int      @id @default(autoincrement())
   title           String
   subtitle        String?
-  description     String?  @db.Text
+  description     String?  @db.LongText
   price           String
   services        Json?    // Array of strings
 
   heroTitle       String?
-  heroDescription String?  @db.Text
+  heroDescription String? @db.LongText
   heroImage       String?  @db.LongText
 
   createdAt       DateTime @default(now())
@@ -963,11 +963,11 @@ model HireDeveloperHireService {
   category        String?
   subcategory     String?
   title           String
-  description     String?  @db.Text
+  description     String?  @db.LongText
   image           String @db.LongText
 
   heroTitle       String?
-  heroDescription String?  @db.Text
+  heroDescription String?  @db.LongText
   heroImage       String? @db.LongText
 
   createdAt       DateTime @default(now())
@@ -979,7 +979,7 @@ model HireDeveloperHireService {
 model HireDeveloperProcess {
   id          Int      @id @default(autoincrement())
   title       String
-  description String?  @db.Text
+  description String?  @db.LongText
   category    String?
   subcategory String?
   image       String @db.LongText
@@ -993,11 +993,11 @@ model HireDeveloperProcess {
 model HireDeveloperWhyVedx {
   id              Int      @id @default(autoincrement())
   title           String
-  description     String?  @db.Text
+  description     String?  @db.LongText
   image           String @db.LongText
 
   heroTitle       String?
-  heroDescription String?  @db.Text
+  heroDescription String?  @db.LongText
   heroImage       String?  @db.LongText
 
   createdAt       DateTime @default(now())
@@ -1011,14 +1011,14 @@ model HireDeveloperWhyChoose {
   category         String
   subcategory      String?
   title            String
-  description      String?  @db.Text
+  description      String?  @db.LongText
 
   heroTitle        String?
-  heroDescription  String?  @db.Text
+  heroDescription  String?  @db.LongText
   heroImage        String?  @db.LongText
 
   tableTitle       String?
-  tableDescription String?  @db.Text
+  tableDescription String?  @db.LongText
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -1029,11 +1029,11 @@ model HireDeveloperWhyChoose {
 model HireDeveloperIndustry {
   id                 Int      @id @default(autoincrement())
   title              String
-  description        String?  @db.Text
+  description        String?  @db.LongText
   image              String @db.LongText
 
   sectionTitle       String?
-  sectionDescription String?  @db.Text
+  sectionDescription String? @db.LongText
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -1044,10 +1044,10 @@ model HireDeveloperIndustry {
 model HireDeveloperTechSolution {
   id                 Int      @id @default(autoincrement())
   title              String
-  description        String?  @db.Text
+  description        String?  @db.LongText
 
   sectionTitle       String?
-  sectionDescription String?  @db.Text
+  sectionDescription String?  @db.LongText
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -1058,7 +1058,7 @@ model HireDeveloperTechSolution {
 model HireDeveloperExpertise {
   id                 Int      @id @default(autoincrement())
   title              String
-  description        String?  @db.Text
+  description        String?  @db.LongText
   image              String @db.LongText
 
   sectionTitle       String?
@@ -1076,7 +1076,7 @@ model HireDeveloperOurService {
   image             String @db.LongText
 
   sliderTitle       String?
-  sliderDescription String?  @db.Text
+  sliderDescription String?  @db.LongText
   sliderImage       String? @db.LongText
 
   createdAt         DateTime @default(now())
