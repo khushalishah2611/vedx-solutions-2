@@ -92,16 +92,29 @@ const TechnologiesTab = ({
                         </Stack>
 
                         <Box
-                          component="img"
-                          src={tech.image || imagePlaceholder}
-                          alt={`${tech.title} preview`}
                           sx={{
                             width: 180,
                             height: 100,
-                            objectFit: 'cover',
                             borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: 'background.default',
                           }}
-                        />
+                        >
+                          <Box
+                            component="img"
+                            src={tech.image || imagePlaceholder}
+                            alt={`${tech.title} preview`}
+                            sx={{
+                              maxWidth: '100%',
+                              maxHeight: '100%',
+                              objectFit: 'contain',
+                            }}
+                          />
+                        </Box>
                       </Stack>
 
                       <Stack direction="row" spacing={1}>
