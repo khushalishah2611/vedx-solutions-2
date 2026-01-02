@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
@@ -108,6 +108,8 @@ const emptyServiceForm = {
 
 const emptyTechnologyForm = {
   id: '',
+  category: '',
+  subcategory: '',
   title: '',
   image: imagePlaceholder,
   items: [],
@@ -144,8 +146,6 @@ const emptyProcessForm = {
   id: '',
   title: '',
   description: '',
-  category: '',
-  subcategory: '',
   image: imagePlaceholder,
 };
 
@@ -230,6 +230,8 @@ const normalizeService = (service) => ({
 
 const normalizeTechnology = (tech) => ({
   id: tech.id,
+  category: tech.category || '',
+  subcategory: tech.subcategory || '',
   title: tech.title || '',
   image: tech.image || imagePlaceholder,
   items: tech.items || [],
@@ -1004,11 +1006,7 @@ const AdminHiredeveloperPage = () => {
   };
 
   const handleProcessChange = (field, value) => {
-    setProcessForm((prev) => ({
-      ...prev,
-      [field]: value,
-      ...(field === 'category' ? { subcategory: '' } : {}),
-    }));
+    setProcessForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleWhyVedxHeroChange = (field, value) => {
@@ -1168,29 +1166,6 @@ const AdminHiredeveloperPage = () => {
     return filteredServices.slice(start, start + rowsPerPage);
   }, [filteredServices, rowsPerPage, servicePage]);
 
-  const groupedServices = useMemo(() => {
-    const groups = new Map();
-
-    pagedServices.forEach((service) => {
-      const key = service.category || 'Uncategorised';
-      if (!groups.has(key)) {
-        groups.set(key, []);
-      }
-      groups.get(key).push(service);
-    });
-
-    return Array.from(groups.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([category, items]) => ({
-        category,
-        items: items.sort((first, second) =>
-          (first.bannerTitle || first.category || '').localeCompare(
-            second.bannerTitle || second.category || ''
-          )
-        ),
-      }));
-  }, [pagedServices]);
-
   useEffect(() => {
     setServicePage(1);
   }, [serviceCategoryFilter, serviceDateFilter, serviceDateRange.end, serviceDateRange.start, serviceSubcategoryFilter]);
@@ -1237,49 +1212,6 @@ const AdminHiredeveloperPage = () => {
     return hireContent.services.slice(start, start + rowsPerPage);
   }, [hireContent.services, rowsPerPage, hireServicePage]);
 
-  const sortedProcessList = useMemo(() => {
-    return [...processList].sort((a, b) => {
-      const categoryComparison = (a.category || '').localeCompare(b.category || '');
-      if (categoryComparison !== 0) return categoryComparison;
-      return (a.title || '').localeCompare(b.title || '');
-    });
-  }, [processList]);
-
-  const pagedProcesses = useMemo(() => {
-    const start = (processPage - 1) * rowsPerPage;
-    return sortedProcessList.slice(start, start + rowsPerPage);
-  }, [processPage, rowsPerPage, sortedProcessList]);
-
-  const groupedProcesses = useMemo(() => {
-    const categories = new Map();
-
-    pagedProcesses.forEach((process) => {
-      const category = process.category || 'Uncategorised';
-      const subcategory = process.subcategory || 'General';
-
-      if (!categories.has(category)) {
-        categories.set(category, new Map());
-      }
-
-      const subcategoryMap = categories.get(category);
-
-      if (!subcategoryMap.has(subcategory)) {
-        subcategoryMap.set(subcategory, []);
-      }
-
-      subcategoryMap.get(subcategory).push(process);
-    });
-
-    return Array.from(categories.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([category, subcategoryMap]) => ({
-        category,
-        subgroups: Array.from(subcategoryMap.entries())
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([subcategory, items]) => ({ subcategory, items })),
-      }));
-  }, [pagedProcesses]);
-
   useEffect(() => {
     const maxTechPage = Math.max(1, Math.ceil(technologies.length / rowsPerPage));
     setTechnologyPage((prev) => Math.min(prev, maxTechPage));
@@ -1299,11 +1231,6 @@ const AdminHiredeveloperPage = () => {
     const maxHirePricingPage = Math.max(1, Math.ceil(hirePricing.plans.length / rowsPerPage));
     setHirePricingPage((prev) => Math.min(prev, maxHirePricingPage));
   }, [hirePricing.plans.length, rowsPerPage]);
-
-  useEffect(() => {
-    const maxProcessPage = Math.max(1, Math.ceil(sortedProcessList.length / rowsPerPage));
-    setProcessPage((prev) => Math.min(prev, maxProcessPage));
-  }, [rowsPerPage, sortedProcessList.length]);
 
   useEffect(() => {
     const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
@@ -1478,26 +1405,20 @@ const AdminHiredeveloperPage = () => {
 
   const handleTechnologySubmit = async (event) => {
     event?.preventDefault();
-    if (!technologyForm.title.trim() || !technologyForm.image) return;
-
-    const payload = {
-      title: technologyForm.title,
-      image: technologyForm.image,
-      items: technologyForm.items || [],
-    };
+    if (!technologyForm.title.trim() || !technologyForm.category.trim() || !technologyForm.image) return;
 
     try {
       if (technologyDialogMode === 'edit' && activeTechnology) {
         const updated = await fetchJson(`/api/hire-developer/technologies/${activeTechnology.id}`, {
           method: 'PUT',
-          body: JSON.stringify(payload),
+          body: JSON.stringify(technologyForm),
         });
         const normalized = normalizeTechnology(updated);
         setTechnologies((prev) => prev.map((tech) => (tech.id === activeTechnology.id ? normalized : tech)));
       } else {
         const created = await fetchJson('/api/hire-developer/technologies', {
           method: 'POST',
-          body: JSON.stringify(payload),
+          body: JSON.stringify(technologyForm),
         });
         const normalized = normalizeTechnology(created);
         setTechnologies((prev) => [normalized, ...prev]);
@@ -2220,6 +2141,11 @@ const AdminHiredeveloperPage = () => {
     return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, serviceForm.category, subcategoryLookup]);
 
+  const technologySubcategoryOptions = useMemo(() => {
+    if (!technologyForm.category) return allSubcategoryOptions;
+    return subcategoryLookup.get(technologyForm.category) || allSubcategoryOptions;
+  }, [allSubcategoryOptions, subcategoryLookup, technologyForm.category]);
+
   const hireSubcategoryOptions = useMemo(() => {
     if (!hireServiceForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(hireServiceForm.category) || allSubcategoryOptions;
@@ -2229,11 +2155,6 @@ const AdminHiredeveloperPage = () => {
     if (!benefitForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
-
-  const processSubcategoryOptions = useMemo(() => {
-    if (!processForm.category) return allSubcategoryOptions;
-    return subcategoryLookup.get(processForm.category) || allSubcategoryOptions;
-  }, [allSubcategoryOptions, processForm.category, subcategoryLookup]);
 
   const whySubcategoryOptions = useMemo(() => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
@@ -2359,98 +2280,86 @@ const AdminHiredeveloperPage = () => {
                     <TableCell>Category</TableCell>
                     <TableCell>Sub-categories</TableCell>
                     <TableCell>Banner</TableCell>
-
+                    <TableCell>Created</TableCell>
                     <TableCell>FAQs</TableCell>
                     <TableCell>Totals</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {groupedServices.map((group) => (
-                    <Fragment key={group.category}>
-                      <TableRow>
-                        <TableCell
-                          colSpan={6}
-                          sx={{ backgroundColor: 'action.hover', fontWeight: 700 }}
-                        >
-                          {group.category}
-                        </TableCell>
-                      </TableRow>
-                      {group.items.map((service) => (
-                        <TableRow key={service.id} hover>
-                          <TableCell sx={{ fontWeight: 700 }}>{service.category}</TableCell>
-                          <TableCell sx={{ maxWidth: 200 }}>
-                            <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                              {service.subcategories.map((item) => (
-                                <Chip
-                                  key={item.name}
-                                  label={item.name}
-                                  size="small"
-                                />
-                              ))}
-                            </Stack>
-                          </TableCell>
-                          <TableCell>
-                            <Stack spacing={0.5}>
-                              <Box
-                                component="img"
-                                src={service.bannerImage || imagePlaceholder}
-                                alt={`${service.category} banner`}
-                                sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                              />
-                              <Typography variant="body2" fontWeight={600}>
-                                {service.bannerTitle}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary" noWrap>
-                                {service.bannerSubtitle}
-                              </Typography>
-                            </Stack>
-                          </TableCell>
-
-                          <TableCell>
-                            <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" />
-                          </TableCell>
-                          <TableCell>
-                            <Stack spacing={0.5}>
-                              <Typography variant="body2">Services: {service.totalServices}</Typography>
-                              <Typography variant="body2">Projects: {service.totalProjects}</Typography>
-                              <Typography variant="body2">Clients: {service.totalClients}</Typography>
-                            </Stack>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <Tooltip title="View details">
-                                <IconButton size="small" onClick={() => setViewService(service)}>
-                                  <VisibilityOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Edit">
-                                <IconButton
-                                  size="small"
-                                  color="primary"
-                                  onClick={() => openServiceEditDialog(service)}
-                                >
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => openServiceDeleteDialog(service)}
-                                >
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </Fragment>
+                  {pagedServices.map((service) => (
+                    <TableRow key={service.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{service.category}</TableCell>
+                      <TableCell sx={{ maxWidth: 200 }}>
+                        <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                          {service.subcategories.map((item) => (
+                            <Chip
+                              key={item.name}
+                              label={item.name}
+                              size="small"
+                            />
+                          ))}
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Stack spacing={0.5}>
+                          <Box
+                            component="img"
+                            src={service.bannerImage || imagePlaceholder}
+                            alt={`${service.category} banner`}
+                            sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                          />
+                          <Typography variant="body2" fontWeight={600}>
+                            {service.bannerTitle}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" noWrap>
+                            {service.bannerSubtitle}
+                          </Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>{service.createdAt || '-'}</TableCell>
+                      <TableCell>
+                        <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" />
+                      </TableCell>
+                      <TableCell>
+                        <Stack spacing={0.5}>
+                          <Typography variant="body2">Services: {service.totalServices}</Typography>
+                          <Typography variant="body2">Projects: {service.totalProjects}</Typography>
+                          <Typography variant="body2">Clients: {service.totalClients}</Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="View details">
+                            <IconButton size="small" onClick={() => setViewService(service)}>
+                              <VisibilityOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => openServiceEditDialog(service)}
+                            >
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => openServiceDeleteDialog(service)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
                   ))}
                   {filteredServices.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={7}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No service categories yet. Click "Add service" to create your first entry.
                         </Typography>
@@ -2476,7 +2385,7 @@ const AdminHiredeveloperPage = () => {
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
             title="Process"
-            subheader="Capture delivery steps with visuals and organise them by category."
+            subheader="Capture delivery steps with visuals."
             action={
               <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openProcessCreateDialog}>
                 Add process step
@@ -2489,8 +2398,6 @@ const AdminHiredeveloperPage = () => {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Sub-category</TableCell>
                     <TableCell>Title</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Description</TableCell>
@@ -2498,67 +2405,41 @@ const AdminHiredeveloperPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {groupedProcesses.map((group) => (
-                    <Fragment key={group.category}>
-                      <TableRow>
-                        <TableCell
-                          colSpan={6}
-                          sx={{ backgroundColor: 'action.hover', fontWeight: 700 }}
-                        >
-                          {group.category}
-                        </TableCell>
-                      </TableRow>
-                      {group.subgroups.map((subgroup) => (
-                        <Fragment key={`${group.category}-${subgroup.subcategory}`}>
-                          <TableRow>
-                            <TableCell
-                              colSpan={6}
-                              sx={{ backgroundColor: 'action.selected', pl: 4, fontWeight: 600 }}
-                            >
-                              {subgroup.subcategory}
-                            </TableCell>
-                          </TableRow>
-                          {subgroup.items.map((item) => (
-                            <TableRow key={item.id} hover>
-                              <TableCell>{item.category || '-'}</TableCell>
-                              <TableCell>{item.subcategory || '-'}</TableCell>
-                              <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                              <TableCell>
-                                <Box
-                                  component="img"
-                                  src={item.image || imagePlaceholder}
-                                  alt={`${item.title} visual`}
-                                  sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                                />
-                              </TableCell>
-                              <TableCell sx={{ maxWidth: 240 }}>
-                                <Typography variant="body2" color="text.secondary" noWrap>
-                                  {item.description}
-                                </Typography>
-                              </TableCell>
-                              <TableCell align="right">
-                                <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                  <Tooltip title="Edit">
-                                    <IconButton size="small" color="primary" onClick={() => openProcessEditDialog(item)}>
-                                      <EditOutlinedIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title="Delete">
-                                    <IconButton size="small" color="error" onClick={() => openProcessDeleteDialog(item)}>
-                                      <DeleteOutlineIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Stack>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </Fragment>
-                      ))}
-                    </Fragment>
+                  {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
+                    <TableRow key={item.id} hover>
+                      <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                      <TableCell>
+                        <Box
+                          component="img"
+                          src={item.image || imagePlaceholder}
+                          alt={`${item.title} visual`}
+                          sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 240 }}>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          {item.description}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Tooltip title="Edit">
+                            <IconButton size="small" color="primary" onClick={() => openProcessEditDialog(item)}>
+                              <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton size="small" color="error" onClick={() => openProcessDeleteDialog(item)}>
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                  {sortedProcessList.length === 0 && (
+                  {processList.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No process steps added yet.
                         </Typography>
@@ -2570,7 +2451,7 @@ const AdminHiredeveloperPage = () => {
             </TableContainer>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
-                count={Math.max(1, Math.ceil(sortedProcessList.length / rowsPerPage))}
+                count={Math.max(1, Math.ceil(processList.length / rowsPerPage))}
                 page={processPage}
                 onChange={(event, page) => setProcessPage(page)}
                 color="primary"
@@ -3204,7 +3085,7 @@ const AdminHiredeveloperPage = () => {
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
           <CardHeader
             title="Technologies we support"
-            subheader="Group stacks by title to keep the design, development, and service menus dynamic."
+            subheader="Organise tech stacks per category to keep the services page dynamic."
             action={
               <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
                 Add technology block
@@ -3217,6 +3098,8 @@ const AdminHiredeveloperPage = () => {
               <Table size="small">
                 <TableHead>
                   <TableRow>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Sub-category</TableCell>
                     <TableCell>Title</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Items</TableCell>
@@ -3226,6 +3109,8 @@ const AdminHiredeveloperPage = () => {
                 <TableBody>
                   {pagedTechnologies.map((tech) => (
                     <TableRow key={tech.id} hover>
+                      <TableCell>{tech.category || '-'}</TableCell>
+                      <TableCell>{tech.subcategory || '-'}</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>{tech.title}</TableCell>
                       <TableCell>
                         <Box
@@ -4147,6 +4032,42 @@ const AdminHiredeveloperPage = () => {
         <DialogTitle>{technologyDialogMode === 'edit' ? 'Edit technology block' : 'Add technology block'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleTechnologySubmit}>
+            <Autocomplete
+              freeSolo
+              options={categoryOptions.map((option) => option.label)}
+              value={technologyForm.category}
+              onInputChange={(event, newValue) =>
+                setTechnologyForm((prev) => ({
+                  ...prev,
+                  category: newValue || '',
+                  subcategory: newValue === prev.category ? prev.subcategory : '',
+                }))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Category"
+                  required
+                  helperText="Match the service category for this technology block"
+                />
+              )}
+            />
+            <Autocomplete
+              freeSolo
+              options={technologySubcategoryOptions}
+              value={technologyForm.subcategory}
+              onInputChange={(event, newValue) =>
+                handleTechnologyFormChange('subcategory', newValue || '')
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Sub-category"
+                  helperText="Keep stacks aligned to category and sub-category"
+                />
+              )}
+              disabled={!technologyForm.category && technologySubcategoryOptions.length === 0}
+            />
             <TextField
               label="Title"
               value={technologyForm.title}
@@ -4289,33 +4210,6 @@ const AdminHiredeveloperPage = () => {
         <DialogTitle>{processDialogMode === 'edit' ? 'Edit process step' : 'Add process step'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleProcessSubmit}>
-            <Autocomplete
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
-              value={processForm.category}
-              onInputChange={(event, newValue) => handleProcessChange('category', newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Category"
-                  helperText="Optional: tag this step by service category"
-                />
-              )}
-            />
-            <Autocomplete
-              freeSolo
-              options={processSubcategoryOptions}
-              value={processForm.subcategory}
-              onInputChange={(event, newValue) => handleProcessChange('subcategory', newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category"
-                  helperText="Further group the process under a sub-category"
-                />
-              )}
-              disabled={!processForm.category && processSubcategoryOptions.length === 0}
-            />
             <TextField
               label="Title"
               value={processForm.title}
