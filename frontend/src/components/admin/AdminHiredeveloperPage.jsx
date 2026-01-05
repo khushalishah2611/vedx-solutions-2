@@ -37,6 +37,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AdminSectionTabs from './tabs/AdminSectionTabs.jsx';
+import ContactButtonsTab from './tabs/ContactButtonsTab.jsx';
 
 const imagePlaceholder = '';
 
@@ -142,6 +143,15 @@ const emptyHireServiceForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+};
+
+const emptyContactButtonForm = {
+  id: '',
+  title: '',
+  description: '',
+  image: imagePlaceholder,
+  category: '',
+  subcategory: '',
 };
 
 const emptyProcessForm = {
@@ -268,6 +278,15 @@ const normalizeHireService = (service) => ({
   heroTitle: service.heroTitle || '',
   heroDescription: service.heroDescription || '',
   heroImage: service.heroImage || imagePlaceholder,
+});
+
+const normalizeContactButton = (button) => ({
+  id: button?.id,
+  title: button?.title || '',
+  description: button?.description || '',
+  image: button?.image || imagePlaceholder,
+  category: button?.category || '',
+  subcategory: button?.subcategory || '',
 });
 
 const normalizeProcess = (item) => ({
@@ -499,6 +518,13 @@ const AdminHiredeveloperPage = () => {
   const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
   const [heroSaved, setHeroSaved] = useState(false);
 
+  const [contactButtons, setContactButtons] = useState([]);
+  const [contactButtonDialogOpen, setContactButtonDialogOpen] = useState(false);
+  const [contactButtonDialogMode, setContactButtonDialogMode] = useState('create');
+  const [contactButtonForm, setContactButtonForm] = useState(emptyContactButtonForm);
+  const [activeContactButton, setActiveContactButton] = useState(null);
+  const [contactButtonToDelete, setContactButtonToDelete] = useState(null);
+
   const [whyChoose, setWhyChoose] = useState(initialWhyChooseState);
   const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChooseState);
   const [whyServiceDialogOpen, setWhyServiceDialogOpen] = useState(false);
@@ -557,6 +583,8 @@ const AdminHiredeveloperPage = () => {
   const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
   const [serviceCategoryFilter, setServiceCategoryFilter] = useState('');
   const [serviceSubcategoryFilter, setServiceSubcategoryFilter] = useState('');
+  const [contactCategoryFilter, setContactCategoryFilter] = useState('');
+  const [contactSubcategoryFilter, setContactSubcategoryFilter] = useState('');
   const [servicePage, setServicePage] = useState(1);
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
@@ -567,6 +595,7 @@ const AdminHiredeveloperPage = () => {
   const [industryPage, setIndustryPage] = useState(1);
   const [techSolutionPage, setTechSolutionPage] = useState(1);
   const [expertisePage, setExpertisePage] = useState(1);
+  const [contactButtonPage, setContactButtonPage] = useState(1);
   const [hireMasterCategories, setHireMasterCategories] = useState([]);
   const [hireMasterSubcategories, setHireMasterSubcategories] = useState([]);
 
@@ -690,6 +719,15 @@ const AdminHiredeveloperPage = () => {
       });
     } catch (error) {
       console.error('Failed to load hire services', error);
+    }
+  };
+
+  const loadContactButtons = async () => {
+    try {
+      const data = await fetchJson('/api/hire-developer/contact-buttons');
+      setContactButtons((data || []).map(normalizeContactButton));
+    } catch (error) {
+      console.error('Failed to load hire contact buttons', error);
     }
   };
 
@@ -826,6 +864,7 @@ const AdminHiredeveloperPage = () => {
     loadHireMasterSubcategories();
     loadHirePricing();
     loadHireServices();
+    loadContactButtons();
     loadProcesses();
     loadWhyVedx();
     loadWhyChoose();
@@ -844,6 +883,7 @@ const AdminHiredeveloperPage = () => {
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHirePricingForm = () => setHirePricingForm(emptyHirePricingForm);
   const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
+  const resetContactButtonForm = () => setContactButtonForm(emptyContactButtonForm);
   const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
   const resetWhyVedxForm = () => setWhyVedxForm(emptyWhyVedxForm);
@@ -892,6 +932,19 @@ const AdminHiredeveloperPage = () => {
   const handleHireContentChange = (field, value) => {
     setHeroSaved(false);
     setHireContent((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleContactButtonFormChange = (field, value) => {
+    if (field === 'category') {
+      setContactButtonForm((prev) => {
+        const allowed = subcategoryLookup.get(value) || [];
+        const nextSub = allowed.includes(prev.subcategory) ? prev.subcategory : '';
+        return { ...prev, category: value, subcategory: nextSub };
+      });
+      return;
+    }
+
+    setContactButtonForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleHirePricingHeroSave = async () => {
@@ -1272,6 +1325,39 @@ const AdminHiredeveloperPage = () => {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([category, items]) => ({ category, items }));
   }, [hireContent.services]);
+
+  const filteredContactButtons = useMemo(() => {
+    return (contactButtons || []).filter((button) => {
+      const matchesCategory = contactCategoryFilter ? button.category === contactCategoryFilter : true;
+      const matchesSubcategory = contactSubcategoryFilter ? button.subcategory === contactSubcategoryFilter : true;
+      return matchesCategory && matchesSubcategory;
+    });
+  }, [contactButtons, contactCategoryFilter, contactSubcategoryFilter]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredContactButtons.length / rowsPerPage));
+    setContactButtonPage((prev) => Math.min(prev, maxPage));
+  }, [filteredContactButtons.length, rowsPerPage]);
+
+  useEffect(() => {
+    setContactButtonPage(1);
+  }, [contactCategoryFilter, contactSubcategoryFilter]);
+
+  const pagedContactButtons = useMemo(() => {
+    const start = (contactButtonPage - 1) * rowsPerPage;
+    return filteredContactButtons.slice(start, start + rowsPerPage);
+  }, [contactButtonPage, filteredContactButtons, rowsPerPage]);
+
+  const groupedContactButtons = useMemo(() => {
+    const lookup = new Map();
+    pagedContactButtons.forEach((button) => {
+      const key = button.category || 'Uncategorised';
+      const existing = lookup.get(key) || [];
+      lookup.set(key, [...existing, button]);
+    });
+
+    return Array.from(lookup.entries()).map(([category, items]) => ({ category, items }));
+  }, [pagedContactButtons]);
 
   useEffect(() => {
     const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
@@ -1705,6 +1791,72 @@ const AdminHiredeveloperPage = () => {
       closeHireServiceDeleteDialog();
     } catch (error) {
       console.error('Failed to delete hire service', error);
+    }
+  };
+
+  const openContactButtonCreateDialog = () => {
+    setContactButtonDialogMode('create');
+    setActiveContactButton(null);
+    resetContactButtonForm();
+    setContactButtonDialogOpen(true);
+  };
+
+  const openContactButtonEditDialog = (button) => {
+    setContactButtonDialogMode('edit');
+    setActiveContactButton(button);
+    setContactButtonForm({ ...button });
+    setContactButtonDialogOpen(true);
+  };
+
+  const closeContactButtonDialog = () => {
+    setContactButtonDialogOpen(false);
+    setActiveContactButton(null);
+  };
+
+  const handleContactButtonSubmit = async (event) => {
+    event?.preventDefault();
+    if (!contactButtonForm.title?.trim() || !contactButtonForm.image) return;
+
+    const payload = {
+      title: contactButtonForm.title,
+      description: contactButtonForm.description,
+      image: contactButtonForm.image,
+      category: contactButtonForm.category,
+      subcategory: contactButtonForm.subcategory,
+    };
+
+    try {
+      if (contactButtonDialogMode === 'edit' && activeContactButton) {
+        const updated = await fetchJson(`/api/hire-developer/contact-buttons/${activeContactButton.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload),
+        });
+        const normalized = normalizeContactButton(updated);
+        setContactButtons((prev) => prev.map((button) => (button.id === normalized.id ? normalized : button)));
+      } else {
+        const created = await fetchJson('/api/hire-developer/contact-buttons', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        const normalized = normalizeContactButton(created);
+        setContactButtons((prev) => [normalized, ...prev]);
+      }
+
+      closeContactButtonDialog();
+    } catch (error) {
+      console.error('Failed to save hire contact button', error);
+    }
+  };
+
+  const handleConfirmDeleteContactButton = async () => {
+    if (!contactButtonToDelete) return;
+
+    try {
+      await fetchJson(`/api/hire-developer/contact-buttons/${contactButtonToDelete.id}`, { method: 'DELETE' });
+      setContactButtons((prev) => prev.filter((button) => button.id !== contactButtonToDelete.id));
+      setContactButtonToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete hire contact button', error);
     }
   };
 
@@ -2225,6 +2377,7 @@ const AdminHiredeveloperPage = () => {
           { value: 'why-choose', label: 'Why choose service' },
           { value: 'technologies', label: 'Technologies we support' },
           { value: 'benefits', label: 'Benefits' },
+          { value: 'contact-buttons', label: 'Contact buttons' },
           { value: 'hire-pricing', label: 'Hire pricing' },
           { value: 'hire', label: 'Development services' },
         ]}
@@ -3378,6 +3531,28 @@ const AdminHiredeveloperPage = () => {
         </Card>
       )}
 
+      {activeTab === 'contact-buttons' && (
+        <ContactButtonsTab
+          categoryOptions={categoryOptions}
+          contactCategoryFilter={contactCategoryFilter}
+          setContactCategoryFilter={setContactCategoryFilter}
+          contactSubcategoryFilter={contactSubcategoryFilter}
+          setContactSubcategoryFilter={setContactSubcategoryFilter}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          groupedContactButtons={groupedContactButtons}
+          contactButtons={contactButtons}
+          filteredContactButtons={filteredContactButtons}
+          rowsPerPage={rowsPerPage}
+          contactButtonPage={contactButtonPage}
+          setContactButtonPage={setContactButtonPage}
+          openContactButtonCreateDialog={openContactButtonCreateDialog}
+          openContactButtonEditDialog={openContactButtonEditDialog}
+          openContactButtonDeleteDialog={(button) => setContactButtonToDelete(button)}
+          imagePlaceholder={imagePlaceholder}
+        />
+      )}
+
       {activeTab === 'hire-pricing' && (
         <Stack spacing={3}>
           <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
@@ -4305,6 +4480,86 @@ const AdminHiredeveloperPage = () => {
             Cancel
           </Button>
           <Button onClick={handleConfirmDeleteBenefit} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={contactButtonDialogOpen} onClose={closeContactButtonDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{contactButtonDialogMode === 'edit' ? 'Edit contact button' : 'Add contact button'}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} component="form" onSubmit={handleContactButtonSubmit}>
+            <TextField
+              label="Title"
+              value={contactButtonForm.title}
+              onChange={(event) => handleContactButtonFormChange('title', event.target.value)}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              value={contactButtonForm.description}
+              onChange={(event) => handleContactButtonFormChange('description', event.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+            />
+
+            <Autocomplete
+              freeSolo
+              clearOnEscape
+              options={categoryOptions.map((option) => option.label)}
+              value={contactButtonForm.category}
+              onInputChange={(event, newValue) => handleContactButtonFormChange('category', newValue || '')}
+              renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth />}
+            />
+
+            <Autocomplete
+              freeSolo
+              clearOnEscape
+              options={
+                contactButtonForm.category
+                  ? subcategoryLookup.get(contactButtonForm.category) || []
+                  : allSubcategoryOptions
+              }
+              value={contactButtonForm.subcategory}
+              onInputChange={(event, newValue) => handleContactButtonFormChange('subcategory', newValue || '')}
+              renderInput={(params) => (
+                <TextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth />
+              )}
+              disabled={!contactButtonForm.category && (allSubcategoryOptions || []).length === 0}
+            />
+
+            <ImageUpload
+              label="Image"
+              value={contactButtonForm.image}
+              onChange={(value) => handleContactButtonFormChange('image', value)}
+              required
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeContactButtonDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleContactButtonSubmit} variant="contained">
+            {contactButtonDialogMode === 'edit' ? 'Save changes' : 'Add contact button'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(contactButtonToDelete)} onClose={() => setContactButtonToDelete(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete contact button</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{contactButtonToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setContactButtonToDelete(null)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDeleteContactButton} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>

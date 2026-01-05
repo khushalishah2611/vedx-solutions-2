@@ -5896,6 +5896,120 @@ app.delete('/api/hire-services/:id', async (req, res) => {
 });
 
 /* ===============================================
+ * HIRE CONTACT BUTTON APIs
+ * =============================================== */
+
+const mapHireContactButtonToResponse = (button) => ({
+  id: button.id,
+  title: button.title,
+  description: button.description || '',
+  image: button.image || '',
+  category: button.category || '',
+  subcategory: button.subcategory || '',
+  createdAt: button.createdAt,
+  updatedAt: button.updatedAt,
+});
+
+// GET hire contact buttons (optional category/subcategory filters)
+app.get('/api/hire-developer/contact-buttons', async (req, res) => {
+  try {
+    const { category, subcategory } = req.query ?? {};
+
+    const buttons = await prisma.hireContactButton.findMany({
+      where: {
+        ...(category && { category }),
+        ...(subcategory && { subcategory }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(buttons.map(mapHireContactButtonToResponse));
+  } catch (err) {
+    console.error('GET /api/hire-developer/contact-buttons error', err);
+    res.status(500).json({ error: 'Failed to fetch hire contact buttons' });
+  }
+});
+
+// CREATE hire contact button
+app.post('/api/hire-developer/contact-buttons', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, image, category, subcategory } = req.body ?? {};
+
+    if (!title || !image) {
+      return res.status(400).json({ error: 'Title and image are required' });
+    }
+
+    const created = await prisma.hireContactButton.create({
+      data: {
+        title,
+        description: description || null,
+        image,
+        category: category || null,
+        subcategory: subcategory || null,
+      },
+    });
+
+    res.status(201).json(mapHireContactButtonToResponse(created));
+  } catch (err) {
+    console.error('POST /api/hire-developer/contact-buttons error', err);
+    res.status(500).json({ error: 'Failed to create hire contact button' });
+  }
+});
+
+// UPDATE hire contact button
+app.put('/api/hire-developer/contact-buttons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ error: 'Valid hire contact button id required' });
+    }
+
+    const { title, description, image, category, subcategory } = req.body ?? {};
+
+    const updated = await prisma.hireContactButton.update({
+      where: { id },
+      data: {
+        title,
+        description: description || null,
+        image,
+        category: category || null,
+        subcategory: subcategory || null,
+      },
+    });
+
+    res.json(mapHireContactButtonToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/hire-developer/contact-buttons/:id error', err);
+    res.status(500).json({ error: 'Failed to update hire contact button' });
+  }
+});
+
+// DELETE hire contact button
+app.delete('/api/hire-developer/contact-buttons/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ error: 'Valid hire contact button id required' });
+    }
+
+    await prisma.hireContactButton.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/hire-developer/contact-buttons/:id error', err);
+    res.status(500).json({ error: 'Failed to delete hire contact button' });
+  }
+});
+
+/* ===============================================
  * WHY CHOOSE APIs
  * =============================================== */
 
