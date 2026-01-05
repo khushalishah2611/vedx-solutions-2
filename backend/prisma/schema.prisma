@@ -812,7 +812,7 @@ model HireService {
   category       String?
   subcategory    String?
   title          String
-  description    String        @db.Text
+  description    String        @db.LongText
   image          String        @db.LongText
 
   hireDeveloperId Int?
