@@ -798,7 +798,7 @@ model ServiceProcess {
 model HireDeveloper {
   id          Int          @id @default(autoincrement())
   title       String
-  description String      @db.Text
+  description String      @db.LongText
   heroImage   String      @db.LongText
 
   services    HireService[]
@@ -833,10 +833,10 @@ model WhyChoose {
   category         String?
   subcategory      String?
   heroTitle        String
-  heroDescription  String       @db.Text
+  heroDescription  String      @db.LongText
   heroImage        String      @db.LongText
   tableTitle       String
-  tableDescription String       @db.Text
+  tableDescription String      @db.LongText
 
   services         WhyService[]
 
@@ -849,7 +849,7 @@ model WhyService {
   category    String
   subcategory String?
   title       String
-  description String    @db.Text
+  description String    @db.LongText
 
   whyChooseId Int?
   whyChoose   WhyChoose? @relation(fields: [whyChooseId], references: [id], onDelete: SetNull)
