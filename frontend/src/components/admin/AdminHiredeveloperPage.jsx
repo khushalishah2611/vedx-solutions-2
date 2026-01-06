@@ -48,13 +48,6 @@ const initialHirePricingState = {
   plans: [],
 };
 
-const initialHireContentState = {
-  title: '',
-  description: '',
-  heroImage: imagePlaceholder,
-  services: [],
-};
-
 const initialWhyChooseState = {
   heroTitle: '',
   heroDescription: '',
@@ -134,15 +127,6 @@ const emptyHirePricingForm = {
   description: '',
   price: '',
   services: [],
-};
-
-const emptyHireServiceForm = {
-  id: '',
-  category: '',
-  subcategory: '',
-  title: '',
-  description: '',
-  image: imagePlaceholder,
 };
 
 const emptyContactButtonForm = {
@@ -266,18 +250,6 @@ const normalizePricingPlan = (plan) => ({
   heroTitle: plan.heroTitle || '',
   heroDescription: plan.heroDescription || '',
   heroImage: plan.heroImage || imagePlaceholder,
-});
-
-const normalizeHireService = (service) => ({
-  id: service.id,
-  category: service.category || '',
-  subcategory: service.subcategory || '',
-  title: service.title || '',
-  description: service.description || '',
-  image: service.image || imagePlaceholder,
-  heroTitle: service.heroTitle || '',
-  heroDescription: service.heroDescription || '',
-  heroImage: service.heroImage || imagePlaceholder,
 });
 
 const normalizeContactButton = (button) => ({
@@ -510,13 +482,6 @@ const AdminHiredeveloperPage = () => {
   const [hirePricingServiceEditValue, setHirePricingServiceEditValue] = useState('');
   const [hirePricingServiceToDelete, setHirePricingServiceToDelete] = useState(null);
 
-  const [hireContent, setHireContent] = useState(initialHireContentState);
-  const [hireServiceDialogOpen, setHireServiceDialogOpen] = useState(false);
-  const [hireServiceDialogMode, setHireServiceDialogMode] = useState('create');
-  const [hireServiceForm, setHireServiceForm] = useState(emptyHireServiceForm);
-  const [activeHireService, setActiveHireService] = useState(null);
-  const [hireServiceToDelete, setHireServiceToDelete] = useState(null);
-  const [heroSaved, setHeroSaved] = useState(false);
 
   const [contactButtons, setContactButtons] = useState([]);
   const [contactButtonDialogOpen, setContactButtonDialogOpen] = useState(false);
@@ -589,7 +554,6 @@ const AdminHiredeveloperPage = () => {
   const [benefitPage, setBenefitPage] = useState(1);
   const [whyServicePage, setWhyServicePage] = useState(1);
   const [hirePricingPage, setHirePricingPage] = useState(1);
-  const [hireServicePage, setHireServicePage] = useState(1);
   const [processPage, setProcessPage] = useState(1);
   const [whyVedxPage, setWhyVedxPage] = useState(1);
   const [industryPage, setIndustryPage] = useState(1);
@@ -704,23 +668,6 @@ const AdminHiredeveloperPage = () => {
     }
   };
 
-  const loadHireServices = async () => {
-    try {
-      const [heroData, servicesData] = await Promise.all([
-        fetchJson('/api/hire-developer').catch(() => null),
-        fetchJson('/api/hire-developer/hire-services'),
-      ]);
-
-      setHireContent({
-        title: heroData?.title || '',
-        description: heroData?.description || '',
-        heroImage: heroData?.heroImage || imagePlaceholder,
-        services: (servicesData || []).map(normalizeHireService),
-      });
-    } catch (error) {
-      console.error('Failed to load hire services', error);
-    }
-  };
 
   const loadContactButtons = async () => {
     try {
@@ -863,7 +810,6 @@ const AdminHiredeveloperPage = () => {
     loadBenefits();
     loadHireMasterSubcategories();
     loadHirePricing();
-    loadHireServices();
     loadContactButtons();
     loadProcesses();
     loadWhyVedx();
@@ -882,7 +828,6 @@ const AdminHiredeveloperPage = () => {
   };
   const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHirePricingForm = () => setHirePricingForm(emptyHirePricingForm);
-  const resetHireServiceForm = () => setHireServiceForm(emptyHireServiceForm);
   const resetContactButtonForm = () => setContactButtonForm(emptyContactButtonForm);
   const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
@@ -923,15 +868,6 @@ const AdminHiredeveloperPage = () => {
 
   const handleHirePricingFormChange = (field, value) => {
     setHirePricingForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleHireServiceFormChange = (field, value) => {
-    setHireServiceForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleHireContentChange = (field, value) => {
-    setHeroSaved(false);
-    setHireContent((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleContactButtonFormChange = (field, value) => {
@@ -1032,30 +968,6 @@ const AdminHiredeveloperPage = () => {
     closeHirePricingServiceDeleteDialog();
   };
 
-  const handleHeroSave = async () => {
-    try {
-      const saved = await fetchJson('/api/hire-developer', {
-        method: 'POST',
-        body: JSON.stringify({
-          title: hireContent.title,
-          description: hireContent.description,
-          heroImage: hireContent.heroImage,
-        }),
-      });
-
-      setHireContent((prev) => ({
-        ...prev,
-        title: saved?.title || prev.title,
-        description: saved?.description || prev.description,
-        heroImage: saved?.heroImage || prev.heroImage,
-      }));
-
-      setHeroSaved(true);
-      setTimeout(() => setHeroSaved(false), 3000);
-    } catch (error) {
-      console.error('Failed to save hire developer hero', error);
-    }
-  };
 
   const handleProcessChange = (field, value) => {
     setProcessForm((prev) => ({ ...prev, [field]: value }));
@@ -1224,9 +1136,9 @@ const AdminHiredeveloperPage = () => {
   }, [filteredServices, rowsPerPage, servicePage]);
 
 
-  const groupedFilteredServices = useMemo(() => {
+  const groupedPagedServices = useMemo(() => {
     const groups = new Map();
-    filteredServices.forEach((service) => {
+    pagedServices.forEach((service) => {
       const key = (service.category || '').trim() || 'Uncategorized';
       const existing = groups.get(key) || [];
       groups.set(key, [...existing, service]);
@@ -1235,7 +1147,7 @@ const AdminHiredeveloperPage = () => {
     return Array.from(groups.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([category, items]) => ({ category, items }));
-  }, [filteredServices]);
+  }, [pagedServices]);
 
   useEffect(() => {
     setServicePage(1);
@@ -1302,30 +1214,6 @@ const AdminHiredeveloperPage = () => {
     return hirePricing.plans.slice(start, start + rowsPerPage);
   }, [hirePricing.plans, rowsPerPage, hirePricingPage]);
 
-  const pagedHireServices = useMemo(() => {
-    const start = (hireServicePage - 1) * rowsPerPage;
-    return hireContent.services.slice(start, start + rowsPerPage);
-  }, [hireContent.services, rowsPerPage, hireServicePage]);
-
-  const groupedHireServices = useMemo(() => {
-    const sorted = [...hireContent.services].sort((a, b) => {
-      const categoryCompare = (a.category || '').localeCompare(b.category || '');
-      if (categoryCompare !== 0) return categoryCompare;
-      return (a.title || '').localeCompare(b.title || '');
-    });
-
-    const groups = new Map();
-    sorted.forEach((service) => {
-      const key = (service.category || '').trim() || 'Uncategorized';
-      const existing = groups.get(key) || [];
-      groups.set(key, [...existing, service]);
-    });
-
-    return Array.from(groups.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([category, items]) => ({ category, items }));
-  }, [hireContent.services]);
-
   const filteredContactButtons = useMemo(() => {
     return (contactButtons || []).filter((button) => {
       const matchesCategory = contactCategoryFilter ? button.category === contactCategoryFilter : true;
@@ -1374,10 +1262,7 @@ const AdminHiredeveloperPage = () => {
     setHirePricingPage((prev) => Math.min(prev, maxHirePricingPage));
   }, [hirePricing.plans.length, rowsPerPage]);
 
-  useEffect(() => {
-    const maxHireServicePage = Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage));
-    setHireServicePage((prev) => Math.min(prev, maxHireServicePage));
-  }, [hireContent.services.length, rowsPerPage]);
+
 
   useEffect(() => {
     setOurServicesHeroForm((prev) => ({
@@ -1715,84 +1600,6 @@ const AdminHiredeveloperPage = () => {
     }
   };
 
-  const openHireServiceCreateDialog = () => {
-    setHireServiceDialogMode('create');
-    setActiveHireService(null);
-    resetHireServiceForm();
-    setHireServiceDialogOpen(true);
-  };
-
-  const openHireServiceEditDialog = (service) => {
-    setHireServiceDialogMode('edit');
-    setActiveHireService(service);
-    setHireServiceForm({ ...service });
-    setHireServiceDialogOpen(true);
-  };
-
-  const closeHireServiceDialog = () => {
-    setHireServiceDialogOpen(false);
-    setActiveHireService(null);
-  };
-
-  const handleHireServiceSubmit = async (event) => {
-    event?.preventDefault();
-    if (!hireServiceForm.title.trim() || !hireServiceForm.image) return;
-
-    const payload = {
-      category: hireServiceForm.category || null,
-      subcategory: hireServiceForm.subcategory || null,
-      title: hireServiceForm.title,
-      description: hireServiceForm.description,
-      image: hireServiceForm.image,
-      heroTitle: hireServiceForm.heroTitle,
-      heroDescription: hireServiceForm.heroDescription,
-      heroImage: hireServiceForm.heroImage,
-    };
-
-    try {
-      if (hireServiceDialogMode === 'edit' && activeHireService) {
-        const updated = await fetchJson(`/api/hire-developer/hire-services/${activeHireService.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(payload),
-        });
-        const normalized = normalizeHireService(updated);
-        setHireContent((prev) => ({
-          ...prev,
-          services: prev.services.map((service) =>
-            service.id === activeHireService.id ? normalized : service
-          ),
-        }));
-      } else {
-        const created = await fetchJson('/api/hire-developer/hire-services', {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        });
-        const normalized = normalizeHireService(created);
-        setHireContent((prev) => ({ ...prev, services: [normalized, ...prev.services] }));
-      }
-
-      closeHireServiceDialog();
-    } catch (error) {
-      console.error('Failed to save hire service', error);
-    }
-  };
-
-  const openHireServiceDeleteDialog = (service) => setHireServiceToDelete(service);
-  const closeHireServiceDeleteDialog = () => setHireServiceToDelete(null);
-  const handleConfirmDeleteHireService = async () => {
-    if (!hireServiceToDelete) return;
-
-    try {
-      await fetchJson(`/api/hire-developer/hire-services/${hireServiceToDelete.id}`, { method: 'DELETE' });
-      setHireContent((prev) => ({
-        ...prev,
-        services: prev.services.filter((service) => service.id !== hireServiceToDelete.id),
-      }));
-      closeHireServiceDeleteDialog();
-    } catch (error) {
-      console.error('Failed to delete hire service', error);
-    }
-  };
 
   const openContactButtonCreateDialog = () => {
     setContactButtonDialogMode('create');
@@ -2350,11 +2157,6 @@ const AdminHiredeveloperPage = () => {
     return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, serviceForm.category, subcategoryLookup]);
 
-  const hireSubcategoryOptions = useMemo(() => {
-    if (!hireServiceForm.category) return allSubcategoryOptions;
-    return subcategoryLookup.get(hireServiceForm.category) || allSubcategoryOptions;
-  }, [allSubcategoryOptions, hireServiceForm.category, subcategoryLookup]);
-
   const benefitSubcategoryOptions = useMemo(() => {
     if (!benefitForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
@@ -2379,7 +2181,6 @@ const AdminHiredeveloperPage = () => {
           { value: 'benefits', label: 'Benefits' },
           { value: 'contact-buttons', label: 'Contact buttons' },
           { value: 'hire-pricing', label: 'Hire pricing' },
-          { value: 'hire', label: 'Development services' },
         ]}
         sx={{
           background: 'linear-gradient(135deg, #0b1120 0%, #111827 100%)',
@@ -2480,7 +2281,7 @@ const AdminHiredeveloperPage = () => {
             </Stack>
 
             <Stack spacing={2}>
-              {groupedFilteredServices.map((group) => {
+              {groupedPagedServices.map((group) => {
                 const subcategoryCount = Array.from(
                   new Set(
                     group.items.flatMap((service) =>
@@ -2599,6 +2400,15 @@ const AdminHiredeveloperPage = () => {
                   No service categories yet. Click "Add service" to create your first entry.
                 </Typography>
               )}
+
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(filteredServices.length / rowsPerPage))}
+                  page={servicePage}
+                  onChange={(event, page) => setServicePage(page)}
+                  color="primary"
+                />
+              </Stack>
 
             </Stack>
           </CardContent>
@@ -3690,165 +3500,7 @@ const AdminHiredeveloperPage = () => {
         </Stack>
       )}
 
-      {activeTab === 'hire' && (
-        <Stack spacing={3}>
-          {/* HERO CARD (optional) - uncomment if needed
-    <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-      <CardHeader
-        title="Development services hero"
-        subheader="Control the title, description, and hero image used on the development services section."
-      />
-      <Divider />
-      <CardContent>
-        <Stack spacing={2}>
-          <TextField
-            label="Title"
-            value={hireContent.title}
-            onChange={(event) => handleHireContentChange('title', event.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="Description"
-            value={hireContent.description}
-            onChange={(event) => handleHireContentChange('description', event.target.value)}
-            fullWidth
-            multiline
-            minRows={3}
-          />
-        </Stack>
-      </CardContent>
-    </Card>
-    */}
 
-          {/* SERVICES CARD */}
-          <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-            <CardHeader
-              title="Development services"
-              subheader="Manage the service tiles shown within the development services menu."
-              action={
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={openHireServiceCreateDialog}
-                >
-                  Add service
-                </Button>
-              }
-            />
-            <Divider />
-
-            <CardContent>
-              <Stack spacing={2}>
-                {groupedHireServices.map((group) => (
-                  <Accordion
-                    key={group.category}
-                    disableGutters
-                    elevation={0}
-                    sx={{
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      '&:before': { display: 'none' },
-                    }}
-                  >
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                        <Typography variant="h6">{group.category}</Typography>
-                        <Chip
-                          label={`${group.items.length} service${group.items.length === 1 ? '' : 's'}`}
-                          size="small"
-                          variant="outlined"
-                          color="primary"
-                        />
-                      </Stack>
-                    </AccordionSummary>
-
-                    <AccordionDetails>
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Sub-category</TableCell>
-                              <TableCell>Title</TableCell>
-                              <TableCell>Image</TableCell>
-                              <TableCell>Description</TableCell>
-                              <TableCell align="right">Actions</TableCell>
-                            </TableRow>
-                          </TableHead>
-
-                          <TableBody>
-                            {group.items.map((service) => (
-                              <TableRow key={service.id} hover>
-                                <TableCell>{service.subcategory || '-'}</TableCell>
-
-                                <TableCell sx={{ fontWeight: 700 }}>
-                                  {service.title}
-                                </TableCell>
-
-                                <TableCell>
-                                  <Box
-                                    component="img"
-                                    src={service.image || imagePlaceholder}
-                                    alt={`${service.title} visual`}
-                                    sx={{
-                                      width: 120,
-                                      height: 70,
-                                      objectFit: 'cover',
-                                      borderRadius: 1,
-                                      border: '1px solid',
-                                      borderColor: 'divider',
-                                    }}
-                                  />
-                                </TableCell>
-
-                                <TableCell sx={{ maxWidth: 360 }}>
-                                  <Typography variant="body2" color="text.secondary" noWrap>
-                                    {service.description || '-'}
-                                  </Typography>
-                                </TableCell>
-
-                                <TableCell align="right">
-                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    <Tooltip title="Edit">
-                                      <IconButton
-                                        size="small"
-                                        color="primary"
-                                        onClick={() => openHireServiceEditDialog(service)}
-                                      >
-                                        <EditOutlinedIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
-
-                                    <Tooltip title="Delete">
-                                      <IconButton
-                                        size="small"
-                                        color="error"
-                                        onClick={() => openHireServiceDeleteDialog(service)}
-                                      >
-                                        <DeleteOutlineIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
-                                  </Stack>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-
-                {hireContent.services.length === 0 && (
-                  <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
-                    No development services configured yet.
-                  </Typography>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
-        </Stack>
-      )}
 
 
       <Dialog open={serviceDialogOpen} onClose={closeServiceDialog} maxWidth="md" fullWidth>
@@ -4875,94 +4527,6 @@ const AdminHiredeveloperPage = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={hireServiceDialogOpen} onClose={closeHireServiceDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{hireServiceDialogMode === 'edit' ? 'Edit hire service' : 'Add hire service'}</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2} component="form" onSubmit={handleHireServiceSubmit}>
-            <Autocomplete
-              freeSolo
-              options={categoryOptions.map((option) => option.label)}
-              value={hireServiceForm.category}
-              onInputChange={(event, newValue) =>
-                setHireServiceForm((prev) => ({
-                  ...prev,
-                  category: newValue || '',
-                  subcategory: newValue === prev.category ? prev.subcategory : '',
-                }))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Service category"
-                  helperText="Optionally link hire cards to a service category"
-                />
-              )}
-            />
-            <Autocomplete
-              freeSolo
-              options={hireSubcategoryOptions}
-              value={hireServiceForm.subcategory}
-              onInputChange={(event, newValue) =>
-                handleHireServiceFormChange('subcategory', newValue || '')
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Sub-category"
-                  helperText="Pick the sub-category for this hire option"
-                />
-              )}
-              disabled={!hireServiceForm.category && hireSubcategoryOptions.length === 0}
-            />
-            <TextField
-              label="Title"
-              value={hireServiceForm.title}
-              onChange={(event) => handleHireServiceFormChange('title', event.target.value)}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Description"
-              value={hireServiceForm.description}
-              onChange={(event) => handleHireServiceFormChange('description', event.target.value)}
-              fullWidth
-              multiline
-              minRows={3}
-            />
-            <ImageUpload
-              label="Service image"
-              value={hireServiceForm.image}
-              onChange={(value) => handleHireServiceFormChange('image', value)}
-              required
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeHireServiceDialog} color="inherit">
-            Cancel
-          </Button>
-          <Button onClick={handleHireServiceSubmit} variant="contained">
-            {hireServiceDialogMode === 'edit' ? 'Save changes' : 'Add hire service'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={Boolean(hireServiceToDelete)} onClose={closeHireServiceDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete hire service</DialogTitle>
-        <DialogContent dividers>
-          <Typography variant="body2" color="text.secondary">
-            Are you sure you want to delete "{hireServiceToDelete?.title}"? This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeHireServiceDeleteDialog} color="inherit">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteHireService} color="error" variant="contained">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Stack>
   );
 };
