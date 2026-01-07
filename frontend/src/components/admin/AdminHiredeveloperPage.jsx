@@ -3666,7 +3666,7 @@ const AdminHiredeveloperPage = () => {
                     }))
                   }
                   renderInput={(params) => (
-                    <TextField {...params} label="Category" required helperText="Choose or type a category" />
+                    <TextField {...params} label="Category" required  />
                   )}
                 />
               </Grid>
@@ -3685,11 +3685,7 @@ const AdminHiredeveloperPage = () => {
                       {...params}
                       label="Sub-category"
                       placeholder="Select sub-category"
-                      helperText={
-                        serviceForm.category
-                          ? 'Linked to the selected service category'
-                          : 'No category selected—showing all known sub-categories'
-                      }
+                      
                     />
                   )}
                   disabled={!serviceForm.category && serviceFormSubcategoryOptions.length === 0}
@@ -4228,7 +4224,7 @@ const AdminHiredeveloperPage = () => {
                 <TextField
                   {...params}
                   label="Category"
-                  helperText="Link the benefit to a service category"
+                 
                 />
               )}
               disabled
