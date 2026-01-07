@@ -31,6 +31,7 @@ import {
   Alert,
 } from '@mui/material';
 import SelectClearAdornment from '../SelectClearAdornment.jsx';
+import ImageUpload from './ImageUpload.jsx';
 
 /** ✅ Dialog component */
 function ValidationDialog({ open, title, messages, onClose }) {
@@ -81,6 +82,7 @@ export default function WhyVedxTab({
   openWhyVedxCreateDialog,
   openWhyVedxEditDialog,
   openWhyVedxDeleteDialog,
+  showHeroImage = false,
 }) {
   const [validationOpen, setValidationOpen] = React.useState(false);
   const [validationTitle, setValidationTitle] = React.useState('Validation');
@@ -99,6 +101,7 @@ export default function WhyVedxTab({
     const subcategoryId = String(whyVedxHeroForm?.subcategoryId || '').trim();
     const title = String(whyVedxHeroForm?.heroTitle || '').trim();
     const description = String(whyVedxHeroForm?.heroDescription || '').trim();
+    const heroImage = whyVedxHeroForm?.heroImage;
 
     if (!categoryId) errors.push('Category is required.');
 
@@ -109,6 +112,7 @@ export default function WhyVedxTab({
 
     if (isBlank(title)) errors.push('Title is required.');
     if (isBlank(description)) errors.push('Description is required.');
+    if (showHeroImage && !heroImage) errors.push('Hero image is required.');
 
     return errors;
   };
@@ -256,7 +260,7 @@ export default function WhyVedxTab({
               sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}
             >
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid item xs={12} md={8}>
                   <Stack spacing={2}>
                     <Autocomplete
                       disableClearable={false}
@@ -329,6 +333,16 @@ export default function WhyVedxTab({
                     </Button>
                   </Stack>
                 </Grid>
+                {showHeroImage && (
+                  <Grid item xs={12} md={4}>
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyVedxHeroForm?.heroImage || ''}
+                      onChange={(value) => handleWhyVedxHeroChange?.('heroImage', value)}
+                      required
+                    />
+                  </Grid>
+                )}
               </Grid>
             </Box>
 

@@ -945,11 +945,29 @@ model HireDeveloperBenefit {
   subcategory String?
   description String?  @db.LongText
   image       String @db.LongText
+  benefitConfigId Int?
+  benefitConfig   HireDeveloperBenefitConfig? @relation(fields: [benefitConfigId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([benefitConfigId])
   @@map("hire_developer_benefits")
+}
+
+model HireDeveloperBenefitConfig {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.LongText
+  category    String?
+  subcategory String?
+  benefits    HireDeveloperBenefit[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category, subcategory])
+  @@map("hire_developer_benefit_config")
 }
 
 model HireDeveloperPricing {
@@ -989,15 +1007,36 @@ model HireDeveloperWhyVedx {
   title           String
   description     String?  @db.LongText
   image           String @db.LongText
+  category        String?
+  subcategory     String?
 
   heroTitle       String?
   heroDescription String?  @db.LongText
-  heroImage       String?  @db.LongText
+  whyVedxConfigId Int?
+  whyVedxConfig   HireDeveloperWhyVedxConfig? @relation(fields: [whyVedxConfigId], references: [id], onDelete: SetNull)
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  @@index([category, subcategory])
+  @@index([whyVedxConfigId])
   @@map("hire_developer_why_vedx")
+}
+
+model HireDeveloperWhyVedxConfig {
+  id              Int      @id @default(autoincrement())
+  category        String?
+  subcategory     String?
+  heroTitle       String
+  heroDescription String   @db.LongText
+  heroImage       String   @db.LongText
+  reasons         HireDeveloperWhyVedx[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category, subcategory])
+  @@map("hire_developer_why_vedx_config")
 }
 
 model HireDeveloperWhyChoose {
@@ -1013,11 +1052,32 @@ model HireDeveloperWhyChoose {
 
   tableTitle       String?
   tableDescription String?  @db.LongText
+  whyChooseConfigId Int?
+  whyChooseConfig   HireDeveloperWhyChooseConfig? @relation(fields: [whyChooseConfigId], references: [id], onDelete: SetNull)
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  @@index([whyChooseConfigId])
   @@map("hire_developer_why_choose")
+}
+
+model HireDeveloperWhyChooseConfig {
+  id               Int      @id @default(autoincrement())
+  category         String?
+  subcategory      String?
+  heroTitle        String
+  heroDescription  String   @db.LongText
+  heroImage        String   @db.LongText
+  tableTitle       String
+  tableDescription String   @db.LongText
+  services         HireDeveloperWhyChoose[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([category, subcategory])
+  @@map("hire_developer_why_choose_config")
 }
 
 model HireDeveloperIndustry {

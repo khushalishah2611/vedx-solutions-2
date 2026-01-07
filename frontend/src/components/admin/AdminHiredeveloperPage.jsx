@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
 import {
   Autocomplete,
@@ -38,6 +38,9 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AdminSectionTabs from './tabs/AdminSectionTabs.jsx';
 import ContactButtonsTab from './tabs/ContactButtonsTab.jsx';
+import BenefitsTab from './tabs/BenefitsTab.jsx';
+import WhyChooseTab from './tabs/WhyChooseTab.jsx';
+import WhyVedxTab from './tabs/WhyVedxTab.jsx';
 
 const imagePlaceholder = '';
 
@@ -49,6 +52,9 @@ const initialHirePricingState = {
 };
 
 const initialWhyChooseState = {
+  id: '',
+  category: '',
+  subcategory: '',
   heroTitle: '',
   heroDescription: '',
   heroImage: imagePlaceholder,
@@ -58,6 +64,11 @@ const initialWhyChooseState = {
 };
 
 const initialWhyVedxState = {
+  id: '',
+  category: '',
+  subcategory: '',
+  categoryId: '',
+  subcategoryId: '',
   heroTitle: '',
   heroDescription: '',
   heroImage: imagePlaceholder,
@@ -111,6 +122,16 @@ const emptyTechnologyForm = {
   items: [],
 };
 
+const initialBenefitHero = {
+  id: '',
+  title: '',
+  description: '',
+  categoryId: '',
+  subcategoryId: '',
+  categoryName: '',
+  subcategoryName: '',
+};
+
 const emptyBenefitForm = {
   id: '',
   title: '',
@@ -118,6 +139,7 @@ const emptyBenefitForm = {
   subcategory: '',
   description: '',
   image: imagePlaceholder,
+  benefitConfigId: '',
 };
 
 const emptyHirePricingForm = {
@@ -146,6 +168,11 @@ const emptyProcessForm = {
 };
 
 const emptyWhyVedxHero = {
+  id: '',
+  category: '',
+  subcategory: '',
+  categoryId: '',
+  subcategoryId: '',
   heroTitle: '',
   heroDescription: '',
   heroImage: imagePlaceholder,
@@ -156,6 +183,9 @@ const emptyWhyVedxForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  category: '',
+  subcategory: '',
+  whyVedxConfigId: '',
 };
 
 const emptyOurServiceForm = {
@@ -238,6 +268,17 @@ const normalizeBenefit = (benefit) => ({
   subcategory: benefit.subcategory || '',
   description: benefit.description || '',
   image: benefit.image || imagePlaceholder,
+  benefitConfigId: benefit.benefitConfigId ? String(benefit.benefitConfigId) : '',
+});
+
+const normalizeBenefitConfig = (config) => ({
+  id: config.id,
+  title: config.title || '',
+  description: config.description || '',
+  categoryId: config.category || '',
+  subcategoryId: config.subcategory || '',
+  categoryName: config.category || '',
+  subcategoryName: config.subcategory || '',
 });
 
 const normalizePricingPlan = (plan) => ({
@@ -270,27 +311,47 @@ const normalizeProcess = (item) => ({
   image: item.image || imagePlaceholder,
 });
 
-const normalizeWhyVedx = (item) => ({
+const normalizeWhyVedxReason = (item) => ({
   id: item.id,
   title: item.title || '',
   description: item.description || '',
   image: item.image || imagePlaceholder,
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  whyVedxConfigId: item.whyVedxConfigId ? String(item.whyVedxConfigId) : '',
+});
+
+const normalizeWhyVedx = (item) => ({
+  id: item.id,
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  categoryId: item.category || '',
+  subcategoryId: item.subcategory || '',
   heroTitle: item.heroTitle || '',
   heroDescription: item.heroDescription || '',
   heroImage: item.heroImage || imagePlaceholder,
+  reasons: (item.reasons || []).map(normalizeWhyVedxReason),
+});
+
+const normalizeWhyService = (item) => ({
+  id: item.id,
+  category: item.category || '',
+  subcategory: item.subcategory || '',
+  title: item.title || '',
+  description: item.description || '',
+  whyChooseConfigId: item.whyChooseConfigId ? String(item.whyChooseConfigId) : '',
 });
 
 const normalizeWhyChoose = (item) => ({
   id: item.id,
   category: item.category || '',
   subcategory: item.subcategory || '',
-  title: item.title || '',
-  description: item.description || '',
   heroTitle: item.heroTitle || '',
   heroDescription: item.heroDescription || '',
   heroImage: item.heroImage || imagePlaceholder,
   tableTitle: item.tableTitle || '',
   tableDescription: item.tableDescription || '',
+  services: (item.services || []).map(normalizeWhyService),
 });
 
 const normalizeIndustry = (item) => ({
@@ -329,6 +390,7 @@ const emptyWhyServiceForm = {
   subcategory: '',
   title: '',
   description: '',
+  whyChooseConfigId: '',
 };
 
 const dateFilterOptions = [
@@ -459,6 +521,11 @@ const AdminHiredeveloperPage = () => {
   const [technologyToDelete, setTechnologyToDelete] = useState(null);
 
   const [benefits, setBenefits] = useState([]);
+  const [benefitConfigs, setBenefitConfigs] = useState([]);
+  const [selectedBenefitConfigId, setSelectedBenefitConfigId] = useState('');
+  const [benefitHero, setBenefitHero] = useState(initialBenefitHero);
+  const [benefitHeroSaved, setBenefitHeroSaved] = useState(false);
+  const benefitConfigClearedRef = useRef(false);
   const [benefitDialogOpen, setBenefitDialogOpen] = useState(false);
   const [benefitDialogMode, setBenefitDialogMode] = useState('create');
   const [benefitForm, setBenefitForm] = useState(emptyBenefitForm);
@@ -491,6 +558,9 @@ const AdminHiredeveloperPage = () => {
   const [contactButtonToDelete, setContactButtonToDelete] = useState(null);
 
   const [whyChoose, setWhyChoose] = useState(initialWhyChooseState);
+  const [whyChooseList, setWhyChooseList] = useState([]);
+  const [selectedWhyChooseId, setSelectedWhyChooseId] = useState('');
+  const whyChooseConfigClearedRef = useRef(false);
   const [whyHeroForm, setWhyHeroForm] = useState(initialWhyChooseState);
   const [whyServiceDialogOpen, setWhyServiceDialogOpen] = useState(false);
   const [whyServiceDialogMode, setWhyServiceDialogMode] = useState('create');
@@ -506,6 +576,10 @@ const AdminHiredeveloperPage = () => {
   const [processToDelete, setProcessToDelete] = useState(null);
 
   const [whyVedx, setWhyVedx] = useState(initialWhyVedxState);
+  const [whyVedxList, setWhyVedxList] = useState([]);
+  const [selectedWhyVedxId, setSelectedWhyVedxId] = useState('');
+  const [whyVedxReasons, setWhyVedxReasons] = useState([]);
+  const whyVedxConfigClearedRef = useRef(false);
   const [whyVedxHeroForm, setWhyVedxHeroForm] = useState(initialWhyVedxState);
   const [whyVedxDialogOpen, setWhyVedxDialogOpen] = useState(false);
   const [whyVedxDialogMode, setWhyVedxDialogMode] = useState('create');
@@ -548,6 +622,12 @@ const AdminHiredeveloperPage = () => {
   const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
   const [serviceCategoryFilter, setServiceCategoryFilter] = useState('');
   const [serviceSubcategoryFilter, setServiceSubcategoryFilter] = useState('');
+  const [whyServiceCategoryFilter, setWhyServiceCategoryFilter] = useState('');
+  const [whyServiceSubcategoryFilter, setWhyServiceSubcategoryFilter] = useState('');
+  const [whyVedxCategoryFilter, setWhyVedxCategoryFilter] = useState('');
+  const [whyVedxSubcategoryFilter, setWhyVedxSubcategoryFilter] = useState('');
+  const [benefitCategoryFilter, setBenefitCategoryFilter] = useState('');
+  const [benefitSubcategoryFilter, setBenefitSubcategoryFilter] = useState('');
   const [contactCategoryFilter, setContactCategoryFilter] = useState('');
   const [contactSubcategoryFilter, setContactSubcategoryFilter] = useState('');
   const [servicePage, setServicePage] = useState(1);
@@ -563,21 +643,24 @@ const AdminHiredeveloperPage = () => {
   const [hireMasterCategories, setHireMasterCategories] = useState([]);
   const [hireMasterSubcategories, setHireMasterSubcategories] = useState([]);
 
-  const requireToken = () => {
+  const requireToken = useCallback(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) {
       throw new Error('Your session expired. Please log in again.');
     }
     return token;
-  };
+  }, []);
 
-  const authHeaders = (headers = {}) => ({
-    ...headers,
-    Authorization: `Bearer ${requireToken()}`,
-    'Content-Type': 'application/json',
-  });
+  const authHeaders = useCallback(
+    (headers = {}) => ({
+      ...headers,
+      Authorization: `Bearer ${requireToken()}`,
+      'Content-Type': 'application/json',
+    }),
+    [requireToken]
+  );
 
-  const fetchJson = async (path, options = {}) => {
+  const fetchJson = useCallback(async (path, options = {}) => {
     const response = await fetch(apiUrl(path), {
       ...options,
       headers: authHeaders(options.headers),
@@ -598,7 +681,7 @@ const AdminHiredeveloperPage = () => {
     }
 
     return data;
-  };
+  }, [authHeaders]);
 
   const loadHireMasterCategories = async () => {
     try {
@@ -638,14 +721,31 @@ const AdminHiredeveloperPage = () => {
     }
   };
 
-  const loadBenefits = async () => {
+  const loadBenefits = useCallback(
+    async ({ category, subcategory, benefitConfigId } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        if (benefitConfigId) params.append('benefitConfigId', benefitConfigId);
+        const data = await fetchJson(`/api/hire-developer/benefits${params.toString() ? `?${params.toString()}` : ''}`);
+        setBenefits((data || []).map(normalizeBenefit));
+      } catch (error) {
+        console.error('Failed to load hire developer benefits', error);
+      }
+    },
+    [fetchJson]
+  );
+
+  const loadBenefitConfigs = useCallback(async () => {
     try {
-      const data = await fetchJson('/api/hire-developer/benefits');
-      setBenefits((data || []).map(normalizeBenefit));
+      const data = await fetchJson('/api/hire-developer/benefit-configs');
+      setBenefitConfigs((data || []).map(normalizeBenefitConfig));
     } catch (error) {
-      console.error('Failed to load hire developer benefits', error);
+      console.error('Failed to load hire developer benefit configs', error);
+      setBenefitConfigs([]);
     }
-  };
+  }, [fetchJson]);
 
   const loadHirePricing = async () => {
     try {
@@ -687,51 +787,75 @@ const AdminHiredeveloperPage = () => {
     }
   };
 
-  const loadWhyVedx = async () => {
-    try {
-      const data = await fetchJson('/api/hire-developer/why-vedx');
-      const reasons = (data || []).map(normalizeWhyVedx);
-      const heroSource = reasons[0] || {};
-      setWhyVedx({
-        heroTitle: heroSource.heroTitle || '',
-        heroDescription: heroSource.heroDescription || '',
-        heroImage: heroSource.heroImage || imagePlaceholder,
-        reasons,
-      });
-      setWhyVedxHeroForm({
-        heroTitle: heroSource.heroTitle || '',
-        heroDescription: heroSource.heroDescription || '',
-        heroImage: heroSource.heroImage || imagePlaceholder,
-      });
-    } catch (error) {
-      console.error('Failed to load why VedX items', error);
-    }
-  };
+  const loadWhyVedx = useCallback(
+    async ({ category, subcategory } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        params.append('includeReasons', 'true');
+        const data = await fetchJson(`/api/hire-developer/why-vedx?${params.toString()}`);
+        const list = (data || []).map(normalizeWhyVedx);
+        setWhyVedxList(list);
+      } catch (error) {
+        console.error('Failed to load why VedX configs', error);
+      }
+    },
+    [fetchJson]
+  );
 
-  const loadWhyChoose = async () => {
-    try {
-      const data = await fetchJson('/api/hire-developer/why-choose');
-      const services = (data || []).map(normalizeWhyChoose);
-      const heroSource = services[0] || {};
-      setWhyChoose({
-        heroTitle: heroSource.heroTitle || '',
-        heroDescription: heroSource.heroDescription || '',
-        heroImage: heroSource.heroImage || imagePlaceholder,
-        tableTitle: heroSource.tableTitle || '',
-        tableDescription: heroSource.tableDescription || '',
-        services,
-      });
-      setWhyHeroForm({
-        heroTitle: heroSource.heroTitle || '',
-        heroDescription: heroSource.heroDescription || '',
-        heroImage: heroSource.heroImage || imagePlaceholder,
-        tableTitle: heroSource.tableTitle || '',
-        tableDescription: heroSource.tableDescription || '',
-      });
-    } catch (error) {
-      console.error('Failed to load why choose items', error);
-    }
-  };
+  const loadWhyVedxReasons = useCallback(
+    async (whyVedxConfigId, { category, subcategory } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (whyVedxConfigId) params.append('whyVedxConfigId', whyVedxConfigId);
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        const data = await fetchJson(`/api/hire-developer/why-vedx-reasons?${params.toString()}`);
+        setWhyVedxReasons((data || []).map(normalizeWhyVedxReason));
+      } catch (error) {
+        console.error('Failed to load why VedX reasons', error);
+      }
+    },
+    [fetchJson]
+  );
+
+  const loadWhyChoose = useCallback(
+    async ({ category, subcategory } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        const data = await fetchJson(`/api/hire-developer/why-choose${params.toString() ? `?${params.toString()}` : ''}`);
+        const normalized = (data || []).map(normalizeWhyChoose);
+        const active = normalized[0] || initialWhyChooseState;
+        setWhyChoose(active);
+        setWhyHeroForm({ ...active });
+        setWhyChooseList(normalized);
+        setSelectedWhyChooseId(active?.id ? String(active.id) : '');
+        setWhyServicePage(1);
+      } catch (error) {
+        console.error('Failed to load why choose configs', error);
+      }
+    },
+    [fetchJson]
+  );
+
+  const loadWhyServices = useCallback(
+    async (whyChooseConfigId, { category, subcategory } = {}) => {
+      try {
+        const params = new URLSearchParams();
+        if (whyChooseConfigId) params.append('whyChooseConfigId', whyChooseConfigId);
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        const data = await fetchJson(`/api/hire-developer/why-choose-services?${params.toString()}`);
+        setWhyChoose((prev) => ({ ...prev, services: (data || []).map(normalizeWhyService) }));
+      } catch (error) {
+        console.error('Failed to load why choose highlights', error);
+      }
+    },
+    [fetchJson]
+  );
 
   const loadIndustries = async () => {
     try {
@@ -807,7 +931,7 @@ const AdminHiredeveloperPage = () => {
     loadHireMasterCategories();
     loadServices();
     loadTechnologies();
-    loadBenefits();
+    loadBenefitConfigs();
     loadHireMasterSubcategories();
     loadHirePricing();
     loadContactButtons();
@@ -818,7 +942,168 @@ const AdminHiredeveloperPage = () => {
     loadTechSolutions();
     loadExpertise();
     loadOurServices();
-  }, []);
+  }, [
+    loadBenefitConfigs,
+    loadWhyChoose,
+    loadWhyVedx,
+  ]);
+
+  useEffect(() => {
+    loadWhyChoose({
+      category: whyServiceCategoryFilter || undefined,
+      subcategory: whyServiceSubcategoryFilter || undefined,
+    });
+  }, [loadWhyChoose, whyServiceCategoryFilter, whyServiceSubcategoryFilter]);
+
+  useEffect(() => {
+    loadWhyVedx({
+      category: whyVedxCategoryFilter || undefined,
+      subcategory: whyVedxSubcategoryFilter || undefined,
+    });
+  }, [loadWhyVedx, whyVedxCategoryFilter, whyVedxSubcategoryFilter]);
+
+  useEffect(() => {
+    if (!selectedBenefitConfigId) {
+      setBenefits([]);
+      return;
+    }
+
+    loadBenefits({
+      category: benefitCategoryFilter || undefined,
+      subcategory: benefitSubcategoryFilter || undefined,
+      benefitConfigId: selectedBenefitConfigId,
+    });
+  }, [benefitCategoryFilter, benefitSubcategoryFilter, loadBenefits, selectedBenefitConfigId]);
+
+  useEffect(() => {
+    const matchesFilters = (item) => {
+      const matchesCategory = whyServiceCategoryFilter ? item.category === whyServiceCategoryFilter : true;
+      const matchesSubcategory = whyServiceSubcategoryFilter ? item.subcategory === whyServiceSubcategoryFilter : true;
+      return matchesCategory && matchesSubcategory;
+    };
+
+    if (whyChooseList.length === 0) {
+      setSelectedWhyChooseId('');
+      setWhyChoose(initialWhyChooseState);
+      setWhyHeroForm(initialWhyChooseState);
+      setWhyServicePage(1);
+      whyChooseConfigClearedRef.current = false;
+      return;
+    }
+
+    if (whyChooseConfigClearedRef.current && !selectedWhyChooseId) return;
+
+    const active = whyChooseList.find((item) => String(item.id) === String(selectedWhyChooseId));
+    const preferred = whyChooseList.find(matchesFilters) || whyChooseList[0];
+    const next = active ? (matchesFilters(active) ? active : preferred) : preferred;
+
+    if (!next) {
+      setSelectedWhyChooseId('');
+      setWhyChoose(initialWhyChooseState);
+      setWhyHeroForm(initialWhyChooseState);
+      setWhyServicePage(1);
+      whyChooseConfigClearedRef.current = false;
+      return;
+    }
+
+    if (String(next.id) !== String(selectedWhyChooseId)) {
+      setSelectedWhyChooseId(String(next.id));
+    }
+
+    setWhyChoose(next);
+    setWhyHeroForm(next);
+    setWhyServicePage(1);
+    loadWhyServices(String(next.id), {
+      category: whyServiceCategoryFilter || undefined,
+      subcategory: whyServiceSubcategoryFilter || undefined,
+    });
+  }, [loadWhyServices, selectedWhyChooseId, whyChooseList, whyServiceCategoryFilter, whyServiceSubcategoryFilter]);
+
+  useEffect(() => {
+    const matchesFilters = (item) => {
+      const matchesCategory = whyVedxCategoryFilter ? item.category === whyVedxCategoryFilter : true;
+      const matchesSubcategory = whyVedxSubcategoryFilter ? item.subcategory === whyVedxSubcategoryFilter : true;
+      return matchesCategory && matchesSubcategory;
+    };
+
+    if (whyVedxList.length === 0) {
+      setSelectedWhyVedxId('');
+      setWhyVedxHeroForm(emptyWhyVedxHero);
+      setWhyVedxReasons([]);
+      setWhyVedxPage(1);
+      whyVedxConfigClearedRef.current = false;
+      return;
+    }
+
+    if (whyVedxConfigClearedRef.current && !selectedWhyVedxId && !(whyVedxCategoryFilter || whyVedxSubcategoryFilter)) {
+      return;
+    }
+
+    const active = whyVedxList.find((item) => String(item.id) === String(selectedWhyVedxId));
+    const preferred = whyVedxList.find(matchesFilters) || whyVedxList[0];
+    const next = active ? (matchesFilters(active) ? active : preferred) : preferred;
+
+    if (!next) {
+      setSelectedWhyVedxId('');
+      setWhyVedxHeroForm(emptyWhyVedxHero);
+      setWhyVedxReasons([]);
+      setWhyVedxPage(1);
+      whyVedxConfigClearedRef.current = false;
+      return;
+    }
+
+    if (String(next.id) !== String(selectedWhyVedxId)) {
+      setSelectedWhyVedxId(String(next.id));
+    }
+
+    setWhyVedx(next);
+    setWhyVedxHeroForm(next);
+    setWhyVedxPage(1);
+    loadWhyVedxReasons(String(next.id), {
+      category: whyVedxCategoryFilter || undefined,
+      subcategory: whyVedxSubcategoryFilter || undefined,
+    });
+  }, [loadWhyVedxReasons, selectedWhyVedxId, whyVedxList, whyVedxCategoryFilter, whyVedxSubcategoryFilter]);
+
+  useEffect(() => {
+    const matchesFilters = (config) => {
+      const matchesCategory = benefitCategoryFilter ? config.categoryName === benefitCategoryFilter || config.categoryId === benefitCategoryFilter : true;
+      const matchesSubcategory =
+        benefitSubcategoryFilter ? config.subcategoryName === benefitSubcategoryFilter || config.subcategoryId === benefitSubcategoryFilter : true;
+      return matchesCategory && matchesSubcategory;
+    };
+
+    if (benefitConfigs.length === 0) {
+      setSelectedBenefitConfigId('');
+      setBenefitHero(initialBenefitHero);
+      setBenefitPage(1);
+      benefitConfigClearedRef.current = false;
+      return;
+    }
+
+    if (benefitConfigClearedRef.current && !selectedBenefitConfigId) return;
+
+    const active = benefitConfigs.find((config) => String(config.id) === String(selectedBenefitConfigId));
+    const preferred = benefitCategoryFilter || benefitSubcategoryFilter ? benefitConfigs.find(matchesFilters) : null;
+    const fallback = !benefitConfigClearedRef.current ? benefitConfigs[0] : null;
+    const nextConfig = active && matchesFilters(active) ? active : preferred || fallback;
+
+    if (!nextConfig) {
+      setSelectedBenefitConfigId('');
+      setBenefitHero(initialBenefitHero);
+      setBenefitPage(1);
+      benefitConfigClearedRef.current = false;
+      return;
+    }
+
+    if (String(nextConfig.id) !== String(selectedBenefitConfigId)) {
+      setSelectedBenefitConfigId(String(nextConfig.id));
+    }
+
+    setBenefitHero(nextConfig);
+    setBenefitPage(1);
+    benefitConfigClearedRef.current = false;
+  }, [benefitConfigs, benefitCategoryFilter, benefitSubcategoryFilter, selectedBenefitConfigId]);
 
   const resetServiceForm = () =>
     setServiceForm({ ...emptyServiceForm, createdAt: new Date().toISOString().split('T')[0] });
@@ -860,6 +1145,59 @@ const AdminHiredeveloperPage = () => {
 
   const handleBenefitFormChange = (field, value) => {
     setBenefitForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBenefitConfigSelect = (config) => {
+    benefitConfigClearedRef.current = false;
+    const nextId = config?.id ? String(config.id) : '';
+    setSelectedBenefitConfigId(nextId);
+    setBenefitHero(config ? normalizeBenefitConfig(config) : initialBenefitHero);
+    setBenefitHeroSaved(false);
+    setBenefitPage(1);
+  };
+
+  const handleNewBenefitConfig = () => {
+    benefitConfigClearedRef.current = true;
+    setSelectedBenefitConfigId('');
+    setBenefitHero(initialBenefitHero);
+    setBenefitHeroSaved(false);
+    setBenefitPage(1);
+  };
+
+  const handleBenefitHeroChange = (field, value) => {
+    setBenefitHeroSaved(false);
+    setBenefitHero((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBenefitHeroSave = async (event) => {
+    event?.preventDefault();
+    try {
+      const response = await fetch(apiUrl('/api/hire-developer/benefit-configs'), {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          id: selectedBenefitConfigId || undefined,
+          title: benefitHero.title,
+          description: benefitHero.description,
+          category: benefitHero.categoryId || null,
+          subcategory: benefitHero.subcategoryId || null,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || data?.message || 'Unable to save benefit config');
+      const normalized = normalizeBenefitConfig(data);
+      setBenefitHero(normalized);
+      setBenefitConfigs((prev) => {
+        const exists = prev.some((item) => String(item.id) === String(normalized.id));
+        return exists ? prev.map((item) => (String(item.id) === String(normalized.id) ? normalized : item)) : [normalized, ...prev];
+      });
+      setSelectedBenefitConfigId(String(normalized.id));
+      benefitConfigClearedRef.current = false;
+      setBenefitHeroSaved(true);
+      setTimeout(() => setBenefitHeroSaved(false), 2500);
+    } catch (error) {
+      console.error('Failed to save benefit hero content', error);
+    }
   };
 
   const handleHirePricingHeroChange = (field, value) => {
@@ -991,15 +1329,13 @@ const AdminHiredeveloperPage = () => {
 
   const handleWhyHeroSave = async (event) => {
     event?.preventDefault();
-    if (!whyChoose.services.length) return;
-
-    const primary = whyChoose.services[0];
-
     try {
-      const updated = await fetchJson(`/api/hire-developer/why-choose/${primary.id}`, {
-        method: 'PUT',
+      const updated = await fetchJson('/api/hire-developer/why-choose', {
+        method: 'POST',
         body: JSON.stringify({
-          ...primary,
+          id: selectedWhyChooseId || undefined,
+          category: whyHeroForm.category,
+          subcategory: whyHeroForm.subcategory,
           heroTitle: whyHeroForm.heroTitle,
           heroDescription: whyHeroForm.heroDescription,
           heroImage: whyHeroForm.heroImage,
@@ -1009,15 +1345,14 @@ const AdminHiredeveloperPage = () => {
       });
 
       const normalized = normalizeWhyChoose(updated);
-
-      setWhyChoose((prev) => ({
-        heroTitle: normalized.heroTitle,
-        heroDescription: normalized.heroDescription,
-        heroImage: normalized.heroImage,
-        tableTitle: normalized.tableTitle,
-        tableDescription: normalized.tableDescription,
-        services: prev.services.map((item) => (item.id === normalized.id ? normalized : item)),
-      }));
+      setWhyChoose(normalized);
+      setWhyHeroForm(normalized);
+      setSelectedWhyChooseId(String(normalized.id));
+      setWhyChooseList((prev) => {
+        const exists = prev.some((item) => String(item.id) === String(normalized.id));
+        return exists ? prev.map((item) => (String(item.id) === String(normalized.id) ? normalized : item)) : [normalized, ...prev];
+      });
+      whyChooseConfigClearedRef.current = false;
     } catch (error) {
       console.error('Failed to save why choose hero content', error);
     }
@@ -1183,14 +1518,18 @@ const AdminHiredeveloperPage = () => {
       .map(([key, items]) => ({ key, items }));
   }, [technologies]);
 
+  const visibleBenefits = useMemo(() => {
+    if (!selectedBenefitConfigId) return [];
+    return benefits.filter((benefit) => String(benefit.benefitConfigId) === String(selectedBenefitConfigId));
+  }, [benefits, selectedBenefitConfigId]);
+
   const pagedBenefits = useMemo(() => {
     const start = (benefitPage - 1) * rowsPerPage;
-    return benefits.slice(start, start + rowsPerPage);
-  }, [benefits, rowsPerPage, benefitPage]);
-
+    return visibleBenefits.slice(start, start + rowsPerPage);
+  }, [visibleBenefits, rowsPerPage, benefitPage]);
 
   const groupedBenefits = useMemo(() => {
-    const sorted = [...benefits].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    const sorted = [...pagedBenefits].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     const groups = new Map();
 
     sorted.forEach((benefit) => {
@@ -1202,7 +1541,7 @@ const AdminHiredeveloperPage = () => {
     return Array.from(groups.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([category, items]) => ({ category, items }));
-  }, [benefits]);
+  }, [pagedBenefits]);
 
   const pagedWhyServices = useMemo(() => {
     const start = (whyServicePage - 1) * rowsPerPage;
@@ -1248,9 +1587,9 @@ const AdminHiredeveloperPage = () => {
   }, [pagedContactButtons]);
 
   useEffect(() => {
-    const maxBenefitPage = Math.max(1, Math.ceil(benefits.length / rowsPerPage));
+    const maxBenefitPage = Math.max(1, Math.ceil(visibleBenefits.length / rowsPerPage));
     setBenefitPage((prev) => Math.min(prev, maxBenefitPage));
-  }, [benefits.length, rowsPerPage]);
+  }, [visibleBenefits.length, rowsPerPage]);
 
   useEffect(() => {
     const maxWhyPage = Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage));
@@ -1473,16 +1812,22 @@ const AdminHiredeveloperPage = () => {
   };
 
   const openBenefitCreateDialog = () => {
+    if (!selectedBenefitConfigId) return;
     setBenefitDialogMode('create');
     setActiveBenefit(null);
-    resetBenefitForm();
+    setBenefitForm({
+      ...emptyBenefitForm,
+      category: benefitHero.categoryId || '',
+      subcategory: benefitHero.subcategoryId || '',
+      benefitConfigId: selectedBenefitConfigId,
+    });
     setBenefitDialogOpen(true);
   };
 
   const openBenefitEditDialog = (benefit) => {
     setBenefitDialogMode('edit');
     setActiveBenefit(benefit);
-    setBenefitForm({ ...benefit });
+    setBenefitForm({ ...benefit, benefitConfigId: benefit.benefitConfigId || selectedBenefitConfigId });
     setBenefitDialogOpen(true);
   };
 
@@ -1496,17 +1841,19 @@ const AdminHiredeveloperPage = () => {
     if (!benefitForm.title.trim()) return;
 
     try {
+      const benefitConfigId = benefitForm.benefitConfigId || selectedBenefitConfigId;
+      if (!benefitConfigId) return;
       if (benefitDialogMode === 'edit' && activeBenefit) {
         const updated = await fetchJson(`/api/hire-developer/benefits/${activeBenefit.id}`, {
           method: 'PUT',
-          body: JSON.stringify(benefitForm),
+          body: JSON.stringify({ ...benefitForm, benefitConfigId }),
         });
         const normalized = normalizeBenefit(updated);
         setBenefits((prev) => prev.map((benefit) => (benefit.id === activeBenefit.id ? normalized : benefit)));
       } else {
         const created = await fetchJson('/api/hire-developer/benefits', {
           method: 'POST',
-          body: JSON.stringify(benefitForm),
+          body: JSON.stringify({ ...benefitForm, benefitConfigId }),
         });
         const normalized = normalizeBenefit(created);
         setBenefits((prev) => [normalized, ...prev]);
@@ -1535,14 +1882,22 @@ const AdminHiredeveloperPage = () => {
   const openWhyServiceCreateDialog = () => {
     setWhyServiceDialogMode('create');
     setActiveWhyService(null);
-    resetWhyServiceForm();
+    const defaultCategory = whyServiceCategoryFilter || whyHeroForm.category || '';
+    const defaultSubcategory =
+      whyServiceSubcategoryFilter || (defaultCategory === whyHeroForm.category ? whyHeroForm.subcategory : '');
+    setWhyServiceForm({
+      ...emptyWhyServiceForm,
+      category: defaultCategory,
+      subcategory: defaultSubcategory,
+      whyChooseConfigId: selectedWhyChooseId || '',
+    });
     setWhyServiceDialogOpen(true);
   };
 
   const openWhyServiceEditDialog = (service) => {
     setWhyServiceDialogMode('edit');
     setActiveWhyService(service);
-    setWhyServiceForm({ ...service });
+    setWhyServiceForm({ ...service, whyChooseConfigId: service.whyChooseConfigId || selectedWhyChooseId });
     setWhyServiceDialogOpen(true);
   };
 
@@ -1554,27 +1909,55 @@ const AdminHiredeveloperPage = () => {
   const handleWhyServiceSubmit = async (event) => {
     event?.preventDefault();
     if (!whyServiceForm.title.trim() || !whyServiceForm.category.trim()) return;
+    if (!selectedWhyChooseId) return;
 
     try {
+      const payload = {
+        category: whyServiceForm.category,
+        subcategory: whyServiceForm.subcategory,
+        title: whyServiceForm.title,
+        description: whyServiceForm.description,
+        whyChooseConfigId: selectedWhyChooseId,
+      };
+
       if (whyServiceDialogMode === 'edit' && activeWhyService) {
-        const updated = await fetchJson(`/api/hire-developer/why-choose/${activeWhyService.id}`, {
+        const updated = await fetchJson(`/api/hire-developer/why-choose-services/${activeWhyService.id}`, {
           method: 'PUT',
-          body: JSON.stringify(whyServiceForm),
+          body: JSON.stringify(payload),
         });
-        const normalized = normalizeWhyChoose(updated);
+        const normalized = normalizeWhyService(updated);
         setWhyChoose((prev) => ({
           ...prev,
           services: prev.services.map((service) =>
             service.id === activeWhyService.id ? normalized : service
           ),
         }));
+        setWhyChooseList((prev) =>
+          prev.map((item) =>
+            String(item.id) === String(selectedWhyChooseId)
+              ? {
+                  ...item,
+                  services: (item.services || []).map((service) =>
+                    service.id === normalized.id ? normalized : service
+                  ),
+                }
+              : item
+          )
+        );
       } else {
-        const created = await fetchJson('/api/hire-developer/why-choose', {
+        const created = await fetchJson('/api/hire-developer/why-choose-services', {
           method: 'POST',
-          body: JSON.stringify(whyServiceForm),
+          body: JSON.stringify(payload),
         });
-        const normalized = normalizeWhyChoose(created);
+        const normalized = normalizeWhyService(created);
         setWhyChoose((prev) => ({ ...prev, services: [normalized, ...prev.services] }));
+        setWhyChooseList((prev) =>
+          prev.map((item) =>
+            String(item.id) === String(selectedWhyChooseId)
+              ? { ...item, services: [normalized, ...(item.services || [])] }
+              : item
+          )
+        );
       }
 
       closeWhyServiceDialog();
@@ -1589,11 +1972,18 @@ const AdminHiredeveloperPage = () => {
     if (!whyServiceToDelete) return;
 
     try {
-      await fetchJson(`/api/hire-developer/why-choose/${whyServiceToDelete.id}`, { method: 'DELETE' });
+      await fetchJson(`/api/hire-developer/why-choose-services/${whyServiceToDelete.id}`, { method: 'DELETE' });
       setWhyChoose((prev) => ({
         ...prev,
         services: prev.services.filter((service) => service.id !== whyServiceToDelete.id),
       }));
+      setWhyChooseList((prev) =>
+        prev.map((item) =>
+          String(item.id) === String(selectedWhyChooseId)
+            ? { ...item, services: (item.services || []).filter((service) => service.id !== whyServiceToDelete.id) }
+            : item
+        )
+      );
       closeWhyServiceDeleteDialog();
     } catch (error) {
       console.error('Failed to delete why choose item', error);
@@ -1737,15 +2127,13 @@ const AdminHiredeveloperPage = () => {
 
   const handleWhyVedxHeroSave = async (event) => {
     event?.preventDefault();
-    if (!whyVedx.reasons.length) return;
-
-    const primary = whyVedx.reasons[0];
-
     try {
-      const updated = await fetchJson(`/api/hire-developer/why-vedx/${primary.id}`, {
-        method: 'PUT',
+      const updated = await fetchJson('/api/hire-developer/why-vedx', {
+        method: 'POST',
         body: JSON.stringify({
-          ...primary,
+          id: selectedWhyVedxId || undefined,
+          category: whyVedxHeroForm.categoryId,
+          subcategory: whyVedxHeroForm.subcategoryId,
           heroTitle: whyVedxHeroForm.heroTitle,
           heroDescription: whyVedxHeroForm.heroDescription,
           heroImage: whyVedxHeroForm.heroImage,
@@ -1753,13 +2141,14 @@ const AdminHiredeveloperPage = () => {
       });
 
       const normalized = normalizeWhyVedx(updated);
-
-      setWhyVedx((prev) => ({
-        heroTitle: normalized.heroTitle,
-        heroDescription: normalized.heroDescription,
-        heroImage: normalized.heroImage,
-        reasons: prev.reasons.map((item) => (item.id === normalized.id ? normalized : item)),
-      }));
+      setWhyVedx(normalized);
+      setWhyVedxHeroForm(normalized);
+      setSelectedWhyVedxId(String(normalized.id));
+      setWhyVedxList((prev) => {
+        const exists = prev.some((item) => String(item.id) === String(normalized.id));
+        return exists ? prev.map((item) => (String(item.id) === String(normalized.id) ? normalized : item)) : [normalized, ...prev];
+      });
+      whyVedxConfigClearedRef.current = false;
     } catch (error) {
       console.error('Failed to save why VedX hero content', error);
     }
@@ -1796,7 +2185,13 @@ const AdminHiredeveloperPage = () => {
   };
 
   const openWhyVedxCreateDialog = () => {
-    resetWhyVedxForm();
+    if (!selectedWhyVedxId) return;
+    setWhyVedxForm({
+      ...emptyWhyVedxForm,
+      category: whyVedxHeroForm.categoryId || '',
+      subcategory: whyVedxHeroForm.subcategoryId || '',
+      whyVedxConfigId: selectedWhyVedxId,
+    });
     setWhyVedxDialogMode('create');
     setActiveWhyVedx(null);
     setWhyVedxDialogOpen(true);
@@ -1805,7 +2200,7 @@ const AdminHiredeveloperPage = () => {
   const openWhyVedxEditDialog = (item) => {
     setWhyVedxDialogMode('edit');
     setActiveWhyVedx(item);
-    setWhyVedxForm({ ...item });
+    setWhyVedxForm({ ...item, whyVedxConfigId: item.whyVedxConfigId || selectedWhyVedxId });
     setWhyVedxDialogOpen(true);
   };
 
@@ -1817,25 +2212,28 @@ const AdminHiredeveloperPage = () => {
   const handleWhyVedxSubmit = async (event) => {
     event?.preventDefault();
     if (!whyVedxForm.title.trim() || !whyVedxForm.image) return;
+    if (!selectedWhyVedxId) return;
 
     try {
+      const payload = {
+        ...whyVedxForm,
+        whyVedxConfigId: selectedWhyVedxId,
+      };
+
       if (whyVedxDialogMode === 'edit' && activeWhyVedx) {
-        const updated = await fetchJson(`/api/hire-developer/why-vedx/${activeWhyVedx.id}`, {
+        const updated = await fetchJson(`/api/hire-developer/why-vedx-reasons/${activeWhyVedx.id}`, {
           method: 'PUT',
-          body: JSON.stringify(whyVedxForm),
+          body: JSON.stringify(payload),
         });
-        const normalized = normalizeWhyVedx(updated);
-        setWhyVedx((prev) => ({
-          ...prev,
-          reasons: prev.reasons.map((item) => (item.id === activeWhyVedx.id ? normalized : item)),
-        }));
+        const normalized = normalizeWhyVedxReason(updated);
+        setWhyVedxReasons((prev) => prev.map((item) => (item.id === activeWhyVedx.id ? normalized : item)));
       } else {
-        const created = await fetchJson('/api/hire-developer/why-vedx', {
+        const created = await fetchJson('/api/hire-developer/why-vedx-reasons', {
           method: 'POST',
-          body: JSON.stringify(whyVedxForm),
+          body: JSON.stringify(payload),
         });
-        const normalized = normalizeWhyVedx(created);
-        setWhyVedx((prev) => ({ ...prev, reasons: [normalized, ...prev.reasons] }));
+        const normalized = normalizeWhyVedxReason(created);
+        setWhyVedxReasons((prev) => [normalized, ...prev]);
       }
 
       closeWhyVedxDialog();
@@ -1850,11 +2248,8 @@ const AdminHiredeveloperPage = () => {
     if (!whyVedxToDelete) return;
 
     try {
-      await fetchJson(`/api/hire-developer/why-vedx/${whyVedxToDelete.id}`, { method: 'DELETE' });
-      setWhyVedx((prev) => ({
-        ...prev,
-        reasons: prev.reasons.filter((item) => item.id !== whyVedxToDelete.id),
-      }));
+      await fetchJson(`/api/hire-developer/why-vedx-reasons/${whyVedxToDelete.id}`, { method: 'DELETE' });
+      setWhyVedxReasons((prev) => prev.filter((item) => item.id !== whyVedxToDelete.id));
       closeWhyVedxDeleteDialog();
     } catch (error) {
       console.error('Failed to delete why VedX item', error);
@@ -2161,6 +2556,14 @@ const AdminHiredeveloperPage = () => {
     if (!benefitForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(benefitForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, benefitForm.category, subcategoryLookup]);
+
+  const benefitHeroCategoryOptions = useMemo(() => categoryOptions, [categoryOptions]);
+
+  const benefitHeroSubcategoryOptions = useMemo(() => {
+    const categoryId = benefitHero.categoryId || '';
+    const base = categoryId ? subcategoryLookup.get(categoryId) || [] : allSubcategoryOptions;
+    return base.map((option) => ({ value: option, label: option, categoryId }));
+  }, [benefitHero.categoryId, subcategoryLookup, allSubcategoryOptions]);
 
   const whySubcategoryOptions = useMemo(() => {
     const options = subcategoryLookup.get(whyServiceForm.category) || [];
@@ -2494,134 +2897,47 @@ const AdminHiredeveloperPage = () => {
       )}
 
       {activeTab === 'why-vedx' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Why choose VedX Solutions"
-            subheader="Control headline, description, and proof points."
-          />
-          <Divider />
-          <CardContent>
-            <Stack spacing={3}>
-              <Box component="form" onSubmit={handleWhyVedxHeroSave} sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={8}>
-                    <Stack spacing={2}>
-                      <TextField
-                        label="Title"
-                        value={whyVedxHeroForm.heroTitle}
-                        onChange={(event) => handleWhyVedxHeroChange('heroTitle', event.target.value)}
-                        fullWidth
-                      />
-                      <TextField
-                        label="Description"
-                        value={whyVedxHeroForm.heroDescription}
-                        onChange={(event) => handleWhyVedxHeroChange('heroDescription', event.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={3}
-                      />
-                      <Button type="submit" variant="contained" sx={{ alignSelf: 'flex-start' }}>
-                        Save hero content
-                      </Button>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <ImageUpload
-                      label="Hero image"
-                      value={whyVedxHeroForm.heroImage}
-                      onChange={(value) => handleWhyVedxHeroChange('heroImage', value)}
-                      required
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Stack spacing={1}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                  <Box>
-                    <Typography variant="h6">Reasons to choose us</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Add visuals, titles, and descriptions that appear below the hero section.
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={openWhyVedxCreateDialog}
-                    sx={{ mt: { xs: 1, sm: 0 } }}
-                  >
-                    Add reason
-                  </Button>
-                </Stack>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Title</TableCell>
-                        <TableCell>Image</TableCell>
-                        <TableCell>Description</TableCell>
-                        <TableCell align="right">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {whyVedx.reasons
-                        .slice((whyVedxPage - 1) * rowsPerPage, whyVedxPage * rowsPerPage)
-                        .map((item) => (
-                          <TableRow key={item.id} hover>
-                            <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
-                            <TableCell>
-                              <Box
-                                component="img"
-                                src={item.image || imagePlaceholder}
-                                alt={`${item.title} visual`}
-                                sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
-                              />
-                            </TableCell>
-                            <TableCell sx={{ maxWidth: 280 }}>
-                              <Typography variant="body2" color="text.secondary" noWrap>
-                                {item.description}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                <Tooltip title="Edit">
-                                  <IconButton size="small" color="primary" onClick={() => openWhyVedxEditDialog(item)}>
-                                    <EditOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton size="small" color="error" onClick={() => openWhyVedxDeleteDialog(item)}>
-                                    <DeleteOutlineIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Stack>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      {whyVedx.reasons.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={4}>
-                            <Typography variant="body2" color="text.secondary" align="center">
-                              No reasons added yet.
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <Stack mt={2} alignItems="flex-end">
-                  <Pagination
-                    count={Math.max(1, Math.ceil(whyVedx.reasons.length / rowsPerPage))}
-                    page={whyVedxPage}
-                    onChange={(event, page) => setWhyVedxPage(page)}
-                    color="primary"
-                  />
-                </Stack>
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
+        <WhyVedxTab
+          categoryOptions={categoryOptions}
+          whyVedxCategoryFilter={whyVedxCategoryFilter}
+          setWhyVedxCategoryFilter={setWhyVedxCategoryFilter}
+          whyVedxSubcategoryFilter={whyVedxSubcategoryFilter}
+          setWhyVedxSubcategoryFilter={setWhyVedxSubcategoryFilter}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          whyVedxOptions={whyVedxList.map((item) => ({
+            value: item.id,
+            label: [item.category, item.subcategory].filter(Boolean).join(' / ') || item.heroTitle || 'Why VedX hero',
+          }))}
+          selectedWhyVedxId={selectedWhyVedxId}
+          handleWhyVedxSelect={(option) => {
+            whyVedxConfigClearedRef.current = false;
+            const nextId = option?.value ? String(option.value) : '';
+            setSelectedWhyVedxId(nextId);
+          }}
+          handleNewWhyVedxHero={() => {
+            whyVedxConfigClearedRef.current = true;
+            setSelectedWhyVedxId('');
+            setWhyVedxHeroForm(emptyWhyVedxHero);
+            setWhyVedxReasons([]);
+            setWhyVedxPage(1);
+          }}
+          serviceCategories={categoryOptions.map((option) => ({ id: option.value, name: option.label }))}
+          whyVedxHeroForm={whyVedxHeroForm}
+          handleWhyVedxHeroChange={handleWhyVedxHeroChange}
+          handleWhyVedxHeroSave={handleWhyVedxHeroSave}
+          whyVedxSubcategoryOptions={(whyVedxHeroForm.categoryId
+            ? (subcategoryLookup.get(whyVedxHeroForm.categoryId) || []).map((value) => ({ value, label: value }))
+            : allSubcategoryOptions.map((value) => ({ value, label: value })))}
+          activeWhyVedxReasons={whyVedxReasons}
+          rowsPerPage={rowsPerPage}
+          whyVedxPage={whyVedxPage}
+          setWhyVedxPage={setWhyVedxPage}
+          openWhyVedxCreateDialog={openWhyVedxCreateDialog}
+          openWhyVedxEditDialog={openWhyVedxEditDialog}
+          openWhyVedxDeleteDialog={openWhyVedxDeleteDialog}
+          showHeroImage
+        />
       )}
 
 
@@ -2958,159 +3274,39 @@ const AdminHiredeveloperPage = () => {
       )}
 
       {activeTab === 'why-choose' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Why choose this service"
-            subheader="Set the hero headline, supporting description, and highlight cards per category/sub-category."
-          />
-          <Divider />
-          <CardContent>
-            <Stack spacing={3}>
-              <Box
-                component="form"
-                onSubmit={handleWhyHeroSave}
-                sx={{ border: '1px dashed', borderColor: 'divider', borderRadius: 1, p: 2 }}
-              >
-                <Grid container spacing={2} alignItems="flex-start">
-                  <Grid item xs={12} md={8}>
-                    <Stack spacing={2}>
-                      <TextField
-                        label="Hero title"
-                        value={whyHeroForm.heroTitle}
-                        onChange={(event) => handleWhyHeroChange('heroTitle', event.target.value)}
-                        fullWidth
-                        required
-                      />
-                      <TextField
-                        label="Hero description"
-                        value={whyHeroForm.heroDescription}
-                        onChange={(event) => handleWhyHeroChange('heroDescription', event.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={3}
-                      />
-                      <TextField
-                        label="Service table title"
-                        value={whyHeroForm.tableTitle}
-                        onChange={(event) => handleWhyHeroChange('tableTitle', event.target.value)}
-                        fullWidth
-                      />
-                      <TextField
-                        label="Service table description"
-                        value={whyHeroForm.tableDescription}
-                        onChange={(event) => handleWhyHeroChange('tableDescription', event.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={2}
-                      />
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <Button type="submit" variant="contained">
-                          Save hero content
-                        </Button>
-                        <Typography variant="body2" color="text.secondary">
-                          This content powers the hero and highlights intro on the service detail page.
-                        </Typography>
-                      </Stack>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <ImageUpload
-                      label="Hero image"
-                      value={whyHeroForm.heroImage}
-                      onChange={(value) => handleWhyHeroChange('heroImage', value)}
-                      required
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Stack spacing={1}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-                  <Box>
-                    <Typography variant="h6">{whyChoose.tableTitle || 'Service highlights'}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {whyChoose.tableDescription || 'Add category and sub-category wise proof points for this service.'}
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={openWhyServiceCreateDialog}
-                    sx={{ mt: { xs: 1, sm: 0 } }}
-                  >
-                    Add highlight
-                  </Button>
-                </Stack>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Category</TableCell>
-                        <TableCell>Sub-category</TableCell>
-                        <TableCell>Title</TableCell>
-                        <TableCell>Description</TableCell>
-                        <TableCell align="right">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {pagedWhyServices.map((service) => (
-                        <TableRow key={service.id} hover>
-                          <TableCell>{service.category || '-'}</TableCell>
-                          <TableCell>{service.subcategory || '-'}</TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>{service.title}</TableCell>
-                          <TableCell sx={{ maxWidth: 340 }}>
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {service.description}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <Tooltip title="Edit">
-                                <IconButton
-                                  size="small"
-                                  color="primary"
-                                  onClick={() => openWhyServiceEditDialog(service)}
-                                >
-                                  <EditOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => openWhyServiceDeleteDialog(service)}
-                                >
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {whyChoose.services.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5}>
-                            <Typography variant="body2" color="text.secondary" align="center">
-                              No highlights yet. Use "Add highlight" to create category-wise reasons to choose you.
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <Stack mt={2} alignItems="flex-end">
-                  <Pagination
-                    count={Math.max(1, Math.ceil(whyChoose.services.length / rowsPerPage))}
-                    page={whyServicePage}
-                    onChange={(event, page) => setWhyServicePage(page)}
-                    color="primary"
-                  />
-                </Stack>
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
+        <WhyChooseTab
+          categoryOptions={categoryOptions}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          whyServiceCategoryFilter={whyServiceCategoryFilter}
+          setWhyServiceCategoryFilter={setWhyServiceCategoryFilter}
+          whyServiceSubcategoryFilter={whyServiceSubcategoryFilter}
+          setWhyServiceSubcategoryFilter={setWhyServiceSubcategoryFilter}
+          whyChooseList={whyChooseList}
+          selectedWhyChooseId={selectedWhyChooseId}
+          setSelectedWhyChooseId={(value) => {
+            whyChooseConfigClearedRef.current = false;
+            setSelectedWhyChooseId(value);
+          }}
+          onNewConfig={() => {
+            whyChooseConfigClearedRef.current = true;
+            setSelectedWhyChooseId('');
+            setWhyHeroForm(initialWhyChooseState);
+            setWhyChoose(initialWhyChooseState);
+            setWhyServicePage(1);
+          }}
+          whyHeroForm={whyHeroForm}
+          handleWhyHeroChange={handleWhyHeroChange}
+          handleWhyHeroSave={handleWhyHeroSave}
+          openWhyServiceCreateDialog={openWhyServiceCreateDialog}
+          pagedWhyServices={pagedWhyServices}
+          whyChoose={whyChoose}
+          openWhyServiceEditDialog={openWhyServiceEditDialog}
+          openWhyServiceDeleteDialog={openWhyServiceDeleteDialog}
+          rowsPerPage={rowsPerPage}
+          whyServicePage={whyServicePage}
+          setWhyServicePage={setWhyServicePage}
+        />
       )}
 
       {activeTab === 'technologies' && (
@@ -3245,98 +3441,34 @@ const AdminHiredeveloperPage = () => {
       )}
 
       {activeTab === 'benefits' && (
-        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardHeader
-            title="Benefits"
-            subheader="Control benefit cards with images and rich descriptions."
-            action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openBenefitCreateDialog}>
-                Add benefit
-              </Button>
-            }
-          />
-          <Divider />
-          <CardContent>
-
-            <Stack spacing={2}>
-              {groupedBenefits.map((group) => (
-                <Accordion key={group.category} defaultExpanded>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                      <Typography variant="subtitle1" fontWeight={800}>
-                        {group.category}
-                      </Typography>
-                      <Chip
-                        label={`${group.items.length} ${group.items.length === 1 ? 'benefit' : 'benefits'}`}
-                        size="small"
-                      />
-                    </Stack>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <TableContainer>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Title</TableCell>
-                            <TableCell>Sub-category</TableCell>
-                            <TableCell>Image</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell align="right">Actions</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {group.items.map((benefit) => (
-                            <TableRow key={benefit.id} hover>
-                              <TableCell sx={{ fontWeight: 700 }}>{benefit.title}</TableCell>
-                              <TableCell>{benefit.subcategory || '-'}</TableCell>
-                              <TableCell sx={{ maxWidth: 200 }}>
-                                <Box
-                                  component="img"
-                                  src={benefit.image || imagePlaceholder}
-                                  alt={`${benefit.title} visual`}
-                                  sx={{ width: 140, height: 80, objectFit: 'cover', borderRadius: 1 }}
-                                />
-                              </TableCell>
-                              <TableCell sx={{ maxWidth: 240 }}>
-                                <Typography variant="body2" color="text.secondary" noWrap>
-                                  {benefit.description}
-                                </Typography>
-                              </TableCell>
-                              <TableCell align="right">
-                                <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                  <Tooltip title="Edit">
-                                    <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
-                                      <EditOutlinedIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title="Delete">
-                                    <IconButton
-                                      size="small"
-                                      color="error"
-                                      onClick={() => openBenefitDeleteDialog(benefit)}
-                                    >
-                                      <DeleteOutlineIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Stack>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-
-              {benefits.length === 0 && (
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
-                  No benefits configured yet.
-                </Typography>
-              )}
-            </Stack>
-          </CardContent>
-        </Card>
+        <BenefitsTab
+          categoryOptions={categoryOptions}
+          subcategoryLookup={subcategoryLookup}
+          allSubcategoryOptions={allSubcategoryOptions}
+          benefitCategoryFilter={benefitCategoryFilter}
+          setBenefitCategoryFilter={setBenefitCategoryFilter}
+          benefitSubcategoryFilter={benefitSubcategoryFilter}
+          setBenefitSubcategoryFilter={setBenefitSubcategoryFilter}
+          benefitConfigs={benefitConfigs}
+          selectedBenefitConfigId={selectedBenefitConfigId}
+          handleBenefitConfigSelect={handleBenefitConfigSelect}
+          handleNewBenefitConfig={handleNewBenefitConfig}
+          benefitHero={benefitHero}
+          benefitHeroCategoryOptions={benefitHeroCategoryOptions}
+          benefitHeroSubcategoryOptions={benefitHeroSubcategoryOptions}
+          handleBenefitHeroChange={handleBenefitHeroChange}
+          handleBenefitHeroSave={handleBenefitHeroSave}
+          benefitHeroSaved={benefitHeroSaved}
+          hasBenefitConfig={Boolean(selectedBenefitConfigId)}
+          groupedBenefits={groupedBenefits}
+          visibleBenefits={visibleBenefits}
+          rowsPerPage={rowsPerPage}
+          benefitPage={benefitPage}
+          setBenefitPage={setBenefitPage}
+          openBenefitCreateDialog={openBenefitCreateDialog}
+          openBenefitEditDialog={openBenefitEditDialog}
+          openBenefitDeleteDialog={openBenefitDeleteDialog}
+        />
       )}
 
       {activeTab === 'contact-buttons' && (

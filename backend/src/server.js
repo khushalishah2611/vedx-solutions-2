@@ -7046,24 +7046,100 @@ app.delete('/api/hire-developer/technologies/:id', async (req, res) => {
 });
 
 /* ============================================================
- * 3. HireDeveloperBenefit
+ * 3. HireDeveloperBenefits (configs + cards)
  * ============================================================
  */
 
-// GET benefits (optional category / subcategory)
-app.get('/api/hire-developer/benefits', async (req, res) => {
+const mapHireBenefitConfig = (config) => ({
+  id: config.id,
+  title: config.title,
+  description: config.description,
+  category: config.category || '',
+  subcategory: config.subcategory || '',
+  createdAt: config.createdAt,
+  updatedAt: config.updatedAt,
+});
+
+const mapHireBenefit = (benefit) => ({
+  id: benefit.id,
+  title: benefit.title,
+  category: benefit.category || '',
+  subcategory: benefit.subcategory || '',
+  description: benefit.description,
+  image: benefit.image,
+  benefitConfigId: benefit.benefitConfigId || null,
+  createdAt: benefit.createdAt,
+  updatedAt: benefit.updatedAt,
+});
+
+// GET benefit configs
+app.get('/api/hire-developer/benefit-configs', async (req, res) => {
   try {
     const { category, subcategory } = req.query;
-
-    const benefits = await prisma.hireDeveloperBenefit.findMany({
+    const configs = await prisma.hireDeveloperBenefitConfig.findMany({
       where: {
         ...(category && { category: String(category) }),
         ...(subcategory && { subcategory: String(subcategory) }),
       },
       orderBy: { createdAt: 'desc' },
     });
+    res.json(configs.map(mapHireBenefitConfig));
+  } catch (err) {
+    console.error('GET /api/hire-developer/benefit-configs error', err);
+    res.status(500).json({ error: 'Failed to fetch benefit configs' });
+  }
+});
 
-    res.json(benefits);
+// CREATE or UPDATE benefit config
+app.post('/api/hire-developer/benefit-configs', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { id, title, description, category, subcategory } = req.body ?? {};
+    const configId = id ? parseIntegerId(id) : null;
+
+    if (!title || !String(title).trim() || !description || !String(description).trim()) {
+      return res.status(400).json({ error: 'Title and description are required' });
+    }
+
+    const payload = {
+      title: String(title).trim(),
+      description: String(description).trim(),
+      category: category?.trim() || null,
+      subcategory: subcategory?.trim() || null,
+    };
+
+    const saved = configId
+      ? await prisma.hireDeveloperBenefitConfig.update({
+          where: { id: configId },
+          data: payload,
+        })
+      : await prisma.hireDeveloperBenefitConfig.create({ data: payload });
+
+    res.json(mapHireBenefitConfig(saved));
+  } catch (err) {
+    console.error('POST /api/hire-developer/benefit-configs error', err);
+    res.status(500).json({ error: 'Failed to save benefit config' });
+  }
+});
+
+// GET benefits
+app.get('/api/hire-developer/benefits', async (req, res) => {
+  try {
+    const { category, subcategory, benefitConfigId } = req.query;
+    const parsedConfigId = parseIntegerId(benefitConfigId);
+
+    const benefits = await prisma.hireDeveloperBenefit.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+        ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(benefits.map(mapHireBenefit));
   } catch (err) {
     console.error('GET /api/hire-developer/benefits error', err);
     res.status(500).json({ error: 'Failed to fetch benefits' });
@@ -7076,13 +7152,22 @@ app.post('/api/hire-developer/benefits', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, category, subcategory, description, image } = req.body;
+    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
+    const parsedConfigId = parseIntegerId(benefitConfigId);
 
+    if (!parsedConfigId) {
+      return res.status(400).json({ error: 'benefitConfigId is required; please create a benefit config first' });
+    }
     if (!title || !String(title).trim()) {
       return res.status(400).json({ error: 'Title is required' });
     }
     if (!image || !String(image).trim()) {
       return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const config = await prisma.hireDeveloperBenefitConfig.findUnique({ where: { id: parsedConfigId } });
+    if (!config) {
+      return res.status(404).json({ error: 'Benefit config not found' });
     }
 
     const benefit = await prisma.hireDeveloperBenefit.create({
@@ -7092,10 +7177,11 @@ app.post('/api/hire-developer/benefits', async (req, res) => {
         subcategory: subcategory?.trim() || null,
         description: description?.trim() || null,
         image: String(image).trim(),
+        benefitConfigId: parsedConfigId,
       },
     });
 
-    res.status(201).json(benefit);
+    res.status(201).json(mapHireBenefit(benefit));
   } catch (err) {
     console.error('POST /api/hire-developer/benefits error', err);
     res.status(500).json({ error: 'Failed to create benefit' });
@@ -7111,7 +7197,19 @@ app.put('/api/hire-developer/benefits/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const { title, category, subcategory, description, image } = req.body;
+    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
+    const parsedConfigId = parseIntegerId(benefitConfigId);
+
+    if (benefitConfigId !== undefined && !parsedConfigId) {
+      return res.status(400).json({ error: 'benefitConfigId is required' });
+    }
+
+    if (parsedConfigId) {
+      const config = await prisma.hireDeveloperBenefitConfig.findUnique({ where: { id: parsedConfigId } });
+      if (!config) {
+        return res.status(404).json({ error: 'Benefit config not found' });
+      }
+    }
 
     const updated = await prisma.hireDeveloperBenefit.update({
       where: { id },
@@ -7121,10 +7219,11 @@ app.put('/api/hire-developer/benefits/:id', async (req, res) => {
         subcategory: subcategory?.trim() || null,
         description: description?.trim() || null,
         ...(image !== undefined && { image: String(image).trim() }),
+        ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
       },
     });
 
-    res.json(updated);
+    res.json(mapHireBenefit(updated));
   } catch (err) {
     console.error('PUT /api/hire-developer/benefits/:id error', err);
     res.status(500).json({ error: 'Failed to update benefit' });
@@ -7372,38 +7471,130 @@ app.delete('/api/hire-developer/processes/:id', async (req, res) => {
 });
 
 /* ============================================================
- * 7. HireDeveloperWhyVedx
+ * 7. HireDeveloperWhyVedx (configs + reasons)
  * ============================================================
  */
 
-// GET why vedx items
-app.get('/api/hire-developer/why-vedx', async (_req, res) => {
+const mapHireWhyVedxConfig = (config, includeReasons = false) => ({
+  id: config.id,
+  category: config.category || '',
+  subcategory: config.subcategory || '',
+  heroTitle: config.heroTitle,
+  heroDescription: config.heroDescription,
+  heroImage: config.heroImage,
+  ...(includeReasons && {
+    reasons: (config.reasons || []).map((reason) => ({
+      id: reason.id,
+      title: reason.title,
+      description: reason.description,
+      image: reason.image,
+      category: reason.category || '',
+      subcategory: reason.subcategory || '',
+      whyVedxConfigId: reason.whyVedxConfigId || null,
+    })),
+  }),
+  createdAt: config.createdAt,
+  updatedAt: config.updatedAt,
+});
+
+// GET why vedx configs
+app.get('/api/hire-developer/why-vedx', async (req, res) => {
   try {
-    const items = await prisma.hireDeveloperWhyVedx.findMany({
+    const { category, subcategory } = req.query;
+    const includeReasons = req.query.includeReasons === 'true';
+
+    const configs = await prisma.hireDeveloperWhyVedxConfig.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+      },
+      include: includeReasons ? { reasons: { orderBy: { createdAt: 'desc' } } } : {},
       orderBy: { createdAt: 'desc' },
     });
-    res.json(items);
+
+    res.json(configs.map((config) => mapHireWhyVedxConfig(config, includeReasons)));
   } catch (err) {
     console.error('GET /api/hire-developer/why-vedx error', err);
-    res.status(500).json({ error: 'Failed to fetch why VedX items' });
+    res.status(500).json({ error: 'Failed to fetch why VedX configs' });
   }
 });
 
-// CREATE why vedx
+// CREATE or UPDATE why vedx config
 app.post('/api/hire-developer/why-vedx', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const {
-      title,
-      description,
-      image,
-      heroTitle,
-      heroDescription,
-      heroImage,
-    } = req.body;
+    const { id, category, subcategory, heroTitle, heroDescription, heroImage } = req.body ?? {};
+    const configId = id ? parseIntegerId(id) : null;
 
+    if (!heroTitle || !heroDescription || !heroImage) {
+      return res.status(400).json({ error: 'Hero title, description, and image are required' });
+    }
+
+    const payload = {
+      category: category?.trim() || null,
+      subcategory: subcategory?.trim() || null,
+      heroTitle: String(heroTitle).trim(),
+      heroDescription: String(heroDescription).trim(),
+      heroImage: String(heroImage).trim(),
+    };
+
+    const saved = configId
+      ? await prisma.hireDeveloperWhyVedxConfig.update({ where: { id: configId }, data: payload })
+      : await prisma.hireDeveloperWhyVedxConfig.create({ data: payload });
+
+    res.json(mapHireWhyVedxConfig(saved));
+  } catch (err) {
+    console.error('POST /api/hire-developer/why-vedx error', err);
+    res.status(500).json({ error: 'Failed to save why VedX config' });
+  }
+});
+
+// GET why vedx reasons
+app.get('/api/hire-developer/why-vedx-reasons', async (req, res) => {
+  try {
+    const { whyVedxConfigId, category, subcategory } = req.query;
+    const parsedConfigId = parseIntegerId(whyVedxConfigId);
+
+    const reasons = await prisma.hireDeveloperWhyVedx.findMany({
+      where: {
+        ...(parsedConfigId && { whyVedxConfigId: parsedConfigId }),
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(reasons.map((reason) => ({
+      id: reason.id,
+      title: reason.title,
+      description: reason.description,
+      image: reason.image,
+      category: reason.category || '',
+      subcategory: reason.subcategory || '',
+      whyVedxConfigId: reason.whyVedxConfigId || null,
+      createdAt: reason.createdAt,
+      updatedAt: reason.updatedAt,
+    })));
+  } catch (err) {
+    console.error('GET /api/hire-developer/why-vedx-reasons error', err);
+    res.status(500).json({ error: 'Failed to fetch why VedX reasons' });
+  }
+});
+
+// CREATE why vedx reason
+app.post('/api/hire-developer/why-vedx-reasons', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, image, category, subcategory, whyVedxConfigId } = req.body ?? {};
+    const parsedConfigId = parseIntegerId(whyVedxConfigId);
+
+    if (!parsedConfigId) {
+      return res.status(400).json({ error: 'whyVedxConfigId is required; please create a config first' });
+    }
     if (!title || !String(title).trim()) {
       return res.status(400).json({ error: 'Title is required' });
     }
@@ -7411,26 +7602,41 @@ app.post('/api/hire-developer/why-vedx', async (req, res) => {
       return res.status(400).json({ error: 'Image is required' });
     }
 
-    const item = await prisma.hireDeveloperWhyVedx.create({
+    const config = await prisma.hireDeveloperWhyVedxConfig.findUnique({ where: { id: parsedConfigId } });
+    if (!config) {
+      return res.status(404).json({ error: 'Why VedX config not found' });
+    }
+
+    const created = await prisma.hireDeveloperWhyVedx.create({
       data: {
         title: String(title).trim(),
         description: description?.trim() || null,
         image: String(image).trim(),
-        heroTitle: heroTitle?.trim() || null,
-        heroDescription: heroDescription?.trim() || null,
-        heroImage: heroImage?.trim() || null,
+        category: category?.trim() || null,
+        subcategory: subcategory?.trim() || null,
+        whyVedxConfigId: parsedConfigId,
       },
     });
 
-    res.status(201).json(item);
+    res.status(201).json({
+      id: created.id,
+      title: created.title,
+      description: created.description,
+      image: created.image,
+      category: created.category || '',
+      subcategory: created.subcategory || '',
+      whyVedxConfigId: created.whyVedxConfigId || null,
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
+    });
   } catch (err) {
-    console.error('POST /api/hire-developer/why-vedx error', err);
-    res.status(500).json({ error: 'Failed to create why VedX item' });
+    console.error('POST /api/hire-developer/why-vedx-reasons error', err);
+    res.status(500).json({ error: 'Failed to create why VedX reason' });
   }
 });
 
-// UPDATE why vedx
-app.put('/api/hire-developer/why-vedx/:id', async (req, res) => {
+// UPDATE why vedx reason
+app.put('/api/hire-developer/why-vedx-reasons/:id', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
@@ -7438,14 +7644,19 @@ app.put('/api/hire-developer/why-vedx/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const {
-      title,
-      description,
-      image,
-      heroTitle,
-      heroDescription,
-      heroImage,
-    } = req.body;
+    const { title, description, image, category, subcategory, whyVedxConfigId } = req.body ?? {};
+    const parsedConfigId = parseIntegerId(whyVedxConfigId);
+
+    if (whyVedxConfigId !== undefined && !parsedConfigId) {
+      return res.status(400).json({ error: 'Valid whyVedxConfigId is required' });
+    }
+
+    if (parsedConfigId) {
+      const config = await prisma.hireDeveloperWhyVedxConfig.findUnique({ where: { id: parsedConfigId } });
+      if (!config) {
+        return res.status(404).json({ error: 'Why VedX config not found' });
+      }
+    }
 
     const updated = await prisma.hireDeveloperWhyVedx.update({
       where: { id },
@@ -7453,21 +7664,31 @@ app.put('/api/hire-developer/why-vedx/:id', async (req, res) => {
         ...(title !== undefined && { title: String(title).trim() }),
         description: description?.trim() || null,
         ...(image !== undefined && { image: String(image).trim() }),
-        heroTitle: heroTitle?.trim() || null,
-        heroDescription: heroDescription?.trim() || null,
-        heroImage: heroImage?.trim() || null,
+        ...(category !== undefined && { category: category?.trim() || null }),
+        ...(subcategory !== undefined && { subcategory: subcategory?.trim() || null }),
+        ...(parsedConfigId && { whyVedxConfigId: parsedConfigId }),
       },
     });
 
-    res.json(updated);
+    res.json({
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      image: updated.image,
+      category: updated.category || '',
+      subcategory: updated.subcategory || '',
+      whyVedxConfigId: updated.whyVedxConfigId || null,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    });
   } catch (err) {
-    console.error('PUT /api/hire-developer/why-vedx/:id error', err);
-    res.status(500).json({ error: 'Failed to update why VedX item' });
+    console.error('PUT /api/hire-developer/why-vedx-reasons/:id error', err);
+    res.status(500).json({ error: 'Failed to update why VedX reason' });
   }
 });
 
-// DELETE why vedx
-app.delete('/api/hire-developer/why-vedx/:id', async (req, res) => {
+// DELETE why vedx reason
+app.delete('/api/hire-developer/why-vedx-reasons/:id', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
@@ -7478,81 +7699,184 @@ app.delete('/api/hire-developer/why-vedx/:id', async (req, res) => {
     await prisma.hireDeveloperWhyVedx.delete({ where: { id } });
     res.json({ success: true });
   } catch (err) {
-    console.error('DELETE /api/hire-developer/why-vedx/:id error', err);
-    res.status(500).json({ error: 'Failed to delete why VedX item' });
+    console.error('DELETE /api/hire-developer/why-vedx-reasons/:id error', err);
+    res.status(500).json({ error: 'Failed to delete why VedX reason' });
   }
 });
 
 /* ============================================================
- * 8. HireDeveloperWhyChoose
+ * 8. HireDeveloperWhyChoose (configs + highlights)
  * ============================================================
  */
 
-// GET why choose items (optional category / subcategory)
+const mapHireWhyChooseConfig = (config, includeServices = false) => ({
+  id: config.id,
+  category: config.category || '',
+  subcategory: config.subcategory || '',
+  heroTitle: config.heroTitle,
+  heroDescription: config.heroDescription,
+  heroImage: config.heroImage,
+  tableTitle: config.tableTitle,
+  tableDescription: config.tableDescription,
+  ...(includeServices && {
+    services: (config.services || []).map((item) => ({
+      id: item.id,
+      category: item.category,
+      subcategory: item.subcategory || '',
+      title: item.title,
+      description: item.description,
+      whyChooseConfigId: item.whyChooseConfigId || null,
+    })),
+  }),
+  createdAt: config.createdAt,
+  updatedAt: config.updatedAt,
+});
+
+// GET why choose configs
 app.get('/api/hire-developer/why-choose', async (req, res) => {
   try {
     const { category, subcategory } = req.query;
-
-    const items = await prisma.hireDeveloperWhyChoose.findMany({
+    const configs = await prisma.hireDeveloperWhyChooseConfig.findMany({
       where: {
         ...(category && { category: String(category) }),
         ...(subcategory && { subcategory: String(subcategory) }),
       },
+      include: { services: true },
       orderBy: { createdAt: 'desc' },
     });
 
-    res.json(items);
+    res.json(configs.map((config) => mapHireWhyChooseConfig(config, true)));
   } catch (err) {
     console.error('GET /api/hire-developer/why-choose error', err);
-    res.status(500).json({ error: 'Failed to fetch why choose items' });
+    res.status(500).json({ error: 'Failed to fetch why choose configs' });
   }
 });
 
-// CREATE why choose
+// CREATE or UPDATE why choose config
 app.post('/api/hire-developer/why-choose', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
     const {
+      id,
       category,
       subcategory,
-      title,
-      description,
       heroTitle,
       heroDescription,
       heroImage,
       tableTitle,
       tableDescription,
-    } = req.body;
+    } = req.body ?? {};
+    const configId = id ? parseIntegerId(id) : null;
 
+    if (!category || !heroTitle || !heroDescription || !heroImage || !tableTitle || !tableDescription) {
+      return res.status(400).json({ error: 'Category, hero, and table fields are required' });
+    }
+
+    const payload = {
+      category: String(category).trim(),
+      subcategory: subcategory?.trim() || null,
+      heroTitle: String(heroTitle).trim(),
+      heroDescription: String(heroDescription).trim(),
+      heroImage: String(heroImage).trim(),
+      tableTitle: String(tableTitle).trim(),
+      tableDescription: String(tableDescription).trim(),
+    };
+
+    const saved = configId
+      ? await prisma.hireDeveloperWhyChooseConfig.update({ where: { id: configId }, data: payload, include: { services: true } })
+      : await prisma.hireDeveloperWhyChooseConfig.create({ data: payload, include: { services: true } });
+
+    res.json(mapHireWhyChooseConfig(saved, true));
+  } catch (err) {
+    console.error('POST /api/hire-developer/why-choose error', err);
+    res.status(500).json({ error: 'Failed to save why choose config' });
+  }
+});
+
+// GET why choose highlights
+app.get('/api/hire-developer/why-choose-services', async (req, res) => {
+  try {
+    const { category, subcategory, whyChooseConfigId } = req.query;
+    const parsedConfigId = parseIntegerId(whyChooseConfigId);
+
+    const services = await prisma.hireDeveloperWhyChoose.findMany({
+      where: {
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
+        ...(parsedConfigId && { whyChooseConfigId: parsedConfigId }),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(
+      services.map((item) => ({
+        id: item.id,
+        category: item.category,
+        subcategory: item.subcategory || '',
+        title: item.title,
+        description: item.description,
+        whyChooseConfigId: item.whyChooseConfigId || null,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      }))
+    );
+  } catch (err) {
+    console.error('GET /api/hire-developer/why-choose-services error', err);
+    res.status(500).json({ error: 'Failed to fetch why choose highlights' });
+  }
+});
+
+// CREATE why choose highlight
+app.post('/api/hire-developer/why-choose-services', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { category, subcategory, title, description, whyChooseConfigId } = req.body ?? {};
+    const parsedConfigId = parseIntegerId(whyChooseConfigId);
+
+    if (!parsedConfigId) {
+      return res.status(400).json({ error: 'whyChooseConfigId is required; please create the config first' });
+    }
     if (!category || !String(category).trim() || !title || !String(title).trim()) {
       return res.status(400).json({ error: 'Category and title are required' });
     }
 
-    const item = await prisma.hireDeveloperWhyChoose.create({
+    const config = await prisma.hireDeveloperWhyChooseConfig.findUnique({ where: { id: parsedConfigId } });
+    if (!config) {
+      return res.status(404).json({ error: 'Why Choose config not found' });
+    }
+
+    const created = await prisma.hireDeveloperWhyChoose.create({
       data: {
         category: String(category).trim(),
         subcategory: subcategory?.trim() || null,
         title: String(title).trim(),
         description: description?.trim() || null,
-        heroTitle: heroTitle?.trim() || null,
-        heroDescription: heroDescription?.trim() || null,
-        heroImage: heroImage?.trim() || null,
-        tableTitle: tableTitle?.trim() || null,
-        tableDescription: tableDescription?.trim() || null,
+        whyChooseConfigId: parsedConfigId,
       },
     });
 
-    res.status(201).json(item);
+    res.status(201).json({
+      id: created.id,
+      category: created.category,
+      subcategory: created.subcategory || '',
+      title: created.title,
+      description: created.description,
+      whyChooseConfigId: created.whyChooseConfigId || null,
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
+    });
   } catch (err) {
-    console.error('POST /api/hire-developer/why-choose error', err);
-    res.status(500).json({ error: 'Failed to create why choose item' });
+    console.error('POST /api/hire-developer/why-choose-services error', err);
+    res.status(500).json({ error: 'Failed to create why choose highlight' });
   }
 });
 
-// UPDATE why choose
-app.put('/api/hire-developer/why-choose/:id', async (req, res) => {
+// UPDATE why choose highlight
+app.put('/api/hire-developer/why-choose-services/:id', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
@@ -7560,17 +7884,19 @@ app.put('/api/hire-developer/why-choose/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const {
-      category,
-      subcategory,
-      title,
-      description,
-      heroTitle,
-      heroDescription,
-      heroImage,
-      tableTitle,
-      tableDescription,
-    } = req.body;
+    const { category, subcategory, title, description, whyChooseConfigId } = req.body ?? {};
+    const parsedConfigId = parseIntegerId(whyChooseConfigId);
+
+    if (whyChooseConfigId !== undefined && !parsedConfigId) {
+      return res.status(400).json({ error: 'Valid whyChooseConfigId is required' });
+    }
+
+    if (parsedConfigId) {
+      const config = await prisma.hireDeveloperWhyChooseConfig.findUnique({ where: { id: parsedConfigId } });
+      if (!config) {
+        return res.status(404).json({ error: 'Why Choose config not found' });
+      }
+    }
 
     const updated = await prisma.hireDeveloperWhyChoose.update({
       where: { id },
@@ -7579,23 +7905,28 @@ app.put('/api/hire-developer/why-choose/:id', async (req, res) => {
         subcategory: subcategory?.trim() || null,
         ...(title !== undefined && { title: String(title).trim() }),
         description: description?.trim() || null,
-        heroTitle: heroTitle?.trim() || null,
-        heroDescription: heroDescription?.trim() || null,
-        heroImage: heroImage?.trim() || null,
-        tableTitle: tableTitle?.trim() || null,
-        tableDescription: tableDescription?.trim() || null,
+        ...(parsedConfigId && { whyChooseConfigId: parsedConfigId }),
       },
     });
 
-    res.json(updated);
+    res.json({
+      id: updated.id,
+      category: updated.category,
+      subcategory: updated.subcategory || '',
+      title: updated.title,
+      description: updated.description,
+      whyChooseConfigId: updated.whyChooseConfigId || null,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    });
   } catch (err) {
-    console.error('PUT /api/hire-developer/why-choose/:id error', err);
-    res.status(500).json({ error: 'Failed to update why choose item' });
+    console.error('PUT /api/hire-developer/why-choose-services/:id error', err);
+    res.status(500).json({ error: 'Failed to update why choose highlight' });
   }
 });
 
-// DELETE why choose
-app.delete('/api/hire-developer/why-choose/:id', async (req, res) => {
+// DELETE why choose highlight
+app.delete('/api/hire-developer/why-choose-services/:id', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
@@ -7606,8 +7937,8 @@ app.delete('/api/hire-developer/why-choose/:id', async (req, res) => {
     await prisma.hireDeveloperWhyChoose.delete({ where: { id } });
     res.json({ success: true });
   } catch (err) {
-    console.error('DELETE /api/hire-developer/why-choose/:id error', err);
-    res.status(500).json({ error: 'Failed to delete why choose item' });
+    console.error('DELETE /api/hire-developer/why-choose-services/:id error', err);
+    res.status(500).json({ error: 'Failed to delete why choose highlight' });
   }
 });
 
