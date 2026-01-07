@@ -276,6 +276,7 @@ const WhyChooseTab = ({
                       onChange={(event) => handleWhyHeroChange('category', event.target.value)}
                       fullWidth
                       required
+                      disabled
                     >
                       {categoryOptions.map((option) => (
                         <MenuItem key={option.value} value={option.value}>

@@ -4220,6 +4220,7 @@ const AdminHiredeveloperPage = () => {
                   helperText="Link the benefit to a service category"
                 />
               )}
+              disabled
             />
             <Autocomplete
               freeSolo
