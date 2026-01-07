@@ -465,7 +465,7 @@ const BenefitsTab = ({
               ),
             }}
             fullWidth
-            disabled={disableCategoryFields}
+          
           >
             <MenuItem value="">Select category</MenuItem>
             {benefitHeroCategoryOptions.map((option) => (
@@ -491,11 +491,7 @@ const BenefitsTab = ({
               ),
             }}
             fullWidth
-            disabled={
-              disableCategoryFields ||
-              !benefitHeroCategoryOptions.length ||
-              !normalizeId(benefitHero.categoryId)
-            }
+           
           >
             <MenuItem value="">
               {heroCategoryId ? 'Select sub-category' : 'Select category first'}

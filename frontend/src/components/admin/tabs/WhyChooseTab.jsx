@@ -277,7 +277,7 @@ const WhyChooseTab = ({
                       onChange={(event) => handleWhyHeroChange('category', event.target.value)}
                       fullWidth
                       required
-                      disabled
+                     
                     >
                       {categoryOptions.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
@@ -292,11 +292,7 @@ const WhyChooseTab = ({
                       value={whyHeroForm.subcategory}
                       onChange={(event) => handleWhyHeroChange('subcategory', event.target.value)}
                       fullWidth
-                      disabled={
-                        disableCategoryFields ||
-                        !whyHeroForm.category ||
-                        (subcategoryLookup.get(whyHeroForm.category) || []).length === 0
-                      }
+                      
                     >
                       {(subcategoryLookup.get(whyHeroForm.category) || []).map((option) => (
                         <MenuItem key={option} value={option}>
