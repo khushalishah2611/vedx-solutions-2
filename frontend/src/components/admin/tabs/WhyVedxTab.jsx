@@ -59,6 +59,7 @@ function ValidationDialog({ open, title, messages, onClose }) {
 const isBlank = (v) => String(v ?? '').trim().length === 0;
 
 export default function WhyVedxTab({
+  showHeroImage = true,
   categoryOptions = [],
   whyVedxCategoryFilter,
   setWhyVedxCategoryFilter,
@@ -111,7 +112,7 @@ export default function WhyVedxTab({
 
     if (isBlank(title)) errors.push('Title is required.');
     if (isBlank(description)) errors.push('Description is required.');
-    if (!heroImage) errors.push('Hero image is required.');
+    if (showHeroImage && !heroImage) errors.push('Hero image is required.');
 
     return errors;
   };
@@ -259,7 +260,7 @@ export default function WhyVedxTab({
               sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}
             >
               <Grid container spacing={2}>
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={showHeroImage ? 8 : 12}>
                   <Stack spacing={2}>
                     <Autocomplete
                       disableClearable={false}
@@ -332,14 +333,16 @@ export default function WhyVedxTab({
                     </Button>
                   </Stack>
                 </Grid>
-                <Grid item xs={12} md={4}>
-                  <ImageUpload
-                    label="Hero image"
-                    value={whyVedxHeroForm?.heroImage || ''}
-                    onChange={(value) => handleWhyVedxHeroChange?.('heroImage', value)}
-                    required
-                  />
-                </Grid>
+                {showHeroImage && (
+                  <Grid item xs={12} md={4}>
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyVedxHeroForm?.heroImage || ''}
+                      onChange={(value) => handleWhyVedxHeroChange?.('heroImage', value)}
+                      required
+                    />
+                  </Grid>
+                )}
               </Grid>
             </Box>
 
