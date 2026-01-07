@@ -82,6 +82,7 @@ export default function WhyVedxTab({
   openWhyVedxCreateDialog,
   openWhyVedxEditDialog,
   openWhyVedxDeleteDialog,
+  showHeroImage = false,
 }) {
   const [validationOpen, setValidationOpen] = React.useState(false);
   const [validationTitle, setValidationTitle] = React.useState('Validation');
@@ -111,7 +112,7 @@ export default function WhyVedxTab({
 
     if (isBlank(title)) errors.push('Title is required.');
     if (isBlank(description)) errors.push('Description is required.');
-    if (!heroImage) errors.push('Hero image is required.');
+    if (showHeroImage && !heroImage) errors.push('Hero image is required.');
 
     return errors;
   };
@@ -332,14 +333,16 @@ export default function WhyVedxTab({
                     </Button>
                   </Stack>
                 </Grid>
-                <Grid item xs={12} md={4}>
-                  <ImageUpload
-                    label="Hero image"
-                    value={whyVedxHeroForm?.heroImage || ''}
-                    onChange={(value) => handleWhyVedxHeroChange?.('heroImage', value)}
-                    required
-                  />
-                </Grid>
+                {showHeroImage && (
+                  <Grid item xs={12} md={4}>
+                    <ImageUpload
+                      label="Hero image"
+                      value={whyVedxHeroForm?.heroImage || ''}
+                      onChange={(value) => handleWhyVedxHeroChange?.('heroImage', value)}
+                      required
+                    />
+                  </Grid>
+                )}
               </Grid>
             </Box>
 

@@ -2936,6 +2936,7 @@ const AdminHiredeveloperPage = () => {
           openWhyVedxCreateDialog={openWhyVedxCreateDialog}
           openWhyVedxEditDialog={openWhyVedxEditDialog}
           openWhyVedxDeleteDialog={openWhyVedxDeleteDialog}
+          showHeroImage
         />
       )}
 

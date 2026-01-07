@@ -1013,7 +1013,6 @@ model HireDeveloperWhyVedx {
 
   heroTitle       String?
   heroDescription String?  @db.LongText
-  heroImage       String?  @db.LongText
   whyVedxConfigId Int?
   whyVedxConfig   HireDeveloperWhyVedxConfig? @relation(fields: [whyVedxConfigId], references: [id], onDelete: SetNull)
 
