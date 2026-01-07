@@ -1006,10 +1006,9 @@ model HireDeveloperWhyVedx {
   id              Int      @id @default(autoincrement())
   title           String
   description     String?  @db.LongText
-  image           String @db.LongText
+  image           String? @db.LongText
   category        String?
   subcategory     String?
-
   heroTitle       String?
   heroDescription String?  @db.LongText
   whyVedxConfigId Int?
