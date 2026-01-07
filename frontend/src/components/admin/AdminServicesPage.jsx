@@ -75,6 +75,7 @@ const emptyWhyVedxHero = {
   subcategoryName: '',
   heroTitle: '',
   heroDescription: '',
+  heroImage: imagePlaceholder,
   reasons: [],
 };
 
@@ -509,6 +510,7 @@ const AdminServicesPage = () => {
       subcategoryName: item?.subcategoryName || item?.subcategory || '',
       heroTitle: item?.heroTitle || '',
       heroDescription: item?.heroDescription || '',
+      heroImage: item?.heroImage || imagePlaceholder,
       reasons: (item?.reasons || []).map(normalizeWhyVedxReason),
     }),
     [normalizeWhyVedxReason]
@@ -2073,6 +2075,7 @@ const AdminServicesPage = () => {
           subcategoryId: whyVedxHeroForm.subcategoryId || null,
           heroTitle: whyVedxHeroForm.heroTitle,
           heroDescription: whyVedxHeroForm.heroDescription,
+          heroImage: whyVedxHeroForm.heroImage,
         }),
       });
 
