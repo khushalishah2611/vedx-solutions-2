@@ -211,6 +211,7 @@ const BenefitsTab = ({
   openBenefitEditDialog,
   openBenefitDeleteDialog,
   imagePlaceholder,
+  disableCategoryFields = false,
 }) => {
   const [validationOpen, setValidationOpen] = React.useState(false);
   const [validationTitle, setValidationTitle] = React.useState('Validation');
@@ -464,6 +465,7 @@ const BenefitsTab = ({
               ),
             }}
             fullWidth
+            disabled={disableCategoryFields}
           >
             <MenuItem value="">Select category</MenuItem>
             {benefitHeroCategoryOptions.map((option) => (
@@ -489,7 +491,11 @@ const BenefitsTab = ({
               ),
             }}
             fullWidth
-            disabled={!benefitHeroCategoryOptions.length || !normalizeId(benefitHero.categoryId)}
+            disabled={
+              disableCategoryFields ||
+              !benefitHeroCategoryOptions.length ||
+              !normalizeId(benefitHero.categoryId)
+            }
           >
             <MenuItem value="">
               {heroCategoryId ? 'Select sub-category' : 'Select category first'}
@@ -695,6 +701,7 @@ BenefitsTab.propTypes = {
   openBenefitEditDialog: PropTypes.func.isRequired,
   openBenefitDeleteDialog: PropTypes.func.isRequired,
   imagePlaceholder: PropTypes.string.isRequired,
+  disableCategoryFields: PropTypes.bool,
 };
 
 export default BenefitsTab;

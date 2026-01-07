@@ -1991,7 +1991,11 @@ const AdminHiredeveloperPage = () => {
   const openContactButtonCreateDialog = () => {
     setContactButtonDialogMode('create');
     setActiveContactButton(null);
-    resetContactButtonForm();
+    setContactButtonForm({
+      ...emptyContactButtonForm,
+      category: contactCategoryFilter || '',
+      subcategory: contactSubcategoryFilter || '',
+    });
     setContactButtonDialogOpen(true);
   };
 
@@ -2547,6 +2551,7 @@ const AdminHiredeveloperPage = () => {
     if (!serviceForm.category) return allSubcategoryOptions;
     return subcategoryLookup.get(serviceForm.category) || allSubcategoryOptions;
   }, [allSubcategoryOptions, serviceForm.category, subcategoryLookup]);
+  const selectedServiceSubcategory = serviceForm.subcategories?.[0]?.name || '';
 
   const benefitSubcategoryOptions = useMemo(() => {
     if (!benefitForm.category) return allSubcategoryOptions;
@@ -3286,6 +3291,7 @@ const AdminHiredeveloperPage = () => {
           categoryOptions={categoryOptions}
           subcategoryLookup={subcategoryLookup}
           allSubcategoryOptions={allSubcategoryOptions}
+          disableCategoryFields
           whyServiceCategoryFilter={whyServiceCategoryFilter}
           setWhyServiceCategoryFilter={setWhyServiceCategoryFilter}
           whyServiceSubcategoryFilter={whyServiceSubcategoryFilter}
@@ -3453,6 +3459,7 @@ const AdminHiredeveloperPage = () => {
           categoryOptions={categoryOptions}
           subcategoryLookup={subcategoryLookup}
           allSubcategoryOptions={allSubcategoryOptions}
+          disableCategoryFields
           benefitCategoryFilter={benefitCategoryFilter}
           setBenefitCategoryFilter={setBenefitCategoryFilter}
           benefitSubcategoryFilter={benefitSubcategoryFilter}
@@ -3652,7 +3659,11 @@ const AdminHiredeveloperPage = () => {
                   options={categoryOptions.map((option) => option.label)}
                   value={serviceForm.category}
                   onInputChange={(event, newValue) =>
-                    handleServiceFormChange('category', newValue || '')
+                    setServiceForm((prev) => ({
+                      ...prev,
+                      category: newValue || '',
+                      subcategories: newValue === prev.category ? prev.subcategories : [],
+                    }))
                   }
                   renderInput={(params) => (
                     <TextField {...params} label="Category" required helperText="Choose or type a category" />
@@ -3661,21 +3672,19 @@ const AdminHiredeveloperPage = () => {
               </Grid>
               <Grid item xs={12}>
                 <Autocomplete
-                  multiple
-                  freeSolo
                   options={serviceFormSubcategoryOptions}
-                  value={serviceForm.subcategories.map((item) => item.name)}
+                  value={selectedServiceSubcategory || null}
                   onChange={(event, newValue) =>
                     setServiceForm((prev) => ({
                       ...prev,
-                      subcategories: newValue.map((name) => ({ name })),
+                      subcategories: newValue ? [{ name: newValue }] : [],
                     }))
                   }
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Sub-categories"
-                      placeholder="Select or type sub-categories"
+                      label="Sub-category"
+                      placeholder="Select sub-category"
                       helperText={
                         serviceForm.category
                           ? 'Linked to the selected service category'
@@ -3683,6 +3692,7 @@ const AdminHiredeveloperPage = () => {
                       }
                     />
                   )}
+                  disabled={!serviceForm.category && serviceFormSubcategoryOptions.length === 0}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -4304,6 +4314,7 @@ const AdminHiredeveloperPage = () => {
               value={contactButtonForm.category}
               onInputChange={(event, newValue) => handleContactButtonFormChange('category', newValue || '')}
               renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth />}
+              disabled
             />
 
             <Autocomplete
@@ -4319,7 +4330,7 @@ const AdminHiredeveloperPage = () => {
               renderInput={(params) => (
                 <TextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth />
               )}
-              disabled={!contactButtonForm.category && (allSubcategoryOptions || []).length === 0}
+              disabled
             />
 
             <ImageUpload

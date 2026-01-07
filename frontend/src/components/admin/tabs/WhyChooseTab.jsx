@@ -86,6 +86,7 @@ const WhyChooseTab = ({
   rowsPerPage,
   whyServicePage,
   setWhyServicePage,
+  disableCategoryFields = false,
 }) => {
   const [validationOpen, setValidationOpen] = React.useState(false);
   const [validationTitle, setValidationTitle] = React.useState('Validation');
@@ -291,7 +292,11 @@ const WhyChooseTab = ({
                       value={whyHeroForm.subcategory}
                       onChange={(event) => handleWhyHeroChange('subcategory', event.target.value)}
                       fullWidth
-                      disabled={!whyHeroForm.category || (subcategoryLookup.get(whyHeroForm.category) || []).length === 0}
+                      disabled={
+                        disableCategoryFields ||
+                        !whyHeroForm.category ||
+                        (subcategoryLookup.get(whyHeroForm.category) || []).length === 0
+                      }
                     >
                       {(subcategoryLookup.get(whyHeroForm.category) || []).map((option) => (
                         <MenuItem key={option} value={option}>
@@ -487,6 +492,7 @@ WhyChooseTab.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
   whyServicePage: PropTypes.number.isRequired,
   setWhyServicePage: PropTypes.func.isRequired,
+  disableCategoryFields: PropTypes.bool,
 };
 
 export default WhyChooseTab;
