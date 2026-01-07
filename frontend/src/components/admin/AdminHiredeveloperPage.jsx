@@ -2342,9 +2342,7 @@ const AdminHiredeveloperPage = () => {
                                     <Typography variant="body2" fontWeight={600}>
                                       {service.bannerTitle}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary" noWrap>
-                                      {service.bannerSubtitle}
-                                    </Typography>
+                                 
                                   </Stack>
                                 </TableCell>
                                 
