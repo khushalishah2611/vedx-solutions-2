@@ -1933,11 +1933,11 @@ const AdminHiredeveloperPage = () => {
           prev.map((item) =>
             String(item.id) === String(selectedWhyChooseId)
               ? {
-                  ...item,
-                  services: (item.services || []).map((service) =>
-                    service.id === normalized.id ? normalized : service
-                  ),
-                }
+                ...item,
+                services: (item.services || []).map((service) =>
+                  service.id === normalized.id ? normalized : service
+                ),
+              }
               : item
           )
         );
@@ -2726,7 +2726,7 @@ const AdminHiredeveloperPage = () => {
                             <TableRow>
                               <TableCell>Sub-categories</TableCell>
                               <TableCell>Banner</TableCell>
-                              
+
                               <TableCell>FAQs</TableCell>
                               <TableCell>Totals</TableCell>
                               <TableCell align="right">Actions</TableCell>
@@ -2753,10 +2753,10 @@ const AdminHiredeveloperPage = () => {
                                     <Typography variant="body2" fontWeight={600}>
                                       {service.bannerTitle}
                                     </Typography>
-                                 
+
                                   </Stack>
                                 </TableCell>
-                                
+
                                 <TableCell>
                                   <Chip label={`${service.faqs?.length || 0} FAQs`} size="small" />
                                 </TableCell>
@@ -4061,6 +4061,7 @@ const AdminHiredeveloperPage = () => {
               }
               fullWidth
               required
+              disabled
             >
               {categoryOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -4074,7 +4075,7 @@ const AdminHiredeveloperPage = () => {
               value={whyServiceForm.subcategory}
               onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
               fullWidth
-              disabled={!whyServiceForm.category || whySubcategoryOptions.length === 0}
+              disabled
               helperText={
                 !whyServiceForm.category
                   ? 'Select a category first'
@@ -4230,7 +4231,7 @@ const AdminHiredeveloperPage = () => {
                 handleBenefitFormChange('subcategory', newValue || '')
               }
               renderInput={(params) => <TextField {...params} label="Sub-category" />}
-              disabled={!benefitForm.category && benefitSubcategoryOptions.length === 0}
+              disabled
             />
             <ImageUpload
               label="Image"
