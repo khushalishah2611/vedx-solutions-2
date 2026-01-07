@@ -59,6 +59,7 @@ function ValidationDialog({ open, title, messages, onClose }) {
 const isBlank = (v) => String(v ?? '').trim().length === 0;
 
 export default function WhyVedxTab({
+  showHeroImage = true,
   categoryOptions = [],
   whyVedxCategoryFilter,
   setWhyVedxCategoryFilter,
@@ -260,7 +261,7 @@ export default function WhyVedxTab({
               sx={{ p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}
             >
               <Grid container spacing={2}>
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={showHeroImage ? 8 : 12}>
                   <Stack spacing={2}>
                     <Autocomplete
                       disableClearable={false}

@@ -868,7 +868,6 @@ model WhyVedx {
   id              Int             @id @default(autoincrement())
   heroTitle       String
   heroDescription String          @db.LongText
-  heroImage       String          @db.LongText
 
   reasons         WhyVedxReason[]
   categoryId      Int?
