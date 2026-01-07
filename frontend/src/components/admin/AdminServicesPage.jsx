@@ -2686,7 +2686,7 @@ const AdminServicesPage = () => {
               fullWidth
               required
               disabled
-              helperText="Category is set by the current Why choose config"
+              
             >
               {categoryOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -2701,7 +2701,7 @@ const AdminServicesPage = () => {
               value={whyServiceForm.subcategory}
               fullWidth
               disabled
-              helperText="Sub-category follows the selected Why choose config"
+             
             >
               {whySubcategoryOptions.map((option) => (
                 <MenuItem key={option.name} value={option.name}>
