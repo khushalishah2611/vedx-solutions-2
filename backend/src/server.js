@@ -7481,7 +7481,6 @@ const mapHireWhyVedxConfig = (config, includeReasons = false) => ({
   subcategory: config.subcategory || '',
   heroTitle: config.heroTitle,
   heroDescription: config.heroDescription,
-  heroImage: config.heroImage,
   ...(includeReasons && {
     reasons: (config.reasons || []).map((reason) => ({
       id: reason.id,
@@ -7525,11 +7524,11 @@ app.post('/api/hire-developer/why-vedx', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { id, category, subcategory, heroTitle, heroDescription, heroImage } = req.body ?? {};
+    const { id, category, subcategory, heroTitle, heroDescription } = req.body ?? {};
     const configId = id ? parseIntegerId(id) : null;
 
-    if (!heroTitle || !heroDescription || !heroImage) {
-      return res.status(400).json({ error: 'Hero title, description, and image are required' });
+    if (!heroTitle || !heroDescription) {
+      return res.status(400).json({ error: 'Hero title and description are required' });
     }
 
     const payload = {
@@ -7537,7 +7536,6 @@ app.post('/api/hire-developer/why-vedx', async (req, res) => {
       subcategory: subcategory?.trim() || null,
       heroTitle: String(heroTitle).trim(),
       heroDescription: String(heroDescription).trim(),
-      heroImage: String(heroImage).trim(),
     };
 
     const saved = configId

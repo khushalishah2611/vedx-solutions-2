@@ -71,7 +71,6 @@ const initialWhyVedxState = {
   subcategoryId: '',
   heroTitle: '',
   heroDescription: '',
-  heroImage: imagePlaceholder,
   reasons: [],
 };
 
@@ -175,7 +174,6 @@ const emptyWhyVedxHero = {
   subcategoryId: '',
   heroTitle: '',
   heroDescription: '',
-  heroImage: imagePlaceholder,
 };
 
 const emptyWhyVedxForm = {
@@ -329,7 +327,6 @@ const normalizeWhyVedx = (item) => ({
   subcategoryId: item.subcategory || '',
   heroTitle: item.heroTitle || '',
   heroDescription: item.heroDescription || '',
-  heroImage: item.heroImage || imagePlaceholder,
   reasons: (item.reasons || []).map(normalizeWhyVedxReason),
 });
 
@@ -2136,7 +2133,6 @@ const AdminHiredeveloperPage = () => {
           subcategory: whyVedxHeroForm.subcategoryId,
           heroTitle: whyVedxHeroForm.heroTitle,
           heroDescription: whyVedxHeroForm.heroDescription,
-          heroImage: whyVedxHeroForm.heroImage,
         }),
       });
 
@@ -2570,6 +2566,18 @@ const AdminHiredeveloperPage = () => {
     return options.map((option) => ({ name: option }));
   }, [subcategoryLookup, whyServiceForm.category]);
 
+  const whyVedxReasonCategoryOptions = useMemo(
+    () => categoryOptions.map((option) => ({ value: option.value, label: option.label })),
+    [categoryOptions]
+  );
+
+  const whyVedxReasonSubcategoryOptions = useMemo(() => {
+    const options = whyVedxForm.category
+      ? subcategoryLookup.get(whyVedxForm.category) || []
+      : allSubcategoryOptions;
+    return options.map((option) => ({ value: option, label: option }));
+  }, [allSubcategoryOptions, subcategoryLookup, whyVedxForm.category]);
+
   return (
     <Stack spacing={3}>
       <AdminSectionTabs
@@ -2898,6 +2906,7 @@ const AdminHiredeveloperPage = () => {
 
       {activeTab === 'why-vedx' && (
         <WhyVedxTab
+          showHeroImage={false}
           categoryOptions={categoryOptions}
           whyVedxCategoryFilter={whyVedxCategoryFilter}
           setWhyVedxCategoryFilter={setWhyVedxCategoryFilter}
@@ -4405,6 +4414,24 @@ const AdminHiredeveloperPage = () => {
         <DialogTitle>{whyVedxDialogMode === 'edit' ? 'Edit reason' : 'Add reason'}</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleWhyVedxSubmit}>
+            <Autocomplete
+              clearOnEscape
+              options={whyVedxReasonCategoryOptions}
+              value={whyVedxReasonCategoryOptions.find((option) => String(option.value) === String(whyVedxForm.category)) || null}
+              disabled
+              renderInput={(params) => <TextField {...params} label="Category" fullWidth />}
+              fullWidth
+            />
+            <Autocomplete
+              clearOnEscape
+              options={whyVedxReasonSubcategoryOptions}
+              value={
+                whyVedxReasonSubcategoryOptions.find((option) => String(option.value) === String(whyVedxForm.subcategory)) || null
+              }
+              disabled
+              renderInput={(params) => <TextField {...params} label="Subcategory" fullWidth />}
+              fullWidth
+            />
             <TextField
               label="Title"
               value={whyVedxForm.title}
