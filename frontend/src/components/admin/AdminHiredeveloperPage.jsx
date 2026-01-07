@@ -71,7 +71,6 @@ const initialWhyVedxState = {
   subcategoryId: '',
   heroTitle: '',
   heroDescription: '',
-  heroImage: imagePlaceholder,
   reasons: [],
 };
 
@@ -175,7 +174,6 @@ const emptyWhyVedxHero = {
   subcategoryId: '',
   heroTitle: '',
   heroDescription: '',
-  heroImage: imagePlaceholder,
 };
 
 const emptyWhyVedxForm = {
@@ -329,7 +327,6 @@ const normalizeWhyVedx = (item) => ({
   subcategoryId: item.subcategory || '',
   heroTitle: item.heroTitle || '',
   heroDescription: item.heroDescription || '',
-  heroImage: item.heroImage || imagePlaceholder,
   reasons: (item.reasons || []).map(normalizeWhyVedxReason),
 });
 
@@ -2136,7 +2133,6 @@ const AdminHiredeveloperPage = () => {
           subcategory: whyVedxHeroForm.subcategoryId,
           heroTitle: whyVedxHeroForm.heroTitle,
           heroDescription: whyVedxHeroForm.heroDescription,
-          heroImage: whyVedxHeroForm.heroImage,
         }),
       });
 
@@ -2898,6 +2894,7 @@ const AdminHiredeveloperPage = () => {
 
       {activeTab === 'why-vedx' && (
         <WhyVedxTab
+          showHeroImage={false}
           categoryOptions={categoryOptions}
           whyVedxCategoryFilter={whyVedxCategoryFilter}
           setWhyVedxCategoryFilter={setWhyVedxCategoryFilter}

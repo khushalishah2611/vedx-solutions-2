@@ -1029,7 +1029,6 @@ model HireDeveloperWhyVedxConfig {
   subcategory     String?
   heroTitle       String
   heroDescription String   @db.LongText
-  heroImage       String   @db.LongText
   reasons         HireDeveloperWhyVedx[]
 
   createdAt       DateTime @default(now())
