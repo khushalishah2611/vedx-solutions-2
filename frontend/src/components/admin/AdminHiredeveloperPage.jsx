@@ -4318,9 +4318,9 @@ const AdminHiredeveloperPage = () => {
               options={categoryOptions.map((option) => option.label)}
               value={contactButtonForm.category}
               onInputChange={(event, newValue) => handleContactButtonFormChange('category', newValue || '')}
-              renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth />}
+              renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth required />}
               
-              required
+              
             />
 
             <Autocomplete
@@ -4334,10 +4334,10 @@ const AdminHiredeveloperPage = () => {
               value={contactButtonForm.subcategory}
               onInputChange={(event, newValue) => handleContactButtonFormChange('subcategory', newValue || '')}
               renderInput={(params) => (
-                <TextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth />
+                <TextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth    required/>
               )}
               
-              required
+            
             />
 
             <ImageUpload
