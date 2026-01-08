@@ -4178,7 +4178,7 @@ const AdminHiredeveloperPage = () => {
                     .filter(Boolean)
                 );
               }}
-              requiredA
+              required
               fullWidth
             />
           </Stack>
@@ -4319,7 +4319,7 @@ const AdminHiredeveloperPage = () => {
               value={contactButtonForm.category}
               onInputChange={(event, newValue) => handleContactButtonFormChange('category', newValue || '')}
               renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth />}
-              disabled
+              
               required
             />
 
@@ -4336,7 +4336,7 @@ const AdminHiredeveloperPage = () => {
               renderInput={(params) => (
                 <TextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth />
               )}
-              disabled
+              
               required
             />
 
