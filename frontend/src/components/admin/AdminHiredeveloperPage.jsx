@@ -614,7 +614,7 @@ const AdminHiredeveloperPage = () => {
   const [activeExpertise, setActiveExpertise] = useState(null);
   const [expertiseToDelete, setExpertiseToDelete] = useState(null);
 
-  const rowsPerPage = 5;
+const rowsPerPage = 20;
   const [serviceDateFilter, setServiceDateFilter] = useState('all');
   const [serviceDateRange, setServiceDateRange] = useState({ start: '', end: '' });
   const [serviceCategoryFilter, setServiceCategoryFilter] = useState('');
