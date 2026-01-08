@@ -6091,7 +6091,7 @@ app.post('/api/why-choose', async (req, res) => {
 
     const baseData = {
       category,
-      subcategory: subcategory || null,
+      subcategory: subcategory?.trim() || null,
       heroTitle,
       heroDescription,
       heroImage,
@@ -6186,7 +6186,7 @@ app.post('/api/why-services', async (req, res) => {
     const created = await prisma.whyService.create({
       data: {
         category,
-        subcategory: subcategory || null,
+        subcategory: subcategory?.trim() || null,
         title,
         description,
         whyChooseId: resolvedWhyChooseId,
@@ -6213,7 +6213,12 @@ app.put('/api/why-services/:id', async (req, res) => {
 
     const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
 
-    const data = { category, subcategory, title, description };
+    const data = {
+      category,
+      subcategory: subcategory === undefined ? undefined : subcategory?.trim() || null,
+      title,
+      description,
+    };
 
     if (whyChooseId !== undefined) {
       const resolvedWhyChooseId = await resolveWhyChooseId(whyChooseId);
@@ -7900,7 +7905,7 @@ app.put('/api/hire-developer/why-choose-services/:id', async (req, res) => {
       where: { id },
       data: {
         ...(category !== undefined && { category: String(category).trim() }),
-        subcategory: subcategory?.trim() || null,
+        ...(subcategory !== undefined && { subcategory: subcategory?.trim() || null }),
         ...(title !== undefined && { title: String(title).trim() }),
         description: description?.trim() || null,
         ...(parsedConfigId && { whyChooseConfigId: parsedConfigId }),

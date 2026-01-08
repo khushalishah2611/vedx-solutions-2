@@ -291,6 +291,7 @@ const WhyChooseTab = ({
                       fullWidth
                       
                     >
+                      <MenuItem value="">No sub-category</MenuItem>
                       {(subcategoryLookup.get(whyHeroForm.category) || []).map((option) => (
                         <MenuItem key={option} value={option}>
                           {option}
