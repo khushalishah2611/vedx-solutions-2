@@ -110,9 +110,6 @@ const WhyChooseTab = ({
     if (!category) errors.push('Category is required.');
 
     const allowedSubs = category ? (subcategoryLookup.get(category) || []) : [];
-    if (allowedSubs.length > 0 && !subcategory) {
-      errors.push('Sub-category is required for this category.');
-    }
     if (subcategory && allowedSubs.length > 0) {
       const allowed = allowedSubs.map(String);
       if (!allowed.includes(String(subcategory))) {

@@ -98,17 +98,11 @@ export default function WhyVedxTab({
     const errors = [];
 
     const categoryId = String(whyVedxHeroForm?.categoryId || '').trim();
-    const subcategoryId = String(whyVedxHeroForm?.subcategoryId || '').trim();
     const title = String(whyVedxHeroForm?.heroTitle || '').trim();
     const description = String(whyVedxHeroForm?.heroDescription || '').trim();
     const heroImage = whyVedxHeroForm?.heroImage;
 
     if (!categoryId) errors.push('Category is required.');
-
-    // If this category has subcategories, require it
-    if (categoryId && (whyVedxSubcategoryOptions || []).length > 0 && !subcategoryId) {
-      errors.push('Subcategory is required for this category.');
-    }
 
     if (isBlank(title)) errors.push('Title is required.');
     if (isBlank(description)) errors.push('Description is required.');

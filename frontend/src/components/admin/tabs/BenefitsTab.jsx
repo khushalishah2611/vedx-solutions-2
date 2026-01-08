@@ -91,7 +91,7 @@ const uniqueBy = (arr, keyFn) => {
  * Validation: Benefits Hero form
  * - title required
  * - categoryId required (because hero is config-based)
- * - subcategoryId required if there are subcategories for selected category
+ * - subcategoryId optional (validate only when provided)
  */
 function validateBenefitHero(hero, benefitHeroSubcategoryOptions) {
   const errors = {};
@@ -112,11 +112,6 @@ function validateBenefitHero(hero, benefitHeroSubcategoryOptions) {
     const allowedSubs = (benefitHeroSubcategoryOptions || [])
       .filter((opt) => normalizeId(opt.categoryId) === normalizeId(categoryId))
       .map((opt) => normalizeId(opt.value));
-
-    // if category has sub options, enforce subcategory
-    if (allowedSubs.length > 0 && !subcategoryId) {
-      errors.subcategoryId = 'Sub-category is required for this category.';
-    }
 
     // if subcategory chosen but not allowed
     if (subcategoryId && allowedSubs.length > 0 && !allowedSubs.includes(subcategoryId)) {
