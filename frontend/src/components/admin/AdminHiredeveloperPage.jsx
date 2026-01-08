@@ -1108,12 +1108,8 @@ const AdminHiredeveloperPage = () => {
     setTechnologyForm(emptyTechnologyForm);
     setTechnologyItemsInput('');
   };
-  const resetBenefitForm = () => setBenefitForm(emptyBenefitForm);
   const resetHirePricingForm = () => setHirePricingForm(emptyHirePricingForm);
-  const resetContactButtonForm = () => setContactButtonForm(emptyContactButtonForm);
-  const resetWhyServiceForm = () => setWhyServiceForm(emptyWhyServiceForm);
   const resetProcessForm = () => setProcessForm(emptyProcessForm);
-  const resetWhyVedxForm = () => setWhyVedxForm(emptyWhyVedxForm);
   const resetOurServiceForm = () => setOurServiceForm(emptyOurServiceForm);
   const resetIndustryForm = () => setIndustryForm(emptyIndustryForm);
   const resetTechSolutionForm = () => setTechSolutionForm(emptyTechSolutionForm);
@@ -3697,6 +3693,7 @@ const AdminHiredeveloperPage = () => {
                   value={serviceForm.bannerTitle}
                   onChange={(event) => handleServiceFormChange('bannerTitle', event.target.value)}
                   fullWidth
+                  required
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -3705,11 +3702,12 @@ const AdminHiredeveloperPage = () => {
                   value={serviceForm.bannerSubtitle}
                   onChange={(event) => handleServiceFormChange('bannerSubtitle', event.target.value)}
                   fullWidth
+                  required
                 />
               </Grid>
               <Grid item xs={12}>
                 <ImageUpload
-                  label="Banner image"
+                  label="Banner image*"
                   value={serviceForm.bannerImage}
                   onChange={(value) => handleServiceFormChange('bannerImage', value)}
                   required
@@ -3723,6 +3721,7 @@ const AdminHiredeveloperPage = () => {
                   onChange={(event) => handleServiceFormChange('totalServices', Number(event.target.value))}
                   fullWidth
                   inputProps={{ min: 0 }}
+                  required
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -3730,6 +3729,7 @@ const AdminHiredeveloperPage = () => {
                   type="number"
                   label="Total projects"
                   value={serviceForm.totalProjects}
+                  required
                   onChange={(event) => handleServiceFormChange('totalProjects', Number(event.target.value))}
                   fullWidth
                   inputProps={{ min: 0 }}
@@ -3742,6 +3742,7 @@ const AdminHiredeveloperPage = () => {
                   value={serviceForm.totalClients}
                   onChange={(event) => handleServiceFormChange('totalClients', Number(event.target.value))}
                   fullWidth
+                  required
                   inputProps={{ min: 0 }}
                 />
               </Grid>
@@ -3753,6 +3754,7 @@ const AdminHiredeveloperPage = () => {
                       <TextField
                         label="Question"
                         value={faqDraft.question}
+                        required
                         onChange={(event) => setFaqDraft((prev) => ({ ...prev, question: event.target.value }))}
                         fullWidth
                       />
@@ -3763,6 +3765,7 @@ const AdminHiredeveloperPage = () => {
                         value={faqDraft.answer}
                         onChange={(event) => setFaqDraft((prev) => ({ ...prev, answer: event.target.value }))}
                         fullWidth
+                        required
                       />
                     </Grid>
                     <Grid item xs={12} sm={2}>
@@ -3910,6 +3913,7 @@ const AdminHiredeveloperPage = () => {
               value={hirePricingForm.subtitle}
               onChange={(event) => handleHirePricingFormChange('subtitle', event.target.value)}
               fullWidth
+              required
             />
             <TextField
               label="Price"
@@ -3925,6 +3929,7 @@ const AdminHiredeveloperPage = () => {
               fullWidth
               multiline
               minRows={3}
+              required
             />
             <Stack spacing={1}>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
@@ -3934,6 +3939,7 @@ const AdminHiredeveloperPage = () => {
                   onChange={(event) => setNewHirePricingService(event.target.value)}
                   helperText="Add the inclusions for this pricing plan"
                   fullWidth
+                  required
                 />
 
               </Stack>
@@ -4110,6 +4116,7 @@ const AdminHiredeveloperPage = () => {
               fullWidth
               multiline
               minRows={3}
+              required
             />
           </Stack>
         </DialogContent>
@@ -4152,7 +4159,7 @@ const AdminHiredeveloperPage = () => {
               required
             />
             <ImageUpload
-              label="Image selection"
+              label="Image selection *"
               value={technologyForm.image}
               onChange={(value) => handleTechnologyFormChange('image', value)}
               required
@@ -4171,6 +4178,7 @@ const AdminHiredeveloperPage = () => {
                     .filter(Boolean)
                 );
               }}
+              requiredA
               fullWidth
             />
           </Stack>
@@ -4240,7 +4248,7 @@ const AdminHiredeveloperPage = () => {
               disabled
             />
             <ImageUpload
-              label="Image"
+              label="Image *"
               value={benefitForm.image}
               onChange={(value) => handleBenefitFormChange('image', value)}
               required
@@ -4301,6 +4309,7 @@ const AdminHiredeveloperPage = () => {
               fullWidth
               multiline
               minRows={2}
+              required
             />
 
             <Autocomplete
@@ -4311,6 +4320,7 @@ const AdminHiredeveloperPage = () => {
               onInputChange={(event, newValue) => handleContactButtonFormChange('category', newValue || '')}
               renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth />}
               disabled
+              required
             />
 
             <Autocomplete
@@ -4327,10 +4337,11 @@ const AdminHiredeveloperPage = () => {
                 <TextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth />
               )}
               disabled
+              required
             />
 
             <ImageUpload
-              label="Image"
+              label="Image *"
               value={contactButtonForm.image}
               onChange={(value) => handleContactButtonFormChange('image', value)}
               required
@@ -4382,9 +4393,10 @@ const AdminHiredeveloperPage = () => {
               fullWidth
               multiline
               minRows={3}
+              required
             />
             <ImageUpload
-              label="Process image"
+              label="Process image *"
               value={processForm.image}
               onChange={(value) => handleProcessChange('image', value)}
               required
@@ -4454,9 +4466,10 @@ const AdminHiredeveloperPage = () => {
               fullWidth
               multiline
               minRows={3}
+              required
             />
             <ImageUpload
-              label="Reason image"
+              label="Reason image* "
               value={whyVedxForm.image}
               onChange={(value) => setWhyVedxForm((prev) => ({ ...prev, image: value }))}
               required
