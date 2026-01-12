@@ -21,7 +21,18 @@ const CaseStudyScreenshotsSection = ({ screenshotsToShow, animate }) => {
   return (
     <Box
       component="section"
-   
+      sx={{
+        borderRadius: { xs: 4, md: 6 },
+        px: { xs: 3, md: 6 },
+        py: { xs: 5, md: 7 },
+        background: isDark
+          ? 'linear-gradient(135deg, rgba(15,23,42,0.96) 0%, rgba(2,6,23,0.9) 100%)'
+          : 'linear-gradient(135deg, rgba(248,250,252,0.95) 0%, rgba(226,232,240,0.65) 100%)',
+        boxShadow: isDark
+          ? '0 28px 60px rgba(0,0,0,0.55)'
+          : '0 24px 48px rgba(15,23,42,0.12)',
+        border: `1px solid ${alpha(accentColor, isDark ? 0.25 : 0.18)}`,
+      }}
     >
       <Stack spacing={3} alignItems="center" textAlign="center">
         <CaseStudySectionLabel text="Application Screenshots" animate={animate} />
@@ -53,7 +64,7 @@ const CaseStudyScreenshotsSection = ({ screenshotsToShow, animate }) => {
 
         <Grid
           container
-          spacing={2}
+          spacing={{ xs: 3, md: 4 }}
           sx={{
             width: '100%',
             mt: { xs: 2, md: 3 },
@@ -63,81 +74,84 @@ const CaseStudyScreenshotsSection = ({ screenshotsToShow, animate }) => {
             const slideDistance = index % 2 === 0 ? '-22px' : '22px';
 
             return (
-              <Grid item xs={12} sm={6} md={4} key={shot.src}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    height: '100%',
-                    borderRadius: 0.5,
-                    overflow: 'hidden',
-                    border: `1px solid ${alpha(accentColor, 0.35)}`,
-                    background: isDark
-                      ? alpha('#0b1120', 0.75)
-                      : alpha(accentColor, 0.08),
-                    boxShadow: isDark
-                      ? '0 18px 32px rgba(0,0,0,0.65)'
-                      : '0 18px 32px rgba(15,23,42,0.14)',
-                    position: 'relative',
-                    isolation: 'isolate',
-                    transform: 'translateY(0)',
-                    transition:
-                      'transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease',
-
-                    '@keyframes glowPulse': {
-                      '0%': { opacity: 0.35 },
-                      '50%': { opacity: 0.8 },
-                      '100%': { opacity: 0.35 },
-                    },
-
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      borderColor: accentColor,
-                      boxShadow: isDark
-                        ? '0 26px 40px rgba(0,0,0,0.85)'
-                        : '0 26px 40px rgba(15,23,42,0.22)',
-                    },
-
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      inset: 0,
-                      borderRadius: 0.5,
-                      border: `1px solid ${alpha(accentColor, 0.35)}`,
-                      opacity: 0.5,
-                      zIndex: -1,
-                      filter: 'blur(0.8px)',
-                      animation: animate
-                        ? 'glowPulse 5s ease-in-out infinite'
-                        : 'none',
-                      transition:
-                        'border-color 0.4s ease, opacity 0.4s ease',
-                    },
-
-                    '&:hover::after': {
-                      borderColor: accentColor,
-                      opacity: 0.9,
-                    },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={shot.src}
-                    alt={shot.alt}
-                    loading="lazy"
+              <Grid item xs={12} md={6} key={shot.src}>
+                <Stack spacing={2.5} alignItems="center">
+                  <Paper
+                    elevation={0}
                     sx={{
                       width: '100%',
-                      height: { xs: 220, sm: 240, md: 260 },
-                      objectFit: 'cover',
-                      display: 'block',
-                      opacity: animate ? 1 : 0,
-                      transform: animate
-                        ? 'translateX(0)'
-                        : `translateX(${slideDistance})`,
-                      transition: `all 560ms ease ${160 + index * 70}ms`,
-                    }}
-                  />
+                      maxWidth: 360,
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                      border: `1px solid ${alpha(accentColor, 0.35)}`,
+                      background: isDark
+                        ? 'linear-gradient(160deg, rgba(15,23,42,0.9) 0%, rgba(2,6,23,0.95) 100%)'
+                        : alpha('#ffffff', 0.85),
+                      boxShadow: isDark
+                        ? '0 24px 40px rgba(0,0,0,0.6)'
+                        : '0 20px 38px rgba(15,23,42,0.18)',
+                      position: 'relative',
+                      isolation: 'isolate',
+                      transform: 'translateY(0)',
+                      transition:
+                        'transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease',
 
-                  <Stack spacing={1.2} sx={{ p: { xs: 2, md: 2.5 } }}>
+                      '@keyframes glowPulse': {
+                        '0%': { opacity: 0.25 },
+                        '50%': { opacity: 0.6 },
+                        '100%': { opacity: 0.25 },
+                      },
+
+                      '&:hover': {
+                        transform: 'translateY(-10px)',
+                        borderColor: accentColor,
+                        boxShadow: isDark
+                          ? '0 30px 48px rgba(0,0,0,0.75)'
+                          : '0 28px 44px rgba(15,23,42,0.22)',
+                      },
+
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: 4,
+                        border: `1px solid ${alpha(accentColor, 0.35)}`,
+                        opacity: 0.4,
+                        zIndex: -1,
+                        filter: 'blur(1.4px)',
+                        animation: animate
+                          ? 'glowPulse 5s ease-in-out infinite'
+                          : 'none',
+                        transition:
+                          'border-color 0.4s ease, opacity 0.4s ease',
+                      },
+
+                      '&:hover::after': {
+                        borderColor: accentColor,
+                        opacity: 0.8,
+                      },
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={shot.src}
+                      alt={shot.alt}
+                      loading="lazy"
+                      sx={{
+                        width: '100%',
+                        height: { xs: 420, md: 520 },
+                        objectFit: 'cover',
+                        display: 'block',
+                        opacity: animate ? 1 : 0,
+                        transform: animate
+                          ? 'translateX(0)'
+                          : `translateX(${slideDistance})`,
+                        transition: `all 560ms ease ${160 + index * 70}ms`,
+                      }}
+                    />
+                  </Paper>
+
+                  <Stack spacing={1} sx={{ maxWidth: 360, textAlign: 'center' }}>
                     <Typography
                       variant="subtitle1"
                       sx={{
@@ -145,14 +159,6 @@ const CaseStudyScreenshotsSection = ({ screenshotsToShow, animate }) => {
                         color: isDark ? '#e2e8f0' : '#0f172a',
                         letterSpacing: 0.2,
                         transition: 'color 0.35s ease',
-                        '&:hover': {
-                          color: 'transparent',
-                          backgroundImage:
-                            'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                          WebkitBackgroundClip: 'text',
-                          backgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                        },
                       }}
                     >
                       {shot.alt}
@@ -169,7 +175,7 @@ const CaseStudyScreenshotsSection = ({ screenshotsToShow, animate }) => {
                       {shot.caption}
                     </Typography>
                   </Stack>
-                </Paper>
+                </Stack>
               </Grid>
             );
           })}
