@@ -11,17 +11,41 @@ const CaseStudyOverviewSection = ({ caseStudy, animate }) => {
   return (
     <Box my={5}>
       <Grid container spacing={4} alignItems="center">
+
+
+        <Grid item xs={12} md={7}>
+          <Stack spacing={2}>
+            <CaseStudySectionLabel text="Project OverView" animate={animate} />
+
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+                lineHeight: 1.9,
+                maxWidth: 900,
+                opacity: animate ? 1 : 0,
+                transform: animate ? 'translateY(0)' : 'translateY(16px)',
+                transition: 'all 500ms ease 220ms',
+              }}
+            >
+              Our Client is a travel enthusiast who wants to design and develop a solution that consolidates all travel activities and information in one place. He also wanted to integrate AI into his application, where personalised travel recommendations can be made based on your preferences and previous journeys.
+            </Typography>
+
+          </Stack>
+        </Grid>
+
         <Grid item xs={12} md={5}>
           <Paper
             elevation={0}
             sx={{
               overflow: 'hidden',
               borderRadius: 0.5,
-          
-           
+
+
               transition: 'border-color 220ms ease, box-shadow 0.25s ease',
               boxShadow: '0 0 0 rgba(0,0,0,0)',
-              
+
             }}
           >
             <Box
@@ -39,47 +63,6 @@ const CaseStudyOverviewSection = ({ caseStudy, animate }) => {
               }}
             />
           </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={7}>
-          <Stack spacing={2}>
-            <CaseStudySectionLabel text="Project OverView" animate={animate} />
-
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 800,
-                opacity: animate ? 1 : 0,
-                transform: animate ? 'translateY(0)' : 'translateY(14px)',
-                transition: 'all 480ms ease 140ms',
-              }}
-            >
-              Inspire more {caseStudy.category?.toLowerCase() || 'growth'}
-            </Typography>
-
-            <Typography
-              variant="body1"
-              sx={{
-                color: 'text.secondary',
-                lineHeight: 1.9,
-                maxWidth: 900,
-                opacity: animate ? 1 : 0,
-                transform: animate ? 'translateY(0)' : 'translateY(16px)',
-                transition: 'all 500ms ease 220ms',
-              }}
-            >
-              {caseStudy.excerpt}
-            </Typography>
-
-            {caseStudy.tagline && (
-              <CaseStudySectionLabel
-                text={caseStudy.tagline}
-                animate={animate}
-                delay={280}
-                sx={{ transform: animate ? 'translateY(0)' : 'translateY(18px)' }}
-              />
-            )}
-          </Stack>
         </Grid>
       </Grid>
     </Box>
