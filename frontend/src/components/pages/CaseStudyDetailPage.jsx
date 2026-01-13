@@ -11,13 +11,15 @@ import CaseStudyTeamSection from '../sections/caseStudies/CaseStudyTeamSection.j
 import CaseStudyRoadmapSection from '../sections/caseStudies/CaseStudyRoadmapSection.jsx';
 import CaseStudyRelatedSection from '../sections/caseStudies/CaseStudyRelatedSection.jsx';
 import { caseStudiesBySlug, caseStudiesList } from '../../data/caseStudies.js';
-import CaseStudyConclusionBlock from './CaseStudyConclusionBlock.jsx';
-import CaseStudyImpactBlock from './CaseStudyImpactBlock.jsx';
+import CaseStudyConclusionBlock from '../sections/caseStudies/CaseStudyConclusionBlock.jsx';
+import CaseStudyImpactBlock from '../sections/caseStudies/CaseStudyImpactBlock.jsx';
 const CaseStudyDetailPage = () => {
   const { slug } = useParams();
   const caseStudy = caseStudiesBySlug[slug] || null;
   const theme = useTheme();
   const accentColor = caseStudy?.accentColor || theme.palette.secondary.main;
+  const impactMetrics = caseStudy?.impactMetrics || [];
+  const conclusion = caseStudy?.conclusion || '';
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
@@ -64,7 +66,9 @@ const CaseStudyDetailPage = () => {
 
         <Box my={10}><CaseStudyChallengesSection caseStudy={caseStudy} animate={animate} /></Box>
 
-            <Box my={10}><CaseStudyImpactBlock impactMetrics={impactMetrics} accentColor={accentColor} /></Box> 
+        {impactMetrics.length > 0 && (
+          <Box my={10}><CaseStudyImpactBlock impactMetrics={impactMetrics} accentColor={accentColor} /></Box>
+        )}
 
         <Divider sx={{ borderColor: dividerColor }} />
 
@@ -80,7 +84,9 @@ const CaseStudyDetailPage = () => {
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}><CaseStudyConclusionBlock conclusion={conclusion} accentColor={accentColor} /></Box>
+        {conclusion && (
+          <Box my={10}><CaseStudyConclusionBlock conclusion={conclusion} accentColor={accentColor} /></Box>
+        )}
 
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}>

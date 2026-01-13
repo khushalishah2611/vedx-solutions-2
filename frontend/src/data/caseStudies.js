@@ -184,6 +184,14 @@ const papaJohnsCaseStudy = {
     'Black Friday volumes required resilient auto-scaling that kept p95 latency under 300 ms.',
     'Legacy POS integrations demanded a phased rollout with blue/green deployments per store cluster.',
   ],
+  impactMetrics: [
+    { label: 'Faster delivery ETAs', value: '22% drop' },
+    { label: 'Loyalty conversion lift', value: '+34%' },
+    { label: 'Peak order capacity', value: '4.5x' },
+    { label: 'Support tickets reduced', value: '-28%' },
+  ],
+  conclusion:
+    "Papa John's now runs a unified commerce engine that keeps diners engaged, staff informed, and deliveries moving with confidence.",
   technologyStack: [
     { name: 'HTML5', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg' },
     { name: 'CSS3', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg' },
@@ -325,6 +333,14 @@ const astralAdhesivesCaseStudy = {
     'Designing for intermittent connectivity meant architecting sync-safe queues across Android device variants.',
     'We localised the experience in six Indian languages without bloating bundle size or impacting performance.',
   ],
+  impactMetrics: [
+    { label: 'Rewards claims processed', value: '120K+' },
+    { label: 'Contractor retention', value: '+27%' },
+    { label: 'Promo turnaround time', value: '48 hrs' },
+    { label: 'Fraud reduction', value: '-41%' },
+  ],
+  conclusion:
+    "Astral's loyalty ecosystem now scales with contractor demand while keeping redemption transparent and rewarding.",
   technologyStack: [
     { name: 'HTML5', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg' },
     { name: 'CSS3', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg' },
@@ -466,6 +482,14 @@ const artOfLivingCaseStudy = {
     'Designing a snake-like 100-level journey for the SKY breathing experience required custom mathematics to deliver precise zig-zag positioning while maintaining responsiveness across devices.',
     'We combined advanced canvas rendering and performance tuning so the progressive levels animate smoothly without impacting load time.',
   ],
+  impactMetrics: [
+    { label: 'Daily active meditators', value: '+52%' },
+    { label: 'Session completion rate', value: '78%' },
+    { label: 'Community event RSVPs', value: '3.4x' },
+    { label: 'App store rating', value: '4.8★' },
+  ],
+  conclusion:
+    'The Art of Living platform now blends guided practice with community touchpoints to keep members returning every day.',
   technologyStack: [
     { name: 'HTML5', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg' },
     { name: 'CSS3', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg' },
@@ -561,6 +585,14 @@ const finfluxNeobankCaseStudy = {
     'Mapping heterogeneous data sources (GST, bank feeds, PDFs) into a unified underwriting model.',
     'Designing flows that felt approachable for first-time borrowers without diluting regulatory disclosures.',
   ],
+  impactMetrics: [
+    { label: 'Loan approvals in minutes', value: '6x faster' },
+    { label: 'Operational cost savings', value: '-32%' },
+    { label: 'KYC completion rate', value: '91%' },
+    { label: 'NPS improvement', value: '+18 pts' },
+  ],
+  conclusion:
+    'FinFlux now delivers rapid, compliant lending journeys that give SMEs capital without paperwork fatigue.',
   technologyStack: [
     { name: 'HTML5', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg' },
     { name: 'CSS3', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg' },
@@ -656,6 +688,14 @@ const glowlyBeautyCaseStudy = {
     'Aligning brand’s visual ambitions with Core Web Vitals for high-volume launch days.',
     'Designing quiz logic that stayed transparent and trustworthy while still driving AOV up.',
   ],
+  impactMetrics: [
+    { label: 'Quiz completion rate', value: '86%' },
+    { label: 'Subscription retention', value: '+29%' },
+    { label: 'Average order value', value: '+18%' },
+    { label: 'Personalisation CTR', value: '2.6x' },
+  ],
+  conclusion:
+    'Glowly now turns personalized routines into predictable revenue through smarter retention and merchandising.',
   technologyStack: [
     { name: 'HTML5', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg' },
     { name: 'CSS3', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg' },
