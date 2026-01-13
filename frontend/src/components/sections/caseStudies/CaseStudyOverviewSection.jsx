@@ -8,7 +8,7 @@ import CaseStudyProblemStatementBlock from './CaseStudyProblemStatementBlock.jsx
 
 const CaseStudyOverviewSection = ({ caseStudy, animate }) => {
   const theme = useTheme();
-  const accentColor = caseStudy?.accentColor || theme.palette.secondary.main;
+  const accentColor = '#a855f7';
 
   const overviewContent = useMemo(
     () => ({

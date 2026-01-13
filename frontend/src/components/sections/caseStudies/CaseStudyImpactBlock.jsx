@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { alpha } from "@mui/material/styles";
 import { Box, Grid, Paper, Stack, Typography, useTheme } from "@mui/material";
@@ -21,12 +21,50 @@ const CaseStudyImpactBlock = ({ impactMetrics, accentColor }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
-  const safeAccent = accentColor || theme.palette.primary.main;
+  // ✅ fallback accent (your earlier safeAccent)
+  const safeAccent =  "#a855f7";
+
+  // ✅ animation trigger
+  const rootRef = useRef(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const node = rootRef.current;
+    if (!node) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting) {
+          setInView(true);
+          io.disconnect(); // ✅ run once
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    io.observe(node);
+    return () => io.disconnect();
+  }, []);
+
+  const accentGradient = useMemo(
+    () => `linear-gradient(90deg, ${safeAccent} 0%, #2196f3 100%)`,
+    [safeAccent]
+  );
 
   return (
-    <Stack spacing={3} alignItems="center">
+    <Stack ref={rootRef} spacing={3} alignItems="center">
       {/* Badge */}
-      <Box sx={{ mx: "auto", display: "flex", justifyContent: "center" }}>
+      <Box
+        sx={{
+          mx: "auto",
+          display: "flex",
+          justifyContent: "center",
+          opacity: inView ? 1 : 0,
+          transform: inView ? "translateY(0px)" : "translateY(12px)",
+          transition: "opacity 700ms ease, transform 700ms ease",
+        }}
+      >
         <Box
           sx={{
             display: "inline-flex",
@@ -48,7 +86,7 @@ const CaseStudyImpactBlock = ({ impactMetrics, accentColor }) => {
           <Box
             component="span"
             sx={{
-              background: "linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)",
+              background: accentGradient,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -63,7 +101,7 @@ const CaseStudyImpactBlock = ({ impactMetrics, accentColor }) => {
         sx={{
           width: 64,
           height: 3,
-
+       
         }}
       />
 
@@ -79,14 +117,30 @@ const CaseStudyImpactBlock = ({ impactMetrics, accentColor }) => {
                 sx={{
                   height: "100%",
                   p: 2.5,
-                  borderRadius: 2.5,
+                  borderRadius: 0.5,
                   textAlign: "center",
                   bgcolor: isDark ? alpha("#0b1120", 0.9) : "#fff",
-                  border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.6 : 0.3)}`,
-                  transition: "transform 200ms ease, border-color 200ms ease",
+                  border: `1px solid ${alpha(
+                    theme.palette.divider,
+                    isDark ? 0.6 : 0.3
+                  )}`,
+
+                  // ✅ on-scroll animation + stagger
+                  opacity: inView ? 1 : 0,
+                  transform: inView ? "translateY(0px)" : "translateY(18px)",
+                  transitionProperty:
+                    "opacity, transform, border-color, box-shadow",
+                  transitionDuration: "700ms, 700ms, 200ms, 200ms",
+                  transitionTimingFunction: "ease, ease, ease, ease",
+                  transitionDelay: `${160 + index * 90}ms`,
+
+                  // ✅ hover animation (still works)
                   "&:hover": {
                     transform: "translateY(-3px)",
                     borderColor: alpha(safeAccent, 0.55),
+                    boxShadow: isDark
+                      ? `0 10px 35px ${alpha("#000", 0.35)}`
+                      : `0 10px 30px ${alpha("#000", 0.12)}`,
                   },
                 }}
               >
@@ -113,7 +167,10 @@ const CaseStudyImpactBlock = ({ impactMetrics, accentColor }) => {
 
                 <Typography
                   variant="caption"
-                  sx={{ color: alpha(theme.palette.text.primary, 0.65), lineHeight: 1.6 }}
+                  sx={{
+                    color: alpha(theme.palette.text.primary, 0.65),
+                    lineHeight: 1.6,
+                  }}
                 >
                   {metric.label}
                 </Typography>
@@ -133,7 +190,7 @@ CaseStudyImpactBlock.propTypes = {
       value: PropTypes.string.isRequired,
     })
   ).isRequired,
-  accentColor: PropTypes.string, // optional now (fallback)
+  accentColor: PropTypes.string,
 };
 
 CaseStudyImpactBlock.defaultProps = {
