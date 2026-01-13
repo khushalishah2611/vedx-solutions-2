@@ -57,8 +57,8 @@ const CaseStudyTeamSection = ({ animate = true }) => {
             position: 'absolute',
             left: { xs: '20px', md: '50%' }, // Left on mobile, Center on desktop
             transform: { xs: 'none', md: 'translateX(-50%)' },
-            top: 0,
-            bottom: 0,
+            top: 20,
+            bottom: 20,
             width: '2px',
             bgcolor: alpha('#fff', 0.2),
           }}
