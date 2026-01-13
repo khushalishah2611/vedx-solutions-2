@@ -1,32 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Chip, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+
 import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -81,10 +57,10 @@ const ImageUpload = ({ label, value, onChange }) => {
 
   return (
     <Stack spacing={1}>
-      <Button component="label" variant="outlined">
+      <AppButton component="label" variant="outlined">
         {value ? `Change ${label}` : `Upload ${label}`}
         <input type="file" hidden accept="image/*" onChange={handleChange} />
-      </Button>
+      </AppButton>
       {value && (
         <img
           src={value}
@@ -411,20 +387,20 @@ const AdminCaseStudiesPage = () => {
           </Typography>
         </Box>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-          <Button
+          <AppButton
             variant="outlined"
             startIcon={<LocalOfferOutlinedIcon />}
             onClick={() => openTagDialog('create')}
           >
             Add Tag
-          </Button>
-          <Button
+          </AppButton>
+          <AppButton
             variant="contained"
             startIcon={<NoteAddOutlinedIcon />}
             onClick={openCreateDialog}
           >
             Add Case Study
-          </Button>
+          </AppButton>
         </Stack>
       </Stack>
 
@@ -434,7 +410,7 @@ const AdminCaseStudiesPage = () => {
             <CardHeader title="Filters" />
             <CardContent>
               <Stack spacing={2}>
-                <TextField
+                <AppTextField
                   label="Search"
                   size="small"
                   value={filters.search}
@@ -442,9 +418,9 @@ const AdminCaseStudiesPage = () => {
                   placeholder="Search title or description"
                   fullWidth
                 />
-                <TextField
+                <AppSelectField
                   label="Tag"
-                  select
+                 
                   size="small"
                   value={filters.tagId}
                   onChange={(e) => handleFilterChange('tagId', e.target.value === 'all' ? 'all' : Number(e.target.value))}
@@ -456,7 +432,7 @@ const AdminCaseStudiesPage = () => {
                       {tag.name}
                     </MenuItem>
                   ))}
-                </TextField>
+                </AppSelectField>
                 {tagsError && (
                   <Typography variant="caption" color="error">
                     {tagsError}
@@ -495,9 +471,9 @@ const AdminCaseStudiesPage = () => {
               title="Case Study List"
               subheader={`Total: ${pagination.total}`}
               action={
-                <Button variant="contained" size="small" startIcon={<NoteAddOutlinedIcon />} onClick={openCreateDialog}>
+                <AppButton variant="contained" size="small" startIcon={<NoteAddOutlinedIcon />} onClick={openCreateDialog}>
                   Add New
-                </Button>
+                </AppButton>
               }
             />
             <CardContent>
@@ -604,31 +580,31 @@ const AdminCaseStudiesPage = () => {
         </Grid>
       </Grid>
 
-      <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{dialogMode === 'edit' ? 'Edit Case Study' : 'Add Case Study'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={dialogOpen} onClose={closeDialog} maxWidth="md" fullWidth>
+        <AppDialogTitle>{dialogMode === 'edit' ? 'Edit Case Study' : 'Add Case Study'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={3} mt={1}>
-            <TextField
+            <AppTextField
               label="Title"
               value={formState.title}
               onChange={(e) => setFormState((prev) => ({ ...prev, title: e.target.value }))}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Subtitle"
               value={formState.subtitle}
               onChange={(e) => setFormState((prev) => ({ ...prev, subtitle: e.target.value }))}
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Slug"
               value={formState.slug}
               onChange={(e) => setFormState((prev) => ({ ...prev, slug: slugify(e.target.value) }))}
               helperText="Used in the public URL."
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={formState.description}
               onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
@@ -641,9 +617,9 @@ const AdminCaseStudiesPage = () => {
               value={formState.coverImage}
               onChange={(value) => setFormState((prev) => ({ ...prev, coverImage: value }))}
             />
-            <TextField
+            <AppSelectField
               label="Tags"
-              select
+             
               SelectProps={{ multiple: true }}
               value={formState.tagIds}
               onChange={(e) =>
@@ -660,27 +636,27 @@ const AdminCaseStudiesPage = () => {
                   {tag.name}
                 </MenuItem>
               ))}
-            </TextField>
+            </AppSelectField>
             {dialogError && (
               <Typography variant="body2" color="error">
                 {dialogError}
               </Typography>
             )}
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog} disabled={saving}>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeDialog} disabled={saving}>
             Cancel
-          </Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}>
+          </AppButton>
+          <AppButton onClick={handleSave} variant="contained" disabled={saving}>
             {dialogMode === 'edit' ? 'Save Changes' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={!!viewCaseStudy} onClose={() => setViewCaseStudy(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>Case Study</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={!!viewCaseStudy} onClose={() => setViewCaseStudy(null)} maxWidth="sm" fullWidth>
+        <AppDialogTitle>Case Study</AppDialogTitle>
+        <AppDialogContent dividers>
           {viewCaseStudy && (
             <Stack spacing={2}>
               {viewCaseStudy.coverImage && (
@@ -713,32 +689,32 @@ const AdminCaseStudiesPage = () => {
               )}
             </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewCaseStudy(null)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setViewCaseStudy(null)}>Close</AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
-        <DialogTitle>Delete case study?</DialogTitle>
-        <DialogContent>
+      <AppDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
+        <AppDialogTitle>Delete case study?</AppDialogTitle>
+        <AppDialogContent>
           <Typography>
             Are you sure you want to delete{' '}
             <strong>{deleteTarget?.title}</strong>? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteTarget(null)}>Cancel</Button>
-          <Button onClick={handleDelete} color="error" variant="contained">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setDeleteTarget(null)}>Cancel</AppButton>
+          <AppButton onClick={handleDelete} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={tagDialogOpen} onClose={closeTagDialog}>
-        <DialogTitle>{tagDialogMode === 'edit' ? 'Edit Tag' : 'Add Tag'}</DialogTitle>
-        <DialogContent>
-          <TextField
+      <AppDialog open={tagDialogOpen} onClose={closeTagDialog}>
+        <AppDialogTitle>{tagDialogMode === 'edit' ? 'Edit Tag' : 'Add Tag'}</AppDialogTitle>
+        <AppDialogContent>
+          <AppTextField
             autoFocus
             margin="dense"
             label="Tag Name"
@@ -751,16 +727,16 @@ const AdminCaseStudiesPage = () => {
               {tagDialogError}
             </Typography>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeTagDialog} disabled={savingTag}>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeTagDialog} disabled={savingTag}>
             Cancel
-          </Button>
-          <Button onClick={handleTagSave} variant="contained" disabled={savingTag}>
+          </AppButton>
+          <AppButton onClick={handleTagSave} variant="contained" disabled={savingTag}>
             Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
     </Box>
   );
 };

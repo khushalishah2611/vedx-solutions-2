@@ -1,15 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Button,
-  Grid,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-  alpha,
-  useTheme,
-} from '@mui/material';
+import { Box, Grid, MenuItem, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton, AppSelectField, AppTextField } from '../../shared/FormControls.jsx';
+
 import { contactProjectTypes, servicesContactImage } from '../../../data/servicesPage.js';
 
 // Simple hook to detect when an element enters the viewport
@@ -147,14 +139,14 @@ const ServicesContact = () => {
             <Stack component="form" spacing={2.5}>
               {/* Name + Email */}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
-                <TextField
+                <AppTextField
                   label="Name"
                   fullWidth
                   required
                   variant="outlined"
                   size="medium"
                 />
-                <TextField
+                <AppTextField
                   label="Email"
                   type="email"
                   fullWidth
@@ -166,14 +158,14 @@ const ServicesContact = () => {
 
               {/* Mobile + Project Type */}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
-                <TextField
+                <AppTextField
                   label="Mobile Number"
                   fullWidth
                   variant="outlined"
                   size="medium"
                 />
-                <TextField
-                  select
+                <AppSelectField
+                 
                   label="Project Type"
                   fullWidth
                   defaultValue={contactProjectTypes[0]}
@@ -185,11 +177,11 @@ const ServicesContact = () => {
                       {type}
                     </MenuItem>
                   ))}
-                </TextField>
+                </AppSelectField>
               </Stack>
 
               {/* Description */}
-              <TextField
+              <AppTextField
                 label="Project Description"
                 fullWidth
                 multiline
@@ -205,7 +197,7 @@ const ServicesContact = () => {
                   mt: 1,
                 }}
               >
-                <Button
+                <AppButton
                   variant="contained"
                   size="large"
                   sx={{
@@ -222,7 +214,7 @@ const ServicesContact = () => {
                   }}
                 >
                   Submit Now
-                </Button>
+                </AppButton>
               </Box>
             </Stack>
           </Stack>

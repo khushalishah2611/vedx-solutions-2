@@ -1,17 +1,7 @@
 import { useEffect } from 'react';
-import {
-  Box,
-  Breadcrumbs,
-  Button,
-  Container,
-  Divider,
-  Grid,
-  Link as MuiLink,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from '@mui/material';
+import { Box, Breadcrumbs, Container, Divider, Grid, Link as MuiLink, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../shared/FormControls.jsx';
+
 import { keyframes } from '@mui/system';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -206,7 +196,7 @@ const BlogDetailPage = () => {
                 spacing={2.5}
                 sx={{ pt: 1, alignItems: { xs: 'center', md: 'flex-start' } }}
               >
-                <Button
+                <AppButton
                   variant="contained"
                   size="large"
                   component={RouterLink}
@@ -225,7 +215,7 @@ const BlogDetailPage = () => {
                   }}
                 >
                   {post.cta.primaryCtaLabel}
-                </Button>
+                </AppButton>
               </Stack>
             </Stack>
           </Stack>
@@ -341,7 +331,7 @@ const BlogDetailPage = () => {
                       {post.cta.description}
                     </Typography>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                      <Button
+                      <AppButton
                         variant="contained"
                         size="large"
                         component={RouterLink}
@@ -360,7 +350,7 @@ const BlogDetailPage = () => {
                         }}
                       >
                         {post.cta.primaryCtaLabel}
-                      </Button>
+                      </AppButton>
                     </Stack>
                   </Stack>
                 </Box>

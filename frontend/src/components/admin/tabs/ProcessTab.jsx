@@ -1,22 +1,6 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  IconButton,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Divider, IconButton, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -38,9 +22,9 @@ const ProcessTab = ({
       title="Process"
       subheader="Capture delivery steps with visuals."
       action={
-        <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openProcessCreateDialog}>
+        <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openProcessCreateDialog}>
           Add process step
-        </Button>
+        </AppButton>
       }
     />
     <Divider />

@@ -1,29 +1,7 @@
 import * as React from 'react';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-} from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, CardHeader, Chip, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Tooltip, Typography, Alert } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../../shared/FormControls.jsx';
+
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -35,9 +13,9 @@ import SelectClearAdornment from '../SelectClearAdornment.jsx';
 
 function ValidationDialog({ open, title, messages, onClose }) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title || 'Validation'}</DialogTitle>
-      <DialogContent dividers>
+    <AppDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <AppDialogTitle>{title || 'Validation'}</AppDialogTitle>
+      <AppDialogContent dividers>
         <Stack spacing={1.25}>
           {(messages || []).map((msg, idx) => (
             <Alert key={idx} severity="error" variant="outlined">
@@ -45,13 +23,13 @@ function ValidationDialog({ open, title, messages, onClose }) {
             </Alert>
           ))}
         </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="contained">
+      </AppDialogContent>
+      <AppDialogActions>
+        <AppButton onClick={onClose} variant="contained">
           OK
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </AppButton>
+      </AppDialogActions>
+    </AppDialog>
   );
 }
 
@@ -103,9 +81,9 @@ const ServicesTab = ({
           title="Service menu"
           subheader="Manage category wise banners, sub-categories, and project statistics."
           action={
-            <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openServiceCreateDialog}>
+            <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openServiceCreateDialog}>
               Add service
-            </Button>
+            </AppButton>
           }
         />
         <Divider />
@@ -116,8 +94,8 @@ const ServicesTab = ({
             alignItems={{ xs: 'stretch', md: 'flex-end' }}
             mb={2}
           >
-            <TextField
-              select
+            <AppSelectField
+             
               label="Date"
               value={serviceDateFilter}
               onChange={(event) => {
@@ -143,10 +121,10 @@ const ServicesTab = ({
                   {option.label}
                 </MenuItem>
               ))}
-            </TextField>
+            </AppSelectField>
 
-            <TextField
-              select
+            <AppSelectField
+             
               label="Category"
               value={categoryFilter}
               onChange={(event) => {
@@ -186,10 +164,10 @@ const ServicesTab = ({
                   {option.label}
                 </MenuItem>
               ))}
-            </TextField>
+            </AppSelectField>
 
-            <TextField
-              select
+            <AppSelectField
+             
               label="Sub-category"
               value={subcategoryFilter}
               onChange={(event) => {
@@ -234,11 +212,11 @@ const ServicesTab = ({
                   </MenuItem>
                 )
               )}
-            </TextField>
+            </AppSelectField>
 
             {serviceDateFilter === 'custom' && (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
-                <TextField
+                <AppTextField
                   type="date"
                   label="From"
                   value={serviceDateRange?.start || ''}
@@ -248,7 +226,7 @@ const ServicesTab = ({
                   InputLabelProps={{ shrink: true }}
                   fullWidth
                 />
-                <TextField
+                <AppTextField
                   type="date"
                   label="To"
                   value={serviceDateRange?.end || ''}

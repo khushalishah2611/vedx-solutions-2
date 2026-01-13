@@ -1,13 +1,6 @@
-import {
-  Box,
-  Button,
-  Container,
-  Grid,
-  Stack,
-  Typography,
-  alpha,
-  useTheme
-} from '@mui/material';
+import { Box, Container, Grid, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import PropTypes from 'prop-types';
 import { servicesHeroStats } from '../../../data/servicesPage.js';
 
@@ -84,7 +77,7 @@ const HireDevelopersHero = ({ onContactClick }) => {
                 accelerate delivery without compromising on quality.
               </Typography>
 
-              <Button
+              <AppButton
                 variant="contained"
                 size="large"
                 href="#contact"
@@ -102,7 +95,7 @@ const HireDevelopersHero = ({ onContactClick }) => {
                 }}
               >
                 Contact us
-              </Button>
+              </AppButton>
 
               {/* Stats */}
               <Stack

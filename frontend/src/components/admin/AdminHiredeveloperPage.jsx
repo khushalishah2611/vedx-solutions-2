@@ -1,36 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
-import {
-  Autocomplete,
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material';
+import { Autocomplete, Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, CardHeader, Chip, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -489,10 +461,10 @@ const ImageUpload = ({ label, value, onChange, required }) => {
           </Typography>
         )}
       </Box>
-      <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
+      <AppButton variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
         Choose image
         <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
-      </Button>
+      </AppButton>
     </Stack>
   );
 };
@@ -2605,9 +2577,9 @@ const rowsPerPage = 20;
             title="Service menu"
             subheader="Manage category wise banners, sub-categories, and project statistics."
             action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openServiceCreateDialog}>
+              <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openServiceCreateDialog}>
                 Add service
-              </Button>
+              </AppButton>
             }
           />
           <Divider />
@@ -2618,8 +2590,8 @@ const rowsPerPage = 20;
               alignItems={{ xs: 'stretch', md: 'flex-end' }}
               mb={2}
             >
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Date filter"
                 value={serviceDateFilter}
                 onChange={(event) => setServiceDateFilter(event.target.value)}
@@ -2630,7 +2602,7 @@ const rowsPerPage = 20;
                     {option.label}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
               <Autocomplete
                 sx={{ minWidth: 220 }}
                 freeSolo
@@ -2638,7 +2610,7 @@ const rowsPerPage = 20;
                 value={serviceCategoryFilter}
                 onInputChange={(event, newValue) => setServiceCategoryFilter(newValue || '')}
                 renderInput={(params) => (
-                  <TextField
+                  <AppTextField
                     {...params}
                     label="Category filter"
                     placeholder="All categories"
@@ -2657,7 +2629,7 @@ const rowsPerPage = 20;
                 value={serviceSubcategoryFilter}
                 onInputChange={(event, newValue) => setServiceSubcategoryFilter(newValue || '')}
                 renderInput={(params) => (
-                  <TextField
+                  <AppTextField
                     {...params}
                     label="Sub-category filter"
                     placeholder="All sub-categories"
@@ -2668,7 +2640,7 @@ const rowsPerPage = 20;
               />
               {serviceDateFilter === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
-                  <TextField
+                  <AppTextField
                     type="date"
                     label="From"
                     value={serviceDateRange.start}
@@ -2678,7 +2650,7 @@ const rowsPerPage = 20;
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     type="date"
                     label="To"
                     value={serviceDateRange.end}
@@ -2831,9 +2803,9 @@ const rowsPerPage = 20;
             title="Process"
             subheader="Capture delivery steps with visuals."
             action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openProcessCreateDialog}>
+              <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openProcessCreateDialog}>
                 Add process step
-              </Button>
+              </AppButton>
             }
           />
           <Divider />
@@ -2962,7 +2934,7 @@ const rowsPerPage = 20;
             <Stack spacing={3}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={industries.title}
                     onChange={(event) => setIndustries((prev) => ({ ...prev, title: event.target.value }))}
@@ -2970,7 +2942,7 @@ const rowsPerPage = 20;
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField
+                  <AppTextField
                     label="Description"
                     value={industries.description}
                     onChange={(event) => setIndustries((prev) => ({ ...prev, description: event.target.value }))}
@@ -2985,14 +2957,14 @@ const rowsPerPage = 20;
                     Upload images, set titles, and describe each industry you support.
                   </Typography>
                 </Box>
-                <Button
+                <AppButton
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={openIndustryCreateDialog}
                   sx={{ mt: { xs: 1, sm: 0 } }}
                 >
                   Add industry
-                </Button>
+                </AppButton>
               </Stack>
               <TableContainer>
                 <Table size="small">
@@ -3075,7 +3047,7 @@ const rowsPerPage = 20;
             <Stack spacing={3}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={techSolutions.title}
                     onChange={(event) => setTechSolutions((prev) => ({ ...prev, title: event.target.value }))}
@@ -3083,7 +3055,7 @@ const rowsPerPage = 20;
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField
+                  <AppTextField
                     label="Description"
                     value={techSolutions.description}
                     onChange={(event) => setTechSolutions((prev) => ({ ...prev, description: event.target.value }))}
@@ -3098,14 +3070,14 @@ const rowsPerPage = 20;
                     Add solution cards for each business type with concise descriptions.
                   </Typography>
                 </Box>
-                <Button
+                <AppButton
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={openTechSolutionCreateDialog}
                   sx={{ mt: { xs: 1, sm: 0 } }}
                 >
                   Add solution
-                </Button>
+                </AppButton>
               </Stack>
               <TableContainer>
                 <Table size="small">
@@ -3176,7 +3148,7 @@ const rowsPerPage = 20;
             <Stack spacing={3}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={expertiseHeroForm.title}
                     onChange={(event) => handleExpertiseHeroChange('title', event.target.value)}
@@ -3184,7 +3156,7 @@ const rowsPerPage = 20;
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField
+                  <AppTextField
                     label="Description"
                     value={expertiseHeroForm.description}
                     onChange={(event) => handleExpertiseHeroChange('description', event.target.value)}
@@ -3192,9 +3164,9 @@ const rowsPerPage = 20;
                   />
                 </Grid>
               </Grid>
-              <Button variant="contained" onClick={handleExpertiseHeroSave} sx={{ alignSelf: 'flex-start' }}>
+              <AppButton variant="contained" onClick={handleExpertiseHeroSave} sx={{ alignSelf: 'flex-start' }}>
                 Save intro
-              </Button>
+              </AppButton>
 
               <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
                 <Box>
@@ -3203,14 +3175,14 @@ const rowsPerPage = 20;
                     Add cards with images, titles, and descriptions for each engagement model.
                   </Typography>
                 </Box>
-                <Button
+                <AppButton
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={openExpertiseCreateDialog}
                   sx={{ mt: { xs: 1, sm: 0 } }}
                 >
                   Add option
-                </Button>
+                </AppButton>
               </Stack>
               <TableContainer>
                 <Table size="small">
@@ -3325,9 +3297,9 @@ const rowsPerPage = 20;
             title="Technologies we support"
             subheader="Group technology blocks (Frontend/Backend) and keep the services page dynamic."
             action={
-              <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
+              <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
                 Add technology block
-              </Button>
+              </AppButton>
             }
           />
           <Divider />
@@ -3514,7 +3486,7 @@ const rowsPerPage = 20;
             <Divider />
             <CardContent>
               <Stack spacing={2}>
-                <TextField
+                <AppTextField
                   label="Title"
                   value={hirePricingHeroForm.heroTitle}
                   onChange={(event) =>
@@ -3522,7 +3494,7 @@ const rowsPerPage = 20;
                   }
                   fullWidth
                 />
-                <TextField
+                <AppTextField
                   label="Description"
                   value={hirePricingHeroForm.heroDescription}
                   onChange={(event) =>
@@ -3533,9 +3505,9 @@ const rowsPerPage = 20;
                   minRows={3}
                 />
                 <Stack direction="row" alignItems="center" spacing={1}>
-                  <Button variant="contained" onClick={handleHirePricingHeroSave}>
+                  <AppButton variant="contained" onClick={handleHirePricingHeroSave}>
                     Save hero
-                  </Button>
+                  </AppButton>
                   {hirePricingHeroSaved && (
                     <Typography variant="body2" color="success.main">
                       Saved
@@ -3551,9 +3523,9 @@ const rowsPerPage = 20;
               title="Hire pricing plans"
               subheader="Create, update, and delete hire pricing packages with their inclusions."
               action={
-                <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openHirePricingCreateDialog}>
+                <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openHirePricingCreateDialog}>
                   Add hire pricing
-                </Button>
+                </AppButton>
               }
             />
             <Divider />
@@ -3644,9 +3616,9 @@ const rowsPerPage = 20;
 
 
 
-      <Dialog open={serviceDialogOpen} onClose={closeServiceDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{serviceDialogMode === 'edit' ? 'Edit service menu' : 'Add service menu'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={serviceDialogOpen} onClose={closeServiceDialog} maxWidth="md" fullWidth>
+        <AppDialogTitle>{serviceDialogMode === 'edit' ? 'Edit service menu' : 'Add service menu'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleServiceSubmit}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
@@ -3662,7 +3634,7 @@ const rowsPerPage = 20;
                     }))
                   }
                   renderInput={(params) => (
-                    <TextField {...params} label="Category" required  />
+                    <AppTextField {...params} label="Category" required  />
                   )}
                 />
               </Grid>
@@ -3677,7 +3649,7 @@ const rowsPerPage = 20;
                     }))
                   }
                   renderInput={(params) => (
-                    <TextField
+                    <AppTextField
                       {...params}
                       label="Sub-category"
                       placeholder="Select sub-category"
@@ -3688,7 +3660,7 @@ const rowsPerPage = 20;
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
+                <AppTextField
                   label="Banner title"
                   value={serviceForm.bannerTitle}
                   onChange={(event) => handleServiceFormChange('bannerTitle', event.target.value)}
@@ -3697,7 +3669,7 @@ const rowsPerPage = 20;
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
+                <AppTextField
                   label="Banner subtitle"
                   value={serviceForm.bannerSubtitle}
                   onChange={(event) => handleServiceFormChange('bannerSubtitle', event.target.value)}
@@ -3714,7 +3686,7 @@ const rowsPerPage = 20;
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField
+                <AppTextField
                   type="number"
                   label="Total services"
                   value={serviceForm.totalServices}
@@ -3725,7 +3697,7 @@ const rowsPerPage = 20;
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField
+                <AppTextField
                   type="number"
                   label="Total projects"
                   value={serviceForm.totalProjects}
@@ -3736,7 +3708,7 @@ const rowsPerPage = 20;
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField
+                <AppTextField
                   type="number"
                   label="Total clients"
                   value={serviceForm.totalClients}
@@ -3751,7 +3723,7 @@ const rowsPerPage = 20;
                   <Typography variant="subtitle2">FAQs (category or sub-category wise)</Typography>
                   <Grid container spacing={1} alignItems="center">
                     <Grid item xs={12} sm={5}>
-                      <TextField
+                      <AppTextField
                         label="Question"
                         value={faqDraft.question}
                         required
@@ -3760,7 +3732,7 @@ const rowsPerPage = 20;
                       />
                     </Grid>
                     <Grid item xs={12} sm={5}>
-                      <TextField
+                      <AppTextField
                         label="Answer"
                         value={faqDraft.answer}
                         onChange={(event) => setFaqDraft((prev) => ({ ...prev, answer: event.target.value }))}
@@ -3769,9 +3741,9 @@ const rowsPerPage = 20;
                       />
                     </Grid>
                     <Grid item xs={12} sm={2}>
-                      <Button fullWidth variant="outlined" onClick={addFaq} startIcon={<AddCircleOutlineIcon />}>
+                      <AppButton fullWidth variant="outlined" onClick={addFaq} startIcon={<AddCircleOutlineIcon />}>
                         Add
-                      </Button>
+                      </AppButton>
                     </Grid>
                   </Grid>
                   <Stack spacing={1}>
@@ -3798,20 +3770,20 @@ const rowsPerPage = 20;
               </Grid>
             </Grid>
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeServiceDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeServiceDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleServiceSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleServiceSubmit} variant="contained">
             {serviceDialogMode === 'edit' ? 'Save changes' : 'Add service'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(viewService)} onClose={() => setViewService(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>Service details</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(viewService)} onClose={() => setViewService(null)} maxWidth="sm" fullWidth>
+        <AppDialogTitle>Service details</AppDialogTitle>
+        <AppDialogContent dividers>
           {viewService && (
             <Stack spacing={2}>
               <Typography variant="h6" fontWeight={700}>
@@ -3872,57 +3844,57 @@ const rowsPerPage = 20;
               </Stack>
             </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewService(null)} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setViewService(null)} color="inherit">
             Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(serviceToDelete)} onClose={closeServiceDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete service</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(serviceToDelete)} onClose={closeServiceDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete service</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{serviceToDelete?.category}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeServiceDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeServiceDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteService} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteService} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={hirePricingDialogOpen} onClose={closeHirePricingDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{hirePricingDialogMode === 'edit' ? 'Edit hire pricing' : 'Add hire pricing'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={hirePricingDialogOpen} onClose={closeHirePricingDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{hirePricingDialogMode === 'edit' ? 'Edit hire pricing' : 'Add hire pricing'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleHirePricingSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={hirePricingForm.title}
               onChange={(event) => handleHirePricingFormChange('title', event.target.value)}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Subtitle"
               value={hirePricingForm.subtitle}
               onChange={(event) => handleHirePricingFormChange('subtitle', event.target.value)}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Price"
               value={hirePricingForm.price}
               onChange={(event) => handleHirePricingFormChange('price', event.target.value)}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={hirePricingForm.description}
               onChange={(event) => handleHirePricingFormChange('description', event.target.value)}
@@ -3933,7 +3905,7 @@ const rowsPerPage = 20;
             />
             <Stack spacing={1}>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
-                <TextField
+                <AppTextField
                   label="Service title"
                   value={newHirePricingService}
                   onChange={(event) => setNewHirePricingService(event.target.value)}
@@ -3943,14 +3915,14 @@ const rowsPerPage = 20;
                 />
 
               </Stack>
-              <Button
+              <AppButton
                 variant="outlined"
                 startIcon={<AddCircleOutlineIcon />}
                 onClick={addHirePricingService}
                 sx={{ mt: { xs: 0, sm: '4px' } }}
               >
                 Add service
-              </Button>
+              </AppButton>
               <Stack spacing={1} useFlexGap>
                 {hirePricingForm.services?.length ? (
                   hirePricingForm.services.map((service) => (
@@ -3984,88 +3956,88 @@ const rowsPerPage = 20;
               </Stack>
             </Stack>
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeHirePricingDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeHirePricingDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleHirePricingSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleHirePricingSubmit} variant="contained">
             {hirePricingDialogMode === 'edit' ? 'Save changes' : 'Add hire pricing'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog
+      <AppDialog
         open={Boolean(hirePricingServiceToDelete)}
         onClose={closeHirePricingServiceDeleteDialog}
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Remove service</DialogTitle>
-        <DialogContent dividers>
+        <AppDialogTitle>Remove service</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to remove "{hirePricingServiceToDelete}" from this plan?
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeHirePricingServiceDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeHirePricingServiceDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteHirePricingService} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteHirePricingService} color="error" variant="contained">
             Remove
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog
+      <AppDialog
         open={Boolean(hirePricingServiceToEdit)}
         onClose={closeHirePricingServiceEditDialog}
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Edit service</DialogTitle>
-        <DialogContent dividers>
-          <TextField
+        <AppDialogTitle>Edit service</AppDialogTitle>
+        <AppDialogContent dividers>
+          <AppTextField
             label="Service title"
             value={hirePricingServiceEditValue}
             onChange={(event) => setHirePricingServiceEditValue(event.target.value)}
             fullWidth
             autoFocus
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeHirePricingServiceEditDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeHirePricingServiceEditDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmEditHirePricingService} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmEditHirePricingService} variant="contained">
             Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(hirePricingToDelete)} onClose={closeHirePricingDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete hire pricing</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(hirePricingToDelete)} onClose={closeHirePricingDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete hire pricing</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{hirePricingToDelete?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeHirePricingDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeHirePricingDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteHirePricing} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteHirePricing} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={whyServiceDialogOpen} onClose={closeWhyServiceDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{whyServiceDialogMode === 'edit' ? 'Edit highlight' : 'Add highlight'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={whyServiceDialogOpen} onClose={closeWhyServiceDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{whyServiceDialogMode === 'edit' ? 'Edit highlight' : 'Add highlight'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleWhyServiceSubmit}>
-            <TextField
-              select
+            <AppSelectField
+             
               label="Category"
               value={whyServiceForm.category}
               onChange={(event) =>
@@ -4080,9 +4052,9 @@ const rowsPerPage = 20;
                   {option.label}
                 </MenuItem>
               ))}
-            </TextField>
-            <TextField
-              select
+            </AppSelectField>
+            <AppSelectField
+             
               label="Sub-category"
               value={whyServiceForm.subcategory}
               onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, subcategory: event.target.value }))}
@@ -4101,15 +4073,15 @@ const rowsPerPage = 20;
                   {option.name}
                 </MenuItem>
               ))}
-            </TextField>
-            <TextField
+            </AppSelectField>
+            <AppTextField
               label="Highlight title"
               value={whyServiceForm.title}
               onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, title: event.target.value }))}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={whyServiceForm.description}
               onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, description: event.target.value }))}
@@ -4119,39 +4091,39 @@ const rowsPerPage = 20;
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeWhyServiceDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeWhyServiceDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleWhyServiceSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleWhyServiceSubmit} variant="contained">
             {whyServiceDialogMode === 'edit' ? 'Save changes' : 'Add highlight'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(whyServiceToDelete)} onClose={closeWhyServiceDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete highlight</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(whyServiceToDelete)} onClose={closeWhyServiceDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete highlight</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{whyServiceToDelete?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeWhyServiceDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeWhyServiceDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteWhyService} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteWhyService} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={technologyDialogOpen} onClose={closeTechnologyDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{technologyDialogMode === 'edit' ? 'Edit technology block' : 'Add technology block'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={technologyDialogOpen} onClose={closeTechnologyDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{technologyDialogMode === 'edit' ? 'Edit technology block' : 'Add technology block'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleTechnologySubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={technologyForm.title}
               onChange={(event) => handleTechnologyFormChange('title', event.target.value)}
@@ -4164,7 +4136,7 @@ const rowsPerPage = 20;
               onChange={(value) => handleTechnologyFormChange('image', value)}
               required
             />
-            <TextField
+            <AppTextField
               label="Technologies"
               value={technologyItemsInput}
               onChange={(event) => {
@@ -4182,39 +4154,39 @@ const rowsPerPage = 20;
               fullWidth
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeTechnologyDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeTechnologyDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleTechnologySubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleTechnologySubmit} variant="contained">
             {technologyDialogMode === 'edit' ? 'Save changes' : 'Add technologies'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(technologyToDelete)} onClose={closeTechnologyDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete technology block</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(technologyToDelete)} onClose={closeTechnologyDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete technology block</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{technologyToDelete?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeTechnologyDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeTechnologyDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteTechnology} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteTechnology} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={benefitDialogOpen} onClose={closeBenefitDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{benefitDialogMode === 'edit' ? 'Edit benefit' : 'Add benefit'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={benefitDialogOpen} onClose={closeBenefitDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{benefitDialogMode === 'edit' ? 'Edit benefit' : 'Add benefit'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleBenefitSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={benefitForm.title}
               onChange={(event) => handleBenefitFormChange('title', event.target.value)}
@@ -4229,7 +4201,7 @@ const rowsPerPage = 20;
                 handleBenefitFormChange('category', newValue || '')
               }
               renderInput={(params) => (
-                <TextField
+                <AppTextField
                   {...params}
                   label="Category"
                  
@@ -4244,7 +4216,7 @@ const rowsPerPage = 20;
               onInputChange={(event, newValue) =>
                 handleBenefitFormChange('subcategory', newValue || '')
               }
-              renderInput={(params) => <TextField {...params} label="Sub-category" />}
+              renderInput={(params) => <AppTextField {...params} label="Sub-category" />}
               disabled
             />
             <ImageUpload
@@ -4253,7 +4225,7 @@ const rowsPerPage = 20;
               onChange={(value) => handleBenefitFormChange('image', value)}
               required
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={benefitForm.description}
               onChange={(event) => handleBenefitFormChange('description', event.target.value)}
@@ -4263,46 +4235,46 @@ const rowsPerPage = 20;
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeBenefitDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeBenefitDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleBenefitSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleBenefitSubmit} variant="contained">
             {benefitDialogMode === 'edit' ? 'Save changes' : 'Add benefit'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(benefitToDelete)} onClose={closeBenefitDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete benefit</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(benefitToDelete)} onClose={closeBenefitDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete benefit</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{benefitToDelete?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeBenefitDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeBenefitDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteBenefit} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteBenefit} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={contactButtonDialogOpen} onClose={closeContactButtonDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{contactButtonDialogMode === 'edit' ? 'Edit contact button' : 'Add contact button'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={contactButtonDialogOpen} onClose={closeContactButtonDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{contactButtonDialogMode === 'edit' ? 'Edit contact button' : 'Add contact button'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleContactButtonSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={contactButtonForm.title}
               onChange={(event) => handleContactButtonFormChange('title', event.target.value)}
               required
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={contactButtonForm.description}
               onChange={(event) => handleContactButtonFormChange('description', event.target.value)}
@@ -4318,7 +4290,7 @@ const rowsPerPage = 20;
               options={categoryOptions.map((option) => option.label)}
               value={contactButtonForm.category}
               onInputChange={(event, newValue) => handleContactButtonFormChange('category', newValue || '')}
-              renderInput={(params) => <TextField {...params} label="Category" placeholder="Select or type category" fullWidth required />}
+              renderInput={(params) => <AppTextField {...params} label="Category" placeholder="Select or type category" fullWidth required />}
               
               
             />
@@ -4334,7 +4306,7 @@ const rowsPerPage = 20;
               value={contactButtonForm.subcategory}
               onInputChange={(event, newValue) => handleContactButtonFormChange('subcategory', newValue || '')}
               renderInput={(params) => (
-                <TextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth    required/>
+                <AppTextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth    required/>
               )}
               
             
@@ -4347,46 +4319,46 @@ const rowsPerPage = 20;
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeContactButtonDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeContactButtonDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleContactButtonSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleContactButtonSubmit} variant="contained">
             {contactButtonDialogMode === 'edit' ? 'Save changes' : 'Add contact button'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(contactButtonToDelete)} onClose={() => setContactButtonToDelete(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete contact button</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(contactButtonToDelete)} onClose={() => setContactButtonToDelete(null)} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete contact button</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{contactButtonToDelete?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setContactButtonToDelete(null)} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setContactButtonToDelete(null)} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteContactButton} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteContactButton} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={processDialogOpen} onClose={closeProcessDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{processDialogMode === 'edit' ? 'Edit process step' : 'Add process step'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={processDialogOpen} onClose={closeProcessDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{processDialogMode === 'edit' ? 'Edit process step' : 'Add process step'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleProcessSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={processForm.title}
               onChange={(event) => handleProcessChange('title', event.target.value)}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={processForm.description}
               onChange={(event) => handleProcessChange('description', event.target.value)}
@@ -4402,44 +4374,44 @@ const rowsPerPage = 20;
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeProcessDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeProcessDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleProcessSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleProcessSubmit} variant="contained">
             {processDialogMode === 'edit' ? 'Save changes' : 'Add process step'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(processToDelete)} onClose={closeProcessDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete process step</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(processToDelete)} onClose={closeProcessDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete process step</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{processToDelete?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeProcessDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeProcessDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteProcess} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteProcess} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={whyVedxDialogOpen} onClose={closeWhyVedxDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{whyVedxDialogMode === 'edit' ? 'Edit reason' : 'Add reason'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={whyVedxDialogOpen} onClose={closeWhyVedxDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{whyVedxDialogMode === 'edit' ? 'Edit reason' : 'Add reason'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleWhyVedxSubmit}>
             <Autocomplete
               clearOnEscape
               options={whyVedxReasonCategoryOptions}
               value={whyVedxReasonCategoryOptions.find((option) => String(option.value) === String(whyVedxForm.category)) || null}
               disabled
-              renderInput={(params) => <TextField {...params} label="Category" fullWidth />}
+              renderInput={(params) => <AppTextField {...params} label="Category" fullWidth />}
               fullWidth
             />
             <Autocomplete
@@ -4449,17 +4421,17 @@ const rowsPerPage = 20;
                 whyVedxReasonSubcategoryOptions.find((option) => String(option.value) === String(whyVedxForm.subcategory)) || null
               }
               disabled
-              renderInput={(params) => <TextField {...params} label="Subcategory" fullWidth />}
+              renderInput={(params) => <AppTextField {...params} label="Subcategory" fullWidth />}
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Title"
               value={whyVedxForm.title}
               onChange={(event) => setWhyVedxForm((prev) => ({ ...prev, title: event.target.value }))}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={whyVedxForm.description}
               onChange={(event) => setWhyVedxForm((prev) => ({ ...prev, description: event.target.value }))}
@@ -4475,39 +4447,39 @@ const rowsPerPage = 20;
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeWhyVedxDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeWhyVedxDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleWhyVedxSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleWhyVedxSubmit} variant="contained">
             {whyVedxDialogMode === 'edit' ? 'Save changes' : 'Add reason'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(whyVedxToDelete)} onClose={closeWhyVedxDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete reason</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(whyVedxToDelete)} onClose={closeWhyVedxDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete reason</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{whyVedxToDelete?.title}"?
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeWhyVedxDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeWhyVedxDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteWhyVedx} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteWhyVedx} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={ourServiceDialogOpen} onClose={closeOurServiceDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{ourServiceDialogMode === 'edit' ? 'Edit service card' : 'Add service card'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={ourServiceDialogOpen} onClose={closeOurServiceDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{ourServiceDialogMode === 'edit' ? 'Edit service card' : 'Add service card'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleOurServiceSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={ourServiceForm.title}
               onChange={(event) => setOurServiceForm((prev) => ({ ...prev, title: event.target.value }))}
@@ -4521,46 +4493,46 @@ const rowsPerPage = 20;
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeOurServiceDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeOurServiceDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleOurServiceSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleOurServiceSubmit} variant="contained">
             {ourServiceDialogMode === 'edit' ? 'Save changes' : 'Add service card'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(ourServiceToDelete)} onClose={closeOurServiceDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete service card</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(ourServiceToDelete)} onClose={closeOurServiceDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete service card</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{ourServiceToDelete?.title}"?
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeOurServiceDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeOurServiceDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteOurService} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteOurService} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={industryDialogOpen} onClose={closeIndustryDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{industryDialogMode === 'edit' ? 'Edit industry' : 'Add industry'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={industryDialogOpen} onClose={closeIndustryDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{industryDialogMode === 'edit' ? 'Edit industry' : 'Add industry'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleIndustrySubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={industryForm.title}
               onChange={(event) => setIndustryForm((prev) => ({ ...prev, title: event.target.value }))}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={industryForm.description}
               onChange={(event) => setIndustryForm((prev) => ({ ...prev, description: event.target.value }))}
@@ -4575,46 +4547,46 @@ const rowsPerPage = 20;
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeIndustryDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeIndustryDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleIndustrySubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleIndustrySubmit} variant="contained">
             {industryDialogMode === 'edit' ? 'Save changes' : 'Add industry'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(industryToDelete)} onClose={closeIndustryDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete industry</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(industryToDelete)} onClose={closeIndustryDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete industry</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{industryToDelete?.title}"?
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeIndustryDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeIndustryDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteIndustry} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteIndustry} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={techSolutionDialogOpen} onClose={closeTechSolutionDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{techSolutionDialogMode === 'edit' ? 'Edit solution' : 'Add solution'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={techSolutionDialogOpen} onClose={closeTechSolutionDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{techSolutionDialogMode === 'edit' ? 'Edit solution' : 'Add solution'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleTechSolutionSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={techSolutionForm.title}
               onChange={(event) => setTechSolutionForm((prev) => ({ ...prev, title: event.target.value }))}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={techSolutionForm.description}
               onChange={(event) => setTechSolutionForm((prev) => ({ ...prev, description: event.target.value }))}
@@ -4623,46 +4595,46 @@ const rowsPerPage = 20;
               minRows={3}
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeTechSolutionDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeTechSolutionDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleTechSolutionSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleTechSolutionSubmit} variant="contained">
             {techSolutionDialogMode === 'edit' ? 'Save changes' : 'Add solution'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(techSolutionToDelete)} onClose={closeTechSolutionDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete solution</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(techSolutionToDelete)} onClose={closeTechSolutionDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete solution</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{techSolutionToDelete?.title}"?
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeTechSolutionDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeTechSolutionDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteTechSolution} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteTechSolution} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={expertiseDialogOpen} onClose={closeExpertiseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{expertiseDialogMode === 'edit' ? 'Edit expertise option' : 'Add expertise option'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={expertiseDialogOpen} onClose={closeExpertiseDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{expertiseDialogMode === 'edit' ? 'Edit expertise option' : 'Add expertise option'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} component="form" onSubmit={handleExpertiseSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={expertiseForm.title}
               onChange={(event) => setExpertiseForm((prev) => ({ ...prev, title: event.target.value }))}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={expertiseForm.description}
               onChange={(event) => setExpertiseForm((prev) => ({ ...prev, description: event.target.value }))}
@@ -4677,33 +4649,33 @@ const rowsPerPage = 20;
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeExpertiseDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeExpertiseDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleExpertiseSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleExpertiseSubmit} variant="contained">
             {expertiseDialogMode === 'edit' ? 'Save changes' : 'Add option'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(expertiseToDelete)} onClose={closeExpertiseDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete expertise option</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(expertiseToDelete)} onClose={closeExpertiseDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete expertise option</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{expertiseToDelete?.title}"?
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeExpertiseDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeExpertiseDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteExpertise} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteExpertise} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
     </Stack>
   );

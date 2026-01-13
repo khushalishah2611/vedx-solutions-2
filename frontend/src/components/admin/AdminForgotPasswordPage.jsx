@@ -1,13 +1,7 @@
 import { useState } from 'react';
-import {
-  Box,
-  Button,
-  Container,
-  Paper,
-  Stack,
-  TextField,
-  Typography
-} from '@mui/material';
+import { Box, Container, Paper, Stack, Typography } from '@mui/material';
+import { AppButton, AppTextField } from '../shared/FormControls.jsx';
+
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { apiUrl } from "../../utils/const";
 
@@ -107,7 +101,7 @@ const AdminForgotPasswordPage = () => {
               </Typography>
             </Stack>
 
-            <TextField
+            <AppTextField
               label="Registered email"
               type="email"
               fullWidth
@@ -125,13 +119,13 @@ const AdminForgotPasswordPage = () => {
               </Typography>
             )}
 
-            <Button variant="contained" size="large" type="submit" disabled={isSubmitting}>
+            <AppButton variant="contained" size="large" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Sending...' : 'Send verification code'}
-            </Button>
+            </AppButton>
 
-            <Button component={RouterLink} to="/admin" color="secondary">
+            <AppButton component={RouterLink} to="/admin" color="secondary">
               Back to login
-            </Button>
+            </AppButton>
           </Stack>
         </Paper>
       </Container>

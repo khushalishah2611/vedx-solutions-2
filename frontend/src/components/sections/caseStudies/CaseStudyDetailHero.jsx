@@ -1,16 +1,7 @@
 import PropTypes from 'prop-types';
-import {
-  alpha,
-  Box,
-  Breadcrumbs,
-  Button,
-  Container,
-  Grid,
-  Link as MuiLink,
-  Stack,
-  Typography,
-  useTheme,
-} from '@mui/material';
+import { alpha, Box, Breadcrumbs, Container, Grid, Link as MuiLink, Stack, Typography, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink } from 'react-router-dom';
@@ -230,7 +221,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
               </Typography>
 
               {caseStudy.cta && (
-                <Button
+                <AppButton
                   variant="contained"
                   size="large"
                   component={RouterLink}
@@ -252,7 +243,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                   }}
                 >
                   {caseStudy.cta.label}
-                </Button>
+                </AppButton>
               )}
 
 

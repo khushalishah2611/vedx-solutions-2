@@ -1,35 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Stack,
-  Tab,
-  Tabs,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
-  TextField,
-  Tooltip,
-  Typography,
-  Chip,
-} from "@mui/material";
+import { Box, Card, CardContent, CardHeader, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Tab, Tabs, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Tooltip, Typography, Chip } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -114,7 +88,7 @@ const ImageUpload = ({ label, value, onChange, required }) => {
           </Typography>
         )}
       </Box>
-      <Button variant="outlined" component="label" sx={{ alignSelf: "flex-start" }}>
+      <AppButton variant="outlined" component="label" sx={{ alignSelf: "flex-start" }}>
         Choose image
         <input
           type="file"
@@ -123,7 +97,7 @@ const ImageUpload = ({ label, value, onChange, required }) => {
           required={required}
           onChange={handleFileChange}
         />
-      </Button>
+      </AppButton>
     </Stack>
   );
 };
@@ -1530,7 +1504,7 @@ const AdminDashboardPage = () => {
                 </Box>
 
                 <Stack spacing={2} flex={1} minWidth={{ xs: "auto", md: 360 }}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={bannerForm.title}
                     onChange={(event) =>
@@ -1539,8 +1513,8 @@ const AdminDashboardPage = () => {
                     fullWidth
                   />
 
-                  <TextField
-                    select
+                  <AppSelectField
+                   
                     label="Type"
                     value={bannerForm.type}
                     onChange={handleBannerTypeChange}
@@ -1554,7 +1528,7 @@ const AdminDashboardPage = () => {
                     <MenuItem value="case-study">Case study</MenuItem>
                     <MenuItem value="contact">Contact</MenuItem>
                     <MenuItem value="career">Career</MenuItem>
-                  </TextField>
+                  </AppSelectField>
 
                   <input
                     ref={fileInputRef}
@@ -1564,13 +1538,13 @@ const AdminDashboardPage = () => {
                     style={{ display: "none" }}
                     onChange={handleBannerImageChange}
                   />
-                  <Button
+                  <AppButton
                     variant="outlined"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={!bannerForm.type}
                   >
                     {bannerForm.type === "home" ? "Choose images" : "Choose image"}
-                  </Button>
+                  </AppButton>
                   <Typography variant="caption" color="text.secondary">
                     {!bannerForm.type
                       ? "Select a banner type to enable image selection. Home supports multiple images; other types use a single image."
@@ -1579,9 +1553,9 @@ const AdminDashboardPage = () => {
                         : "Other banner types accept a single image."}
                   </Typography>
 
-                  <Button variant="contained" onClick={handleAddOrUpdateBanner}>
+                  <AppButton variant="contained" onClick={handleAddOrUpdateBanner}>
                     {editingBannerId ? "Update banner" : "Add banner"}
-                  </Button>
+                  </AppButton>
                 </Stack>
               </Stack>
 
@@ -1715,13 +1689,13 @@ const AdminDashboardPage = () => {
                 <Typography variant="subtitle1" color="text.secondary">
                   Add and edit process steps with titles, descriptions, and preview imagery.
                 </Typography>
-                <Button
+                <AppButton
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={() => openProcessDialog()}
                 >
                   Add step
-                </Button>
+                </AppButton>
               </Stack>
               <Table size="small">
                 <TableHead>
@@ -1832,13 +1806,13 @@ const AdminDashboardPage = () => {
                       </Typography>
                     </Box>
 
-                    <Button
+                    <AppButton
                       variant="contained"
                       startIcon={<AddCircleOutlineIcon />}
                       onClick={handleCreateNewSlider}
                     >
                       New slider
-                    </Button>
+                    </AppButton>
                   </Stack>
 
                   <TableContainer>
@@ -1955,7 +1929,7 @@ const AdminDashboardPage = () => {
                       mapping.
                     </Typography>
                   </Box>
-                  <Button
+                  <AppButton
                     variant="contained"
                     startIcon={<AddCircleOutlineIcon />}
                     onClick={openOurServiceCreateDialog}
@@ -1963,7 +1937,7 @@ const AdminDashboardPage = () => {
                     disabled={!ourServicesSliders.length}
                   >
                     Add service card
-                  </Button>
+                  </AppButton>
                 </Stack>
 
                 <TableContainer>
@@ -2054,13 +2028,13 @@ const AdminDashboardPage = () => {
               <Stack direction="row" justifyContent="flex-end" mb={1}>
                 <Stack direction="row" spacing={2} alignItems="center">
               
-                  <Button
+                  <AppButton
                     variant="contained"
                     startIcon={<AddCircleOutlineIcon />}
                     onClick={() => openIndustryDialog()}
                   >
                     Add industry
-                  </Button>
+                  </AppButton>
                 </Stack>
               </Stack>
 
@@ -2163,7 +2137,7 @@ const AdminDashboardPage = () => {
                 direction={{ xs: "column", md: "row" }}
                 alignItems={{ xs: "stretch", md: "flex-end" }}
               >
-                <TextField
+                <AppTextField
                   label="Title"
                   value={industriesConfig.title}
                   onChange={(event) =>
@@ -2174,7 +2148,7 @@ const AdminDashboardPage = () => {
                   }
                   fullWidth
                 />
-                <TextField
+                <AppTextField
                   label="Description"
                   value={industriesConfig.description}
                   onChange={(event) =>
@@ -2189,9 +2163,9 @@ const AdminDashboardPage = () => {
 
               <Stack direction="row" justifyContent="flex-end" mb={1}>
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Button variant="contained" onClick={handleIndustrySave}>
+                  <AppButton variant="contained" onClick={handleIndustrySave}>
                     Save header
-                  </Button>
+                  </AppButton>
 
                   {industrySaved && (
                     <Typography variant="body2" color="success.main">
@@ -2199,13 +2173,13 @@ const AdminDashboardPage = () => {
                     </Typography>
                   )}
 
-                  <Button
+                  <AppButton
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={() => openWhyVedxReasonDialog()}
                 >
                   Add reason
-                </Button>
+                </AppButton>
                 </Stack>
               </Stack>
             
@@ -2308,7 +2282,7 @@ const AdminDashboardPage = () => {
                 direction={{ xs: "column", md: "row" }}
                 alignItems={{ xs: "stretch", md: "flex-end" }}
               >
-                <TextField
+                <AppTextField
                   label="Title"
                   value={techSolutionsConfig.title}
                   onChange={(event) =>
@@ -2319,7 +2293,7 @@ const AdminDashboardPage = () => {
                   }
                   fullWidth
                 />
-                <TextField
+                <AppTextField
                   label="Description"
                   value={techSolutionsConfig.description}
                   onChange={(event) =>
@@ -2333,9 +2307,9 @@ const AdminDashboardPage = () => {
               </Stack>
 
               <Stack direction="row" justifyContent="flex-end" mb={1} spacing={2}>
-                <Button variant="contained" onClick={handleTechSolutionsSave}>
+                <AppButton variant="contained" onClick={handleTechSolutionsSave}>
                   Save header
-                </Button>
+                </AppButton>
 
                 {techSolutionsSaved && (
                   <Typography variant="body2" color="success.main">
@@ -2343,13 +2317,13 @@ const AdminDashboardPage = () => {
                   </Typography>
                 )}
 
-                <Button
+                <AppButton
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={() => openTechSolutionDialog()}
                 >
                   Add solution
-                </Button>
+                </AppButton>
               </Stack>
 
               <Table size="small" sx={{ mt: 2 }}>
@@ -2427,7 +2401,7 @@ const AdminDashboardPage = () => {
                 direction={{ xs: "column", md: "row" }}
                 alignItems={{ xs: "stretch", md: "flex-end" }}
               >
-                <TextField
+                <AppTextField
                   label="Title"
                   value={expertiseConfig.title}
                   onChange={(event) =>
@@ -2438,7 +2412,7 @@ const AdminDashboardPage = () => {
                   }
                   fullWidth
                 />
-                <TextField
+                <AppTextField
                   label="Description"
                   value={expertiseConfig.description}
                   onChange={(event) =>
@@ -2462,9 +2436,9 @@ const AdminDashboardPage = () => {
                 </Typography>
 
                 <Stack direction="row" alignItems="center" spacing={2}>
-                  <Button variant="contained" onClick={handleExpertiseSave}>
+                  <AppButton variant="contained" onClick={handleExpertiseSave}>
                     Save header
-                  </Button>
+                  </AppButton>
 
                   {expertiseSaved && (
                     <Typography variant="body2" color="success.main">
@@ -2472,13 +2446,13 @@ const AdminDashboardPage = () => {
                     </Typography>
                   )}
 
-                  <Button
+                  <AppButton
                     variant="contained"
                     startIcon={<AddCircleOutlineIcon />}
                     onClick={() => openExpertiseDialog()}
                   >
                     Add expertise
-                  </Button>
+                  </AppButton>
                 </Stack>
               </Stack>
 
@@ -2567,13 +2541,13 @@ const AdminDashboardPage = () => {
       </Stack>
 
       {/* Our services slider dialog */}
-      <Dialog open={sliderDialogOpen} onClose={closeSliderDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editingSliderId ? "Edit slider" : "Add slider"}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={sliderDialogOpen} onClose={closeSliderDialog} maxWidth="md" fullWidth>
+        <AppDialogTitle>{editingSliderId ? "Edit slider" : "Add slider"}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Box component="form" onSubmit={handleOurServicesHeroSave} sx={{ mt: 1 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
-                <TextField
+                <AppTextField
                   label="Slider title"
                   value={ourServicesHeroForm.sliderTitle}
                   onChange={(event) =>
@@ -2584,7 +2558,7 @@ const AdminDashboardPage = () => {
                 />
               </Grid>
               <Grid item xs={12} md={4}>
-                <TextField
+                <AppTextField
                   label="Slider description"
                   value={ourServicesHeroForm.sliderDescription}
                   onChange={(event) =>
@@ -2605,29 +2579,29 @@ const AdminDashboardPage = () => {
               </Grid>
             </Grid>
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeSliderDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeSliderDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleOurServicesHeroSave} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleOurServicesHeroSave} variant="contained">
             {editingSliderId ? "Save slider" : "Add slider"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Our services dialog - service */}
-      <Dialog
+      <AppDialog
         open={ourServiceDialogOpen}
         onClose={closeOurServiceDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>
+        <AppDialogTitle>
           {editingOurServiceId ? "Edit service card" : "Add service card"}
-        </DialogTitle>
+        </AppDialogTitle>
 
-        <DialogContent>
+        <AppDialogContent>
           <Stack spacing={2} mt={1}>
             {/* slider selection row */}
             <Stack
@@ -2635,8 +2609,8 @@ const AdminDashboardPage = () => {
               spacing={1.5}
               alignItems={{ xs: "stretch", sm: "flex-end" }}
             >
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Slider"
                 required
                 // 👇 never let it be null/undefined
@@ -2655,16 +2629,16 @@ const AdminDashboardPage = () => {
                     {slider.sliderTitle}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
 
-              <Button
+              <AppButton
                 variant="outlined"
                 onClick={() => setSliderPickerOpen(true)}
                 sx={{ minWidth: { xs: "100%", sm: 160 } }}
                 disabled={!ourServicesSliders.length}
               >
                 Choose by image
-              </Button>
+              </AppButton>
             </Stack>
 
             {/* current selected slider preview */}
@@ -2710,7 +2684,7 @@ const AdminDashboardPage = () => {
               </Box>
             )}
 
-            <TextField
+            <AppTextField
               label="Service title"
               required
               value={ourServiceForm.title}
@@ -2720,33 +2694,33 @@ const AdminDashboardPage = () => {
               fullWidth
             />
           </Stack>
-        </DialogContent>
+        </AppDialogContent>
 
-        <DialogActions>
-          <Button onClick={closeOurServiceDialog} color="inherit">
+        <AppDialogActions>
+          <AppButton onClick={closeOurServiceDialog} color="inherit">
             Cancel
-          </Button>
-          <Button
+          </AppButton>
+          <AppButton
             onClick={handleSaveOurService}
             variant="contained"
             // 👇 ensure sliderId must be truthy (no 0 / "")
             disabled={!ourServiceForm.sliderId}
           >
             {editingOurServiceId ? "Update service" : "Add service"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
 
       {/* Slider picker dialog */}
-      <Dialog
+      <AppDialog
         open={sliderPickerOpen}
         onClose={() => setSliderPickerOpen(false)}
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Choose slider</DialogTitle>
-        <DialogContent dividers>
+        <AppDialogTitle>Choose slider</AppDialogTitle>
+        <AppDialogContent dividers>
           <Grid container spacing={2} mt={0.5}>
             {ourServicesSliders.map((slider) => (
               <Grid item xs={12} sm={6} md={4} key={slider.id}>
@@ -2798,47 +2772,47 @@ const AdminDashboardPage = () => {
               </Grid>
             )}
           </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSliderPickerOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setSliderPickerOpen(false)}>Close</AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Delete service dialog */}
-      <Dialog
+      <AppDialog
         open={ourServiceDeleteDialogOpen}
         onClose={closeOurServiceDeleteDialog}
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Delete service card</DialogTitle>
-        <DialogContent>
+        <AppDialogTitle>Delete service card</AppDialogTitle>
+        <AppDialogContent>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete &quot;{ourServicePendingDelete?.title}
             &quot;? This action cannot be undone.
           </Typography>
-        </DialogContent>
-      <DialogActions>
-        <Button onClick={closeOurServiceDeleteDialog} color="inherit">
+        </AppDialogContent>
+      <AppDialogActions>
+        <AppButton onClick={closeOurServiceDeleteDialog} color="inherit">
           Cancel
-        </Button>
-        <Button onClick={handleConfirmDeleteOurService} color="error" variant="contained">
+        </AppButton>
+        <AppButton onClick={handleConfirmDeleteOurService} color="error" variant="contained">
           Delete
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </AppButton>
+      </AppDialogActions>
+    </AppDialog>
 
       {/* Why VEDX reason dialog */}
-      <Dialog
+      <AppDialog
         open={whyVedxReasonDialogOpen}
         onClose={closeWhyVedxReasonDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingWhyVedxReasonId ? "Edit reason" : "Add reason"}</DialogTitle>
-        <DialogContent>
+        <AppDialogTitle>{editingWhyVedxReasonId ? "Edit reason" : "Add reason"}</AppDialogTitle>
+        <AppDialogContent>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Title"
               required
               value={whyVedxReasonForm.title}
@@ -2847,7 +2821,7 @@ const AdminDashboardPage = () => {
               }
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Description"
               required
               value={whyVedxReasonForm.description}
@@ -2869,52 +2843,52 @@ const AdminDashboardPage = () => {
               required
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeWhyVedxReasonDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeWhyVedxReasonDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleWhyVedxReasonSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleWhyVedxReasonSubmit} variant="contained">
             {editingWhyVedxReasonId ? "Update reason" : "Add reason"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Delete why VEDX reason dialog */}
-      <Dialog
+      <AppDialog
         open={whyVedxReasonDeleteDialogOpen}
         onClose={closeWhyVedxReasonDeleteDialog}
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Delete reason</DialogTitle>
-        <DialogContent>
+        <AppDialogTitle>Delete reason</AppDialogTitle>
+        <AppDialogContent>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{whyVedxReasonPendingDelete?.title}"? This action
             cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeWhyVedxReasonDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeWhyVedxReasonDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteWhyVedxReason} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteWhyVedxReason} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Industry dialog */}
-      <Dialog
+      <AppDialog
         open={industryDialogOpen}
         onClose={closeIndustryDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingIndustryId ? "Edit industry" : "Add industry"}</DialogTitle>
-        <DialogContent>
+        <AppDialogTitle>{editingIndustryId ? "Edit industry" : "Add industry"}</AppDialogTitle>
+        <AppDialogContent>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Industry title"
               required
               value={industryForm.title}
@@ -2923,7 +2897,7 @@ const AdminDashboardPage = () => {
               }
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={industryForm.description}
               onChange={(event) =>
@@ -2967,9 +2941,9 @@ const AdminDashboardPage = () => {
               )}
             </Box>
             <Stack spacing={1}>
-              <Button variant="outlined" onClick={() => industryFileInputRef.current?.click()}>
+              <AppButton variant="outlined" onClick={() => industryFileInputRef.current?.click()}>
                 Choose image
-              </Button>
+              </AppButton>
               <Typography variant="caption" color="text.secondary">
                 Select a single image to represent the industry.
               </Typography>
@@ -2982,28 +2956,28 @@ const AdminDashboardPage = () => {
               />
             </Stack>
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeIndustryDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeIndustryDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleIndustrySubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleIndustrySubmit} variant="contained">
             {editingIndustryId ? "Update industry" : "Add industry"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Tech solution dialog */}
-      <Dialog
+      <AppDialog
         open={techSolutionDialogOpen}
         onClose={closeTechSolutionDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingTechSolutionId ? "Edit solution" : "Add solution"}</DialogTitle>
-        <DialogContent>
+        <AppDialogTitle>{editingTechSolutionId ? "Edit solution" : "Add solution"}</AppDialogTitle>
+        <AppDialogContent>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Solution title"
               required
               value={techSolutionForm.title}
@@ -3012,7 +2986,7 @@ const AdminDashboardPage = () => {
               }
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={techSolutionForm.description}
               onChange={(event) =>
@@ -3027,28 +3001,28 @@ const AdminDashboardPage = () => {
               placeholder="Add optional details about the solution"
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeTechSolutionDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeTechSolutionDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleTechSolutionSave} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleTechSolutionSave} variant="contained">
             {editingTechSolutionId ? "Update solution" : "Add solution"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Expertise dialog */}
-      <Dialog
+      <AppDialog
         open={expertiseDialogOpen}
         onClose={closeExpertiseDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingExpertiseId ? "Edit expertise" : "Add expertise"}</DialogTitle>
-        <DialogContent>
+        <AppDialogTitle>{editingExpertiseId ? "Edit expertise" : "Add expertise"}</AppDialogTitle>
+        <AppDialogContent>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Title"
               required
               value={expertiseForm.title}
@@ -3057,7 +3031,7 @@ const AdminDashboardPage = () => {
               }
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={expertiseForm.description}
               onChange={(event) =>
@@ -3101,13 +3075,13 @@ const AdminDashboardPage = () => {
               )}
             </Box>
             <Stack spacing={1}>
-              <Button
+              <AppButton
                 variant="outlined"
                 onClick={() => expertiseFileInputRef.current?.click()}
                 fullWidth
               >
                 Choose image
-              </Button>
+              </AppButton>
               <Typography variant="caption" color="text.secondary">
                 Select a single image to highlight this expertise option.
               </Typography>
@@ -3120,28 +3094,28 @@ const AdminDashboardPage = () => {
               />
             </Stack>
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeExpertiseDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeExpertiseDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleExpertiseSubmit} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleExpertiseSubmit} variant="contained">
             {editingExpertiseId ? "Update expertise" : "Add expertise"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Process dialog */}
-      <Dialog
+      <AppDialog
         open={processDialogOpen}
         onClose={closeProcessDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editingProcessId ? "Edit process step" : "Add process step"}</DialogTitle>
-        <DialogContent>
+        <AppDialogTitle>{editingProcessId ? "Edit process step" : "Add process step"}</AppDialogTitle>
+        <AppDialogContent>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Title"
               required
               value={processForm.title}
@@ -3150,7 +3124,7 @@ const AdminDashboardPage = () => {
               }
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={processForm.description}
               onChange={(event) =>
@@ -3194,13 +3168,13 @@ const AdminDashboardPage = () => {
               )}
             </Box>
             <Stack spacing={1}>
-              <Button
+              <AppButton
                 variant="outlined"
                 onClick={() => processFileInputRef.current?.click()}
                 fullWidth
               >
                 Choose image
-              </Button>
+              </AppButton>
               <Typography variant="caption" color="text.secondary">
                 Select a relevant image to accompany this process step.
               </Typography>
@@ -3213,16 +3187,16 @@ const AdminDashboardPage = () => {
               />
             </Stack>
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeProcessDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeProcessDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleProcessSave} variant="contained">
+          </AppButton>
+          <AppButton onClick={handleProcessSave} variant="contained">
             {editingProcessId ? "Update step" : "Add step"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
     </>
   );
 };

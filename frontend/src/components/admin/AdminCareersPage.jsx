@@ -1,35 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Grid,
-  FormHelperText,
-  IconButton,
-  MenuItem,
-  InputAdornment,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-  Tab,
-  Tabs
-} from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Chip, Divider, Grid, FormHelperText, IconButton, MenuItem, InputAdornment, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography, Tab, Tabs } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -722,9 +694,9 @@ const AdminCareersPage = () => {
             title="Job posts"
             subheader="Add new openings, update details, or remove closed positions."
             action={
-              <Button variant="contained" startIcon={<PersonAddAltIcon />} onClick={openJobCreateDialog}>
+              <AppButton variant="contained" startIcon={<PersonAddAltIcon />} onClick={openJobCreateDialog}>
                 New job
-              </Button>
+              </AppButton>
             }
           />
           <Divider />
@@ -735,14 +707,14 @@ const AdminCareersPage = () => {
               </Typography>
             )}
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
-              <TextField
+              <AppTextField
                 label="Position or title"
                 value={jobFilterDraft.position}
                 onChange={(event) => setJobFilterDraft((prev) => ({ ...prev, position: event.target.value }))}
                 fullWidth
               />
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Type"
                 value={jobFilterDraft.type}
                 onChange={(event) => setJobFilterDraft((prev) => ({ ...prev, type: event.target.value }))}
@@ -754,9 +726,9 @@ const AdminCareersPage = () => {
                     {type}
                   </MenuItem>
                 ))}
-              </TextField>
-              <TextField
-                select
+              </AppSelectField>
+              <AppSelectField
+               
                 label="Date filter"
                 value={jobFilterDraft.date}
                 onChange={(event) => setJobFilterDraft((prev) => ({ ...prev, date: event.target.value }))}
@@ -767,10 +739,10 @@ const AdminCareersPage = () => {
                     {option.label}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
               {jobFilterDraft.date === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
-                  <TextField
+                  <AppTextField
                     type="date"
                     label="From"
                     value={jobFilterDraft.start}
@@ -778,7 +750,7 @@ const AdminCareersPage = () => {
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     type="date"
                     label="To"
                     value={jobFilterDraft.end}
@@ -801,12 +773,12 @@ const AdminCareersPage = () => {
                 )}
               </Stack>
               <Stack direction="row" spacing={1}>
-                <Button variant="outlined" color="inherit" onClick={clearJobFilters}>
+                <AppButton variant="outlined" color="inherit" onClick={clearJobFilters}>
                   Clear filters
-                </Button>
-                <Button variant="contained" onClick={applyJobFilters}>
+                </AppButton>
+                <AppButton variant="contained" onClick={applyJobFilters}>
                   Apply filters
-                </Button>
+                </AppButton>
               </Stack>
             </Stack>
             <TableContainer>
@@ -901,9 +873,9 @@ const AdminCareersPage = () => {
             title="Applications"
             subheader="Review candidates, update their details, or download their resumes."
             action={
-              <Button variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
+              <AppButton variant="outlined" startIcon={<PersonAddAltIcon />} onClick={openApplicationCreateDialog}>
                 Add applicant
-              </Button>
+              </AppButton>
             }
           />
           <Divider />
@@ -914,7 +886,7 @@ const AdminCareersPage = () => {
               </Typography>
             )}
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
-              <TextField
+              <AppTextField
                 label="Name"
                 value={applicationFilterDraft.name}
                 onChange={(event) =>
@@ -922,7 +894,7 @@ const AdminCareersPage = () => {
                 }
                 fullWidth
               />
-              <TextField
+              <AppTextField
                 label="Email"
                 value={applicationFilterDraft.email}
                 onChange={(event) =>
@@ -930,7 +902,7 @@ const AdminCareersPage = () => {
                 }
                 fullWidth
               />
-              <TextField
+              <AppTextField
                 label="Mobile"
                 value={applicationFilterDraft.contact}
                 onChange={(event) =>
@@ -940,7 +912,7 @@ const AdminCareersPage = () => {
               />
             </Stack>
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }} mb={2}>
-              <TextField
+              <AppTextField
                 label="Experience"
                 value={applicationFilterDraft.experience}
                 onChange={(event) =>
@@ -948,8 +920,8 @@ const AdminCareersPage = () => {
                 }
                 fullWidth
               />
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Type"
                 value={applicationFilterDraft.type}
                 onChange={(event) =>
@@ -963,9 +935,9 @@ const AdminCareersPage = () => {
                     {type}
                   </MenuItem>
                 ))}
-              </TextField>
-              <TextField
-                select
+              </AppSelectField>
+              <AppSelectField
+               
                 label="Applied date"
                 value={applicationFilterDraft.date}
                 onChange={(event) =>
@@ -978,10 +950,10 @@ const AdminCareersPage = () => {
                     {option.label}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
               {applicationFilterDraft.date === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
-                  <TextField
+                  <AppTextField
                     type="date"
                     label="From"
                     value={applicationFilterDraft.start}
@@ -991,7 +963,7 @@ const AdminCareersPage = () => {
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     type="date"
                     label="To"
                     value={applicationFilterDraft.end}
@@ -1016,12 +988,12 @@ const AdminCareersPage = () => {
                 )}
               </Stack>
               <Stack direction="row" spacing={1}>
-                <Button variant="outlined" color="inherit" onClick={clearApplicationFilters}>
+                <AppButton variant="outlined" color="inherit" onClick={clearApplicationFilters}>
                   Clear filters
-                </Button>
-                <Button variant="contained" onClick={applyApplicationFilters}>
+                </AppButton>
+                <AppButton variant="contained" onClick={applyApplicationFilters}>
                   Apply filters
-                </Button>
+                </AppButton>
               </Stack>
             </Stack>
             <TableContainer>
@@ -1129,25 +1101,25 @@ const AdminCareersPage = () => {
         </Card>
       )}
 
-      <Dialog open={jobDialogOpen} onClose={closeJobDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{jobDialogMode === 'edit' ? 'Edit job post' : 'New job post'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={jobDialogOpen} onClose={closeJobDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{jobDialogMode === 'edit' ? 'Edit job post' : 'New job post'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} mt={1} component="form" onSubmit={handleJobSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               value={jobForm.title}
               onChange={(event) => handleJobFormChange('title', event.target.value)}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Position"
               value={jobForm.position}
               onChange={(event) => handleJobFormChange('position', event.target.value)}
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Experience"
               placeholder="e.g. 3+ years"
               value={jobForm.experience}
@@ -1157,8 +1129,8 @@ const AdminCareersPage = () => {
             />
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  select
+                <AppSelectField
+                 
                   label="Employment type"
                   value={jobForm.employmentType}
                   onChange={(event) => handleJobFormChange('employmentType', event.target.value)}
@@ -1170,10 +1142,10 @@ const AdminCareersPage = () => {
                       {type}
                     </MenuItem>
                   ))}
-                </TextField>
+                </AppSelectField>
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
+                <AppTextField
                   label="Posted on"
                   type="date"
                   value={jobForm.postedOn}
@@ -1184,7 +1156,7 @@ const AdminCareersPage = () => {
                 />
               </Grid>
             </Grid>
-            <TextField
+            <AppTextField
               label="Description"
               placeholder="Describe responsibilities, required skills, and perks"
               value={jobForm.description}
@@ -1201,20 +1173,20 @@ const AdminCareersPage = () => {
               </Typography>
             )}
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeJobDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeJobDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleJobSubmit} variant="contained" disabled={savingJob}>
+          </AppButton>
+          <AppButton onClick={handleJobSubmit} variant="contained" disabled={savingJob}>
             {jobDialogMode === 'edit' ? 'Save changes' : 'Create job'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(viewJob)} onClose={closeViewJob} maxWidth="sm" fullWidth>
-        <DialogTitle>Job details</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(viewJob)} onClose={closeViewJob} maxWidth="sm" fullWidth>
+        <AppDialogTitle>Job details</AppDialogTitle>
+        <AppDialogContent dividers>
           {viewJob && (
             <Stack spacing={2}>
               <Typography variant="h6" fontWeight={700}>
@@ -1236,33 +1208,33 @@ const AdminCareersPage = () => {
               </Typography>
             </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeViewJob} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeViewJob} color="inherit">
             Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(jobToDelete)} onClose={closeJobDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete job post</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(jobToDelete)} onClose={closeJobDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete job post</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeJobDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeJobDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteJob} color="error" variant="contained" disabled={savingJob}>
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteJob} color="error" variant="contained" disabled={savingJob}>
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={applicationDialogOpen} onClose={closeApplicationDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ px: { xs: 3, sm: 4 }, pb: 1 }}>
+      <AppDialog open={applicationDialogOpen} onClose={closeApplicationDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle sx={{ px: { xs: 3, sm: 4 }, pb: 1 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack spacing={0.5}>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -1277,8 +1249,8 @@ const AdminCareersPage = () => {
               <CloseIcon />
             </IconButton>
           </Stack>
-        </DialogTitle>
-        <DialogContent
+        </AppDialogTitle>
+        <AppDialogContent
           sx={{
             display: 'flex',
             justifyContent: 'center',
@@ -1296,7 +1268,7 @@ const AdminCareersPage = () => {
             <Stack spacing={2.5} component="form" onSubmit={handleApplicationSubmit}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <TextField
+                  <AppTextField
                     label="Full name"
                     value={applicationForm.name}
                     onChange={(event) => handleApplicationFormChange('name', event.target.value)}
@@ -1305,7 +1277,7 @@ const AdminCareersPage = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
+                  <AppTextField
                     label="Email"
                     type="email"
                     value={applicationForm.email}
@@ -1315,7 +1287,7 @@ const AdminCareersPage = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
+                  <AppTextField
                     label="Mobile number"
                     value={applicationForm.contact}
                     onChange={(event) => handleApplicationFormChange('contact', event.target.value)}
@@ -1331,7 +1303,7 @@ const AdminCareersPage = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
+                  <AppTextField
                     label="Experience"
                     placeholder="e.g. 2 years"
                     value={applicationForm.experience}
@@ -1341,8 +1313,8 @@ const AdminCareersPage = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    select
+                  <AppSelectField
+                   
                     label="Employment type"
                     value={applicationForm.employmentType}
                     onChange={(event) => handleApplicationFormChange('employmentType', event.target.value)}
@@ -1354,10 +1326,10 @@ const AdminCareersPage = () => {
                         {type}
                       </MenuItem>
                     ))}
-                  </TextField>
+                  </AppSelectField>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
+                  <AppTextField
                     label="Applied on"
                     type="date"
                     value={applicationForm.appliedOn}
@@ -1369,10 +1341,10 @@ const AdminCareersPage = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <Stack spacing={0.5}>
-                    <Button component="label" variant="outlined">
+                    <AppButton component="label" variant="outlined">
                       {applicationForm.resumeFile ? 'Change resume (PDF)' : 'Upload resume (PDF)'}
                       <input type="file" hidden accept="application/pdf" onChange={handleResumeFileChange} />
-                    </Button>
+                    </AppButton>
                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                       <Typography variant="body2" color="text.secondary">
                         {applicationForm.resumeFile
@@ -1382,21 +1354,21 @@ const AdminCareersPage = () => {
                             : 'No file selected yet.'}
                       </Typography>
                       {applicationForm.resumeFile && (
-                        <Button color="error" size="small" onClick={handleClearResumeFile}>
+                        <AppButton color="error" size="small" onClick={handleClearResumeFile}>
                           Remove file
-                        </Button>
+                        </AppButton>
                       )}
                       {(applicationForm.resumeFile || applicationForm.resumeUrl) && (
-                        <Button size="small" onClick={() => handleResumeView(applicationForm)}>
+                        <AppButton size="small" onClick={() => handleResumeView(applicationForm)}>
                           View resume
-                        </Button>
+                        </AppButton>
                       )}
                     </Stack>
                     {resumeError && <FormHelperText error>{resumeError}</FormHelperText>}
                   </Stack>
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
+                  <AppTextField
                     label="Notes"
                     placeholder="Add a quick summary or decision notes"
                     value={applicationForm.notes}
@@ -1416,27 +1388,27 @@ const AdminCareersPage = () => {
               )}
 
               <Box sx={{ textAlign: 'start', mt: 1 }}>
-                <Button
+                <AppButton
                   variant="contained"
                   type="submit"
                   disabled={savingApplication}
                 >
                   {applicationDialogMode === 'edit' ? 'Save applicant' : 'Submit applicant'}
-                </Button>
+                </AppButton>
               </Box>
             </Stack>
           </Box>
-        </DialogContent>
-      </Dialog>
+        </AppDialogContent>
+      </AppDialog>
 
-      <Dialog
+      <AppDialog
         open={Boolean(viewApplication)}
         onClose={closeViewApplication}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Applicant details</DialogTitle>
-        <DialogContent dividers>
+        <AppDialogTitle>Applicant details</AppDialogTitle>
+        <AppDialogContent dividers>
           {viewApplication && (
             <Stack spacing={2}>
               <Typography variant="h6" fontWeight={700}>
@@ -1461,40 +1433,40 @@ const AdminCareersPage = () => {
               <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                 {viewApplication.notes || 'No additional notes yet.'}
               </Typography>
-              <Button
+              <AppButton
                 variant="outlined"
                 startIcon={<DownloadOutlinedIcon />}
                 onClick={() => handleResumeView(viewApplication)}
                 disabled={!resolveResumeUrl(viewApplication)}
               >
                 View resume
-              </Button>
+              </AppButton>
             </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeViewApplication} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeViewApplication} color="inherit">
             Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(applicationToDelete)} onClose={closeApplicationDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete applicant</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(applicationToDelete)} onClose={closeApplicationDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete applicant</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to remove "{applicationToDelete?.name}" from the applicant list? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeApplicationDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeApplicationDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteApplication} color="error" variant="contained" disabled={savingApplication}>
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteApplication} color="error" variant="contained" disabled={savingApplication}>
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
     </Stack>
   );
 };

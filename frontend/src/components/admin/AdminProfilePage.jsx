@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, CardContent, Grid, Stack, TextField, Typography } from '@mui/material';
+import { Card, CardContent, Grid, Stack, Typography } from '@mui/material';
+import { AppButton, AppTextField } from '../shared/FormControls.jsx';
+
 import { getStoredAdminProfile, setStoredAdminProfile } from '../../data/adminProfile.js';
 import { apiUrl } from '../../utils/const.js';
 
@@ -124,7 +126,7 @@ const AdminProfilePage = () => {
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <TextField
+              <AppTextField
                 label="First name"
                 fullWidth
                 value={formValues.firstName}
@@ -136,7 +138,7 @@ const AdminProfilePage = () => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
+              <AppTextField
                 label="Last name"
                 fullWidth
                 value={formValues.lastName}
@@ -146,7 +148,7 @@ const AdminProfilePage = () => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
+              <AppTextField
                 label="Email address"
                 type="email"
                 fullWidth
@@ -172,12 +174,12 @@ const AdminProfilePage = () => {
           ) : null}
 
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
-            <Button variant="outlined" onClick={handleReset} disabled={saving}>
+            <AppButton variant="outlined" onClick={handleReset} disabled={saving}>
               Cancel
-            </Button>
-            <Button variant="contained" type="submit" disabled={saving}>
+            </AppButton>
+            <AppButton variant="contained" type="submit" disabled={saving}>
               {saving ? 'Saving...' : 'Save changes'}
-            </Button>
+            </AppButton>
           </Stack>
         </Stack>
       </CardContent>

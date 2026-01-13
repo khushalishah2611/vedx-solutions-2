@@ -1,4 +1,6 @@
-import { Box, Button, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 
 const ServicesCTA = ({ onContactClick }) => {
   const theme = useTheme();
@@ -62,7 +64,7 @@ const ServicesCTA = ({ onContactClick }) => {
               justifyContent: { xs: 'flex-start', md: 'flex-end' },
             }}
           >
-            <Button
+            <AppButton
               variant="contained"
               size="large"
               onClick={onContactClick}
@@ -79,7 +81,7 @@ const ServicesCTA = ({ onContactClick }) => {
               }}
             >
               Contact Us
-            </Button>
+            </AppButton>
           </Box>
         </Stack>
       </Paper>

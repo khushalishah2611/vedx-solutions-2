@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
+import { Card, CardContent, Stack, Typography } from '@mui/material';
+import { AppButton, AppTextField } from '../shared/FormControls.jsx';
+
 import { apiUrl } from '../../utils/const.js';
 
 const AdminChangePasswordPage = () => {
@@ -100,7 +102,7 @@ const AdminChangePasswordPage = () => {
             </Typography>
           </div>
           <Stack spacing={2}>
-            <TextField
+            <AppTextField
               label="Current password"
               type="password"
               fullWidth
@@ -113,7 +115,7 @@ const AdminChangePasswordPage = () => {
               helperText={errors.currentPassword}
               autoComplete="current-password"
             />
-            <TextField
+            <AppTextField
               label="New password"
               type="password"
               fullWidth
@@ -124,7 +126,7 @@ const AdminChangePasswordPage = () => {
               helperText={errors.newPassword}
               autoComplete="new-password"
             />
-            <TextField
+            <AppTextField
               label="Confirm new password"
               type="password"
               fullWidth
@@ -152,12 +154,12 @@ const AdminChangePasswordPage = () => {
           ) : null}
 
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
-            <Button variant="outlined" onClick={handleReset} disabled={submitting}>
+            <AppButton variant="outlined" onClick={handleReset} disabled={submitting}>
               Cancel
-            </Button>
-            <Button variant="contained" type="submit" disabled={submitting}>
+            </AppButton>
+            <AppButton variant="contained" type="submit" disabled={submitting}>
               {submitting ? 'Updating...' : 'Update password'}
-            </Button>
+            </AppButton>
           </Stack>
         </Stack>
       </CardContent>

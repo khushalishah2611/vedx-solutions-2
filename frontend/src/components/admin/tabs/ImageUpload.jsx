@@ -1,4 +1,6 @@
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import PropTypes from 'prop-types';
 
 const ImageUpload = ({ label, value, onChange, required }) => {
@@ -48,10 +50,10 @@ const ImageUpload = ({ label, value, onChange, required }) => {
           </Typography>
         )}
       </Box>
-      <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
+      <AppButton variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
         Choose image
         <input type="file" accept="image/*" hidden required={required} onChange={handleFileChange} />
-      </Button>
+      </AppButton>
     </Stack>
   );
 };

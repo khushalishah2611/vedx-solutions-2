@@ -1,31 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  CircularProgress,
-  Divider,
-  Grid,
-  IconButton,
-  Pagination,
-  Stack,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tabs,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Card, CardContent, CardHeader, Chip, CircularProgress, Divider, Grid, IconButton, Pagination, Stack, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs, Tooltip, Typography } from '@mui/material';
+import { AppButton, AppTextField } from '../shared/FormControls.jsx';
+
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -71,10 +48,10 @@ const ImageUpload = ({ label, value, onChange }) => {
 
   return (
     <Stack spacing={1} alignItems="flex-start">
-      <Button component="label" variant="outlined">
+      <AppButton component="label" variant="outlined">
         {value ? `Change ${label}` : `Upload ${label}`}
         <input type="file" hidden accept="image/*" onChange={handleChange} />
-      </Button>
+      </AppButton>
       {value && (
         <Box
           component="img"
@@ -84,9 +61,9 @@ const ImageUpload = ({ label, value, onChange }) => {
         />
       )}
       {value && (
-        <Button color="secondary" size="small" onClick={() => onChange?.('')}>
+        <AppButton color="secondary" size="small" onClick={() => onChange?.('')}>
           Remove {label}
-        </Button>
+        </AppButton>
       )}
     </Stack>
   );
@@ -500,9 +477,9 @@ const AdminCaseStudyDetailsPage = () => {
     <Box sx={{ p: 3 }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={2} mb={3}>
         <Stack direction="row" spacing={1} alignItems="center">
-          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/admin/case-studies')}>
+          <AppButton startIcon={<ArrowBackIcon />} onClick={() => navigate('/admin/case-studies')}>
             Back
-          </Button>
+          </AppButton>
           <Divider orientation="vertical" flexItem />
           <Box>
             <Typography variant="h5" fontWeight={700} gutterBottom>
@@ -513,14 +490,14 @@ const AdminCaseStudyDetailsPage = () => {
             </Typography>
           </Box>
         </Stack>
-        <Button
+        <AppButton
           variant="contained"
           startIcon={<SaveOutlinedIcon />}
           onClick={handleSave}
           disabled={saving}
         >
           {saving ? 'Saving...' : 'Save Details'}
-        </Button>
+        </AppButton>
       </Stack>
 
       {error && (
@@ -575,7 +552,7 @@ const AdminCaseStudyDetailsPage = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 <Stack spacing={2}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={detail.projectOverview.title}
                     onChange={(e) =>
@@ -587,7 +564,7 @@ const AdminCaseStudyDetailsPage = () => {
                     required
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     label="Subtitle"
                     value={detail.projectOverview.subtitle}
                     onChange={(e) =>
@@ -598,7 +575,7 @@ const AdminCaseStudyDetailsPage = () => {
                     }
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     label="Description"
                     value={detail.projectOverview.description}
                     onChange={(e) =>
@@ -637,19 +614,19 @@ const AdminCaseStudyDetailsPage = () => {
               <CardHeader title={approachEditIndex >= 0 ? 'Edit Approach' : 'Add Approach'} />
               <CardContent>
                 <Stack spacing={2}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={approachForm.title}
                     onChange={(e) => setApproachForm((prev) => ({ ...prev, title: e.target.value }))}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     label="Subtitle"
                     value={approachForm.subtitle}
                     onChange={(e) => setApproachForm((prev) => ({ ...prev, subtitle: e.target.value }))}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     label="Approach Type"
                     value={approachForm.approachType}
                     onChange={(e) => setApproachForm((prev) => ({ ...prev, approachType: e.target.value }))}
@@ -662,13 +639,13 @@ const AdminCaseStudyDetailsPage = () => {
                     onChange={(value) => setApproachForm((prev) => ({ ...prev, image: value }))}
                   />
                   <Stack direction="row" spacing={1}>
-                    <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleApproachSave}>
+                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleApproachSave}>
                       {approachEditIndex >= 0 ? 'Update' : 'Add Approach'}
-                    </Button>
+                    </AppButton>
                     {approachEditIndex >= 0 && (
-                      <Button variant="text" onClick={() => setApproachEditIndex(-1)}>
+                      <AppButton variant="text" onClick={() => setApproachEditIndex(-1)}>
                         Cancel
-                      </Button>
+                      </AppButton>
                     )}
                   </Stack>
                 </Stack>
@@ -702,19 +679,19 @@ const AdminCaseStudyDetailsPage = () => {
               <CardHeader title={solutionEditIndex >= 0 ? 'Edit Solution' : 'Add Solution'} />
               <CardContent>
                 <Stack spacing={2}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={solutionForm.title}
                     onChange={(e) => setSolutionForm((prev) => ({ ...prev, title: e.target.value }))}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     label="Subtitle"
                     value={solutionForm.subtitle}
                     onChange={(e) => setSolutionForm((prev) => ({ ...prev, subtitle: e.target.value }))}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     label="Tags"
                     value={solutionForm.tagsInput}
                     onChange={(e) => setSolutionForm((prev) => ({ ...prev, tagsInput: e.target.value }))}
@@ -722,13 +699,13 @@ const AdminCaseStudyDetailsPage = () => {
                     fullWidth
                   />
                   <Stack direction="row" spacing={1}>
-                    <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleSolutionSave}>
+                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleSolutionSave}>
                       {solutionEditIndex >= 0 ? 'Update' : 'Add Solution'}
-                    </Button>
+                    </AppButton>
                     {solutionEditIndex >= 0 && (
-                      <Button variant="text" onClick={() => setSolutionEditIndex(-1)}>
+                      <AppButton variant="text" onClick={() => setSolutionEditIndex(-1)}>
                         Cancel
-                      </Button>
+                      </AppButton>
                     )}
                   </Stack>
                 </Stack>
@@ -766,7 +743,7 @@ const AdminCaseStudyDetailsPage = () => {
               <CardHeader title={technologyEditIndex >= 0 ? 'Edit Technology' : 'Add Technology'} />
               <CardContent>
                 <Stack spacing={2}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={technologyForm.title}
                     onChange={(e) => setTechnologyForm((prev) => ({ ...prev, title: e.target.value }))}
@@ -778,13 +755,13 @@ const AdminCaseStudyDetailsPage = () => {
                     onChange={(value) => setTechnologyForm((prev) => ({ ...prev, image: value }))}
                   />
                   <Stack direction="row" spacing={1}>
-                    <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleTechnologySave}>
+                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleTechnologySave}>
                       {technologyEditIndex >= 0 ? 'Update' : 'Add Technology'}
-                    </Button>
+                    </AppButton>
                     {technologyEditIndex >= 0 && (
-                      <Button variant="text" onClick={() => setTechnologyEditIndex(-1)}>
+                      <AppButton variant="text" onClick={() => setTechnologyEditIndex(-1)}>
                         Cancel
-                      </Button>
+                      </AppButton>
                     )}
                   </Stack>
                 </Stack>
@@ -818,20 +795,20 @@ const AdminCaseStudyDetailsPage = () => {
               <CardHeader title={featureEditIndex >= 0 ? 'Edit Feature' : 'Add Feature'} />
               <CardContent>
                 <Stack spacing={2}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={featureForm.title}
                     onChange={(e) => setFeatureForm((prev) => ({ ...prev, title: e.target.value }))}
                     fullWidth
                   />
                   <Stack direction="row" spacing={1}>
-                    <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleFeatureSave}>
+                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleFeatureSave}>
                       {featureEditIndex >= 0 ? 'Update' : 'Add Feature'}
-                    </Button>
+                    </AppButton>
                     {featureEditIndex >= 0 && (
-                      <Button variant="text" onClick={() => setFeatureEditIndex(-1)}>
+                      <AppButton variant="text" onClick={() => setFeatureEditIndex(-1)}>
                         Cancel
-                      </Button>
+                      </AppButton>
                     )}
                   </Stack>
                 </Stack>
@@ -865,13 +842,13 @@ const AdminCaseStudyDetailsPage = () => {
               <CardHeader title={screenshotEditIndex >= 0 ? 'Edit Screenshot' : 'Add Screenshot'} />
               <CardContent>
                 <Stack spacing={2}>
-                  <TextField
+                  <AppTextField
                     label="Title"
                     value={screenshotForm.title}
                     onChange={(e) => setScreenshotForm((prev) => ({ ...prev, title: e.target.value }))}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     label="Subtitle"
                     value={screenshotForm.subtitle}
                     onChange={(e) => setScreenshotForm((prev) => ({ ...prev, subtitle: e.target.value }))}
@@ -883,13 +860,13 @@ const AdminCaseStudyDetailsPage = () => {
                     onChange={(value) => setScreenshotForm((prev) => ({ ...prev, image: value }))}
                   />
                   <Stack direction="row" spacing={1}>
-                    <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleScreenshotSave}>
+                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleScreenshotSave}>
                       {screenshotEditIndex >= 0 ? 'Update' : 'Add Screenshot'}
-                    </Button>
+                    </AppButton>
                     {screenshotEditIndex >= 0 && (
-                      <Button variant="text" onClick={() => setScreenshotEditIndex(-1)}>
+                      <AppButton variant="text" onClick={() => setScreenshotEditIndex(-1)}>
                         Cancel
-                      </Button>
+                      </AppButton>
                     )}
                   </Stack>
                 </Stack>

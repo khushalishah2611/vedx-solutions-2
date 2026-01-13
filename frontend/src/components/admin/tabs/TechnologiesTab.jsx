@@ -2,22 +2,9 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Divider,
-  IconButton,
-  Stack,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, CardHeader, Chip, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import PropTypes from 'prop-types';
 
 const TechnologiesTab = ({
@@ -33,9 +20,9 @@ const TechnologiesTab = ({
       title="Technologies we support"
       subheader="Group technology blocks (Frontend / Backend) and keep the services page dynamic."
       action={
-        <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
+        <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openTechnologyCreateDialog}>
           Add technology block
-        </Button>
+        </AppButton>
       }
     />
     <Divider />

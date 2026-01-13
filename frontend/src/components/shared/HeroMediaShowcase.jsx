@@ -1,14 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Button,
-  Container,
-  Grid,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from '@mui/material';
+import { Box, Container, Grid, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from './FormControls.jsx';
+
 
 const DEFAULT_BASE_IMAGE =
   'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=80';
@@ -308,7 +301,7 @@ const HeroMediaShowcase = ({
                   sx={{ pt: 1, mx: { xs: 'auto', md: 0 } }}
                 >
                   {actions ?? (
-                    <Button
+                    <AppButton
                       variant="contained"
                       size="large"
                       onClick={onCtaClick}
@@ -329,7 +322,7 @@ const HeroMediaShowcase = ({
                       }}
                     >
                       {ctaLabel}
-                    </Button>
+                    </AppButton>
                   )}
 
                   {Array.isArray(actions) && actions.length > 0 && (

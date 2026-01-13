@@ -1,29 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -303,9 +281,9 @@ const AdminFeedbacksPage = () => {
           title="Customer reviews"
           subheader="Track customer reviews with filters, CRUD actions, and quick previews."
           action={
-            <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openFeedbackCreateDialog}>
+            <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={openFeedbackCreateDialog}>
               Add review
-            </Button>
+            </AppButton>
           }
         />
         <Divider />
@@ -317,20 +295,20 @@ const AdminFeedbacksPage = () => {
           ) : null}
 
           <Stack spacing={2} mb={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ md: 'flex-end' }}>
-            <TextField
+            <AppTextField
               label="Name filter"
               value={nameFilter}
               onChange={(event) => setNameFilter(event.target.value)}
               sx={{ minWidth: 200 }}
             />
-            <TextField
+            <AppTextField
               label="Title filter"
               value={titleFilter}
               onChange={(event) => setTitleFilter(event.target.value)}
               sx={{ minWidth: 200 }}
             />
-            <TextField
-              select
+            <AppSelectField
+             
               label="Rating"
               value={ratingFilter}
               onChange={(event) => setRatingFilter(event.target.value)}
@@ -342,9 +320,9 @@ const AdminFeedbacksPage = () => {
                   {value} star{value > 1 ? 's' : ''}
                 </MenuItem>
               ))}
-            </TextField>
-            <TextField
-              select
+            </AppSelectField>
+            <AppSelectField
+             
               label="Date filter"
               value={dateFilter}
               onChange={(event) => setDateFilter(event.target.value)}
@@ -355,7 +333,7 @@ const AdminFeedbacksPage = () => {
                   {option.label}
                 </MenuItem>
               ))}
-            </TextField>
+            </AppSelectField>
           </Stack>
 
           <TableContainer>
@@ -435,13 +413,13 @@ const AdminFeedbacksPage = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={feedbackDialogOpen} onClose={closeFeedbackDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{feedbackDialogMode === 'edit' ? 'Edit review' : 'Add review'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={feedbackDialogOpen} onClose={closeFeedbackDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{feedbackDialogMode === 'edit' ? 'Edit review' : 'Add review'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack component="form" spacing={2} onSubmit={handleFeedbackSubmit}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField
+                <AppTextField
                   label="Name"
                   value={feedbackForm.name}
                   onChange={(event) => handleFeedbackFormChange('name', event.target.value)}
@@ -450,7 +428,7 @@ const AdminFeedbacksPage = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
+                <AppTextField
                   label="Title"
                   value={feedbackForm.title}
                   onChange={(event) => handleFeedbackFormChange('title', event.target.value)}
@@ -461,8 +439,8 @@ const AdminFeedbacksPage = () => {
             </Grid>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  select
+                <AppSelectField
+                 
                   label="Rating"
                   value={feedbackForm.rating}
                   onChange={(event) => handleFeedbackFormChange('rating', event.target.value)}
@@ -473,10 +451,10 @@ const AdminFeedbacksPage = () => {
                       {value} star{value > 1 ? 's' : ''}
                     </MenuItem>
                   ))}
-                </TextField>
+                </AppSelectField>
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
+                <AppTextField
                   type="date"
                   label="Submitted date"
                   value={feedbackForm.submittedAt}
@@ -486,7 +464,7 @@ const AdminFeedbacksPage = () => {
                 />
               </Grid>
             </Grid>
-            <TextField
+            <AppTextField
               label="Description"
               value={feedbackForm.description}
               onChange={(event) => handleFeedbackFormChange('description', event.target.value)}
@@ -501,21 +479,21 @@ const AdminFeedbacksPage = () => {
               </Typography>
             ) : null}
             <Box>
-              <Button type="submit" variant="contained" disabled={savingFeedback}>
+              <AppButton type="submit" variant="contained" disabled={savingFeedback}>
                 {savingFeedback
                   ? 'Saving...'
                   : feedbackDialogMode === 'edit'
                     ? 'Save changes'
                     : 'Create review'}
-              </Button>
+              </AppButton>
             </Box>
           </Stack>
-        </DialogContent>
-      </Dialog>
+        </AppDialogContent>
+      </AppDialog>
 
-      <Dialog open={Boolean(viewingFeedback)} onClose={() => setViewingFeedback(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>Review preview</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(viewingFeedback)} onClose={() => setViewingFeedback(null)} maxWidth="sm" fullWidth>
+        <AppDialogTitle>Review preview</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={1.5}>
             <Typography variant="subtitle1" fontWeight={700}>
               {viewingFeedback?.title}
@@ -525,28 +503,28 @@ const AdminFeedbacksPage = () => {
             </Typography>
             <Typography variant="body1">{viewingFeedback?.description}</Typography>
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewingFeedback(null)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setViewingFeedback(null)}>Close</AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(feedbackToDelete)} onClose={closeDeleteDialog}>
-        <DialogTitle>Delete review</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(feedbackToDelete)} onClose={closeDeleteDialog}>
+        <AppDialogTitle>Delete review</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2">
             Are you sure you want to delete "{feedbackToDelete?.title}" from {feedbackToDelete?.name}?
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDeleteDialog} disabled={deleting}>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeDeleteDialog} disabled={deleting}>
             Cancel
-          </Button>
-          <Button color="error" onClick={confirmDelete} disabled={deleting}>
+          </AppButton>
+          <AppButton color="error" onClick={confirmDelete} disabled={deleting}>
             {deleting ? 'Deleting...' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
     </Stack>
   );
 };

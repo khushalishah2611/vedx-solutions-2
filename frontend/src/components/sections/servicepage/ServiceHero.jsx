@@ -1,15 +1,6 @@
-import {
-  Box,
-  Breadcrumbs,
-  Button,
-  Container,
-  Grid,
-  Link as MuiLink,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from '@mui/material';
+import { Box, Breadcrumbs, Container, Grid, Link as MuiLink, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -149,7 +140,7 @@ const ServiceHero = ({
                 to your operations.`}
               </Typography>
 
-              <Button
+              <AppButton
                 variant="contained"
                 size="large"
                 href="#contact"
@@ -169,7 +160,7 @@ const ServiceHero = ({
                 }}
               >
                 Contact us
-              </Button>
+              </AppButton>
 
               {/* Stats */}
               {stats.length > 0 && (

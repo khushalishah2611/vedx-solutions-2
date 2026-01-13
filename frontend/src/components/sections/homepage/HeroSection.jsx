@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Button,
-  ButtonBase,
-  Container,
-  Fade,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from '@mui/material';
+import { Box, ButtonBase, Container, Fade, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import { heroContent } from '../../../data/content.js';
 
 const SLIDE_INTERVAL = 7000;
@@ -126,7 +118,7 @@ const HeroSection = () => {
 
 
               {/* CTA */}
-              <Button
+              <AppButton
                 variant="contained"
                 size="large"
                 href="#contact"
@@ -146,7 +138,7 @@ const HeroSection = () => {
                 }}
               >
                 Contact us
-              </Button>
+              </AppButton>
             </Stack>
           </Fade>
         </Stack>

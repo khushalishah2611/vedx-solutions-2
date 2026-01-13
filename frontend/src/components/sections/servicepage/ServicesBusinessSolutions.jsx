@@ -1,18 +1,8 @@
 import { useEffect, useState } from 'react';
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
-import {
-  Box,
-  Button,
-  ButtonBase,
-  Divider,
-  Grid,
-  Paper,
-  Stack,
-  Typography,
-  alpha,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, ButtonBase, Divider, Grid, Paper, Stack, Typography, alpha, useMediaQuery, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import { businessSolutions } from '../../../data/servicesPage.js';
 
 const ServicesBusinessSolutions = () => {
@@ -273,7 +263,7 @@ const ServicesBusinessSolutions = () => {
 
       {/* Centered Button (common for both layouts) */}
       <Stack alignItems="center" sx={{ width: '100%', mt: 6 }}>
-        <Button
+        <AppButton
           variant="contained"
           size="large"
           endIcon={<ArrowOutwardRoundedIcon />}
@@ -293,7 +283,7 @@ const ServicesBusinessSolutions = () => {
           }}
         >
           Get Started
-        </Button>
+        </AppButton>
       </Stack>
     </Box>
   );

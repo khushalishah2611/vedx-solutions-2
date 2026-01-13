@@ -2,39 +2,16 @@ import * as React from 'react';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  IconButton,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-} from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Divider, Grid, IconButton, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography, Alert } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppTextField } from '../../shared/FormControls.jsx';
+
 import PropTypes from 'prop-types';
 
 function ValidationDialog({ open, title, messages, onClose }) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title || 'Validation'}</DialogTitle>
-      <DialogContent dividers>
+    <AppDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <AppDialogTitle>{title || 'Validation'}</AppDialogTitle>
+      <AppDialogContent dividers>
         <Stack spacing={1.25}>
           {(messages || []).map((msg, idx) => (
             <Alert key={idx} severity="error" variant="outlined">
@@ -42,13 +19,13 @@ function ValidationDialog({ open, title, messages, onClose }) {
             </Alert>
           ))}
         </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="contained">
+      </AppDialogContent>
+      <AppDialogActions>
+        <AppButton onClick={onClose} variant="contained">
           OK
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </AppButton>
+      </AppDialogActions>
+    </AppDialog>
   );
 }
 
@@ -95,7 +72,7 @@ const TechSolutionsTab = ({
           <Stack spacing={3}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <TextField
+                <AppTextField
                   label="Title"
                   value={techSolutions?.title || ''}
                   onChange={(event) =>
@@ -108,7 +85,7 @@ const TechSolutionsTab = ({
                 />
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField
+                <AppTextField
                   label="Description"
                   value={techSolutions?.description || ''}
                   onChange={(event) =>
@@ -134,7 +111,7 @@ const TechSolutionsTab = ({
                 </Typography>
               </Box>
 
-              <Button
+              <AppButton
                 variant="contained"
                 startIcon={<AddCircleOutlineIcon />}
                 onClick={() => {
@@ -148,7 +125,7 @@ const TechSolutionsTab = ({
                 sx={{ mt: { xs: 1, sm: 0 } }}
               >
                 Add solution
-              </Button>
+              </AppButton>
             </Stack>
 
             <TableContainer>

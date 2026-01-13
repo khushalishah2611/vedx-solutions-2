@@ -1,35 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Avatar,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Grid,
-  IconButton,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemButton,
-  ListItemText,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Avatar, Card, CardContent, CardHeader, Chip, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppTextField } from '../shared/FormControls.jsx';
+
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -850,13 +822,13 @@ const AdminNavigationPage = () => {
               title="Categories"
               subheader="Manage navigation categories"
               action={
-                <Button
+                <AppButton
                   startIcon={<AddCircleOutlineIcon />}
                   variant="contained"
                   onClick={() => openCategoryDialog('create')}
                 >
                   Add category
-                </Button>
+                </AppButton>
               }
             />
             <Divider />
@@ -964,14 +936,14 @@ const AdminNavigationPage = () => {
                   : 'Choose a category to view and manage its sub-categories.'
               }
               action={
-                <Button
+                <AppButton
                   startIcon={<AddCircleOutlineIcon />}
                   variant="outlined"
                   onClick={() => openSubDialog('create')}
                   disabled={!selectedCategory}
                 >
                   Add sub-category
-                </Button>
+                </AppButton>
               }
             />
             <Divider />
@@ -1094,13 +1066,13 @@ const AdminNavigationPage = () => {
             title="Hire developers"
             subheader="Manage category and sub-category master data for hire developer cards."
             action={
-              <Button
+              <AppButton
                 variant="contained"
                 startIcon={<AddCircleOutlineIcon />}
                 onClick={() => openHireCategoryDialog()}
               >
                 Add category
-              </Button>
+              </AppButton>
             }
           />
           <Divider />
@@ -1213,13 +1185,13 @@ const AdminNavigationPage = () => {
       {/* ────────────────────────────── */}
       {/* DIALOGS - NAVIGATION CATEGORIES */}
       {/* ────────────────────────────── */}
-      <Dialog open={categoryDialogOpen} onClose={closeCategoryDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
+      <AppDialog open={categoryDialogOpen} onClose={closeCategoryDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>
           {categoryDialogMode === 'edit' ? 'Edit category' : 'Add category'}
-        </DialogTitle>
-        <DialogContent dividers>
+        </AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Category name"
               value={categoryForm.name}
               onChange={(event) =>
@@ -1228,7 +1200,7 @@ const AdminNavigationPage = () => {
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Slug"
               helperText="Unique slug used for navigation"
               value={categoryForm.slug}
@@ -1237,7 +1209,7 @@ const AdminNavigationPage = () => {
               }
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={categoryForm.description}
               onChange={(event) =>
@@ -1256,47 +1228,47 @@ const AdminNavigationPage = () => {
               </Typography>
             )}
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeCategoryDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeCategoryDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleCategorySave} variant="contained" disabled={savingCategory}>
+          </AppButton>
+          <AppButton onClick={handleCategorySave} variant="contained" disabled={savingCategory}>
             {categoryDialogMode === 'edit' ? 'Save changes' : 'Create category'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog
+      <AppDialog
         open={Boolean(categoryToDelete)}
         onClose={() => setCategoryToDelete(null)}
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Delete category</DialogTitle>
-        <DialogContent dividers>
+        <AppDialogTitle>Delete category</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{categoryToDelete?.name}"? This will remove
             all of its sub-categories.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCategoryToDelete(null)} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setCategoryToDelete(null)} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleCategoryDelete} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleCategoryDelete} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={subDialogOpen} onClose={closeSubDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
+      <AppDialog open={subDialogOpen} onClose={closeSubDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>
           {subDialogMode === 'edit' ? 'Edit sub-category' : 'Add sub-category'}
-        </DialogTitle>
-        <DialogContent dividers>
+        </AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Sub-category name"
               value={subForm.name}
               onChange={(event) =>
@@ -1305,7 +1277,7 @@ const AdminNavigationPage = () => {
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Slug"
               value={subForm.slug}
               onChange={(event) =>
@@ -1314,7 +1286,7 @@ const AdminNavigationPage = () => {
               fullWidth
               helperText="Unique slug for this sub-category"
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={subForm.description}
               onChange={(event) =>
@@ -1333,56 +1305,56 @@ const AdminNavigationPage = () => {
               </Typography>
             )}
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeSubDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeSubDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleSubSave} variant="contained" disabled={savingSubcategory}>
+          </AppButton>
+          <AppButton onClick={handleSubSave} variant="contained" disabled={savingSubcategory}>
             {subDialogMode === 'edit' ? 'Save changes' : 'Create sub-category'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog
+      <AppDialog
         open={Boolean(subToDelete)}
         onClose={() => setSubToDelete(null)}
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Delete sub-category</DialogTitle>
-        <DialogContent dividers>
+        <AppDialogTitle>Delete sub-category</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Delete "{subToDelete?.name}" from {selectedCategory?.name}? This cannot be
             undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSubToDelete(null)} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setSubToDelete(null)} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleSubDelete} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleSubDelete} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* ────────────────────────────── */}
       {/* DIALOGS - HIRE DEVELOPERS      */}
       {/* ────────────────────────────── */}
       {/* Hire category dialog */}
-      <Dialog
+      <AppDialog
         open={hireCategoryDialogOpen}
         onClose={closeHireCategoryDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>
+        <AppDialogTitle>
           {editingHireCategoryId ? 'Edit hire category' : 'Add hire category'}
-        </DialogTitle>
-        <DialogContent>
+        </AppDialogTitle>
+        <AppDialogContent>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Category title"
               required
               value={hireCategoryForm.title}
@@ -1398,7 +1370,7 @@ const AdminNavigationPage = () => {
               }
               fullWidth
             />
-            <TextField
+            <AppTextField
               label="Slug"
               value={hireCategoryForm.slug}
               onChange={(event) =>
@@ -1407,7 +1379,7 @@ const AdminNavigationPage = () => {
               fullWidth
               helperText="Unique slug for this hire category"
             />
-            <TextField
+            <AppTextField
               label="Description"
               value={hireCategoryForm.description}
               onChange={(event) =>
@@ -1422,32 +1394,32 @@ const AdminNavigationPage = () => {
               placeholder="Optional description for the category"
             />
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeHireCategoryDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeHireCategoryDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleSaveHireCategory} variant="contained" disabled={savingHireCategory}>
+          </AppButton>
+          <AppButton onClick={handleSaveHireCategory} variant="contained" disabled={savingHireCategory}>
             {editingHireCategoryId ? 'Update category' : 'Add category'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Hire sub-category dialog */}
-      <Dialog
+      <AppDialog
         open={subcategoryDialogOpen}
         onClose={closeSubcategoryDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>
+        <AppDialogTitle>
           Manage sub-categories
           {activeHireCategory ? ` for "${activeHireCategory.title}"` : ''}
-        </DialogTitle>
-        <DialogContent dividers>
+        </AppDialogTitle>
+        <AppDialogContent dividers>
           {activeHireCategory ? (
             <Stack spacing={2} mt={1}>
-              <TextField
+              <AppTextField
                 label="Sub-category title"
                 required
                 value={hireSubcategoryForm.title}
@@ -1465,7 +1437,7 @@ const AdminNavigationPage = () => {
                 fullWidth
               />
 
-              <TextField
+              <AppTextField
                 label="Slug"
                 value={hireSubcategoryForm.slug}
                 onChange={(event) =>
@@ -1475,7 +1447,7 @@ const AdminNavigationPage = () => {
                 helperText="Unique slug for this hire sub-category"
               />
 
-              <TextField
+              <AppTextField
                 label="Description"
                 value={hireSubcategoryForm.description}
                 onChange={(event) =>
@@ -1491,13 +1463,13 @@ const AdminNavigationPage = () => {
               />
 
               <Stack direction="row" justifyContent="flex-end">
-                <Button
+                <AppButton
                   variant="contained"
                   onClick={handleSaveHireSubcategory}
                   disabled={savingHireSubcategory}
                 >
                   {editingHireSubcategoryId ? 'Update sub-category' : 'Add sub-category'}
-                </Button>
+                </AppButton>
               </Stack>
 
               <Table size="small">
@@ -1559,56 +1531,56 @@ const AdminNavigationPage = () => {
               Select a hire category to manage its sub-categories.
             </Typography>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeSubcategoryDialog}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeSubcategoryDialog}>Close</AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Hire category delete dialog */}
-      <Dialog
+      <AppDialog
         open={Boolean(hireCategoryToDelete)}
         onClose={() => setHireCategoryToDelete(null)}
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Delete hire category</DialogTitle>
-        <DialogContent dividers>
+        <AppDialogTitle>Delete hire category</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "
             {hireCategoryToDelete?.title}"? This will remove all of its hire
             sub-categories from the master list.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setHireCategoryToDelete(null)} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setHireCategoryToDelete(null)} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDeleteHireCategory} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDeleteHireCategory} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Hire sub-category delete dialog */}
-      <Dialog
+      <AppDialog
         open={Boolean(hireSubcategoryToDelete)}
         onClose={() => setHireSubcategoryToDelete(null)}
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Delete hire sub-category</DialogTitle>
-        <DialogContent dividers>
+        <AppDialogTitle>Delete hire sub-category</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Delete "{hireSubcategoryToDelete?.title}" from "
             {activeHireCategory?.title}"? This cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setHireSubcategoryToDelete(null)} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setHireSubcategoryToDelete(null)} color="inherit">
             Cancel
-          </Button>
-          <Button
+          </AppButton>
+          <AppButton
             onClick={() => {
               if (hireSubcategoryToDelete) {
                 handleDeleteHireSubcategory(hireSubcategoryToDelete.id);
@@ -1619,9 +1591,9 @@ const AdminNavigationPage = () => {
             variant="contained"
           >
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
     </>
   );
 };

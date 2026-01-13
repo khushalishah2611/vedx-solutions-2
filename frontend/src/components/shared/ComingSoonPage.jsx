@@ -1,4 +1,6 @@
-import { Box, Button, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from './FormControls.jsx';
+
 import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { Link as RouterLink } from 'react-router-dom';
@@ -89,7 +91,7 @@ const ComingSoonPage = ({
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
-            <Button
+            <AppButton
               variant="contained"
               size="large"
               startIcon={<ArrowBackRoundedIcon />}
@@ -100,7 +102,7 @@ const ComingSoonPage = ({
               {...actionProps}
             >
               {ctaLabel}
-            </Button>
+            </AppButton>
             <Typography variant="body2" sx={{ color: subtleText }}>
               We will notify you once the experience is live. Stay tuned!
             </Typography>

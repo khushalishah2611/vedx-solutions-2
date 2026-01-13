@@ -1,4 +1,6 @@
-import { Box, Button, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from './FormControls.jsx';
+
 import { Link as RouterLink } from 'react-router-dom';
 
 const BlogPreviewCard = ({
@@ -117,7 +119,7 @@ const BlogPreviewCard = ({
 
 
         <Box sx={{ flexGrow: 1 }} />
-        <Button
+        <AppButton
           variant="contained"
           size="large"
           component={RouterLink}
@@ -136,7 +138,7 @@ const BlogPreviewCard = ({
           }}
         >
           Read More
-        </Button>
+        </AppButton>
 
       </Stack>
     </Paper>

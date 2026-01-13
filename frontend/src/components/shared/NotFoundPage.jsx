@@ -1,4 +1,6 @@
-import { Box, Button, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Container, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from './FormControls.jsx';
+
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { Link as RouterLink } from 'react-router-dom';
@@ -81,7 +83,7 @@ const NotFoundPage = () => {
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-            <Button
+            <AppButton
               variant="contained"
               size="large"
               component={RouterLink}
@@ -93,7 +95,7 @@ const NotFoundPage = () => {
               }}
             >
               Back to Home
-            </Button>
+            </AppButton>
           </Stack>
         </Stack>
       </Container>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Container, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Box, Container, Paper, Stack, Typography } from '@mui/material';
+import { AppButton, AppTextField } from '../shared/FormControls.jsx';
+
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../utils/const.js';
 
@@ -111,7 +113,7 @@ const AdminResetPasswordPage = () => {
               </Typography>
             </Stack>
             <Stack spacing={2}>
-              <TextField
+              <AppTextField
                 label="New password"
                 type="password"
                 fullWidth
@@ -122,7 +124,7 @@ const AdminResetPasswordPage = () => {
                 helperText={errors.newPassword}
                 autoComplete="new-password"
               />
-              <TextField
+              <AppTextField
                 label="Confirm new password"
                 type="password"
                 fullWidth
@@ -139,12 +141,12 @@ const AdminResetPasswordPage = () => {
                 {errors.server}
               </Typography>
             ) : null}
-            <Button variant="contained" size="large" type="submit" disabled={isSubmitting}>
+            <AppButton variant="contained" size="large" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Updating...' : 'Update password and login'}
-            </Button>
-            <Button component={RouterLink} to="/admin/forgot-password" color="secondary">
+            </AppButton>
+            <AppButton component={RouterLink} to="/admin/forgot-password" color="secondary">
               Start over
-            </Button>
+            </AppButton>
           </Stack>
         </Paper>
       </Container>

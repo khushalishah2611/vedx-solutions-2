@@ -1,4 +1,6 @@
-import { Box, Button, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
@@ -130,7 +132,7 @@ const ServicesWhyChoose = () => {
         })}
       </Grid>
       <Stack alignItems="center" sx={{ width: '100%', mt: 6 }}>
-        <Button
+        <AppButton
           variant="contained"
           size="large"
           endIcon={<ArrowOutwardRoundedIcon />}
@@ -149,7 +151,7 @@ const ServicesWhyChoose = () => {
           }}
         >
           Request a Quote
-        </Button>
+        </AppButton>
       </Stack>
     </Box>
   );

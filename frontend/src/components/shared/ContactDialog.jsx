@@ -1,21 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  InputAdornment,
-  MenuItem,
-  FormHelperText,
-  Stack,
-  TextField,
-  Typography,
-  alpha,
-  useTheme,
-} from '@mui/material';
+import { Box, IconButton, InputAdornment, MenuItem, FormHelperText, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from './FormControls.jsx';
+
 import CloseIcon from '@mui/icons-material/Close';
 import { contactProjectTypes } from '../../data/servicesPage.js';
 import { apiUrl } from '../../utils/const.js';
@@ -128,7 +114,7 @@ const ContactDialog = ({ open, onClose }) => {
   };
 
   return (
-    <Dialog
+    <AppDialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
@@ -140,7 +126,7 @@ const ContactDialog = ({ open, onClose }) => {
       }}
     >
       {/* Header */}
-      <DialogTitle sx={{ px: { xs: 3, sm: 4 }, pb: 1 }}>
+      <AppDialogTitle sx={{ px: { xs: 3, sm: 4 }, pb: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Stack spacing={0.5}>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -154,10 +140,10 @@ const ContactDialog = ({ open, onClose }) => {
             <CloseIcon />
           </IconButton>
         </Stack>
-      </DialogTitle>
+      </AppDialogTitle>
 
       {/* Content */}
-      <DialogContent dividers>
+      <AppDialogContent dividers>
         <Stack
           spacing={2}
           mt={1}
@@ -165,14 +151,14 @@ const ContactDialog = ({ open, onClose }) => {
           id="application-form"
           onSubmit={handleApplicationSubmit}
         >
-          <TextField
+          <AppTextField
             label="Name"
             value={formState.name}
             onChange={(event) => handleFieldChange('name', event.target.value)}
             required
             fullWidth
           />
-          <TextField
+          <AppTextField
             label="Email"
             type="email"
             value={formState.email}
@@ -180,7 +166,7 @@ const ContactDialog = ({ open, onClose }) => {
             required
             fullWidth
           />
-          <TextField
+          <AppTextField
             label="Mobile Number"
             value={formState.phone}
             onChange={(event) => handleFieldChange('phone', event.target.value)}
@@ -193,8 +179,8 @@ const ContactDialog = ({ open, onClose }) => {
               ),
             }}
           />
-          <TextField
-            select
+          <AppSelectField
+           
             label="Project Type"
             value={formState.projectType}
             onChange={(event) => handleFieldChange('projectType', event.target.value)}
@@ -205,16 +191,16 @@ const ContactDialog = ({ open, onClose }) => {
                 {type}
               </MenuItem>
             ))}
-          </TextField>
-          <TextField
+          </AppSelectField>
+          <AppTextField
             label="Experience"
             placeholder="e.g. 3 years"
             value={formState.experience}
             onChange={(event) => handleFieldChange('experience', event.target.value)}
             fullWidth
           />
-          <TextField
-            select
+          <AppSelectField
+           
             label="Employment type"
             value={formState.employmentType}
             onChange={(event) => handleFieldChange('employmentType', event.target.value)}
@@ -225,18 +211,18 @@ const ContactDialog = ({ open, onClose }) => {
                 {type}
               </MenuItem>
             ))}
-          </TextField>
+          </AppSelectField>
           <Stack spacing={0.5}>
-            <Button component="label" variant="outlined">
+            <AppButton component="label" variant="outlined">
               {formState.resume ? 'Change resume (PDF)' : 'Upload resume (PDF)'}
               <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
-            </Button>
+            </AppButton>
             <Typography variant="body2" color="text.secondary">
               {formState.resume ? `Selected: ${formState.resume.name}` : 'Upload your resume to speed up review.'}
             </Typography>
             {resumeError && <FormHelperText error>{resumeError}</FormHelperText>}
           </Stack>
-          <TextField
+          <AppTextField
             label="Notes"
             value={formState.notes}
             onChange={(event) => handleFieldChange('notes', event.target.value)}
@@ -250,12 +236,12 @@ const ContactDialog = ({ open, onClose }) => {
             </Typography>
           )}
         </Stack>
-      </DialogContent>
+      </AppDialogContent>
 
       {/* Actions */}
-      <DialogActions sx={{ px: { xs: 3, sm: 4 }, pb: 3 }}>
+      <AppDialogActions sx={{ px: { xs: 3, sm: 4 }, pb: 3 }}>
         <Box sx={{ width: '100%', textAlign: 'center' }}>
-          <Button
+          <AppButton
             form="application-form"
             type="submit"
             variant="contained"
@@ -273,10 +259,10 @@ const ContactDialog = ({ open, onClose }) => {
             }}
           >
             Submit Now
-          </Button>
+          </AppButton>
         </Box>
-      </DialogActions>
-    </Dialog>
+      </AppDialogActions>
+    </AppDialog>
   );
 };
 

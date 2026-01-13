@@ -4,45 +4,18 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-  Autocomplete,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-} from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, CardHeader, Divider, IconButton, MenuItem, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography, Autocomplete, Alert } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../../shared/FormControls.jsx';
+
 import PropTypes from 'prop-types';
 import SelectClearAdornment from '../SelectClearAdornment.jsx';
 
 /** ✅ MUI Alert Dialog (required validation) */
 function ValidationDialog({ open, title, messages, onClose }) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title || 'Validation'}</DialogTitle>
-      <DialogContent dividers>
+    <AppDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <AppDialogTitle>{title || 'Validation'}</AppDialogTitle>
+      <AppDialogContent dividers>
         <Stack spacing={1.25}>
           {(messages || []).map((msg, idx) => (
             <Alert key={idx} severity="error" variant="outlined">
@@ -50,13 +23,13 @@ function ValidationDialog({ open, title, messages, onClose }) {
             </Alert>
           ))}
         </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="contained">
+      </AppDialogContent>
+      <AppDialogActions>
+        <AppButton onClick={onClose} variant="contained">
           OK
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </AppButton>
+      </AppDialogActions>
+    </AppDialog>
   );
 }
 
@@ -284,22 +257,22 @@ const BenefitsTab = ({
         title="Benefits"
         subheader="Control benefit cards with images and rich descriptions."
         action={
-          <Button
+          <AppButton
             variant="contained"
             startIcon={<AddCircleOutlineIcon />}
             onClick={openBenefitCreateDialog}
             disabled={!canAddBenefit}
           >
             Add benefit
-          </Button>
+          </AppButton>
         }
       />
       <Divider />
       <CardContent>
         {/* Filters */}
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={2}>
-          <TextField
-            select
+          <AppSelectField
+           
             label="Category filter"
             value={benefitCategoryFilter}
             onChange={(event) => {
@@ -340,10 +313,10 @@ const BenefitsTab = ({
                 {option.label}
               </MenuItem>
             ))}
-          </TextField>
+          </AppSelectField>
 
-          <TextField
-            select
+          <AppSelectField
+           
             label="Sub-category filter"
             value={benefitSubcategoryFilter}
             onChange={(event) => {
@@ -380,7 +353,7 @@ const BenefitsTab = ({
                 {option}
               </MenuItem>
             ))}
-          </TextField>
+          </AppSelectField>
         </Stack>
 
         {/* Config select + New config */}
@@ -401,7 +374,7 @@ const BenefitsTab = ({
               setBenefitPage?.(1);
             }}
             renderInput={(params) => (
-              <TextField
+              <AppTextField
                 {...params}
                 label="Select benefits config"
                 error={Boolean(configErrors.selectedBenefitConfigId)}
@@ -411,20 +384,20 @@ const BenefitsTab = ({
             sx={{ minWidth: 0 }}
           />
 
-          <Button
+          <AppButton
             variant="outlined"
             startIcon={<AddCircleOutlineIcon />}
             onClick={handleNewBenefitConfig}
             sx={{ whiteSpace: 'nowrap' }}
           >
             New config
-          </Button>
+          </AppButton>
         </Stack>
 
         {/* Hero form */}
         <Stack spacing={2} mb={3} component="form" onSubmit={onHeroSubmit} noValidate>
-          <TextField
-            select
+          <AppSelectField
+           
             label="Category"
             value={normalizeId(benefitHero.categoryId)}
             onChange={(event) => {
@@ -468,10 +441,10 @@ const BenefitsTab = ({
                 {option.label}
               </MenuItem>
             ))}
-          </TextField>
+          </AppSelectField>
 
-          <TextField
-            select
+          <AppSelectField
+           
             label="Sub-category"
             value={normalizeId(benefitHero.subcategoryId)}
             onChange={(event) => handleBenefitHeroChange('subcategoryId', event.target.value)}
@@ -496,9 +469,9 @@ const BenefitsTab = ({
                 {option.label}
               </MenuItem>
             ))}
-          </TextField>
+          </AppSelectField>
 
-          <TextField
+          <AppTextField
             label="Benefits title"
             value={safeStr(benefitHero.title)}
             onChange={(event) => handleBenefitHeroChange('title', event.target.value)}
@@ -508,7 +481,7 @@ const BenefitsTab = ({
             helperText={heroErrors.title || ' '}
           />
 
-          <TextField
+          <AppTextField
             label="Benefits description"
             value={safeStr(benefitHero.description)}
             onChange={(event) => handleBenefitHeroChange('description', event.target.value)}
@@ -521,13 +494,13 @@ const BenefitsTab = ({
           />
 
           <Stack direction="row" spacing={1} alignItems="center">
-            <Button
+            <AppButton
               variant="contained"
               type="submit"
               disabled={Boolean(Object.keys(heroErrors).length)}
             >
               Save Benefits
-            </Button>
+            </AppButton>
 
             {benefitHeroSaved && (
               <Typography variant="body2" color="success.main">

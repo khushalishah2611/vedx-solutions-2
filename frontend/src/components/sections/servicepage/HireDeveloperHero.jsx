@@ -3,18 +3,9 @@ import { Link as RouterLink } from 'react-router-dom';
 
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
-import {
-  Box,
-  Breadcrumbs,
-  Button,
-  Container,
-  Grid,
-  Link as MuiLink,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from '@mui/material';
+import { Box, Breadcrumbs, Container, Grid, Link as MuiLink, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 
 const HireDeveloperHero = ({
   category,
@@ -172,7 +163,7 @@ const HireDeveloperHero = ({
                 {resolvedHeroDescription}
               </Typography>
 
-              <Button
+              <AppButton
                 variant="contained"
                 size="large"
                 onClick={onContactClick}
@@ -192,7 +183,7 @@ const HireDeveloperHero = ({
                 }}
               >
                 Contact us
-              </Button>
+              </AppButton>
 
               {/* Stats */}
               {stats.length > 0 && (

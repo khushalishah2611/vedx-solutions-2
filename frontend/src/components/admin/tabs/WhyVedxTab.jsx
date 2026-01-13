@@ -2,43 +2,18 @@ import * as React from 'react';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import {
-  Autocomplete,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-} from '@mui/material';
+import { Autocomplete, Box, Card, CardContent, CardHeader, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography, Alert } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../../shared/FormControls.jsx';
+
 import SelectClearAdornment from '../SelectClearAdornment.jsx';
 import ImageUpload from './ImageUpload.jsx';
 
 /** ✅ Dialog component */
 function ValidationDialog({ open, title, messages, onClose }) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title || 'Validation'}</DialogTitle>
-      <DialogContent dividers>
+    <AppDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <AppDialogTitle>{title || 'Validation'}</AppDialogTitle>
+      <AppDialogContent dividers>
         <Stack spacing={1.25}>
           {(messages || []).map((msg, idx) => (
             <Alert key={idx} severity="error" variant="outlined">
@@ -46,13 +21,13 @@ function ValidationDialog({ open, title, messages, onClose }) {
             </Alert>
           ))}
         </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="contained">
+      </AppDialogContent>
+      <AppDialogActions>
+        <AppButton onClick={onClose} variant="contained">
           OK
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </AppButton>
+      </AppDialogActions>
+    </AppDialog>
   );
 }
 
@@ -128,8 +103,8 @@ export default function WhyVedxTab({
           <Stack spacing={3}>
             {/* Filters */}
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Category"
                 value={whyVedxCategoryFilter}
                 onChange={(event) => {
@@ -167,10 +142,10 @@ export default function WhyVedxTab({
                     {option.label}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
 
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Sub-category"
                 value={whyVedxSubcategoryFilter}
                 onChange={(event) => {
@@ -216,7 +191,7 @@ export default function WhyVedxTab({
                     {option}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
             </Stack>
 
             {/* Select config + add hero */}
@@ -228,14 +203,14 @@ export default function WhyVedxTab({
                 value={(whyVedxOptions || []).find((o) => String(o.value) === String(selectedWhyVedxId)) || null}
                 onChange={(event, option) => handleWhyVedxSelect?.(option)}
                 renderInput={(params) => (
-                  <TextField {...params} label="Select why choose config" placeholder="Select category / subcategory" fullWidth />
+                  <AppTextField {...params} label="Select why choose config" placeholder="Select category / subcategory" fullWidth />
                 )}
                 sx={{ minWidth: 260, flex: 1 }}
               />
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                <Button variant="outlined" onClick={handleNewWhyVedxHero}>
+                <AppButton variant="outlined" onClick={handleNewWhyVedxHero}>
                   Add new hero
-                </Button>
+                </AppButton>
               </Stack>
             </Stack>
 
@@ -282,7 +257,7 @@ export default function WhyVedxTab({
                           }
                         }
                       }}
-                      renderInput={(params) => <TextField {...params} label="Category" placeholder="Select category" fullWidth />}
+                      renderInput={(params) => <AppTextField {...params} label="Category" placeholder="Select category" fullWidth />}
                       fullWidth
                     />
 
@@ -293,7 +268,7 @@ export default function WhyVedxTab({
                       value={(whyVedxSubcategoryOptions || []).find((o) => String(o.value) === String(whyVedxHeroForm?.subcategoryId)) || null}
                       onChange={(event, option) => handleWhyVedxHeroChange?.('subcategoryId', option?.value || '')}
                       renderInput={(params) => (
-                        <TextField
+                        <AppTextField
                           {...params}
                           label="Subcategory"
                           placeholder={whyVedxHeroForm?.categoryId ? 'Select a subcategory' : 'Select a category to filter subcategories'}
@@ -304,7 +279,7 @@ export default function WhyVedxTab({
                       disabled={!(whyVedxSubcategoryOptions || []).length}
                     />
 
-                    <TextField
+                    <AppTextField
                       label="Title"
                       value={whyVedxHeroForm?.heroTitle || ''}
                       onChange={(event) => handleWhyVedxHeroChange?.('heroTitle', event.target.value)}
@@ -312,7 +287,7 @@ export default function WhyVedxTab({
                       required
                     />
 
-                    <TextField
+                    <AppTextField
                       label="Description"
                       value={whyVedxHeroForm?.heroDescription || ''}
                       onChange={(event) => handleWhyVedxHeroChange?.('heroDescription', event.target.value)}
@@ -322,9 +297,9 @@ export default function WhyVedxTab({
                       minRows={3}
                     />
 
-                    <Button type="submit" variant="contained">
+                    <AppButton type="submit" variant="contained">
                       Save hero content
-                    </Button>
+                    </AppButton>
                   </Stack>
                 </Grid>
                 {showHeroImage && (
@@ -348,14 +323,14 @@ export default function WhyVedxTab({
                 alignItems={{ xs: 'flex-start', sm: 'center' }}
               >
                 <Typography variant="h6">Reasons</Typography>
-                <Button
+                <AppButton
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={openWhyVedxCreateDialog}
                   sx={{ whiteSpace: 'nowrap' }}
                 >
                   Add reason
-                </Button>
+                </AppButton>
               </Stack>
 
                   <TableContainer sx={{ border: '1px solid', borderColor: 'divider' }}>

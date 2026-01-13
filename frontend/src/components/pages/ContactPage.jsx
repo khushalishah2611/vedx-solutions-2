@@ -1,17 +1,6 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Container,
-  Grid,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-  alpha,
-  useTheme
-} from '@mui/material';
+import { Box, Card, CardContent, Container, Grid, MenuItem, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+
 import PhoneInTalkRoundedIcon from '@mui/icons-material/PhoneInTalkRounded';
 import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
@@ -276,14 +265,14 @@ const ContactPage = () => {
 
                   <Stack component="form" spacing={2} noValidate>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
-                      <TextField label="Name" fullWidth required variant="outlined" size="medium" />
-                      <TextField label="Email" type="email" fullWidth required variant="outlined" size="medium" />
+                      <AppTextField label="Name" fullWidth required variant="outlined" size="medium" />
+                      <AppTextField label="Email" type="email" fullWidth required variant="outlined" size="medium" />
                     </Stack>
 
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
-                      <TextField label="Mobile Number" fullWidth variant="outlined" size="medium" />
-                      <TextField
-                        select
+                      <AppTextField label="Mobile Number" fullWidth variant="outlined" size="medium" />
+                      <AppSelectField
+                       
                         label="Project Type"
                         fullWidth
                         defaultValue={contactProjectTypes?.[0] || ''}
@@ -295,10 +284,10 @@ const ContactPage = () => {
                             {type}
                           </MenuItem>
                         ))}
-                      </TextField>
+                      </AppSelectField>
                     </Stack>
 
-                    <TextField
+                    <AppTextField
                       label="Description"
                       fullWidth
                       multiline
@@ -307,7 +296,7 @@ const ContactPage = () => {
                       size="medium"
                     />
 
-                    <Button
+                    <AppButton
                       variant="contained"
                       size="large"
                       sx={{
@@ -325,7 +314,7 @@ const ContactPage = () => {
                       }}
                     >
                       Submit Now
-                    </Button>
+                    </AppButton>
                   </Stack>
                 </Stack>
               </Grid>

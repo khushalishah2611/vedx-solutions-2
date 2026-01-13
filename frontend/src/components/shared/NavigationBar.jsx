@@ -1,26 +1,7 @@
 import { useContext, useState } from 'react';
-import {
-  AppBar,
-  Box,
-  Button,
-  ButtonBase,
-  Collapse,
-  Divider,
-  Drawer,
-  IconButton,
-  List,
-  ListItemButton,
-  ListItemText,
-  MenuItem,
-  MenuList,
-  Popover,
-  Stack,
-  Toolbar,
-  Typography,
-  alpha,
-  useMediaQuery,
-  useTheme
-} from '@mui/material';
+import { AppBar, Box, ButtonBase, Collapse, Divider, Drawer, IconButton, List, ListItemButton, ListItemText, MenuItem, MenuList, Popover, Stack, Toolbar, Typography, alpha, useMediaQuery, useTheme } from '@mui/material';
+import { AppButton } from './FormControls.jsx';
+
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PhoneInTalkRoundedIcon from '@mui/icons-material/PhoneInTalkRounded';
@@ -541,7 +522,7 @@ const NavigationBar = () => {
                   const isOpen = Boolean(aboutAnchor);
                   return (
                     <Box key={item.label}>
-                      <Button
+                      <AppButton
                         color="inherit"
                         component={RouterLink}
                         to={item.path ?? '/about'}
@@ -558,7 +539,7 @@ const NavigationBar = () => {
                         onFocus={handleAboutEnter}
                       >
                         {item.label}
-                      </Button>
+                      </AppButton>
                     </Box>
                   );
                 }
@@ -578,7 +559,7 @@ const NavigationBar = () => {
 
                 return (
                   <Box key={item.label}>
-                    <Button
+                    <AppButton
                       color="inherit"
                       sx={desktopLinkSx}
                       endIcon={
@@ -595,13 +576,13 @@ const NavigationBar = () => {
                       {...buttonProps}
                     >
                       {item.label}
-                    </Button>
+                    </AppButton>
                   </Box>
                 );
               }
 
               return (
-                <Button
+                <AppButton
                   key={item.label}
                   component={RouterLink}
                   to={item.path}
@@ -609,7 +590,7 @@ const NavigationBar = () => {
                   sx={desktopLinkSx}
                 >
                   {item.label}
-                </Button>
+                </AppButton>
               );
             })}
 
@@ -619,7 +600,7 @@ const NavigationBar = () => {
               sx={{ borderColor: theme.palette.divider }}
             />
 
-            <Button
+            <AppButton
               variant="contained"
               size="large"
               onClick={openContactDialog}
@@ -636,7 +617,7 @@ const NavigationBar = () => {
               }}
             >
               Hire Now
-            </Button>
+            </AppButton>
           </Stack>
         )}
 
@@ -935,7 +916,7 @@ const NavigationBar = () => {
               alignItems: 'center'
             }}
           >
-            <Button
+            <AppButton
               variant="contained"
               size="large"
               onClick={() => {
@@ -956,7 +937,7 @@ const NavigationBar = () => {
               }}
             >
               Hire Now
-            </Button>
+            </AppButton>
           </Box>
         </Box>
       </Drawer>

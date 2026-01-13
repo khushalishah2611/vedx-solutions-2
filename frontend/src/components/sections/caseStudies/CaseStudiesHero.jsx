@@ -1,13 +1,6 @@
-import {
-  alpha,
-  Box,
-  Button,
-  Container,
-  Grid,
-  Stack,
-  Typography,
-  useTheme,
-} from '@mui/material';
+import { alpha, Box, Container, Grid, Stack, Typography, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 const CaseStudiesHero = () => {
@@ -85,7 +78,7 @@ const CaseStudiesHero = () => {
                 into market.
               </Typography>
 
-              <Button
+              <AppButton
                 variant="contained"
                 size="large"
                 href="#contact"
@@ -106,7 +99,7 @@ const CaseStudiesHero = () => {
                 }}
               >
                 Let’s Build Together
-              </Button>
+              </AppButton>
             </Stack>
           </Grid>
         </Grid>

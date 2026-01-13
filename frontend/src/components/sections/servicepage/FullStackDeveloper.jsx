@@ -1,14 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Button,
-  Grid,
-  Paper,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from '@mui/material';
+import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import { fullStackDeveloperHighlights } from '../../../data/servicesPage.js';
 
 // Simple hook to detect when an element enters the viewport
@@ -139,7 +132,7 @@ function FullStackDeveloper({ onContactClick }) {
                 ))}
               </Stack>
 
-              <Button
+              <AppButton
                 variant="contained"
                 size="large"
                 onClick={onContactClick}
@@ -160,7 +153,7 @@ function FullStackDeveloper({ onContactClick }) {
                 }}
               >
                 Hire Full Stack Expert
-              </Button>
+              </AppButton>
             </Stack>
           </Grid>
 

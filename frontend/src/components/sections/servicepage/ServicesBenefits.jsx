@@ -1,13 +1,6 @@
-import {
-  Box,
-  Button,
-  Grid,
-  Paper,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from "@mui/material";
+import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
+
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
@@ -147,7 +140,7 @@ const ServicesBenefits = ({ onContactClick }) => {
 
       {/* CTA Button */}
       <Stack alignItems="center" sx={{ width: "100%", mt: 6 }}>
-        <Button
+        <AppButton
           variant="contained"
           size="large"
           endIcon={<ArrowOutwardRoundedIcon />}
@@ -167,7 +160,7 @@ const ServicesBenefits = ({ onContactClick }) => {
           }}
         >
           Request a Quote
-        </Button>
+        </AppButton>
       </Stack>
     </Box>
   );

@@ -1,15 +1,6 @@
-import {
-  Box,
-  Button,
-  Container,
-  Grid,
-  List,
-  ListItem,
-  Stack,
-  Typography,
-  alpha,
-  useTheme
-} from '@mui/material';
+import { Box, Container, Grid, List, ListItem, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from './FormControls.jsx';
+
 import { pricingPlans } from '../../data/pricing.js';
 
 const PricingModels = () => {
@@ -190,7 +181,7 @@ const PricingModels = () => {
                       ))}
                     </List>
 
-                    <Button
+                    <AppButton
                       variant={isHighlighted ? 'contained' : 'outlined'}
                       color="inherit"
                       sx={{
@@ -212,7 +203,7 @@ const PricingModels = () => {
                       }}
                     >
                       Book Talent
-                    </Button>
+                    </AppButton>
                   </Stack>
                 </Box>
               </Grid>

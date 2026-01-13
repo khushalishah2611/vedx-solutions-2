@@ -1,32 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  IconButton,
-  ImageList,
-  ImageListItem,
-  MenuItem,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material';
+import { Avatar, Box, Card, CardContent, Chip, Divider, IconButton, ImageList, ImageListItem, MenuItem, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -672,13 +647,13 @@ const AdminContactsPage = () => {
                   pipeline active.
                 </Typography>
               </Box>
-              <Button
+              <AppButton
                 onClick={openCreateDialog}
                 variant="contained"
                 startIcon={<AddCircleOutlineIcon />}
               >
                 New enquiry
-              </Button>
+              </AppButton>
             </Stack>
             {serverError && (
               <Typography variant="body2" color="error.main">
@@ -687,26 +662,26 @@ const AdminContactsPage = () => {
             )}
             <Divider sx={{ my: 1 }} />
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }}>
-              <TextField
+              <AppTextField
                 label="Name"
                 value={filterDraft.name}
                 onChange={(event) => setFilterDraft((prev) => ({ ...prev, name: event.target.value }))}
                 fullWidth
               />
-              <TextField
+              <AppTextField
                 label="Email"
                 value={filterDraft.email}
                 onChange={(event) => setFilterDraft((prev) => ({ ...prev, email: event.target.value }))}
                 fullWidth
               />
-              <TextField
+              <AppTextField
                 label="Mobile"
                 value={filterDraft.phone}
                 onChange={(event) => setFilterDraft((prev) => ({ ...prev, phone: event.target.value }))}
                 fullWidth
               />
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Contact type"
                 value={filterDraft.contactType}
                 onChange={(event) => setFilterDraft((prev) => ({ ...prev, contactType: event.target.value }))}
@@ -718,9 +693,9 @@ const AdminContactsPage = () => {
                     {type}
                   </MenuItem>
                 ))}
-              </TextField>
-              <TextField
-                select
+              </AppSelectField>
+              <AppSelectField
+               
                 label="Status"
                 value={filterDraft.status}
                 onChange={(event) => setFilterDraft((prev) => ({ ...prev, status: event.target.value }))}
@@ -732,11 +707,11 @@ const AdminContactsPage = () => {
                     {status}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
             </Stack>
             <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems={{ lg: 'flex-end' }}>
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Date filter"
                 value={filterDraft.date}
                 onChange={(event) => setFilterDraft((prev) => ({ ...prev, date: event.target.value }))}
@@ -747,10 +722,10 @@ const AdminContactsPage = () => {
                     {option.label}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
               {filterDraft.date === 'custom' && (
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
-                  <TextField
+                  <AppTextField
                     type="date"
                     label="From"
                     value={filterDraft.start}
@@ -758,7 +733,7 @@ const AdminContactsPage = () => {
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
-                  <TextField
+                  <AppTextField
                     type="date"
                     label="To"
                     value={filterDraft.end}
@@ -781,12 +756,12 @@ const AdminContactsPage = () => {
                 )}
               </Stack>
               <Stack direction="row" spacing={1}>
-                <Button variant="outlined" color="inherit" onClick={clearFilters}>
+                <AppButton variant="outlined" color="inherit" onClick={clearFilters}>
                   Clear filters
-                </Button>
-                <Button variant="contained" onClick={applyFilters}>
+                </AppButton>
+                <AppButton variant="contained" onClick={applyFilters}>
                   Apply filters
-                </Button>
+                </AppButton>
               </Stack>
             </Stack>
             <TableContainer>
@@ -929,13 +904,13 @@ const AdminContactsPage = () => {
                 Maintain the master list of project types used by the contact form.
               </Typography>
             </Box>
-            <Button
+            <AppButton
               startIcon={<AddCircleOutlineIcon />}
               variant="outlined"
               onClick={() => openProjectTypeDialog('create')}
             >
               Add project type
-            </Button>
+            </AppButton>
           </Stack>
 
           {projectTypesError && (
@@ -1008,20 +983,20 @@ const AdminContactsPage = () => {
           </TableContainer>
         </CardContent>
       </Card>
-      <Dialog open={createDialogOpen} onClose={closeCreateDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Add enquiry</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={createDialogOpen} onClose={closeCreateDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>Add enquiry</AppDialogTitle>
+        <AppDialogContent dividers>
           {createForm && (
             <Stack spacing={2} mt={1}>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
+                <AppTextField
                   label="Name"
                   fullWidth
                   value={createForm.name}
                   onChange={(event) => handleCreateChange('name', event.target.value)}
                   required
                 />
-                <TextField
+                <AppTextField
                   label="Email"
                   type="email"
                   fullWidth
@@ -1031,14 +1006,14 @@ const AdminContactsPage = () => {
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
+                <AppTextField
                   label="Country code"
                   fullWidth
                   value={createForm.countryCode}
                   disabled
                   required
                 />
-                <TextField
+                <AppTextField
                   label="Mobile number"
                   fullWidth
                   value={createForm.phone}
@@ -1047,8 +1022,8 @@ const AdminContactsPage = () => {
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  select
+                <AppSelectField
+                 
                   label="Contact type"
                   value={createForm.contactType}
                   onChange={(event) => handleCreateChange('contactType', event.target.value)}
@@ -1060,9 +1035,9 @@ const AdminContactsPage = () => {
                       {option}
                     </MenuItem>
                   ))}
-                </TextField>
-                <TextField
-                  select
+                </AppSelectField>
+                <AppSelectField
+                 
                   label="Project type"
                   value={createForm.projectType}
                   onChange={(event) => handleCreateChange('projectType', event.target.value)}
@@ -1080,9 +1055,9 @@ const AdminContactsPage = () => {
                       {option}
                     </MenuItem>
                   ))}
-                </TextField>
+                </AppSelectField>
               </Stack>
-              <TextField
+              <AppTextField
                 label="Description"
                 value={createForm.description}
                 onChange={(event) => handleCreateChange('description', event.target.value)}
@@ -1091,8 +1066,8 @@ const AdminContactsPage = () => {
                 fullWidth
                 required
               />
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Status"
                 value={createForm.status}
                 onChange={(event) => handleCreateChange('status', event.target.value)}
@@ -1104,7 +1079,7 @@ const AdminContactsPage = () => {
                     {status}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
               {createError && (
                 <Typography color="error" variant="body2">
                   {createError}
@@ -1112,19 +1087,19 @@ const AdminContactsPage = () => {
               )}
             </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeCreateDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeCreateDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleCreateSave} variant="contained" disabled={creatingContact}>
+          </AppButton>
+          <AppButton onClick={handleCreateSave} variant="contained" disabled={creatingContact}>
             Create enquiry
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={Boolean(editingContact)} onClose={closeEditDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit enquiry</DialogTitle>
-        <DialogContent dividers>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+      <AppDialog open={Boolean(editingContact)} onClose={closeEditDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>Edit enquiry</AppDialogTitle>
+        <AppDialogContent dividers>
           {editForm && (
             <Stack spacing={2} mt={1}>
               {editError && (
@@ -1133,14 +1108,14 @@ const AdminContactsPage = () => {
                 </Typography>
               )}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
+                <AppTextField
                   label="Name"
                   fullWidth
                   value={editForm.name}
                   onChange={(event) => handleEditChange('name', event.target.value)}
                   required
                 />
-                <TextField
+                <AppTextField
                   label="Email"
                   type="email"
                   fullWidth
@@ -1150,14 +1125,14 @@ const AdminContactsPage = () => {
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
+                <AppTextField
                   label="Country code"
                   fullWidth
                   value={editForm.countryCode}
                   disabled
                   required
                 />
-                <TextField
+                <AppTextField
                   label="Mobile number"
                   fullWidth
                   value={editForm.phone}
@@ -1166,8 +1141,8 @@ const AdminContactsPage = () => {
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  select
+                <AppSelectField
+                 
                   label="Contact type"
                   value={editForm.contactType}
                   onChange={(event) => handleEditChange('contactType', event.target.value)}
@@ -1179,9 +1154,9 @@ const AdminContactsPage = () => {
                       {option}
                     </MenuItem>
                   ))}
-                </TextField>
-                <TextField
-                  select
+                </AppSelectField>
+                <AppSelectField
+                 
                   label="Project type"
                   value={editForm.projectType}
                   onChange={(event) => handleEditChange('projectType', event.target.value)}
@@ -1199,9 +1174,9 @@ const AdminContactsPage = () => {
                       {option}
                     </MenuItem>
                   ))}
-                </TextField>
+                </AppSelectField>
               </Stack>
-              <TextField
+              <AppTextField
                 label="Description"
                 value={editForm.description}
                 onChange={(event) => handleEditChange('description', event.target.value)}
@@ -1210,8 +1185,8 @@ const AdminContactsPage = () => {
                 fullWidth
                 required
               />
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Status"
                 value={editForm.status}
                 onChange={(event) => handleEditChange('status', event.target.value)}
@@ -1223,24 +1198,24 @@ const AdminContactsPage = () => {
                     {status}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
 
             </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeEditDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeEditDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleEditSave} variant="contained" disabled={savingContact}>
+          </AppButton>
+          <AppButton onClick={handleEditSave} variant="contained" disabled={savingContact}>
             Save changes
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(contactToDelete)} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete enquiry</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(contactToDelete)} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete enquiry</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete the enquiry from{' '}
             <Typography component="span" variant="body2" color="text.primary" fontWeight={600}>
@@ -1248,20 +1223,20 @@ const AdminContactsPage = () => {
             </Typography>
             ? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained" disabled={deleteLoading}>
+          </AppButton>
+          <AppButton onClick={handleConfirmDelete} color="error" variant="contained" disabled={deleteLoading}>
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(viewingContact)} onClose={closeViewDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Enquiry details</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(viewingContact)} onClose={closeViewDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>Enquiry details</AppDialogTitle>
+        <AppDialogContent dividers>
           {viewingContact && (
             <Stack spacing={3} mt={1}>
               <Stack direction="row" spacing={2} alignItems="center">
@@ -1345,20 +1320,20 @@ const AdminContactsPage = () => {
               )}
             </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeViewDialog} color="primary">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeViewDialog} color="primary">
             Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={projectTypeDialogOpen} onClose={closeProjectTypeDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+      <AppDialog open={projectTypeDialogOpen} onClose={closeProjectTypeDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>
           {projectTypeDialogMode === 'edit' ? 'Edit project type' : 'Add project type'}
-        </DialogTitle>
-        <DialogContent dividers>
+        </AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Name"
               value={projectTypeForm.name}
               onChange={(event) => setProjectTypeForm((prev) => ({ ...prev, name: event.target.value }))}
@@ -1371,32 +1346,32 @@ const AdminContactsPage = () => {
               </Typography>
             )}
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeProjectTypeDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeProjectTypeDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleProjectTypeSave} variant="contained" disabled={savingProjectType}>
+          </AppButton>
+          <AppButton onClick={handleProjectTypeSave} variant="contained" disabled={savingProjectType}>
             {projectTypeDialogMode === 'edit' ? 'Save changes' : 'Create project type'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={Boolean(projectTypeToDelete)} onClose={() => setProjectTypeToDelete(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete project type</DialogTitle>
-        <DialogContent dividers>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+      <AppDialog open={Boolean(projectTypeToDelete)} onClose={() => setProjectTypeToDelete(null)} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete project type</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Delete "{projectTypeToDelete?.name}" from the master list? This cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setProjectTypeToDelete(null)} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setProjectTypeToDelete(null)} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleProjectTypeDelete} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleProjectTypeDelete} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
     </>
   );
 };

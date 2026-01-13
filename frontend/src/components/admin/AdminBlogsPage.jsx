@@ -1,30 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  MenuItem,
-  Pagination,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Stack,
-  IconButton,
-  Tooltip,
-  Typography
-} from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Chip, Divider, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Stack, IconButton, Tooltip, Typography } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
@@ -118,10 +95,10 @@ const ImageUpload = ({ label, value, onChange, helperText }) => {
 
   return (
     <Stack spacing={1}>
-      <Button component="label" variant="outlined">
+      <AppButton component="label" variant="outlined">
         {value ? `Change ${label}` : `Upload ${label}`}
         <input type="file" hidden accept="image/*" onChange={handleChange} />
-      </Button>
+      </AppButton>
       {value && (
         <img
           src={value}
@@ -657,9 +634,9 @@ const AdminBlogsPage = () => {
           title="Blog categories"
           subheader="Create, rename, or delete categories used by blog posts."
           action={
-            <Button variant="contained" onClick={() => openCategoryDialog('create')}>
+            <AppButton variant="contained" onClick={() => openCategoryDialog('create')}>
               Add category
-            </Button>
+            </AppButton>
           }
         />
         <Divider />
@@ -736,13 +713,13 @@ const AdminBlogsPage = () => {
           title="Blogs"
           subheader="Create, edit, view or remove posts in a simple table view."
           action={
-            <Button
+            <AppButton
               startIcon={<NoteAddOutlinedIcon />}
               variant="contained"
               onClick={openCreateDialog}
             >
               New draft
-            </Button>
+            </AppButton>
           }
         />
         <Divider />
@@ -758,8 +735,8 @@ const AdminBlogsPage = () => {
             </Typography>
           )}
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'flex-end' }} mb={2}>
-            <TextField
-              select
+            <AppSelectField
+             
               label="Category"
               value={filterDraft.category}
               onChange={(event) => setFilterDraft((prev) => ({ ...prev, category: event.target.value }))}
@@ -773,9 +750,9 @@ const AdminBlogsPage = () => {
                 </MenuItem>
               ))}
               <MenuItem value="">Uncategorized</MenuItem>
-            </TextField>
-            <TextField
-              select
+            </AppSelectField>
+            <AppSelectField
+             
               label="Status"
               value={filterDraft.status}
               onChange={(event) => setFilterDraft((prev) => ({ ...prev, status: event.target.value }))}
@@ -787,9 +764,9 @@ const AdminBlogsPage = () => {
                   {status}
                 </MenuItem>
               ))}
-            </TextField>
-            <TextField
-              select
+            </AppSelectField>
+            <AppSelectField
+             
               label="Publish date"
               value={filterDraft.date}
               onChange={(event) => setFilterDraft((prev) => ({ ...prev, date: event.target.value }))}
@@ -800,10 +777,10 @@ const AdminBlogsPage = () => {
                   {option.label}
                 </MenuItem>
               ))}
-            </TextField>
+            </AppSelectField>
             {filterDraft.date === 'custom' && (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
-                <TextField
+                <AppTextField
                   type="date"
                   label="From"
                   value={filterDraft.start}
@@ -811,7 +788,7 @@ const AdminBlogsPage = () => {
                   InputLabelProps={{ shrink: true }}
                   fullWidth
                 />
-                <TextField
+                <AppTextField
                   type="date"
                   label="To"
                   value={filterDraft.end}
@@ -834,12 +811,12 @@ const AdminBlogsPage = () => {
               )}
             </Stack>
             <Stack direction="row" spacing={1}>
-              <Button variant="outlined" color="inherit" onClick={clearFilters}>
+              <AppButton variant="outlined" color="inherit" onClick={clearFilters}>
                 Clear filters
-              </Button>
-              <Button variant="contained" onClick={applyFilters}>
+              </AppButton>
+              <AppButton variant="contained" onClick={applyFilters}>
                 Apply filters
-              </Button>
+              </AppButton>
             </Stack>
           </Stack>
           <TableContainer>
@@ -969,11 +946,11 @@ const AdminBlogsPage = () => {
       </Card>
 
       {/* Blog category dialog */}
-      <Dialog open={categoryDialogOpen} onClose={closeCategoryDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>{categoryDialogMode === 'edit' ? 'Edit category' : 'Add category'}</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={categoryDialogOpen} onClose={closeCategoryDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>{categoryDialogMode === 'edit' ? 'Edit category' : 'Add category'}</AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} mt={1}>
-            <TextField
+            <AppTextField
               label="Category name"
               value={categoryForm.name}
               onChange={(event) => setCategoryForm((prev) => ({ ...prev, name: event.target.value }))}
@@ -987,42 +964,42 @@ const AdminBlogsPage = () => {
               </Typography>
             )}
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeCategoryDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeCategoryDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleCategorySave} variant="contained" disabled={savingCategory}>
+          </AppButton>
+          <AppButton onClick={handleCategorySave} variant="contained" disabled={savingCategory}>
             {categoryDialogMode === 'edit' ? 'Save changes' : 'Create category'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
-      <Dialog open={Boolean(categoryToDelete)} onClose={() => setCategoryToDelete(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete category</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(categoryToDelete)} onClose={() => setCategoryToDelete(null)} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete category</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Delete "{categoryToDelete?.name}"? Posts in this category will become uncategorized.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCategoryToDelete(null)} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setCategoryToDelete(null)} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleCategoryDelete} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleCategoryDelete} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Create / Edit draft dialog */}
-      <Dialog open={dialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
+      <AppDialog open={dialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>
           {dialogMode === 'edit' ? 'Edit draft' : 'New draft'}
-        </DialogTitle>
-        <DialogContent dividers>
+        </AppDialogTitle>
+        <AppDialogContent dividers>
           <Stack spacing={2} mt={1} component="form" onSubmit={handleSubmit}>
-            <TextField
+            <AppTextField
               label="Title"
               placeholder="Enter blog title"
               fullWidth
@@ -1030,7 +1007,7 @@ const AdminBlogsPage = () => {
               onChange={(event) => handleFormChange('title', event.target.value)}
               required
             />
-            <TextField
+            <AppTextField
               label="Subtitle"
               placeholder="Enter blog sub title"
               fullWidth
@@ -1041,8 +1018,8 @@ const AdminBlogsPage = () => {
               maxRows={4}
               required
             />
-            <TextField
-              select
+            <AppSelectField
+             
               label="Category"
               value={formState.categoryId}
               onChange={(event) => handleFormChange('categoryId', event.target.value)}
@@ -1056,8 +1033,8 @@ const AdminBlogsPage = () => {
                 </MenuItem>
               ))}
               <MenuItem value="">Uncategorized</MenuItem>
-            </TextField>
-            <TextField
+            </AppSelectField>
+            <AppTextField
               label="Publish date"
               type="date"
               value={formState.publishDate}
@@ -1073,8 +1050,8 @@ const AdminBlogsPage = () => {
               }}
               required
             />
-            <TextField
-              select
+            <AppSelectField
+             
               label="Status"
               value={formState.status}
               onChange={(event) => handleFormChange('status', event.target.value)}
@@ -1086,7 +1063,7 @@ const AdminBlogsPage = () => {
                   {status}
                 </MenuItem>
               ))}
-            </TextField>
+            </AppSelectField>
             <ImageUpload
               label="cover image"
               value={formState.coverImage}
@@ -1099,7 +1076,7 @@ const AdminBlogsPage = () => {
               onChange={(value) => handleFormChange('blogImage', value)}
               helperText="Used within the blog content. If omitted, the cover image will be reused."
             />
-            <TextField
+            <AppTextField
               label="Short description"
               placeholder="Write a short description for the blog post"
               value={formState.shortDescription}
@@ -1110,7 +1087,7 @@ const AdminBlogsPage = () => {
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Long description"
               placeholder="Summarize the key takeaway for readers"
               value={formState.longDescription}
@@ -1121,7 +1098,7 @@ const AdminBlogsPage = () => {
               fullWidth
               required
             />
-            <TextField
+            <AppTextField
               label="Conclusion"
               placeholder="Wrap up your post with a clear takeaway"
               value={formState.conclusion}
@@ -1139,26 +1116,26 @@ const AdminBlogsPage = () => {
               </Typography>
             )}
           </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleSubmit} variant="contained" disabled={savingBlog}>
+          </AppButton>
+          <AppButton onClick={handleSubmit} variant="contained" disabled={savingBlog}>
             {dialogMode === 'edit' ? 'Save changes' : 'Save draft'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* View details dialog */}
-      <Dialog
+      <AppDialog
         open={Boolean(viewBlog)}
         onClose={closeViewDialog}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Blog details</DialogTitle>
-        <DialogContent dividers>
+        <AppDialogTitle>Blog details</AppDialogTitle>
+        <AppDialogContent dividers>
           {viewBlog && (
             <Stack spacing={2}>
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -1224,31 +1201,31 @@ const AdminBlogsPage = () => {
               />
             </Stack>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeViewDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeViewDialog} color="inherit">
             Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
 
       {/* Delete confirm dialog */}
-      <Dialog open={Boolean(deleteTarget)} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete blog</DialogTitle>
-        <DialogContent dividers>
+      <AppDialog open={Boolean(deleteTarget)} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete blog</AppDialogTitle>
+        <AppDialogContent dividers>
           <Typography variant="body2" color="text.secondary">
             Are you sure you want to delete "{deleteTarget?.title}"? This action cannot be undone.
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDeleteDialog} color="inherit">
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeDeleteDialog} color="inherit">
             Cancel
-          </Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+          </AppButton>
+          <AppButton onClick={handleConfirmDelete} color="error" variant="contained">
             Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
     </Stack>
   );
 };

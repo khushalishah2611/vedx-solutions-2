@@ -1,21 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Container,
-  Grid,
-  List,
-  ListItemButton,
-  ListItemText,
-  Pagination,
-  PaginationItem,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-  alpha,
-  useTheme,
-  InputAdornment
-} from '@mui/material';
+import { Box, Container, Grid, List, ListItemButton, ListItemText, Pagination, PaginationItem, Paper, Stack, Typography, alpha, useTheme, InputAdornment } from '@mui/material';
+import { AppTextField } from '../shared/FormControls.jsx';
+
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useSearchParams } from 'react-router-dom';
 import { blogPosts } from '../../data/blogs.js';
@@ -246,7 +232,7 @@ const BlogListPage = () => {
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       Search
                     </Typography>
-                    <TextField
+                    <AppTextField
                       value={searchValue}
                       onChange={handleSearchChange}
                       placeholder="Search articles..."

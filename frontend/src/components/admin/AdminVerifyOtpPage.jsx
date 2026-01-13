@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Button, Container, Grid, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Box, Container, Grid, Paper, Stack, Typography } from '@mui/material';
+import { AppButton, AppTextField } from '../shared/FormControls.jsx';
+
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { apiUrl } from '../../utils/const.js';
 
@@ -147,7 +149,7 @@ const AdminVerifyOtpPage = () => {
             <Grid container spacing={1.5} justifyContent="center">
               {Array.from({ length: 6 }).map((_, index) => (
                 <Grid item xs={2} key={index}>
-                  <TextField
+                  <AppTextField
                     inputRef={(element) => {
                       inputsRef.current[index] = element;
                     }}
@@ -174,15 +176,15 @@ const AdminVerifyOtpPage = () => {
               </Typography>
             ) : null}
             <Stack spacing={1}>
-              <Button variant="contained" size="large" onClick={handleVerify} disabled={isSubmitting}>
+              <AppButton variant="contained" size="large" onClick={handleVerify} disabled={isSubmitting}>
                 {isSubmitting ? 'Verifying...' : 'Verify code'}
-              </Button>
-              <Button onClick={handleResend} color="secondary" disabled={isResending}>
+              </AppButton>
+              <AppButton onClick={handleResend} color="secondary" disabled={isResending}>
                 {isResending ? 'Resending...' : 'Resend code'}
-              </Button>
-              <Button component={RouterLink} to="/admin/forgot-password" color="secondary">
+              </AppButton>
+              <AppButton component={RouterLink} to="/admin/forgot-password" color="secondary">
                 Back to email step
-              </Button>
+              </AppButton>
             </Stack>
           </Stack>
         </Paper>

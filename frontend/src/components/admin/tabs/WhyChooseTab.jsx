@@ -2,43 +2,18 @@ import * as React from 'react';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import {
-  Autocomplete,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-} from '@mui/material';
+import { Autocomplete, Box, Card, CardContent, CardHeader, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography, Alert } from '@mui/material';
+import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../../shared/FormControls.jsx';
+
 import PropTypes from 'prop-types';
 import ImageUpload from './ImageUpload.jsx';
 import SelectClearAdornment from '../SelectClearAdornment.jsx';
 
 function ValidationDialog({ open, title, messages, onClose }) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title || 'Validation'}</DialogTitle>
-      <DialogContent dividers>
+    <AppDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <AppDialogTitle>{title || 'Validation'}</AppDialogTitle>
+      <AppDialogContent dividers>
         <Stack spacing={1.25}>
           {(messages || []).map((msg, idx) => (
             <Alert key={idx} severity="error" variant="outlined">
@@ -46,13 +21,13 @@ function ValidationDialog({ open, title, messages, onClose }) {
             </Alert>
           ))}
         </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="contained">
+      </AppDialogContent>
+      <AppDialogActions>
+        <AppButton onClick={onClose} variant="contained">
           OK
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </AppButton>
+      </AppDialogActions>
+    </AppDialog>
   );
 }
 
@@ -139,8 +114,8 @@ const WhyChooseTab = ({
           <Stack spacing={3}>
             {/* Filters */}
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Category filter"
                 value={whyServiceCategoryFilter}
                 onChange={(event) => {
@@ -177,10 +152,10 @@ const WhyChooseTab = ({
                     {option.label}
                   </MenuItem>
                 ))}
-              </TextField>
+              </AppSelectField>
 
-              <TextField
-                select
+              <AppSelectField
+               
                 label="Sub-category filter"
                 value={whyServiceSubcategoryFilter}
                 onChange={(event) => {
@@ -228,7 +203,7 @@ const WhyChooseTab = ({
                     </MenuItem>
                   )
                 )}
-              </TextField>
+              </AppSelectField>
             </Stack>
 
             {/* Select config + new */}
@@ -241,13 +216,13 @@ const WhyChooseTab = ({
                 fullWidth
                 value={whyChooseList.find((item) => String(item.id) === String(selectedWhyChooseId)) || null}
                 onChange={(event, value) => setSelectedWhyChooseId(value?.id ? String(value.id) : '')}
-                renderInput={(params) => <TextField {...params} label="Select why choose config" />}
+                renderInput={(params) => <AppTextField {...params} label="Select why choose config" />}
                 sx={{ minWidth: 0 }}
               />
 
-              <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={onNewConfig} sx={{ whiteSpace: 'nowrap' }}>
+              <AppButton variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={onNewConfig} sx={{ whiteSpace: 'nowrap' }}>
                 New config
-              </Button>
+              </AppButton>
             </Stack>
 
             {/* Hero form */}
@@ -267,8 +242,8 @@ const WhyChooseTab = ({
               <Grid container spacing={2} alignItems="flex-start">
                 <Grid item xs={12} md={8}>
                   <Stack spacing={2}>
-                    <TextField
-                      select
+                    <AppSelectField
+                     
                       label="Category"
                       value={whyHeroForm.category}
                       onChange={(event) => handleWhyHeroChange('category', event.target.value)}
@@ -281,10 +256,10 @@ const WhyChooseTab = ({
                           {option.label}
                         </MenuItem>
                       ))}
-                    </TextField>
+                    </AppSelectField>
 
-                    <TextField
-                      select
+                    <AppSelectField
+                     
                       label="Sub-category"
                       value={whyHeroForm.subcategory}
                       onChange={(event) => handleWhyHeroChange('subcategory', event.target.value)}
@@ -297,9 +272,9 @@ const WhyChooseTab = ({
                           {option}
                         </MenuItem>
                       ))}
-                    </TextField>
+                    </AppSelectField>
 
-                    <TextField
+                    <AppTextField
                       label="Hero title"
                       value={whyHeroForm.heroTitle}
                       onChange={(event) => handleWhyHeroChange('heroTitle', event.target.value)}
@@ -307,7 +282,7 @@ const WhyChooseTab = ({
                       required
                     />
 
-                    <TextField
+                    <AppTextField
                       label="Hero description"
                       value={whyHeroForm.heroDescription}
                       onChange={(event) => handleWhyHeroChange('heroDescription', event.target.value)}
@@ -317,14 +292,14 @@ const WhyChooseTab = ({
                       minRows={3}
                     />
 
-                    <TextField
+                    <AppTextField
                       label="Service table title"
                       value={whyHeroForm.tableTitle}
                       onChange={(event) => handleWhyHeroChange('tableTitle', event.target.value)}
                       fullWidth
                     />
 
-                    <TextField
+                    <AppTextField
                       label="Service table description"
                       value={whyHeroForm.tableDescription}
                       onChange={(event) => handleWhyHeroChange('tableDescription', event.target.value)}
@@ -334,9 +309,9 @@ const WhyChooseTab = ({
                     />
 
                     <Stack direction="row" spacing={2} alignItems="center">
-                      <Button type="submit" variant="contained">
+                      <AppButton type="submit" variant="contained">
                         Save hero content
-                      </Button>
+                      </AppButton>
                     </Stack>
                   </Stack>
                 </Grid>
@@ -363,7 +338,7 @@ const WhyChooseTab = ({
                   <Typography variant="h6">{tableTitle}</Typography>
                 </Box>
 
-                <Button
+                <AppButton
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={openWhyServiceCreateDialog}
@@ -371,7 +346,7 @@ const WhyChooseTab = ({
                   sx={{ mt: { xs: 1, sm: 0 } }}
                 >
                   Add highlight
-                </Button>
+                </AppButton>
               </Stack>
 
               <TableContainer>

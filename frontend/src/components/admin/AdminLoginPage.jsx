@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Container,
-  Link,
-  Paper,
-  Stack,
-  TextField,
-  Typography
-} from '@mui/material';
+import { Box, Container, Link, Paper, Stack, Typography } from '@mui/material';
+import { AppButton, AppTextField } from '../shared/FormControls.jsx';
+
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { setStoredAdminProfile } from '../../data/adminProfile.js';
 
@@ -168,7 +161,7 @@ const AdminLoginPage = () => {
             </Stack>
 
             <Stack spacing={2}>
-              <TextField
+              <AppTextField
                 label="Email address"
                 placeholder="name@company.com"
                 fullWidth
@@ -182,7 +175,7 @@ const AdminLoginPage = () => {
                 autoComplete="username"
               />
 
-              <TextField
+              <AppTextField
                 label="Password"
                 type="password"
                 fullWidth
@@ -216,13 +209,13 @@ const AdminLoginPage = () => {
               </Typography>
             )}
 
-            <Button variant="contained" size="large" fullWidth type="submit" disabled={isSubmitting}>
+            <AppButton variant="contained" size="large" fullWidth type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Logging in...' : 'Log in'}
-            </Button>
+            </AppButton>
 
-            <Button component={RouterLink} to="/" color="secondary">
+            <AppButton component={RouterLink} to="/" color="secondary">
               Back to website
-            </Button>
+            </AppButton>
           </Stack>
         </Paper>
       </Container>
