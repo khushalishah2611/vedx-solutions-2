@@ -3,7 +3,6 @@ import { Navigate, useParams } from 'react-router-dom';
 import { alpha, Box, Container, Divider, useTheme } from '@mui/material';
 import CaseStudyDetailHero from '../sections/caseStudies/CaseStudyDetailHero.jsx';
 import CaseStudyOverviewSection from '../sections/caseStudies/CaseStudyOverviewSection.jsx';
-import CaseStudyApproachSection from '../sections/caseStudies/CaseStudyApproachSection.jsx';
 import CaseStudySolutionSection from '../sections/caseStudies/CaseStudySolutionSection.jsx';
 import CaseStudyKeyFeaturesSection from '../sections/caseStudies/CaseStudyKeyFeaturesSection.jsx';
 import CaseStudyChallengesSection from '../sections/caseStudies/CaseStudyChallengesSection.jsx';
@@ -51,9 +50,7 @@ const CaseStudyDetailPage = () => {
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}><CaseStudyApproachSection caseStudy={caseStudy} animate={animate} /></Box>
-
-        <Divider sx={{ borderColor: dividerColor }} />
+      
 
         <Box my={10}><CaseStudySolutionSection caseStudy={caseStudy} animate={animate} /></Box>
 
