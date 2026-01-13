@@ -22,7 +22,7 @@ const CaseStudyTeamSection = ({ animate = true }) => {
   const isDark = theme.palette.mode === 'dark';
   const accentColor = '#a855f7';
   return (
-    <Box sx={{ bgcolor: '#000',overflow: 'hidden', minHeight: '100vh' }}>
+    <Box sx={{ overflow: 'hidden', minHeight: '100vh' }}>
 
       {/* --- HEADER SECTION --- */}
       <Stack alignItems="center" spacing={1} sx={{ mb: 8 }}>

@@ -317,11 +317,13 @@ const CaseStudyRoadmapSection = ({ animate = true }) => {
   return (
     <Box
       sx={{
-        bgcolor: '#000',
+        mt:10,
+       
         overflow: 'hidden',
          minHeight: '100vh' 
       }}
     >
+      
       {/* Badge */}
       <Box sx={{ mx: 'auto', display: 'flex', justifyContent: 'center' }}>
         <Box

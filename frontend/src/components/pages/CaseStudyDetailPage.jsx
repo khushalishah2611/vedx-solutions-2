@@ -51,42 +51,33 @@ const CaseStudyDetailPage = () => {
       >
         <Box my={5}><CaseStudyOverviewSection caseStudy={caseStudy} animate={animate} /></Box>
 
-        <Divider sx={{ borderColor: dividerColor }} />
-
-
         <Box my={10}><CaseStudySolutionSection caseStudy={caseStudy} animate={animate} /></Box>
-
-        <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
           <CaseStudyKeyFeaturesSection caseStudy={caseStudy} animate={animate} />
         </Box>
 
-        <Divider sx={{ borderColor: dividerColor }} />
-
         <Box my={10}><CaseStudyChallengesSection caseStudy={caseStudy} animate={animate} /></Box>
 
-        {impactMetrics.length > 0 && (
-          <Box my={10}><CaseStudyImpactBlock impactMetrics={impactMetrics} accentColor={accentColor} /></Box>
-        )}
 
-        <Divider sx={{ borderColor: dividerColor }} />
+        <Box my={10}><CaseStudyImpactBlock impactMetrics={impactMetrics} accentColor={accentColor} /></Box>
+
 
         <Box my={10}><CaseStudyAppShowcaseSection caseStudy={caseStudy} animate={animate} /></Box>
 
-        <Divider sx={{ borderColor: dividerColor }} />
+
 
         <Box my={10}><CaseStudyTeamSection animate={animate} /></Box>
 
-        <Divider sx={{ borderColor: dividerColor }} />
+
 
         <Box my={10}><CaseStudyRoadmapSection animate={animate} /></Box>
 
-        <Divider sx={{ borderColor: dividerColor }} />
 
-        {conclusion && (
-          <Box my={10}><CaseStudyConclusionBlock conclusion={conclusion} accentColor={accentColor} /></Box>
-        )}
+
+
+        <Box my={10}><CaseStudyConclusionBlock conclusion={conclusion} accentColor={accentColor} /></Box>
+
 
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}>
