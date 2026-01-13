@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { Stack, useTheme } from '@mui/material';
 import CaseStudyOverviewBlock from './CaseStudyOverviewBlock.jsx';
 import CaseStudyProblemStatementBlock from './CaseStudyProblemStatementBlock.jsx';
-import CaseStudyConclusionBlock from './CaseStudyConclusionBlock.jsx';
-import CaseStudyImpactBlock from './CaseStudyImpactBlock.jsx';
+
+
 
 const CaseStudyOverviewSection = ({ caseStudy, animate }) => {
   const theme = useTheme();
@@ -68,8 +68,8 @@ const CaseStudyOverviewSection = ({ caseStudy, animate }) => {
         accentColor={accentColor}
         image={problemImage}
       />
-      <CaseStudyConclusionBlock conclusion={conclusion} accentColor={accentColor} />
-      <CaseStudyImpactBlock impactMetrics={impactMetrics} accentColor={accentColor} />
+     
+  
     </Stack>
   );
 };
