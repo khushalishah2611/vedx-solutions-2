@@ -13,7 +13,7 @@ const steps = [
 
 const RoadmapStep = ({ step, index, isEven }) => {
   const mainGradient = 'linear-gradient(90deg, #6366f1 0%, #a855f7 100%)';
-  
+
   return (
     <Box
       sx={{
@@ -26,9 +26,9 @@ const RoadmapStep = ({ step, index, isEven }) => {
       }}
     >
       {/* 1. TEXT CONTENT */}
-      <Box sx={{ 
-        flex: 1, 
-        display: 'flex', 
+      <Box sx={{
+        flex: 1,
+        display: 'flex',
         justifyContent: isEven ? 'flex-end' : 'flex-start',
         px: 4,
         zIndex: 10
@@ -53,15 +53,15 @@ const RoadmapStep = ({ step, index, isEven }) => {
       </Box>
 
       {/* 2. CENTER GRAPHIC ELEMENT */}
-      <Box sx={{ 
-        position: 'relative', 
-        width: 160, 
-        height: 160, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center' 
+      <Box sx={{
+        position: 'relative',
+        width: 160,
+        height: 160,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
-        
+
         {/* Background Semi-Circle (The Black "Snake" Body) */}
         <Box sx={{
           position: 'absolute',
@@ -72,7 +72,7 @@ const RoadmapStep = ({ step, index, isEven }) => {
           zIndex: 1,
           // Clip half to create the "snake" curve look
           clipPath: isEven ? 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)' : 'polygon(0 0, 50% 0, 50% 100%, 0 100%)',
-          display: {xs: 'none', md: 'block'}
+          display: { xs: 'none', md: 'block' }
         }} />
 
         {/* The Colored Wing / Arrow */}
@@ -89,7 +89,7 @@ const RoadmapStep = ({ step, index, isEven }) => {
           alignItems: 'center',
           justifyContent: isEven ? 'flex-end' : 'flex-start',
           px: 2,
-       
+
         }} />
 
         {/* The Number Circle */}
@@ -123,7 +123,7 @@ const CaseStudyRoadmapSection = () => {
       <Typography variant="h3" align="center" sx={{ color: 'white', mb: 8, fontWeight: 700 }}>
         Execution Roadmap & Timeline: <Box component="span" sx={{ opacity: 0.5 }}>34 Weeks</Box>
       </Typography>
-      
+
       <Box sx={{ maxWidth: 1200, mx: 'auto', position: 'relative' }}>
         <Stack alignItems="center">
           {steps.map((step, index) => (
