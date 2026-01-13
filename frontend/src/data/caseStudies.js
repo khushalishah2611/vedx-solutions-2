@@ -138,17 +138,17 @@ const papaJohnsCaseStudy = {
       caption: 'Checkout consolidates saved addresses, wallets, and gift cards with a single confirmation step.',
     },
     {
-      src: 'https://images.unsplash.com/photo-1533777419517-3e4017e2e15b?auto=format&fit=crop&w=1200&q=80',
+      src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
       alt: 'Courier tracking screen with live map view',
       caption: 'Customers watch their courier on a live map complete with ETA confidence intervals.',
     },
     {
-      src: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
+      src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
       alt: 'Analytics dashboard with delivery performance metrics',
       caption: 'Executive dashboards highlight order spikes, kitchen load, and driver productivity in real time.',
     },
     {
-      src: 'https://images.unsplash.com/photo-1533025781654-97f23cb85748?auto=format&fit=crop&w=1200&q=80',
+      src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
       alt: 'Loyalty rewards wallet interface',
       caption: 'The Papa Rewards wallet turns every slice into progress toward freebies and limited-time drops.',
     },

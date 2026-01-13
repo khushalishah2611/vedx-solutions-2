@@ -18,39 +18,54 @@ const CaseStudyTeamSection = ({ animate = true }) => {
   const gradientStart = '#a855f7'; // Purple
   const gradientEnd = '#ec4899';   // Pink
   const gradientMain = `linear-gradient(135deg, ${gradientStart}, ${gradientEnd})`;
-
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const accentColor = '#a855f7';
   return (
-    <Box sx={{ bgcolor: '#000', py: 8, px: 2, overflow: 'hidden', minHeight: '100vh' }}>
-      
+    <Box sx={{ bgcolor: '#000',overflow: 'hidden', minHeight: '100vh' }}>
+
       {/* --- HEADER SECTION --- */}
       <Stack alignItems="center" spacing={1} sx={{ mb: 8 }}>
-        <Typography 
-          variant="h4" 
-          align="center" 
-          sx={{ 
-            fontWeight: 700, 
-            color: '#fff',
-            fontSize: { xs: '1.5rem', md: '2.5rem' }
-          }}
-        >
-          Recommended Team : <Box component="span" sx={{ color: '#64748b', fontWeight: 400 }}>10 Team Members</Box>
-        </Typography>
-        
-        {/* Gradient Underline */}
-        <Box 
-          sx={{ 
-            height: '4px', 
-            width: '150px', 
-            background: gradientMain,
-            borderRadius: '2px',
-            mt: 2
-          }} 
-        />
+
+
+        <Box sx={{ mx: 'auto', display: 'flex', justifyContent: 'center' }}>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              px: 2,
+              py: 1,
+              borderRadius: 0.5,
+              border: `1px solid ${alpha('#ffffff', 0.1)}`,
+              background: !isDark ? alpha('#ddddddff', 0.9) : alpha('#0000007c', 0.9),
+              color: alpha(accentColor, 0.9),
+              fontWeight: 600,
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              fontSize: 11,
+              lineHeight: 1.3,
+              width: 'fit-content',
+              mx: { xs: 'auto', md: 0 },
+            }}
+          >
+            <Box
+              component="span"
+              sx={{
+                background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              Recommended Team : 10 Team Members
+            </Box>
+          </Box>
+        </Box>
+
       </Stack>
 
       {/* --- TIMELINE/TREE SECTION --- */}
       <Box sx={{ position: 'relative', maxWidth: '900px', mx: 'auto' }}>
-        
+
         {/* Central Vertical Spine Line */}
         <Box
           sx={{
@@ -109,14 +124,14 @@ const CaseStudyTeamSection = ({ animate = true }) => {
                       px: 3,
                     }}
                   >
-                    <Typography 
-                        variant="h6" 
-                        sx={{ 
-                            color: '#fff', 
-                            fontSize: '1rem', 
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap'
-                        }}
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#fff',
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap'
+                      }}
                     >
                       {role}
                     </Typography>
@@ -155,8 +170,8 @@ const CaseStudyTeamSection = ({ animate = true }) => {
                 </Typography>
               </Box>
 
-               {/* Spacer for the other side (Desktop only) to keep balance */}
-               <Box sx={{ width: { xs: 0, md: '40%' }, display: { xs: 'none', md: 'block' } }} />
+              {/* Spacer for the other side (Desktop only) to keep balance */}
+              <Box sx={{ width: { xs: 0, md: '40%' }, display: { xs: 'none', md: 'block' } }} />
 
             </Box>
           );

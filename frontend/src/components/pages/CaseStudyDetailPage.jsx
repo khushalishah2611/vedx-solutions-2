@@ -51,7 +51,6 @@ const CaseStudyDetailPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
 
       
-
         <Box my={10}><CaseStudySolutionSection caseStudy={caseStudy} animate={animate} /></Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
