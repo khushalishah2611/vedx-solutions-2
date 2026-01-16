@@ -420,26 +420,25 @@ model CaseStudyDetail {
   projectDescription String?                 @db.LongText
   projectImage       String?                 @db.LongText
 
-  approaches         CaseStudyApproach[]
+  problems           CaseStudyProblem[]
   solutions          CaseStudySolution[]
-  technologies       CaseStudyTechnology[]
   features           CaseStudyFeature[]
-  screenshots        CaseStudyScreenshot[]
-  listItems          CaseStudyListItem[]
+  developmentChallenges CaseStudyDevelopmentChallenge[]
+  apps               CaseStudyApp[]
+  teamMembers        CaseStudyTeamMember[]
+  timelines          CaseStudyTimeline[]
 
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
 }
 
-model CaseStudyApproach {
+model CaseStudyProblem {
   id          Int              @id @default(autoincrement())
   detailId    Int
   detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   title       String
-  subtitle    String?
-  image       String?          @db.LongText
-  approachType String?
+  description String?          @db.LongText
 
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -453,22 +452,7 @@ model CaseStudySolution {
   detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   title       String
-  subtitle    String?
-  tags        Json?
-
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  @@index([detailId])
-}
-
-model CaseStudyTechnology {
-  id          Int              @id @default(autoincrement())
-  detailId    Int
-  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
-
-  title       String
-  image       String?          @db.LongText
+  description String?          @db.LongText
 
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -482,6 +466,8 @@ model CaseStudyFeature {
   detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   title       String
+  image       String?          @db.LongText
+  description String?          @db.LongText
 
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -489,14 +475,16 @@ model CaseStudyFeature {
   @@index([detailId])
 }
 
-model CaseStudyScreenshot {
+model CaseStudyDevelopmentChallenge {
   id          Int              @id @default(autoincrement())
   detailId    Int
   detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   title       String
-  subtitle    String?
   image       String?          @db.LongText
+  solutionTitle String?
+  solutionSubtitle String?
+  solutionDescription String?  @db.LongText
 
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -504,14 +492,41 @@ model CaseStudyScreenshot {
   @@index([detailId])
 }
 
-model CaseStudyListItem {
+model CaseStudyApp {
   id          Int              @id @default(autoincrement())
   detailId    Int
   detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   title       String
-  subtitle    String?
-  image       String?          @db.LongText
+  description String?          @db.LongText
+  images      Json?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyTeamMember {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyTimeline {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?          @db.LongText
 
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
