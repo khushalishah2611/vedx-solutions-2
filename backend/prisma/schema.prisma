@@ -420,11 +420,24 @@ model CaseStudyDetail {
   projectDescription String?                 @db.LongText
   projectImage       String?                 @db.LongText
 
+  problemTitle       String?
+  problemDescription String?                 @db.LongText
+  problemImage       String?                 @db.LongText
+
+  solutionTitle      String?
+  solutionDescription String?                @db.LongText
+  solutionImage      String?                 @db.LongText
+
+  appTitle           String?
+  appDescription     String?                 @db.LongText
+  appImage           String?                 @db.LongText
+
   problems           CaseStudyProblem[]
   solutions          CaseStudySolution[]
   features           CaseStudyFeature[]
   developmentChallenges CaseStudyDevelopmentChallenge[]
   apps               CaseStudyApp[]
+  impacts            CaseStudyImpact[]
   teamMembers        CaseStudyTeamMember[]
   timelines          CaseStudyTimeline[]
 
@@ -452,6 +465,7 @@ model CaseStudySolution {
   detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   title       String
+  image       String?          @db.LongText
   description String?          @db.LongText
 
   createdAt   DateTime         @default(now())
@@ -500,6 +514,20 @@ model CaseStudyApp {
   title       String
   description String?          @db.LongText
   images      Json?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyImpact {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+  image       String?          @db.LongText
 
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt

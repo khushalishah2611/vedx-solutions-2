@@ -36,17 +36,21 @@ import { fileToDataUrl } from '../../utils/files.js';
 
 const DEFAULT_DETAIL = {
   projectOverview: { title: '', subtitle: '', description: '', image: '' },
+  problemConfig: { title: '', description: '', image: '' },
+  solutionConfig: { title: '', description: '', image: '' },
+  appConfig: { title: '', description: '', image: '' },
   problems: [],
   solutions: [],
   features: [],
   developmentChallenges: [],
   apps: [],
+  impacts: [],
   teamMembers: [],
   timelines: [],
 };
 
 const emptyProblem = { title: '', description: '' };
-const emptySolution = { title: '', description: '' };
+const emptySolution = { title: '', description: '', image: '' };
 const emptyFeature = { title: '', description: '', image: '' };
 const emptyChallenge = {
   title: '',
@@ -56,6 +60,7 @@ const emptyChallenge = {
   solutionDescription: '',
 };
 const emptyApp = { title: '', description: '', images: [] };
+const emptyImpact = { title: '', image: '' };
 const emptyTeamMember = { title: '' };
 const emptyTimeline = { title: '', description: '' };
 const trimValue = (value) => (typeof value === 'string' ? value.trim() : String(value ?? '').trim());
@@ -177,6 +182,10 @@ const AdminCaseStudyDetailsPage = () => {
   const [appEditIndex, setAppEditIndex] = useState(-1);
   const [appPage, setAppPage] = useState(1);
 
+  const [impactForm, setImpactForm] = useState(emptyImpact);
+  const [impactEditIndex, setImpactEditIndex] = useState(-1);
+  const [impactPage, setImpactPage] = useState(1);
+
   const [teamForm, setTeamForm] = useState(emptyTeamMember);
   const [teamEditIndex, setTeamEditIndex] = useState(-1);
   const [teamPage, setTeamPage] = useState(1);
@@ -191,6 +200,7 @@ const AdminCaseStudyDetailsPage = () => {
     setFeaturePage(1);
     setChallengePage(1);
     setAppPage(1);
+    setImpactPage(1);
     setTeamPage(1);
     setTimelinePage(1);
   };
@@ -221,6 +231,11 @@ const AdminCaseStudyDetailsPage = () => {
   }, [detail.apps]);
 
   useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(detail.impacts.length / ITEMS_PER_PAGE) || 1);
+    setImpactPage((prev) => Math.min(prev, totalPages));
+  }, [detail.impacts]);
+
+  useEffect(() => {
     const totalPages = Math.max(1, Math.ceil(detail.teamMembers.length / ITEMS_PER_PAGE) || 1);
     setTeamPage((prev) => Math.min(prev, totalPages));
   }, [detail.teamMembers]);
@@ -237,6 +252,21 @@ const AdminCaseStudyDetailsPage = () => {
       description: incomingDetail.projectOverview?.description || caseStudyData?.description || '',
       image: incomingDetail.projectOverview?.image || '',
     },
+    problemConfig: {
+      title: incomingDetail.problemConfig?.title || '',
+      description: incomingDetail.problemConfig?.description || '',
+      image: incomingDetail.problemConfig?.image || '',
+    },
+    solutionConfig: {
+      title: incomingDetail.solutionConfig?.title || '',
+      description: incomingDetail.solutionConfig?.description || '',
+      image: incomingDetail.solutionConfig?.image || '',
+    },
+    appConfig: {
+      title: incomingDetail.appConfig?.title || '',
+      description: incomingDetail.appConfig?.description || '',
+      image: incomingDetail.appConfig?.image || '',
+    },
     problems: Array.isArray(incomingDetail.problems) ? incomingDetail.problems : [],
     solutions: Array.isArray(incomingDetail.solutions) ? incomingDetail.solutions : [],
     features: Array.isArray(incomingDetail.features) ? incomingDetail.features : [],
@@ -244,6 +274,7 @@ const AdminCaseStudyDetailsPage = () => {
       ? incomingDetail.developmentChallenges
       : [],
     apps: Array.isArray(incomingDetail.apps) ? incomingDetail.apps : [],
+    impacts: Array.isArray(incomingDetail.impacts) ? incomingDetail.impacts : [],
     teamMembers: Array.isArray(incomingDetail.teamMembers) ? incomingDetail.teamMembers : [],
     timelines: Array.isArray(incomingDetail.timelines) ? incomingDetail.timelines : [],
   });
@@ -332,6 +363,53 @@ const AdminCaseStudyDetailsPage = () => {
     } catch (err) {
       console.error('Save detail failed', err);
       setError(err?.message || 'Unable to save case study detail right now.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveSectionConfig = async (sectionKey, payloadKey, label) => {
+    setSaving(true);
+    setError('');
+    setSuccess('');
+
+    const config = detail[sectionKey] || {};
+    const title = trimValue(config.title);
+    if (!title) {
+      setSaving(false);
+      setError(`${label} title is required.`);
+      return;
+    }
+
+    const payload = {
+      [payloadKey]: {
+        title,
+        description: trimValue(config.description),
+        image: trimValue(config.image),
+      },
+    };
+
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/admin/case-studies/${caseStudyId}/section-configs`), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || 'Unable to save section config.');
+
+      setCaseStudy((prev) => data.caseStudy || prev);
+      setDetail(buildDetailState(data.caseStudy || caseStudy, data.detail || detail));
+
+      setSuccess(data?.message || 'Section config saved successfully.');
+    } catch (err) {
+      console.error('Save section config failed', err);
+      setError(err?.message || 'Unable to save section config right now.');
     } finally {
       setSaving(false);
     }
@@ -599,9 +677,10 @@ const AdminCaseStudyDetailsPage = () => {
         <Tab label="Our Solutions" id="tab-2" />
         <Tab label="Features" id="tab-3" />
         <Tab label="Development Challenges" id="tab-4" />
-        <Tab label="Our App" id="tab-5" />
-        <Tab label="Team Members" id="tab-6" />
-        <Tab label="Timeline" id="tab-7" />
+        <Tab label="Impact" id="tab-5" />
+        <Tab label="Our App" id="tab-6" />
+        <Tab label="Team Members" id="tab-7" />
+        <Tab label="Timeline" id="tab-8" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
@@ -667,163 +746,291 @@ const AdminCaseStudyDetailsPage = () => {
       </TabPanel>
 
       <TabPanel value={activeTab} index={1}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={5}>
-            <Card>
-              <CardHeader title={problemEditIndex >= 0 ? 'Edit Problem' : 'Add Problem'} />
-              <CardContent>
-                <Stack spacing={2}>
-                  <AppTextField
-                    label="Title"
-                    value={problemForm.title}
-                    onChange={(e) => setProblemForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Description"
-                    value={problemForm.description}
-                    onChange={(e) => setProblemForm((prev) => ({ ...prev, description: e.target.value }))}
-                    multiline
-                    minRows={4}
-                    fullWidth
-                  />
-                  <Stack direction="row" spacing={1}>
+        <Stack spacing={2}>
+          <Card>
+            <CardHeader title="Problem Section Header" subheader="Set the hero title, description, and image." />
+            <CardContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={7}>
+                  <Stack spacing={2}>
+                    <AppTextField
+                      label="Title"
+                      value={detail.problemConfig.title}
+                      onChange={(e) =>
+                        setDetail((prev) => ({
+                          ...prev,
+                          problemConfig: { ...prev.problemConfig, title: e.target.value },
+                        }))
+                      }
+                      fullWidth
+                      required
+                    />
+                    <AppTextField
+                      label="Description"
+                      value={detail.problemConfig.description}
+                      onChange={(e) =>
+                        setDetail((prev) => ({
+                          ...prev,
+                          problemConfig: { ...prev.problemConfig, description: e.target.value },
+                        }))
+                      }
+                      multiline
+                      minRows={3}
+                      fullWidth
+                    />
                     <AppButton
                       variant="contained"
-                      startIcon={<AddCircleOutlineIcon />}
-                      onClick={() =>
-                        handleSectionSave({
-                          form: problemForm,
-                          editIndex: problemEditIndex,
-                          list: detail.problems,
-                          endpointBase: 'problems',
-                          sectionKey: 'problems',
-                          resetForm: () => {
-                            setProblemForm(emptyProblem);
-                            setProblemEditIndex(-1);
-                            setProblemPage(1);
-                          },
-                        })
-                      }
+                      startIcon={<SaveOutlinedIcon />}
+                      onClick={() => handleSaveSectionConfig('problemConfig', 'problemConfig', 'Problem section')}
+                      disabled={saving}
                     >
-                      {problemEditIndex >= 0 ? 'Update' : 'Add Problem'}
+                      {saving ? 'Saving...' : 'Save Section Header'}
                     </AppButton>
-                    {problemEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setProblemEditIndex(-1)}>
-                        Cancel
-                      </AppButton>
-                    )}
                   </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <ImageUpload
+                    label="Problem Section Image"
+                    value={detail.problemConfig.image}
+                    onChange={(value) =>
+                      setDetail((prev) => ({
+                        ...prev,
+                        problemConfig: { ...prev.problemConfig, image: value },
+                      }))
+                    }
+                  />
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={5}>
+              <Card>
+                <CardHeader title={problemEditIndex >= 0 ? 'Edit Problem' : 'Add Problem'} />
+                <CardContent>
+                  <Stack spacing={2}>
+                    <AppTextField
+                      label="Title"
+                      value={problemForm.title}
+                      onChange={(e) => setProblemForm((prev) => ({ ...prev, title: e.target.value }))}
+                      fullWidth
+                    />
+                    <AppTextField
+                      label="Description"
+                      value={problemForm.description}
+                      onChange={(e) => setProblemForm((prev) => ({ ...prev, description: e.target.value }))}
+                      multiline
+                      minRows={4}
+                      fullWidth
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <AppButton
+                        variant="contained"
+                        startIcon={<AddCircleOutlineIcon />}
+                        onClick={() =>
+                          handleSectionSave({
+                            form: problemForm,
+                            editIndex: problemEditIndex,
+                            list: detail.problems,
+                            endpointBase: 'problems',
+                            sectionKey: 'problems',
+                            resetForm: () => {
+                              setProblemForm(emptyProblem);
+                              setProblemEditIndex(-1);
+                              setProblemPage(1);
+                            },
+                          })
+                        }
+                      >
+                        {problemEditIndex >= 0 ? 'Update' : 'Add Problem'}
+                      </AppButton>
+                      {problemEditIndex >= 0 && (
+                        <AppButton variant="text" onClick={() => setProblemEditIndex(-1)}>
+                          Cancel
+                        </AppButton>
+                      )}
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={7}>
+              {renderListSection(
+                'Problem List',
+                'Capture each problem statement with long-form details.',
+                [
+                  { key: 'title', label: 'Title' },
+                  { key: 'description', label: 'Description', type: 'longtext' },
+                ],
+                detail.problems,
+                (index) => {
+                  const current = detail.problems[index];
+                  setProblemForm({ title: current.title, description: current.description });
+                  setProblemEditIndex(index);
+                  setActiveTab(1);
+                },
+                (index) =>
+                  handleSectionDelete({
+                    sectionKey: 'problems',
+                    endpointBase: 'problems',
+                    itemId: detail.problems[index]?.id,
+                  }),
+                problemPage,
+                setProblemPage
+              )}
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={7}>
-            {renderListSection(
-              'Problem List',
-              'Capture each problem statement with long-form details.',
-              [
-                { key: 'title', label: 'Title' },
-                { key: 'description', label: 'Description', type: 'longtext' },
-              ],
-              detail.problems,
-              (index) => {
-                const current = detail.problems[index];
-                setProblemForm({ title: current.title, description: current.description });
-                setProblemEditIndex(index);
-                setActiveTab(1);
-              },
-              (index) =>
-                handleSectionDelete({
-                  sectionKey: 'problems',
-                  endpointBase: 'problems',
-                  itemId: detail.problems[index]?.id,
-                }),
-              problemPage,
-              setProblemPage
-            )}
-          </Grid>
-        </Grid>
+        </Stack>
       </TabPanel>
 
       <TabPanel value={activeTab} index={2}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={5}>
-            <Card>
-              <CardHeader title={solutionEditIndex >= 0 ? 'Edit Solution' : 'Add Solution'} />
-              <CardContent>
-                <Stack spacing={2}>
-                  <AppTextField
-                    label="Title"
-                    value={solutionForm.title}
-                    onChange={(e) => setSolutionForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Description"
-                    value={solutionForm.description}
-                    onChange={(e) => setSolutionForm((prev) => ({ ...prev, description: e.target.value }))}
-                    multiline
-                    minRows={4}
-                    fullWidth
-                  />
-                  <Stack direction="row" spacing={1}>
+        <Stack spacing={2}>
+          <Card>
+            <CardHeader title="Solutions Section Header" subheader="Set the hero title, description, and image." />
+            <CardContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={7}>
+                  <Stack spacing={2}>
+                    <AppTextField
+                      label="Title"
+                      value={detail.solutionConfig.title}
+                      onChange={(e) =>
+                        setDetail((prev) => ({
+                          ...prev,
+                          solutionConfig: { ...prev.solutionConfig, title: e.target.value },
+                        }))
+                      }
+                      fullWidth
+                      required
+                    />
+                    <AppTextField
+                      label="Description"
+                      value={detail.solutionConfig.description}
+                      onChange={(e) =>
+                        setDetail((prev) => ({
+                          ...prev,
+                          solutionConfig: { ...prev.solutionConfig, description: e.target.value },
+                        }))
+                      }
+                      multiline
+                      minRows={3}
+                      fullWidth
+                    />
                     <AppButton
                       variant="contained"
-                      startIcon={<AddCircleOutlineIcon />}
-                      onClick={() =>
-                        handleSectionSave({
-                          form: solutionForm,
-                          editIndex: solutionEditIndex,
-                          list: detail.solutions,
-                          endpointBase: 'solutions',
-                          sectionKey: 'solutions',
-                          resetForm: () => {
-                            setSolutionForm(emptySolution);
-                            setSolutionEditIndex(-1);
-                            setSolutionPage(1);
-                          },
-                        })
-                      }
+                      startIcon={<SaveOutlinedIcon />}
+                      onClick={() => handleSaveSectionConfig('solutionConfig', 'solutionConfig', 'Solution section')}
+                      disabled={saving}
                     >
-                      {solutionEditIndex >= 0 ? 'Update' : 'Add Solution'}
+                      {saving ? 'Saving...' : 'Save Section Header'}
                     </AppButton>
-                    {solutionEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setSolutionEditIndex(-1)}>
-                        Cancel
-                      </AppButton>
-                    )}
                   </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <ImageUpload
+                    label="Solution Section Image"
+                    value={detail.solutionConfig.image}
+                    onChange={(value) =>
+                      setDetail((prev) => ({
+                        ...prev,
+                        solutionConfig: { ...prev.solutionConfig, image: value },
+                      }))
+                    }
+                  />
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={5}>
+              <Card>
+                <CardHeader title={solutionEditIndex >= 0 ? 'Edit Solution' : 'Add Solution'} />
+                <CardContent>
+                  <Stack spacing={2}>
+                    <AppTextField
+                      label="Title"
+                      value={solutionForm.title}
+                      onChange={(e) => setSolutionForm((prev) => ({ ...prev, title: e.target.value }))}
+                      fullWidth
+                    />
+                    <AppTextField
+                      label="Description"
+                      value={solutionForm.description}
+                      onChange={(e) => setSolutionForm((prev) => ({ ...prev, description: e.target.value }))}
+                      multiline
+                      minRows={4}
+                      fullWidth
+                    />
+                    <ImageUpload
+                      label="Solution Image"
+                      value={solutionForm.image}
+                      onChange={(value) => setSolutionForm((prev) => ({ ...prev, image: value }))}
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <AppButton
+                        variant="contained"
+                        startIcon={<AddCircleOutlineIcon />}
+                        onClick={() =>
+                          handleSectionSave({
+                            form: solutionForm,
+                            editIndex: solutionEditIndex,
+                            list: detail.solutions,
+                            endpointBase: 'solutions',
+                            sectionKey: 'solutions',
+                            resetForm: () => {
+                              setSolutionForm(emptySolution);
+                              setSolutionEditIndex(-1);
+                              setSolutionPage(1);
+                            },
+                          })
+                        }
+                      >
+                        {solutionEditIndex >= 0 ? 'Update' : 'Add Solution'}
+                      </AppButton>
+                      {solutionEditIndex >= 0 && (
+                        <AppButton variant="text" onClick={() => setSolutionEditIndex(-1)}>
+                          Cancel
+                        </AppButton>
+                      )}
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={7}>
+              {renderListSection(
+                'Solution List',
+                'Add solution titles with supporting long-form descriptions.',
+                [
+                  { key: 'title', label: 'Title' },
+                  { key: 'image', label: 'Image', type: 'image' },
+                  { key: 'description', label: 'Description', type: 'longtext' },
+                ],
+                detail.solutions,
+                (index) => {
+                  const current = detail.solutions[index];
+                  setSolutionForm({
+                    title: current.title,
+                    description: current.description,
+                    image: current.image,
+                  });
+                  setSolutionEditIndex(index);
+                  setActiveTab(2);
+                },
+                (index) =>
+                  handleSectionDelete({
+                    sectionKey: 'solutions',
+                    endpointBase: 'solutions',
+                    itemId: detail.solutions[index]?.id,
+                  }),
+                solutionPage,
+                setSolutionPage
+              )}
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={7}>
-            {renderListSection(
-              'Solution List',
-              'Add solution titles with supporting long-form descriptions.',
-              [
-                { key: 'title', label: 'Title' },
-                { key: 'description', label: 'Description', type: 'longtext' },
-              ],
-              detail.solutions,
-              (index) => {
-                const current = detail.solutions[index];
-                setSolutionForm({ title: current.title, description: current.description });
-                setSolutionEditIndex(index);
-                setActiveTab(2);
-              },
-              (index) =>
-                handleSectionDelete({
-                  sectionKey: 'solutions',
-                  endpointBase: 'solutions',
-                  itemId: detail.solutions[index]?.id,
-                }),
-              solutionPage,
-              setSolutionPage
-            )}
-          </Grid>
-        </Grid>
+        </Stack>
       </TabPanel>
 
       <TabPanel value={activeTab} index={3}>
@@ -1026,27 +1233,19 @@ const AdminCaseStudyDetailsPage = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
-              <CardHeader title={appEditIndex >= 0 ? 'Edit App Entry' : 'Add App Entry'} />
+              <CardHeader title={impactEditIndex >= 0 ? 'Edit Impact' : 'Add Impact'} />
               <CardContent>
                 <Stack spacing={2}>
                   <AppTextField
                     label="Title"
-                    value={appForm.title}
-                    onChange={(e) => setAppForm((prev) => ({ ...prev, title: e.target.value }))}
+                    value={impactForm.title}
+                    onChange={(e) => setImpactForm((prev) => ({ ...prev, title: e.target.value }))}
                     fullWidth
                   />
-                  <AppTextField
-                    label="Description"
-                    value={appForm.description}
-                    onChange={(e) => setAppForm((prev) => ({ ...prev, description: e.target.value }))}
-                    multiline
-                    minRows={4}
-                    fullWidth
-                  />
-                  <MultiImageUpload
-                    label="App Images"
-                    values={appForm.images}
-                    onChange={(value) => setAppForm((prev) => ({ ...prev, images: value }))}
+                  <ImageUpload
+                    label="Impact Image"
+                    value={impactForm.image}
+                    onChange={(value) => setImpactForm((prev) => ({ ...prev, image: value }))}
                   />
                   <Stack direction="row" spacing={1}>
                     <AppButton
@@ -1054,23 +1253,23 @@ const AdminCaseStudyDetailsPage = () => {
                       startIcon={<AddCircleOutlineIcon />}
                       onClick={() =>
                         handleSectionSave({
-                          form: appForm,
-                          editIndex: appEditIndex,
-                          list: detail.apps,
-                          endpointBase: 'apps',
-                          sectionKey: 'apps',
+                          form: impactForm,
+                          editIndex: impactEditIndex,
+                          list: detail.impacts,
+                          endpointBase: 'impacts',
+                          sectionKey: 'impacts',
                           resetForm: () => {
-                            setAppForm(emptyApp);
-                            setAppEditIndex(-1);
-                            setAppPage(1);
+                            setImpactForm(emptyImpact);
+                            setImpactEditIndex(-1);
+                            setImpactPage(1);
                           },
                         })
                       }
                     >
-                      {appEditIndex >= 0 ? 'Update' : 'Add App Entry'}
+                      {impactEditIndex >= 0 ? 'Update' : 'Add Impact'}
                     </AppButton>
-                    {appEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setAppEditIndex(-1)}>
+                    {impactEditIndex >= 0 && (
+                      <AppButton variant="text" onClick={() => setImpactEditIndex(-1)}>
                         Cancel
                       </AppButton>
                     )}
@@ -1081,38 +1280,185 @@ const AdminCaseStudyDetailsPage = () => {
           </Grid>
           <Grid item xs={12} md={7}>
             {renderListSection(
-              'Our App',
-              'Store app descriptions with multiple screenshots.',
+              'Impact List',
+              'Add impact titles with supporting imagery.',
               [
                 { key: 'title', label: 'Title' },
-                { key: 'description', label: 'Description', type: 'longtext' },
-                { key: 'images', label: 'Images', type: 'images' },
+                { key: 'image', label: 'Image', type: 'image' },
               ],
-              detail.apps,
+              detail.impacts,
               (index) => {
-                const current = detail.apps[index];
-                setAppForm({
+                const current = detail.impacts[index];
+                setImpactForm({
                   title: current.title,
-                  description: current.description,
-                  images: Array.isArray(current.images) ? current.images : [],
+                  image: current.image,
                 });
-                setAppEditIndex(index);
+                setImpactEditIndex(index);
                 setActiveTab(5);
               },
               (index) =>
                 handleSectionDelete({
-                  sectionKey: 'apps',
-                  endpointBase: 'apps',
-                  itemId: detail.apps[index]?.id,
+                  sectionKey: 'impacts',
+                  endpointBase: 'impacts',
+                  itemId: detail.impacts[index]?.id,
                 }),
-              appPage,
-              setAppPage
+              impactPage,
+              setImpactPage
             )}
           </Grid>
         </Grid>
       </TabPanel>
 
       <TabPanel value={activeTab} index={6}>
+        <Stack spacing={2}>
+          <Card>
+            <CardHeader title="App Section Header" subheader="Set the hero title, description, and image." />
+            <CardContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={7}>
+                  <Stack spacing={2}>
+                    <AppTextField
+                      label="Title"
+                      value={detail.appConfig.title}
+                      onChange={(e) =>
+                        setDetail((prev) => ({
+                          ...prev,
+                          appConfig: { ...prev.appConfig, title: e.target.value },
+                        }))
+                      }
+                      fullWidth
+                      required
+                    />
+                    <AppTextField
+                      label="Description"
+                      value={detail.appConfig.description}
+                      onChange={(e) =>
+                        setDetail((prev) => ({
+                          ...prev,
+                          appConfig: { ...prev.appConfig, description: e.target.value },
+                        }))
+                      }
+                      multiline
+                      minRows={3}
+                      fullWidth
+                    />
+                    <AppButton
+                      variant="contained"
+                      startIcon={<SaveOutlinedIcon />}
+                      onClick={() => handleSaveSectionConfig('appConfig', 'appConfig', 'App section')}
+                      disabled={saving}
+                    >
+                      {saving ? 'Saving...' : 'Save Section Header'}
+                    </AppButton>
+                  </Stack>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <ImageUpload
+                    label="App Section Image"
+                    value={detail.appConfig.image}
+                    onChange={(value) =>
+                      setDetail((prev) => ({
+                        ...prev,
+                        appConfig: { ...prev.appConfig, image: value },
+                      }))
+                    }
+                  />
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={5}>
+              <Card>
+                <CardHeader title={appEditIndex >= 0 ? 'Edit App Entry' : 'Add App Entry'} />
+                <CardContent>
+                  <Stack spacing={2}>
+                    <AppTextField
+                      label="Title"
+                      value={appForm.title}
+                      onChange={(e) => setAppForm((prev) => ({ ...prev, title: e.target.value }))}
+                      fullWidth
+                    />
+                    <AppTextField
+                      label="Description"
+                      value={appForm.description}
+                      onChange={(e) => setAppForm((prev) => ({ ...prev, description: e.target.value }))}
+                      multiline
+                      minRows={4}
+                      fullWidth
+                    />
+                    <MultiImageUpload
+                      label="App Images"
+                      values={appForm.images}
+                      onChange={(value) => setAppForm((prev) => ({ ...prev, images: value }))}
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <AppButton
+                        variant="contained"
+                        startIcon={<AddCircleOutlineIcon />}
+                        onClick={() =>
+                          handleSectionSave({
+                            form: appForm,
+                            editIndex: appEditIndex,
+                            list: detail.apps,
+                            endpointBase: 'apps',
+                            sectionKey: 'apps',
+                            resetForm: () => {
+                              setAppForm(emptyApp);
+                              setAppEditIndex(-1);
+                              setAppPage(1);
+                            },
+                          })
+                        }
+                      >
+                        {appEditIndex >= 0 ? 'Update' : 'Add App Entry'}
+                      </AppButton>
+                      {appEditIndex >= 0 && (
+                        <AppButton variant="text" onClick={() => setAppEditIndex(-1)}>
+                          Cancel
+                        </AppButton>
+                      )}
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={7}>
+              {renderListSection(
+                'Our App',
+                'Store app descriptions with multiple screenshots.',
+                [
+                  { key: 'title', label: 'Title' },
+                  { key: 'description', label: 'Description', type: 'longtext' },
+                  { key: 'images', label: 'Images', type: 'images' },
+                ],
+                detail.apps,
+                (index) => {
+                  const current = detail.apps[index];
+                  setAppForm({
+                    title: current.title,
+                    description: current.description,
+                    images: Array.isArray(current.images) ? current.images : [],
+                  });
+                  setAppEditIndex(index);
+                  setActiveTab(6);
+                },
+                (index) =>
+                  handleSectionDelete({
+                    sectionKey: 'apps',
+                    endpointBase: 'apps',
+                    itemId: detail.apps[index]?.id,
+                  }),
+                appPage,
+                setAppPage
+              )}
+            </Grid>
+          </Grid>
+        </Stack>
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={7}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
@@ -1166,7 +1512,7 @@ const AdminCaseStudyDetailsPage = () => {
                 const current = detail.teamMembers[index];
                 setTeamForm({ title: current.title });
                 setTeamEditIndex(index);
-                setActiveTab(6);
+                setActiveTab(7);
               },
               (index) =>
                 handleSectionDelete({
@@ -1181,7 +1527,7 @@ const AdminCaseStudyDetailsPage = () => {
         </Grid>
       </TabPanel>
 
-      <TabPanel value={activeTab} index={7}>
+      <TabPanel value={activeTab} index={8}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
@@ -1246,7 +1592,7 @@ const AdminCaseStudyDetailsPage = () => {
                 const current = detail.timelines[index];
                 setTimelineForm({ title: current.title, description: current.description });
                 setTimelineEditIndex(index);
-                setActiveTab(7);
+                setActiveTab(8);
               },
               (index) =>
                 handleSectionDelete({

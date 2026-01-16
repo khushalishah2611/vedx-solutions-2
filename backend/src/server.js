@@ -301,6 +301,24 @@ const formatCaseStudyDetailResponse = (detail) => {
     image: detail.projectImage || '',
   };
 
+  const problemConfig = {
+    title: detail.problemTitle || '',
+    description: detail.problemDescription || '',
+    image: detail.problemImage || '',
+  };
+
+  const solutionConfig = {
+    title: detail.solutionTitle || '',
+    description: detail.solutionDescription || '',
+    image: detail.solutionImage || '',
+  };
+
+  const appConfig = {
+    title: detail.appTitle || '',
+    description: detail.appDescription || '',
+    image: detail.appImage || '',
+  };
+
   const problems = Array.isArray(detail.problems)
     ? detail.problems.map((item) => ({
       id: item.id,
@@ -313,6 +331,7 @@ const formatCaseStudyDetailResponse = (detail) => {
     ? detail.solutions.map((item) => ({
       id: item.id,
       title: item.title,
+      image: item.image || '',
       description: item.description || '',
     }))
     : [];
@@ -346,6 +365,14 @@ const formatCaseStudyDetailResponse = (detail) => {
     }))
     : [];
 
+  const impacts = Array.isArray(detail.impacts)
+    ? detail.impacts.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.image || '',
+    }))
+    : [];
+
   const teamMembers = Array.isArray(detail.teamMembers)
     ? detail.teamMembers.map((item) => ({
       id: item.id,
@@ -363,11 +390,15 @@ const formatCaseStudyDetailResponse = (detail) => {
 
   return {
     projectOverview,
+    problemConfig,
+    solutionConfig,
+    appConfig,
     problems,
     solutions,
     features,
     developmentChallenges,
     apps,
+    impacts,
     teamMembers,
     timelines,
   };
@@ -382,6 +413,7 @@ const formatCaseStudyProblemResponse = (item) => ({
 const formatCaseStudySolutionResponse = (item) => ({
   id: item.id,
   title: item.title,
+  image: item.image || '',
   description: item.description || '',
 });
 
@@ -406,6 +438,12 @@ const formatCaseStudyAppResponse = (item) => ({
   title: item.title,
   description: item.description || '',
   images: normalizeStringArray(item.images),
+});
+
+const formatCaseStudyImpactResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  image: item.image || '',
 });
 
 const formatCaseStudyTeamMemberResponse = (item) => ({
@@ -2708,6 +2746,7 @@ const CASE_STUDY_DETAIL_INCLUDE = {
       features: true,
       developmentChallenges: true,
       apps: true,
+      impacts: true,
       teamMembers: true,
       timelines: true,
     },
@@ -2989,6 +3028,72 @@ app.put('/api/admin/case-studies/:id/details', async (req, res) => {
   }
 });
 
+app.put('/api/admin/case-studies/:id/section-configs', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const updateData = {};
+    const { problemConfig, solutionConfig, appConfig } = req.body || {};
+
+    if (problemConfig) {
+      const validation = validateCaseStudySectionConfigInput(problemConfig, 'Problem');
+      if (validation.error) return res.status(400).json({ message: validation.error });
+      updateData.problemTitle = validation.title;
+      updateData.problemDescription = validation.description;
+      updateData.problemImage = validation.image;
+    }
+
+    if (solutionConfig) {
+      const validation = validateCaseStudySectionConfigInput(solutionConfig, 'Solution');
+      if (validation.error) return res.status(400).json({ message: validation.error });
+      updateData.solutionTitle = validation.title;
+      updateData.solutionDescription = validation.description;
+      updateData.solutionImage = validation.image;
+    }
+
+    if (appConfig) {
+      const validation = validateCaseStudySectionConfigInput(appConfig, 'App');
+      if (validation.error) return res.status(400).json({ message: validation.error });
+      updateData.appTitle = validation.title;
+      updateData.appDescription = validation.description;
+      updateData.appImage = validation.image;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'Provide at least one section config to update.' });
+    }
+
+    await prisma.caseStudyDetail.update({
+      where: { id: detail.id },
+      data: updateData,
+    });
+
+    const updatedCaseStudy = await prisma.caseStudy.findUnique({
+      where: { id: caseStudyId },
+      include: CASE_STUDY_DETAIL_INCLUDE,
+    });
+
+    return res.json({
+      message: 'Case study section config saved successfully.',
+      caseStudy: formatCaseStudyResponse(updatedCaseStudy),
+      detail: formatCaseStudyDetailResponse(updatedCaseStudy?.detail),
+    });
+  } catch (error) {
+    console.error('Case study section config save failed', error);
+    return res.status(500).json({ message: 'Unable to save section config right now.' });
+  }
+});
+
 app.get('/api/admin/case-studies/:id/problems', async (req, res) => {
   try {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
@@ -3166,6 +3271,7 @@ app.post('/api/admin/case-studies/:id/solutions', async (req, res) => {
       data: {
         detailId: detail.id,
         title: validation.title,
+        image: validation.image,
         description: validation.description,
       },
     });
@@ -3207,6 +3313,7 @@ app.put('/api/admin/case-studies/:id/solutions/:solutionId', async (req, res) =>
       where: { id: solutionId },
       data: {
         title: validation.title,
+        image: validation.image,
         description: validation.description,
       },
     });
@@ -3646,6 +3753,136 @@ app.delete('/api/admin/case-studies/:id/apps/:appId', async (req, res) => {
   } catch (error) {
     console.error('Case study app delete failed', error);
     return res.status(500).json({ message: 'Unable to delete app entry right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/impacts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyImpact.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyImpactResponse) });
+  } catch (error) {
+    console.error('Case study impacts fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load impacts right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/impacts', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateImpactInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyImpact.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+        image: validation.image,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Impact created.',
+      item: formatCaseStudyImpactResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study impact create failed', error);
+    return res.status(500).json({ message: 'Unable to create impact right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/impacts/:impactId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const impactId = parseIntegerId(req.params.impactId);
+    if (!caseStudyId || !impactId) return res.status(400).json({ message: 'A valid impact id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyImpact.findUnique({ where: { id: impactId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Impact not found.' });
+    }
+
+    const validation = validateImpactInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyImpact.update({
+      where: { id: impactId },
+      data: {
+        title: validation.title,
+        image: validation.image,
+      },
+    });
+
+    return res.json({
+      message: 'Impact updated.',
+      item: formatCaseStudyImpactResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study impact update failed', error);
+    return res.status(500).json({ message: 'Unable to update impact right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/impacts/:impactId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const impactId = parseIntegerId(req.params.impactId);
+    if (!caseStudyId || !impactId) return res.status(400).json({ message: 'A valid impact id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyImpact.findUnique({ where: { id: impactId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Impact not found.' });
+    }
+
+    await prisma.caseStudyImpact.delete({ where: { id: impactId } });
+    return res.json({ message: 'Impact deleted.' });
+  } catch (error) {
+    console.error('Case study impact delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete impact right now.' });
   }
 });
 
@@ -4600,6 +4837,27 @@ const validateCaseStudyOverviewInput = (body = {}) => {
   };
 };
 
+const validateCaseStudySectionConfigInput = (config = {}, label) => {
+  const title = normalizeText(config.title);
+  const description = normalizeText(config.description);
+  const image = normalizeText(config.image);
+
+  if (!title) {
+    return { error: `${label} title is required.` };
+  }
+
+  const imageError = validateImageUrl(image);
+  if (imageError) {
+    return { error: imageError };
+  }
+
+  return {
+    title,
+    description: description || null,
+    image: image || null,
+  };
+};
+
 const validateProblemInput = (body = {}) => {
   const title = normalizeText(body.title);
   const description = normalizeText(body.description);
@@ -4612,10 +4870,16 @@ const validateProblemInput = (body = {}) => {
 const validateSolutionInput = (body = {}) => {
   const title = normalizeText(body.title);
   const description = normalizeText(body.description);
+  const image = normalizeText(body.image);
 
   if (!title) return { error: 'Solution title is required.' };
 
-  return { title, description: description || null };
+  const imageError = validateImageUrl(image);
+  if (imageError) {
+    return { error: imageError };
+  }
+
+  return { title, description: description || null, image: image || null };
 };
 
 const validateFeatureInput = (body = {}) => {
@@ -4679,6 +4943,20 @@ const validateAppInput = (body = {}) => {
     description: description || null,
     images: cleanedImages,
   };
+};
+
+const validateImpactInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  const image = normalizeText(body.image);
+
+  if (!title) return { error: 'Impact title is required.' };
+
+  const imageError = validateImageUrl(image);
+  if (imageError) {
+    return { error: imageError };
+  }
+
+  return { title, image: image || null };
 };
 
 const validateTeamMemberInput = (body = {}) => {
