@@ -21,6 +21,7 @@ const CaseStudyDetailPage = () => {
   const impactMetrics = caseStudy?.impactMetrics || [];
   const conclusion = caseStudy?.conclusion || '';
   const [animate, setAnimate] = useState(false);
+  const sectionSpacing = { xs: 6, md: 10 };
 
   useEffect(() => {
     const timer = setTimeout(() => setAnimate(true), 40);
@@ -49,38 +50,54 @@ const CaseStudyDetailPage = () => {
           py: { xs: 6, md: 10 },
         }}
       >
-        <Box my={5}><CaseStudyOverviewSection caseStudy={caseStudy} animate={animate} /></Box>
+        <Box sx={{ my: sectionSpacing }}>
+          <CaseStudyOverviewSection caseStudy={caseStudy} animate={animate} />
+        </Box>
 
-        <Box my={10}><CaseStudySolutionSection caseStudy={caseStudy} animate={animate} /></Box>
+        <Box sx={{ my: sectionSpacing }}>
+          <CaseStudySolutionSection caseStudy={caseStudy} animate={animate} />
+        </Box>
 
-        <Box my={10}>
+        <Box sx={{ my: sectionSpacing }}>
           <CaseStudyKeyFeaturesSection caseStudy={caseStudy} animate={animate} />
         </Box>
 
-        <Box my={10}><CaseStudyChallengesSection caseStudy={caseStudy} animate={animate} /></Box>
+        <Box sx={{ my: sectionSpacing }}>
+          <CaseStudyChallengesSection caseStudy={caseStudy} animate={animate} />
+        </Box>
 
 
-        <Box my={10}><CaseStudyImpactBlock impactMetrics={impactMetrics} accentColor={accentColor} /></Box>
+        <Box sx={{ my: sectionSpacing }}>
+          <CaseStudyImpactBlock impactMetrics={impactMetrics} accentColor={accentColor} />
+        </Box>
 
 
-        <Box my={10}><CaseStudyAppShowcaseSection caseStudy={caseStudy} animate={animate} /></Box>
-
-
-
-        <Box my={10}><CaseStudyTeamSection animate={animate} /></Box>
-
-
-
-        <Box my={10}><CaseStudyRoadmapSection animate={animate} /></Box>
-
+        <Box sx={{ my: sectionSpacing }}>
+          <CaseStudyAppShowcaseSection caseStudy={caseStudy} animate={animate} />
+        </Box>
 
 
 
-        <Box my={10}><CaseStudyConclusionBlock conclusion={conclusion} accentColor={accentColor} /></Box>
+        <Box sx={{ my: sectionSpacing }}>
+          <CaseStudyTeamSection animate={animate} />
+        </Box>
+
+
+
+        <Box sx={{ my: sectionSpacing }}>
+          <CaseStudyRoadmapSection animate={animate} />
+        </Box>
+
+
+
+
+        <Box sx={{ my: sectionSpacing }}>
+          <CaseStudyConclusionBlock conclusion={conclusion} accentColor={accentColor} />
+        </Box>
 
 
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}>
+        <Box sx={{ my: sectionSpacing }}>
           <CaseStudyRelatedSection relatedCaseStudies={relatedCaseStudies} />
         </Box>
       </Container>

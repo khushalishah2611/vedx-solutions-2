@@ -1,6 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Alert, Box, Card, CardContent, CardHeader, Chip, CircularProgress, Divider, Grid, IconButton, Pagination, Stack, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs, Tooltip, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  CircularProgress,
+  Divider,
+  Grid,
+  IconButton,
+  Pagination,
+  Stack,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tabs,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { AppButton, AppTextField } from '../shared/FormControls.jsx';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -13,18 +36,28 @@ import { fileToDataUrl } from '../../utils/files.js';
 
 const DEFAULT_DETAIL = {
   projectOverview: { title: '', subtitle: '', description: '', image: '' },
-  approaches: [],
+  problems: [],
   solutions: [],
-  technologies: [],
   features: [],
-  screenshots: [],
+  developmentChallenges: [],
+  apps: [],
+  teamMembers: [],
+  timelines: [],
 };
 
-const emptyApproach = { title: '', subtitle: '', approachType: '', image: '' };
-const emptySolution = { title: '', subtitle: '', tagsInput: '' };
-const emptyTechnology = { title: '', image: '' };
-const emptyFeature = { title: '' };
-const emptyScreenshot = { title: '', subtitle: '', image: '' };
+const emptyProblem = { title: '', description: '' };
+const emptySolution = { title: '', description: '' };
+const emptyFeature = { title: '', description: '', image: '' };
+const emptyChallenge = {
+  title: '',
+  image: '',
+  solutionTitle: '',
+  solutionSubtitle: '',
+  solutionDescription: '',
+};
+const emptyApp = { title: '', description: '', images: [] };
+const emptyTeamMember = { title: '' };
+const emptyTimeline = { title: '', description: '' };
 const trimValue = (value) => (typeof value === 'string' ? value.trim() : String(value ?? '').trim());
 
 const ITEMS_PER_PAGE = 5;
@@ -69,6 +102,46 @@ const ImageUpload = ({ label, value, onChange }) => {
   );
 };
 
+const MultiImageUpload = ({ label, values, onChange }) => {
+  const handleChange = async (event) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    const dataUrls = await Promise.all(files.map((file) => fileToDataUrl(file)));
+    onChange?.([...(values || []), ...dataUrls]);
+  };
+
+  const handleRemove = (index) => {
+    const next = (values || []).filter((_, idx) => idx !== index);
+    onChange?.(next);
+  };
+
+  return (
+    <Stack spacing={1} alignItems="flex-start">
+      <AppButton component="label" variant="outlined">
+        {values?.length ? `Add ${label}` : `Upload ${label}`}
+        <input type="file" hidden accept="image/*" multiple onChange={handleChange} />
+      </AppButton>
+      {values?.length ? (
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          {values.map((src, index) => (
+            <Stack key={`${src}-${index}`} spacing={1} alignItems="center">
+              <Box
+                component="img"
+                src={src}
+                alt={`${label} ${index + 1}`}
+                sx={{ width: 110, height: 80, borderRadius: 1, objectFit: 'cover' }}
+              />
+              <AppButton size="small" color="secondary" onClick={() => handleRemove(index)}>
+                Remove
+              </AppButton>
+            </Stack>
+          ))}
+        </Stack>
+      ) : null}
+    </Stack>
+  );
+};
+
 const paginate = (items, page) => items.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
 const AdminCaseStudyDetailsPage = () => {
@@ -84,69 +157,78 @@ const AdminCaseStudyDetailsPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const [approachForm, setApproachForm] = useState(emptyApproach);
-  const [approachEditIndex, setApproachEditIndex] = useState(-1);
-  const [approachPage, setApproachPage] = useState(1);
+  const [problemForm, setProblemForm] = useState(emptyProblem);
+  const [problemEditIndex, setProblemEditIndex] = useState(-1);
+  const [problemPage, setProblemPage] = useState(1);
 
   const [solutionForm, setSolutionForm] = useState(emptySolution);
   const [solutionEditIndex, setSolutionEditIndex] = useState(-1);
   const [solutionPage, setSolutionPage] = useState(1);
 
-  const [technologyForm, setTechnologyForm] = useState(emptyTechnology);
-  const [technologyEditIndex, setTechnologyEditIndex] = useState(-1);
-  const [technologyPage, setTechnologyPage] = useState(1);
-
   const [featureForm, setFeatureForm] = useState(emptyFeature);
   const [featureEditIndex, setFeatureEditIndex] = useState(-1);
   const [featurePage, setFeaturePage] = useState(1);
 
-  const [screenshotForm, setScreenshotForm] = useState(emptyScreenshot);
-  const [screenshotEditIndex, setScreenshotEditIndex] = useState(-1);
-  const [screenshotPage, setScreenshotPage] = useState(1);
+  const [challengeForm, setChallengeForm] = useState(emptyChallenge);
+  const [challengeEditIndex, setChallengeEditIndex] = useState(-1);
+  const [challengePage, setChallengePage] = useState(1);
+
+  const [appForm, setAppForm] = useState(emptyApp);
+  const [appEditIndex, setAppEditIndex] = useState(-1);
+  const [appPage, setAppPage] = useState(1);
+
+  const [teamForm, setTeamForm] = useState(emptyTeamMember);
+  const [teamEditIndex, setTeamEditIndex] = useState(-1);
+  const [teamPage, setTeamPage] = useState(1);
+
+  const [timelineForm, setTimelineForm] = useState(emptyTimeline);
+  const [timelineEditIndex, setTimelineEditIndex] = useState(-1);
+  const [timelinePage, setTimelinePage] = useState(1);
 
   const resetPagination = () => {
-    setApproachPage(1);
+    setProblemPage(1);
     setSolutionPage(1);
-    setTechnologyPage(1);
     setFeaturePage(1);
-    setScreenshotPage(1);
+    setChallengePage(1);
+    setAppPage(1);
+    setTeamPage(1);
+    setTimelinePage(1);
   };
 
   useEffect(() => {
-    const totalApproachPages = Math.max(1, Math.ceil(detail.approaches.length / ITEMS_PER_PAGE) || 1);
-    setApproachPage((prev) => Math.min(prev, totalApproachPages));
-  }, [detail.approaches]);
+    const totalPages = Math.max(1, Math.ceil(detail.problems.length / ITEMS_PER_PAGE) || 1);
+    setProblemPage((prev) => Math.min(prev, totalPages));
+  }, [detail.problems]);
 
   useEffect(() => {
-    const totalSolutionPages = Math.max(1, Math.ceil(detail.solutions.length / ITEMS_PER_PAGE) || 1);
-    setSolutionPage((prev) => Math.min(prev, totalSolutionPages));
+    const totalPages = Math.max(1, Math.ceil(detail.solutions.length / ITEMS_PER_PAGE) || 1);
+    setSolutionPage((prev) => Math.min(prev, totalPages));
   }, [detail.solutions]);
 
   useEffect(() => {
-    const totalTechPages = Math.max(1, Math.ceil(detail.technologies.length / ITEMS_PER_PAGE) || 1);
-    setTechnologyPage((prev) => Math.min(prev, totalTechPages));
-  }, [detail.technologies]);
-
-  useEffect(() => {
-    const totalFeaturePages = Math.max(1, Math.ceil(detail.features.length / ITEMS_PER_PAGE) || 1);
-    setFeaturePage((prev) => Math.min(prev, totalFeaturePages));
+    const totalPages = Math.max(1, Math.ceil(detail.features.length / ITEMS_PER_PAGE) || 1);
+    setFeaturePage((prev) => Math.min(prev, totalPages));
   }, [detail.features]);
 
   useEffect(() => {
-    const totalScreenshotPages = Math.max(1, Math.ceil(detail.screenshots.length / ITEMS_PER_PAGE) || 1);
-    setScreenshotPage((prev) => Math.min(prev, totalScreenshotPages));
-  }, [detail.screenshots]);
+    const totalPages = Math.max(1, Math.ceil(detail.developmentChallenges.length / ITEMS_PER_PAGE) || 1);
+    setChallengePage((prev) => Math.min(prev, totalPages));
+  }, [detail.developmentChallenges]);
 
-  const normalizeListItem = (item) => ({
-    title: item.title || '',
-    subtitle: item.subtitle || '',
-    image: item.image || '',
-    id: item.id,
-    approachType: item.approachType || '',
-    tags: Array.isArray(item.tags) ? item.tags : [],
-  });
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(detail.apps.length / ITEMS_PER_PAGE) || 1);
+    setAppPage((prev) => Math.min(prev, totalPages));
+  }, [detail.apps]);
 
-  const toCommaString = (values = []) => values.join(', ');
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(detail.teamMembers.length / ITEMS_PER_PAGE) || 1);
+    setTeamPage((prev) => Math.min(prev, totalPages));
+  }, [detail.teamMembers]);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(detail.timelines.length / ITEMS_PER_PAGE) || 1);
+    setTimelinePage((prev) => Math.min(prev, totalPages));
+  }, [detail.timelines]);
 
   const buildDetailState = (caseStudyData, incomingDetail = {}) => ({
     projectOverview: {
@@ -155,26 +237,15 @@ const AdminCaseStudyDetailsPage = () => {
       description: incomingDetail.projectOverview?.description || caseStudyData?.description || '',
       image: incomingDetail.projectOverview?.image || '',
     },
-    approaches: Array.isArray(incomingDetail.approaches)
-      ? incomingDetail.approaches.map(normalizeListItem)
+    problems: Array.isArray(incomingDetail.problems) ? incomingDetail.problems : [],
+    solutions: Array.isArray(incomingDetail.solutions) ? incomingDetail.solutions : [],
+    features: Array.isArray(incomingDetail.features) ? incomingDetail.features : [],
+    developmentChallenges: Array.isArray(incomingDetail.developmentChallenges)
+      ? incomingDetail.developmentChallenges
       : [],
-    solutions: Array.isArray(incomingDetail.solutions)
-      ? incomingDetail.solutions.map((item) => ({
-        title: item.title || '',
-        subtitle: item.subtitle || '',
-        tags: Array.isArray(item.tags) ? item.tags : [],
-        id: item.id,
-      }))
-      : [],
-    technologies: Array.isArray(incomingDetail.technologies)
-      ? incomingDetail.technologies.map(normalizeListItem)
-      : [],
-    features: Array.isArray(incomingDetail.features)
-      ? incomingDetail.features.map((item) => ({ title: item.title || '', id: item.id }))
-      : [],
-    screenshots: Array.isArray(incomingDetail.screenshots)
-      ? incomingDetail.screenshots.map(normalizeListItem)
-      : [],
+    apps: Array.isArray(incomingDetail.apps) ? incomingDetail.apps : [],
+    teamMembers: Array.isArray(incomingDetail.teamMembers) ? incomingDetail.teamMembers : [],
+    timelines: Array.isArray(incomingDetail.timelines) ? incomingDetail.timelines : [],
   });
 
   const loadDetail = async () => {
@@ -209,39 +280,17 @@ const AdminCaseStudyDetailsPage = () => {
     loadDetail();
   }, [caseStudyId]);
 
-  const updateList = (key, newItem, editIndex) => {
-    setDetail((prev) => {
-      const updatedList = [...prev[key]];
-      if (Number.isInteger(editIndex) && editIndex >= 0) {
-        updatedList[editIndex] = newItem;
-      } else {
-        updatedList.unshift(newItem);
-      }
-      return { ...prev, [key]: updatedList };
+  const fetchSection = async (sectionKey, endpoint) => {
+    if (!token) throw new Error('Your session expired. Please log in again.');
+    const response = await fetch(apiUrl(endpoint), {
+      headers: { Authorization: `Bearer ${token}` },
     });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload?.message || 'Unable to load case study section.');
+    setDetail((prev) => ({ ...prev, [sectionKey]: payload.items || [] }));
   };
 
-  const removeFromList = (key, index) => {
-    setDetail((prev) => ({
-      ...prev,
-      [key]: prev[key].filter((_, idx) => idx !== index),
-    }));
-  };
-
-  const resetForms = () => {
-    setApproachForm(emptyApproach);
-    setApproachEditIndex(-1);
-    setSolutionForm(emptySolution);
-    setSolutionEditIndex(-1);
-    setTechnologyForm(emptyTechnology);
-    setTechnologyEditIndex(-1);
-    setFeatureForm(emptyFeature);
-    setFeatureEditIndex(-1);
-    setScreenshotForm(emptyScreenshot);
-    setScreenshotEditIndex(-1);
-  };
-
-  const handleSave = async () => {
+  const handleSaveOverview = async () => {
     setSaving(true);
     setError('');
     setSuccess('');
@@ -260,37 +309,6 @@ const AdminCaseStudyDetailsPage = () => {
         description: trimValue(detail.projectOverview.description),
         image: trimValue(detail.projectOverview.image),
       },
-      approaches: detail.approaches
-        .map((item) => ({
-          title: trimValue(item.title),
-          subtitle: trimValue(item.subtitle),
-          approachType: trimValue(item.approachType),
-          image: trimValue(item.image),
-        }))
-        .filter((item) => item.title || item.subtitle || item.approachType || item.image),
-      solutions: detail.solutions
-        .map((item) => ({
-          title: trimValue(item.title),
-          subtitle: trimValue(item.subtitle),
-          tags: (item.tags || []).map((tag) => trimValue(tag)).filter(Boolean),
-        }))
-        .filter((item) => item.title || item.subtitle || item.tags.length),
-      technologies: detail.technologies
-        .map((item) => ({
-          title: trimValue(item.title),
-          image: trimValue(item.image),
-        }))
-        .filter((item) => item.title || item.image),
-      features: detail.features
-        .map((item) => ({ title: trimValue(item.title) }))
-        .filter((item) => item.title),
-      screenshots: detail.screenshots
-        .map((item) => ({
-          title: trimValue(item.title),
-          subtitle: trimValue(item.subtitle),
-          image: trimValue(item.image),
-        }))
-        .filter((item) => item.title || item.subtitle || item.image),
     };
 
     try {
@@ -311,8 +329,6 @@ const AdminCaseStudyDetailsPage = () => {
       setDetail(buildDetailState(data.caseStudy || caseStudy, data.detail || payload));
 
       setSuccess(data?.message || 'Case study detail saved successfully.');
-      resetForms();
-      resetPagination();
     } catch (err) {
       console.error('Save detail failed', err);
       setError(err?.message || 'Unable to save case study detail right now.');
@@ -321,57 +337,72 @@ const AdminCaseStudyDetailsPage = () => {
     }
   };
 
-  const handleApproachSave = () => {
-    if (!(approachForm.title || approachForm.subtitle || approachForm.approachType || approachForm.image)) return;
-    updateList('approaches', { ...approachForm }, approachEditIndex);
-    setApproachForm(emptyApproach);
-    setApproachEditIndex(-1);
-    setApproachPage(1);
+  const handleSectionSave = async ({
+    form,
+    editIndex,
+    list,
+    endpointBase,
+    sectionKey,
+    resetForm,
+  }) => {
+    setSaving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const isEdit = Number.isInteger(editIndex) && editIndex >= 0;
+      const targetId = isEdit ? list[editIndex]?.id : null;
+      const endpoint = isEdit
+        ? `/api/admin/case-studies/${caseStudyId}/${endpointBase}/${targetId}`
+        : `/api/admin/case-studies/${caseStudyId}/${endpointBase}`;
+
+      const response = await fetch(apiUrl(endpoint), {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || 'Unable to save section item.');
+
+      await fetchSection(sectionKey, `/api/admin/case-studies/${caseStudyId}/${endpointBase}`);
+      resetForm();
+      setSuccess(data?.message || 'Case study item saved successfully.');
+    } catch (err) {
+      console.error('Save section failed', err);
+      setError(err?.message || 'Unable to save case study item right now.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSolutionSave = () => {
-    if (!(solutionForm.title || solutionForm.subtitle || solutionForm.tagsInput)) return;
-    const tags = solutionForm.tagsInput
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean);
+  const handleSectionDelete = async ({ sectionKey, endpointBase, itemId }) => {
+    setSaving(true);
+    setError('');
+    setSuccess('');
 
-    updateList(
-      'solutions',
-      {
-        title: solutionForm.title,
-        subtitle: solutionForm.subtitle,
-        tags,
-      },
-      solutionEditIndex,
-    );
-    setSolutionForm(emptySolution);
-    setSolutionEditIndex(-1);
-    setSolutionPage(1);
-  };
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/admin/case-studies/${caseStudyId}/${endpointBase}/${itemId}`), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-  const handleTechnologySave = () => {
-    if (!(technologyForm.title || technologyForm.image)) return;
-    updateList('technologies', { ...technologyForm }, technologyEditIndex);
-    setTechnologyForm(emptyTechnology);
-    setTechnologyEditIndex(-1);
-    setTechnologyPage(1);
-  };
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || 'Unable to delete item.');
 
-  const handleFeatureSave = () => {
-    if (!featureForm.title) return;
-    updateList('features', { ...featureForm }, featureEditIndex);
-    setFeatureForm(emptyFeature);
-    setFeatureEditIndex(-1);
-    setFeaturePage(1);
-  };
-
-  const handleScreenshotSave = () => {
-    if (!(screenshotForm.title || screenshotForm.subtitle || screenshotForm.image)) return;
-    updateList('screenshots', { ...screenshotForm }, screenshotEditIndex);
-    setScreenshotForm(emptyScreenshot);
-    setScreenshotEditIndex(-1);
-    setScreenshotPage(1);
+      await fetchSection(sectionKey, `/api/admin/case-studies/${caseStudyId}/${endpointBase}`);
+      setSuccess(data?.message || 'Item deleted.');
+    } catch (err) {
+      console.error('Delete section failed', err);
+      setError(err?.message || 'Unable to delete case study item right now.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const renderListSection = (title, description, columns, rows, onEdit, onDelete, page, onPageChange) => {
@@ -393,7 +424,7 @@ const AdminCaseStudyDetailsPage = () => {
                   <TableHead>
                     <TableRow>
                       {columns.map((column) => (
-                        <TableCell key={column}>{column}</TableCell>
+                        <TableCell key={column.key}>{column.label}</TableCell>
                       ))}
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
@@ -403,30 +434,50 @@ const AdminCaseStudyDetailsPage = () => {
                       const actualIndex = (page - 1) * ITEMS_PER_PAGE + index;
                       return (
                         <TableRow key={actualIndex} hover>
-                          {columns.map((column) => (
-                            <TableCell key={`${column}-${actualIndex}`}>
-                              {Array.isArray(row[column]) ? (
-                                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                                  {row[column].map((value, idx) => (
-                                    <Chip key={idx} size="small" label={value} />
-                                  ))}
-                                </Stack>
-                              ) : column.toLowerCase().includes('image') ? (
-                                row[column] ? (
-                                  <Box
-                                    component="img"
-                                    src={row[column]}
-                                    alt={row.title || row.subtitle || 'Preview'}
-                                    sx={{ width: 64, height: 48, borderRadius: 1, objectFit: 'cover' }}
-                                  />
-                                ) : (
-                                  '—'
-                                )
-                              ) : (
-                                row[column] || '—'
-                              )}
-                            </TableCell>
-                          ))}
+                          {columns.map((column) => {
+                            const value = row[column.key];
+                            if (column.type === 'image') {
+                              return (
+                                <TableCell key={`${column.key}-${actualIndex}`}>
+                                  {value ? (
+                                    <Box
+                                      component="img"
+                                      src={value}
+                                      alt={row.title || row.subtitle || 'Preview'}
+                                      sx={{ width: 64, height: 48, borderRadius: 1, objectFit: 'cover' }}
+                                    />
+                                  ) : (
+                                    '—'
+                                  )}
+                                </TableCell>
+                              );
+                            }
+                            if (column.type === 'images') {
+                              return (
+                                <TableCell key={`${column.key}-${actualIndex}`}>
+                                  {Array.isArray(value) && value.length ? (
+                                    <Chip size="small" label={`${value.length} images`} />
+                                  ) : (
+                                    '—'
+                                  )}
+                                </TableCell>
+                              );
+                            }
+                            if (column.type === 'longtext') {
+                              const text = typeof value === 'string' ? value : '';
+                              const trimmed = text.length > 90 ? `${text.slice(0, 90)}…` : text;
+                              return (
+                                <TableCell key={`${column.key}-${actualIndex}`}>
+                                  {trimmed || '—'}
+                                </TableCell>
+                              );
+                            }
+                            return (
+                              <TableCell key={`${column.key}-${actualIndex}`}>
+                                {value || '—'}
+                              </TableCell>
+                            );
+                          })}
                           <TableCell align="right">
                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                               <Tooltip title="Edit">
@@ -475,7 +526,13 @@ const AdminCaseStudyDetailsPage = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={2} mb={3}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        justifyContent="space-between"
+        spacing={2}
+        mb={3}
+      >
         <Stack direction="row" spacing={1} alignItems="center">
           <AppButton startIcon={<ArrowBackIcon />} onClick={() => navigate('/admin/case-studies')}>
             Back
@@ -486,17 +543,17 @@ const AdminCaseStudyDetailsPage = () => {
               Admin Case Study Details
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Manage project overview, approach, solution, technologies, features, screenshots, and list content.
+              Manage project overview and tab-wise content blocks for this case study.
             </Typography>
           </Box>
         </Stack>
         <AppButton
           variant="contained"
           startIcon={<SaveOutlinedIcon />}
-          onClick={handleSave}
+          onClick={handleSaveOverview}
           disabled={saving}
         >
-          {saving ? 'Saving...' : 'Save Details'}
+          {saving ? 'Saving...' : 'Save Overview'}
         </AppButton>
       </Stack>
 
@@ -538,11 +595,13 @@ const AdminCaseStudyDetailsPage = () => {
         allowScrollButtonsMobile
       >
         <Tab label="Project Overview" id="tab-0" />
-        <Tab label="Our Approach" id="tab-1" />
-        <Tab label="Our Solution" id="tab-2" />
-        <Tab label="Technologies We Support" id="tab-3" />
-        <Tab label="Features" id="tab-4" />
-        <Tab label="Application Screenshots" id="tab-5" />
+        <Tab label="Problems" id="tab-1" />
+        <Tab label="Our Solutions" id="tab-2" />
+        <Tab label="Features" id="tab-3" />
+        <Tab label="Development Challenges" id="tab-4" />
+        <Tab label="Our App" id="tab-5" />
+        <Tab label="Team Members" id="tab-6" />
+        <Tab label="Timeline" id="tab-7" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
@@ -611,39 +670,46 @@ const AdminCaseStudyDetailsPage = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
-              <CardHeader title={approachEditIndex >= 0 ? 'Edit Approach' : 'Add Approach'} />
+              <CardHeader title={problemEditIndex >= 0 ? 'Edit Problem' : 'Add Problem'} />
               <CardContent>
                 <Stack spacing={2}>
                   <AppTextField
                     label="Title"
-                    value={approachForm.title}
-                    onChange={(e) => setApproachForm((prev) => ({ ...prev, title: e.target.value }))}
+                    value={problemForm.title}
+                    onChange={(e) => setProblemForm((prev) => ({ ...prev, title: e.target.value }))}
                     fullWidth
                   />
                   <AppTextField
-                    label="Subtitle"
-                    value={approachForm.subtitle}
-                    onChange={(e) => setApproachForm((prev) => ({ ...prev, subtitle: e.target.value }))}
+                    label="Description"
+                    value={problemForm.description}
+                    onChange={(e) => setProblemForm((prev) => ({ ...prev, description: e.target.value }))}
+                    multiline
+                    minRows={4}
                     fullWidth
-                  />
-                  <AppTextField
-                    label="Approach Type"
-                    value={approachForm.approachType}
-                    onChange={(e) => setApproachForm((prev) => ({ ...prev, approachType: e.target.value }))}
-                    helperText="Use comma-separated values for multiple approach types."
-                    fullWidth
-                  />
-                  <ImageUpload
-                    label="Approach Image"
-                    value={approachForm.image}
-                    onChange={(value) => setApproachForm((prev) => ({ ...prev, image: value }))}
                   />
                   <Stack direction="row" spacing={1}>
-                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleApproachSave}>
-                      {approachEditIndex >= 0 ? 'Update' : 'Add Approach'}
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: problemForm,
+                          editIndex: problemEditIndex,
+                          list: detail.problems,
+                          endpointBase: 'problems',
+                          sectionKey: 'problems',
+                          resetForm: () => {
+                            setProblemForm(emptyProblem);
+                            setProblemEditIndex(-1);
+                            setProblemPage(1);
+                          },
+                        })
+                      }
+                    >
+                      {problemEditIndex >= 0 ? 'Update' : 'Add Problem'}
                     </AppButton>
-                    {approachEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setApproachEditIndex(-1)}>
+                    {problemEditIndex >= 0 && (
+                      <AppButton variant="text" onClick={() => setProblemEditIndex(-1)}>
                         Cancel
                       </AppButton>
                     )}
@@ -654,19 +720,27 @@ const AdminCaseStudyDetailsPage = () => {
           </Grid>
           <Grid item xs={12} md={7}>
             {renderListSection(
-              'Approach List',
-              'Manage approach cards with title, subtitle, image, and approach type.',
-              ['title', 'subtitle', 'approachType', 'image'],
-              detail.approaches,
+              'Problem List',
+              'Capture each problem statement with long-form details.',
+              [
+                { key: 'title', label: 'Title' },
+                { key: 'description', label: 'Description', type: 'longtext' },
+              ],
+              detail.problems,
               (index) => {
-                const current = detail.approaches[index];
-                setApproachForm({ ...current });
-                setApproachEditIndex(index);
+                const current = detail.problems[index];
+                setProblemForm({ title: current.title, description: current.description });
+                setProblemEditIndex(index);
                 setActiveTab(1);
               },
-              (index) => removeFromList('approaches', index),
-              approachPage,
-              setApproachPage,
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'problems',
+                  endpointBase: 'problems',
+                  itemId: detail.problems[index]?.id,
+                }),
+              problemPage,
+              setProblemPage
             )}
           </Grid>
         </Grid>
@@ -686,20 +760,32 @@ const AdminCaseStudyDetailsPage = () => {
                     fullWidth
                   />
                   <AppTextField
-                    label="Subtitle"
-                    value={solutionForm.subtitle}
-                    onChange={(e) => setSolutionForm((prev) => ({ ...prev, subtitle: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Tags"
-                    value={solutionForm.tagsInput}
-                    onChange={(e) => setSolutionForm((prev) => ({ ...prev, tagsInput: e.target.value }))}
-                    helperText="Enter comma-separated tags (e.g., mobile app, fintech)."
+                    label="Description"
+                    value={solutionForm.description}
+                    onChange={(e) => setSolutionForm((prev) => ({ ...prev, description: e.target.value }))}
+                    multiline
+                    minRows={4}
                     fullWidth
                   />
                   <Stack direction="row" spacing={1}>
-                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleSolutionSave}>
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: solutionForm,
+                          editIndex: solutionEditIndex,
+                          list: detail.solutions,
+                          endpointBase: 'solutions',
+                          sectionKey: 'solutions',
+                          resetForm: () => {
+                            setSolutionForm(emptySolution);
+                            setSolutionEditIndex(-1);
+                            setSolutionPage(1);
+                          },
+                        })
+                      }
+                    >
                       {solutionEditIndex >= 0 ? 'Update' : 'Add Solution'}
                     </AppButton>
                     {solutionEditIndex >= 0 && (
@@ -715,80 +801,32 @@ const AdminCaseStudyDetailsPage = () => {
           <Grid item xs={12} md={7}>
             {renderListSection(
               'Solution List',
-              'Title, subtitle, and comma-separated tags.',
-              ['title', 'subtitle', 'tags'],
+              'Add solution titles with supporting long-form descriptions.',
+              [
+                { key: 'title', label: 'Title' },
+                { key: 'description', label: 'Description', type: 'longtext' },
+              ],
               detail.solutions,
               (index) => {
                 const current = detail.solutions[index];
-                setSolutionForm({
-                  title: current.title,
-                  subtitle: current.subtitle,
-                  tagsInput: toCommaString(current.tags),
-                });
+                setSolutionForm({ title: current.title, description: current.description });
                 setSolutionEditIndex(index);
                 setActiveTab(2);
               },
-              (index) => removeFromList('solutions', index),
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'solutions',
+                  endpointBase: 'solutions',
+                  itemId: detail.solutions[index]?.id,
+                }),
               solutionPage,
-              setSolutionPage,
+              setSolutionPage
             )}
           </Grid>
         </Grid>
       </TabPanel>
 
       <TabPanel value={activeTab} index={3}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={5}>
-            <Card>
-              <CardHeader title={technologyEditIndex >= 0 ? 'Edit Technology' : 'Add Technology'} />
-              <CardContent>
-                <Stack spacing={2}>
-                  <AppTextField
-                    label="Title"
-                    value={technologyForm.title}
-                    onChange={(e) => setTechnologyForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <ImageUpload
-                    label="Technology Image"
-                    value={technologyForm.image}
-                    onChange={(value) => setTechnologyForm((prev) => ({ ...prev, image: value }))}
-                  />
-                  <Stack direction="row" spacing={1}>
-                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleTechnologySave}>
-                      {technologyEditIndex >= 0 ? 'Update' : 'Add Technology'}
-                    </AppButton>
-                    {technologyEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setTechnologyEditIndex(-1)}>
-                        Cancel
-                      </AppButton>
-                    )}
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={7}>
-            {renderListSection(
-              'Technologies We Support',
-              'Add technology cards with titles and supporting imagery.',
-              ['title', 'image'],
-              detail.technologies,
-              (index) => {
-                const current = detail.technologies[index];
-                setTechnologyForm({ ...current });
-                setTechnologyEditIndex(index);
-                setActiveTab(3);
-              },
-              (index) => removeFromList('technologies', index),
-              technologyPage,
-              setTechnologyPage,
-            )}
-          </Grid>
-        </Grid>
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={4}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
@@ -801,8 +839,38 @@ const AdminCaseStudyDetailsPage = () => {
                     onChange={(e) => setFeatureForm((prev) => ({ ...prev, title: e.target.value }))}
                     fullWidth
                   />
+                  <AppTextField
+                    label="Description"
+                    value={featureForm.description}
+                    onChange={(e) => setFeatureForm((prev) => ({ ...prev, description: e.target.value }))}
+                    multiline
+                    minRows={4}
+                    fullWidth
+                  />
+                  <ImageUpload
+                    label="Feature Image"
+                    value={featureForm.image}
+                    onChange={(value) => setFeatureForm((prev) => ({ ...prev, image: value }))}
+                  />
                   <Stack direction="row" spacing={1}>
-                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleFeatureSave}>
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: featureForm,
+                          editIndex: featureEditIndex,
+                          list: detail.features,
+                          endpointBase: 'features',
+                          sectionKey: 'features',
+                          resetForm: () => {
+                            setFeatureForm(emptyFeature);
+                            setFeatureEditIndex(-1);
+                            setFeaturePage(1);
+                          },
+                        })
+                      }
+                    >
                       {featureEditIndex >= 0 ? 'Update' : 'Add Feature'}
                     </AppButton>
                     {featureEditIndex >= 0 && (
@@ -818,53 +886,97 @@ const AdminCaseStudyDetailsPage = () => {
           <Grid item xs={12} md={7}>
             {renderListSection(
               'Feature List',
-              'Capture feature highlights with simple titles.',
-              ['title'],
+              'Highlight key features with imagery and details.',
+              [
+                { key: 'title', label: 'Title' },
+                { key: 'image', label: 'Image', type: 'image' },
+                { key: 'description', label: 'Description', type: 'longtext' },
+              ],
               detail.features,
               (index) => {
                 const current = detail.features[index];
-                setFeatureForm({ ...current });
+                setFeatureForm({
+                  title: current.title,
+                  description: current.description,
+                  image: current.image,
+                });
                 setFeatureEditIndex(index);
-                setActiveTab(4);
+                setActiveTab(3);
               },
-              (index) => removeFromList('features', index),
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'features',
+                  endpointBase: 'features',
+                  itemId: detail.features[index]?.id,
+                }),
               featurePage,
-              setFeaturePage,
+              setFeaturePage
             )}
           </Grid>
         </Grid>
       </TabPanel>
 
-      <TabPanel value={activeTab} index={5}>
+      <TabPanel value={activeTab} index={4}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
-              <CardHeader title={screenshotEditIndex >= 0 ? 'Edit Screenshot' : 'Add Screenshot'} />
+              <CardHeader title={challengeEditIndex >= 0 ? 'Edit Challenge' : 'Add Challenge'} />
               <CardContent>
                 <Stack spacing={2}>
                   <AppTextField
                     label="Title"
-                    value={screenshotForm.title}
-                    onChange={(e) => setScreenshotForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Subtitle"
-                    value={screenshotForm.subtitle}
-                    onChange={(e) => setScreenshotForm((prev) => ({ ...prev, subtitle: e.target.value }))}
+                    value={challengeForm.title}
+                    onChange={(e) => setChallengeForm((prev) => ({ ...prev, title: e.target.value }))}
                     fullWidth
                   />
                   <ImageUpload
-                    label="Screenshot Image"
-                    value={screenshotForm.image}
-                    onChange={(value) => setScreenshotForm((prev) => ({ ...prev, image: value }))}
+                    label="Challenge Image"
+                    value={challengeForm.image}
+                    onChange={(value) => setChallengeForm((prev) => ({ ...prev, image: value }))}
+                  />
+                  <AppTextField
+                    label="Solution Title"
+                    value={challengeForm.solutionTitle}
+                    onChange={(e) => setChallengeForm((prev) => ({ ...prev, solutionTitle: e.target.value }))}
+                    fullWidth
+                  />
+                  <AppTextField
+                    label="Solution Subtitle"
+                    value={challengeForm.solutionSubtitle}
+                    onChange={(e) => setChallengeForm((prev) => ({ ...prev, solutionSubtitle: e.target.value }))}
+                    fullWidth
+                  />
+                  <AppTextField
+                    label="Solution Description"
+                    value={challengeForm.solutionDescription}
+                    onChange={(e) => setChallengeForm((prev) => ({ ...prev, solutionDescription: e.target.value }))}
+                    multiline
+                    minRows={4}
+                    fullWidth
                   />
                   <Stack direction="row" spacing={1}>
-                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleScreenshotSave}>
-                      {screenshotEditIndex >= 0 ? 'Update' : 'Add Screenshot'}
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: challengeForm,
+                          editIndex: challengeEditIndex,
+                          list: detail.developmentChallenges,
+                          endpointBase: 'development-challenges',
+                          sectionKey: 'developmentChallenges',
+                          resetForm: () => {
+                            setChallengeForm(emptyChallenge);
+                            setChallengeEditIndex(-1);
+                            setChallengePage(1);
+                          },
+                        })
+                      }
+                    >
+                      {challengeEditIndex >= 0 ? 'Update' : 'Add Challenge'}
                     </AppButton>
-                    {screenshotEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setScreenshotEditIndex(-1)}>
+                    {challengeEditIndex >= 0 && (
+                      <AppButton variant="text" onClick={() => setChallengeEditIndex(-1)}>
                         Cancel
                       </AppButton>
                     )}
@@ -875,19 +987,275 @@ const AdminCaseStudyDetailsPage = () => {
           </Grid>
           <Grid item xs={12} md={7}>
             {renderListSection(
-              'Application Screenshots',
-              'Add gallery screenshots with titles and subtitles.',
-              ['title', 'subtitle', 'image'],
-              detail.screenshots,
+              'Development Challenges',
+              'Capture challenges and their supporting solution details.',
+              [
+                { key: 'title', label: 'Title' },
+                { key: 'image', label: 'Image', type: 'image' },
+                { key: 'solutionTitle', label: 'Solution Title' },
+                { key: 'solutionSubtitle', label: 'Solution Subtitle' },
+                { key: 'solutionDescription', label: 'Solution Description', type: 'longtext' },
+              ],
+              detail.developmentChallenges,
               (index) => {
-                const current = detail.screenshots[index];
-                setScreenshotForm({ ...current });
-                setScreenshotEditIndex(index);
+                const current = detail.developmentChallenges[index];
+                setChallengeForm({
+                  title: current.title,
+                  image: current.image,
+                  solutionTitle: current.solutionTitle,
+                  solutionSubtitle: current.solutionSubtitle,
+                  solutionDescription: current.solutionDescription,
+                });
+                setChallengeEditIndex(index);
+                setActiveTab(4);
+              },
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'developmentChallenges',
+                  endpointBase: 'development-challenges',
+                  itemId: detail.developmentChallenges[index]?.id,
+                }),
+              challengePage,
+              setChallengePage
+            )}
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={5}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={5}>
+            <Card>
+              <CardHeader title={appEditIndex >= 0 ? 'Edit App Entry' : 'Add App Entry'} />
+              <CardContent>
+                <Stack spacing={2}>
+                  <AppTextField
+                    label="Title"
+                    value={appForm.title}
+                    onChange={(e) => setAppForm((prev) => ({ ...prev, title: e.target.value }))}
+                    fullWidth
+                  />
+                  <AppTextField
+                    label="Description"
+                    value={appForm.description}
+                    onChange={(e) => setAppForm((prev) => ({ ...prev, description: e.target.value }))}
+                    multiline
+                    minRows={4}
+                    fullWidth
+                  />
+                  <MultiImageUpload
+                    label="App Images"
+                    values={appForm.images}
+                    onChange={(value) => setAppForm((prev) => ({ ...prev, images: value }))}
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: appForm,
+                          editIndex: appEditIndex,
+                          list: detail.apps,
+                          endpointBase: 'apps',
+                          sectionKey: 'apps',
+                          resetForm: () => {
+                            setAppForm(emptyApp);
+                            setAppEditIndex(-1);
+                            setAppPage(1);
+                          },
+                        })
+                      }
+                    >
+                      {appEditIndex >= 0 ? 'Update' : 'Add App Entry'}
+                    </AppButton>
+                    {appEditIndex >= 0 && (
+                      <AppButton variant="text" onClick={() => setAppEditIndex(-1)}>
+                        Cancel
+                      </AppButton>
+                    )}
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={7}>
+            {renderListSection(
+              'Our App',
+              'Store app descriptions with multiple screenshots.',
+              [
+                { key: 'title', label: 'Title' },
+                { key: 'description', label: 'Description', type: 'longtext' },
+                { key: 'images', label: 'Images', type: 'images' },
+              ],
+              detail.apps,
+              (index) => {
+                const current = detail.apps[index];
+                setAppForm({
+                  title: current.title,
+                  description: current.description,
+                  images: Array.isArray(current.images) ? current.images : [],
+                });
+                setAppEditIndex(index);
                 setActiveTab(5);
               },
-              (index) => removeFromList('screenshots', index),
-              screenshotPage,
-              setScreenshotPage,
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'apps',
+                  endpointBase: 'apps',
+                  itemId: detail.apps[index]?.id,
+                }),
+              appPage,
+              setAppPage
+            )}
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={6}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={5}>
+            <Card>
+              <CardHeader title={teamEditIndex >= 0 ? 'Edit Team Member' : 'Add Team Member'} />
+              <CardContent>
+                <Stack spacing={2}>
+                  <AppTextField
+                    label="Title"
+                    value={teamForm.title}
+                    onChange={(e) => setTeamForm((prev) => ({ ...prev, title: e.target.value }))}
+                    fullWidth
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: teamForm,
+                          editIndex: teamEditIndex,
+                          list: detail.teamMembers,
+                          endpointBase: 'team-members',
+                          sectionKey: 'teamMembers',
+                          resetForm: () => {
+                            setTeamForm(emptyTeamMember);
+                            setTeamEditIndex(-1);
+                            setTeamPage(1);
+                          },
+                        })
+                      }
+                    >
+                      {teamEditIndex >= 0 ? 'Update' : 'Add Team Member'}
+                    </AppButton>
+                    {teamEditIndex >= 0 && (
+                      <AppButton variant="text" onClick={() => setTeamEditIndex(-1)}>
+                        Cancel
+                      </AppButton>
+                    )}
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={7}>
+            {renderListSection(
+              'Team Members',
+              'Maintain the team member list titles.',
+              [{ key: 'title', label: 'Title' }],
+              detail.teamMembers,
+              (index) => {
+                const current = detail.teamMembers[index];
+                setTeamForm({ title: current.title });
+                setTeamEditIndex(index);
+                setActiveTab(6);
+              },
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'teamMembers',
+                  endpointBase: 'team-members',
+                  itemId: detail.teamMembers[index]?.id,
+                }),
+              teamPage,
+              setTeamPage
+            )}
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={7}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={5}>
+            <Card>
+              <CardHeader title={timelineEditIndex >= 0 ? 'Edit Timeline' : 'Add Timeline'} />
+              <CardContent>
+                <Stack spacing={2}>
+                  <AppTextField
+                    label="Title"
+                    value={timelineForm.title}
+                    onChange={(e) => setTimelineForm((prev) => ({ ...prev, title: e.target.value }))}
+                    fullWidth
+                  />
+                  <AppTextField
+                    label="Description"
+                    value={timelineForm.description}
+                    onChange={(e) => setTimelineForm((prev) => ({ ...prev, description: e.target.value }))}
+                    multiline
+                    minRows={4}
+                    fullWidth
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: timelineForm,
+                          editIndex: timelineEditIndex,
+                          list: detail.timelines,
+                          endpointBase: 'timelines',
+                          sectionKey: 'timelines',
+                          resetForm: () => {
+                            setTimelineForm(emptyTimeline);
+                            setTimelineEditIndex(-1);
+                            setTimelinePage(1);
+                          },
+                        })
+                      }
+                    >
+                      {timelineEditIndex >= 0 ? 'Update' : 'Add Timeline'}
+                    </AppButton>
+                    {timelineEditIndex >= 0 && (
+                      <AppButton variant="text" onClick={() => setTimelineEditIndex(-1)}>
+                        Cancel
+                      </AppButton>
+                    )}
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={7}>
+            {renderListSection(
+              'Timeline',
+              'Add timeline milestones with description text.',
+              [
+                { key: 'title', label: 'Title' },
+                { key: 'description', label: 'Description', type: 'longtext' },
+              ],
+              detail.timelines,
+              (index) => {
+                const current = detail.timelines[index];
+                setTimelineForm({ title: current.title, description: current.description });
+                setTimelineEditIndex(index);
+                setActiveTab(7);
+              },
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'timelines',
+                  endpointBase: 'timelines',
+                  itemId: detail.timelines[index]?.id,
+                }),
+              timelinePage,
+              setTimelinePage
             )}
           </Grid>
         </Grid>

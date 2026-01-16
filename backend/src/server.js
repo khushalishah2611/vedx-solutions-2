@@ -301,13 +301,11 @@ const formatCaseStudyDetailResponse = (detail) => {
     image: detail.projectImage || '',
   };
 
-  const approaches = Array.isArray(detail.approaches)
-    ? detail.approaches.map((item) => ({
+  const problems = Array.isArray(detail.problems)
+    ? detail.problems.map((item) => ({
       id: item.id,
       title: item.title,
-      subtitle: item.subtitle || '',
-      image: item.image || '',
-      approachType: item.approachType || '',
+      description: item.description || '',
     }))
     : [];
 
@@ -315,16 +313,7 @@ const formatCaseStudyDetailResponse = (detail) => {
     ? detail.solutions.map((item) => ({
       id: item.id,
       title: item.title,
-      subtitle: item.subtitle || '',
-      tags: normalizeStringArray(item.tags),
-    }))
-    : [];
-
-  const technologies = Array.isArray(detail.technologies)
-    ? detail.technologies.map((item) => ({
-      id: item.id,
-      title: item.title,
-      image: item.image || '',
+      description: item.description || '',
     }))
     : [];
 
@@ -332,27 +321,103 @@ const formatCaseStudyDetailResponse = (detail) => {
     ? detail.features.map((item) => ({
       id: item.id,
       title: item.title,
+      image: item.image || '',
+      description: item.description || '',
     }))
     : [];
 
-  const screenshots = Array.isArray(detail.screenshots)
-    ? detail.screenshots.map((item) => ({
+  const developmentChallenges = Array.isArray(detail.developmentChallenges)
+    ? detail.developmentChallenges.map((item) => ({
       id: item.id,
       title: item.title,
-      subtitle: item.subtitle || '',
       image: item.image || '',
+      solutionTitle: item.solutionTitle || '',
+      solutionSubtitle: item.solutionSubtitle || '',
+      solutionDescription: item.solutionDescription || '',
+    }))
+    : [];
+
+  const apps = Array.isArray(detail.apps)
+    ? detail.apps.map((item) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description || '',
+      images: normalizeStringArray(item.images),
+    }))
+    : [];
+
+  const teamMembers = Array.isArray(detail.teamMembers)
+    ? detail.teamMembers.map((item) => ({
+      id: item.id,
+      title: item.title,
+    }))
+    : [];
+
+  const timelines = Array.isArray(detail.timelines)
+    ? detail.timelines.map((item) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description || '',
     }))
     : [];
 
   return {
     projectOverview,
-    approaches,
+    problems,
     solutions,
-    technologies,
     features,
-    screenshots,
+    developmentChallenges,
+    apps,
+    teamMembers,
+    timelines,
   };
 };
+
+const formatCaseStudyProblemResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description || '',
+});
+
+const formatCaseStudySolutionResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description || '',
+});
+
+const formatCaseStudyFeatureResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  image: item.image || '',
+  description: item.description || '',
+});
+
+const formatCaseStudyChallengeResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  image: item.image || '',
+  solutionTitle: item.solutionTitle || '',
+  solutionSubtitle: item.solutionSubtitle || '',
+  solutionDescription: item.solutionDescription || '',
+});
+
+const formatCaseStudyAppResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description || '',
+  images: normalizeStringArray(item.images),
+});
+
+const formatCaseStudyTeamMemberResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+});
+
+const formatCaseStudyTimelineResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description || '',
+});
 
 const formatCaseStudyResponse = (caseStudy) => ({
   id: caseStudy.id,
@@ -2638,11 +2703,13 @@ const CASE_STUDY_DETAIL_INCLUDE = {
   tags: true,
   detail: {
     include: {
-      approaches: true,
+      problems: true,
       solutions: true,
-      technologies: true,
       features: true,
-      screenshots: true,
+      developmentChallenges: true,
+      apps: true,
+      teamMembers: true,
+      timelines: true,
     },
   },
 };
@@ -2883,7 +2950,7 @@ app.put('/api/admin/case-studies/:id/details', async (req, res) => {
     const caseStudyId = parseIntegerId(req.params.id);
     if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
 
-    const validation = validateCaseStudyDetailInput(req.body || {});
+    const validation = validateCaseStudyOverviewInput(req.body || {});
     if (validation.error) return res.status(400).json({ message: validation.error });
 
     const existing = await prisma.caseStudy.findUnique({ where: { id: caseStudyId } });
@@ -2906,67 +2973,6 @@ app.put('/api/admin/case-studies/:id/details', async (req, res) => {
       },
     });
 
-    await prisma.$transaction([
-      prisma.caseStudyApproach.deleteMany({ where: { detailId: detail.id } }),
-      prisma.caseStudySolution.deleteMany({ where: { detailId: detail.id } }),
-      prisma.caseStudyTechnology.deleteMany({ where: { detailId: detail.id } }),
-      prisma.caseStudyFeature.deleteMany({ where: { detailId: detail.id } }),
-      prisma.caseStudyScreenshot.deleteMany({ where: { detailId: detail.id } }),
-    ]);
-
-    if (validation.approaches.length) {
-      await prisma.caseStudyApproach.createMany({
-        data: validation.approaches.map((item) => ({
-          detailId: detail.id,
-          title: item.title,
-          subtitle: item.subtitle || null,
-          image: item.image || null,
-          approachType: item.approachType || null,
-        })),
-      });
-    }
-
-    if (validation.solutions.length) {
-      await prisma.caseStudySolution.createMany({
-        data: validation.solutions.map((item) => ({
-          detailId: detail.id,
-          title: item.title,
-          subtitle: item.subtitle || null,
-          tags: item.tags?.length ? item.tags : [],
-        })),
-      });
-    }
-
-    if (validation.technologies.length) {
-      await prisma.caseStudyTechnology.createMany({
-        data: validation.technologies.map((item) => ({
-          detailId: detail.id,
-          title: item.title,
-          image: item.image || null,
-        })),
-      });
-    }
-
-    if (validation.features.length) {
-      await prisma.caseStudyFeature.createMany({
-        data: validation.features.map((item) => ({
-          detailId: detail.id,
-          title: item.title,
-        })),
-      });
-    }
-
-    if (validation.screenshots.length) {
-      await prisma.caseStudyScreenshot.createMany({
-        data: validation.screenshots.map((item) => ({
-          detailId: detail.id,
-          title: item.title,
-          subtitle: item.subtitle || null,
-          image: item.image || null,
-        })),
-      });
-    }
-
     const updatedCaseStudy = await prisma.caseStudy.findUnique({
       where: { id: caseStudyId },
       include: CASE_STUDY_DETAIL_INCLUDE,
@@ -2980,6 +2986,922 @@ app.put('/api/admin/case-studies/:id/details', async (req, res) => {
   } catch (error) {
     console.error('Case study detail save failed', error);
     return res.status(500).json({ message: 'Unable to save case study detail right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/problems', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyProblem.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyProblemResponse) });
+  } catch (error) {
+    console.error('Case study problems fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load problems right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/problems', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateProblemInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyProblem.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+        description: validation.description,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Problem created.',
+      item: formatCaseStudyProblemResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study problem create failed', error);
+    return res.status(500).json({ message: 'Unable to create problem right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/problems/:problemId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const problemId = parseIntegerId(req.params.problemId);
+    if (!caseStudyId || !problemId) return res.status(400).json({ message: 'A valid problem id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyProblem.findUnique({ where: { id: problemId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Problem not found.' });
+    }
+
+    const validation = validateProblemInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyProblem.update({
+      where: { id: problemId },
+      data: {
+        title: validation.title,
+        description: validation.description,
+      },
+    });
+
+    return res.json({
+      message: 'Problem updated.',
+      item: formatCaseStudyProblemResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study problem update failed', error);
+    return res.status(500).json({ message: 'Unable to update problem right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/problems/:problemId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const problemId = parseIntegerId(req.params.problemId);
+    if (!caseStudyId || !problemId) return res.status(400).json({ message: 'A valid problem id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyProblem.findUnique({ where: { id: problemId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Problem not found.' });
+    }
+
+    await prisma.caseStudyProblem.delete({ where: { id: problemId } });
+    return res.json({ message: 'Problem deleted.' });
+  } catch (error) {
+    console.error('Case study problem delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete problem right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/solutions', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudySolution.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudySolutionResponse) });
+  } catch (error) {
+    console.error('Case study solutions fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load solutions right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/solutions', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateSolutionInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudySolution.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+        description: validation.description,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Solution created.',
+      item: formatCaseStudySolutionResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study solution create failed', error);
+    return res.status(500).json({ message: 'Unable to create solution right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/solutions/:solutionId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const solutionId = parseIntegerId(req.params.solutionId);
+    if (!caseStudyId || !solutionId) return res.status(400).json({ message: 'A valid solution id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudySolution.findUnique({ where: { id: solutionId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Solution not found.' });
+    }
+
+    const validation = validateSolutionInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudySolution.update({
+      where: { id: solutionId },
+      data: {
+        title: validation.title,
+        description: validation.description,
+      },
+    });
+
+    return res.json({
+      message: 'Solution updated.',
+      item: formatCaseStudySolutionResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study solution update failed', error);
+    return res.status(500).json({ message: 'Unable to update solution right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/solutions/:solutionId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const solutionId = parseIntegerId(req.params.solutionId);
+    if (!caseStudyId || !solutionId) return res.status(400).json({ message: 'A valid solution id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudySolution.findUnique({ where: { id: solutionId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Solution not found.' });
+    }
+
+    await prisma.caseStudySolution.delete({ where: { id: solutionId } });
+    return res.json({ message: 'Solution deleted.' });
+  } catch (error) {
+    console.error('Case study solution delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete solution right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/features', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyFeature.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyFeatureResponse) });
+  } catch (error) {
+    console.error('Case study features fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load features right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/features', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateFeatureInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyFeature.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+        image: validation.image,
+        description: validation.description,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Feature created.',
+      item: formatCaseStudyFeatureResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study feature create failed', error);
+    return res.status(500).json({ message: 'Unable to create feature right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/features/:featureId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const featureId = parseIntegerId(req.params.featureId);
+    if (!caseStudyId || !featureId) return res.status(400).json({ message: 'A valid feature id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyFeature.findUnique({ where: { id: featureId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Feature not found.' });
+    }
+
+    const validation = validateFeatureInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyFeature.update({
+      where: { id: featureId },
+      data: {
+        title: validation.title,
+        image: validation.image,
+        description: validation.description,
+      },
+    });
+
+    return res.json({
+      message: 'Feature updated.',
+      item: formatCaseStudyFeatureResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study feature update failed', error);
+    return res.status(500).json({ message: 'Unable to update feature right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/features/:featureId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const featureId = parseIntegerId(req.params.featureId);
+    if (!caseStudyId || !featureId) return res.status(400).json({ message: 'A valid feature id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyFeature.findUnique({ where: { id: featureId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Feature not found.' });
+    }
+
+    await prisma.caseStudyFeature.delete({ where: { id: featureId } });
+    return res.json({ message: 'Feature deleted.' });
+  } catch (error) {
+    console.error('Case study feature delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete feature right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/development-challenges', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyDevelopmentChallenge.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyChallengeResponse) });
+  } catch (error) {
+    console.error('Case study challenges fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load challenges right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/development-challenges', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateDevelopmentChallengeInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyDevelopmentChallenge.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+        image: validation.image,
+        solutionTitle: validation.solutionTitle,
+        solutionSubtitle: validation.solutionSubtitle,
+        solutionDescription: validation.solutionDescription,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Challenge created.',
+      item: formatCaseStudyChallengeResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study challenge create failed', error);
+    return res.status(500).json({ message: 'Unable to create challenge right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/development-challenges/:challengeId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const challengeId = parseIntegerId(req.params.challengeId);
+    if (!caseStudyId || !challengeId) return res.status(400).json({ message: 'A valid challenge id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyDevelopmentChallenge.findUnique({ where: { id: challengeId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Challenge not found.' });
+    }
+
+    const validation = validateDevelopmentChallengeInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyDevelopmentChallenge.update({
+      where: { id: challengeId },
+      data: {
+        title: validation.title,
+        image: validation.image,
+        solutionTitle: validation.solutionTitle,
+        solutionSubtitle: validation.solutionSubtitle,
+        solutionDescription: validation.solutionDescription,
+      },
+    });
+
+    return res.json({
+      message: 'Challenge updated.',
+      item: formatCaseStudyChallengeResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study challenge update failed', error);
+    return res.status(500).json({ message: 'Unable to update challenge right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/development-challenges/:challengeId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const challengeId = parseIntegerId(req.params.challengeId);
+    if (!caseStudyId || !challengeId) return res.status(400).json({ message: 'A valid challenge id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyDevelopmentChallenge.findUnique({ where: { id: challengeId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Challenge not found.' });
+    }
+
+    await prisma.caseStudyDevelopmentChallenge.delete({ where: { id: challengeId } });
+    return res.json({ message: 'Challenge deleted.' });
+  } catch (error) {
+    console.error('Case study challenge delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete challenge right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/apps', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyApp.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyAppResponse) });
+  } catch (error) {
+    console.error('Case study apps fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load apps right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/apps', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateAppInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyApp.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+        description: validation.description,
+        images: validation.images,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'App entry created.',
+      item: formatCaseStudyAppResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study app create failed', error);
+    return res.status(500).json({ message: 'Unable to create app entry right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/apps/:appId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const appId = parseIntegerId(req.params.appId);
+    if (!caseStudyId || !appId) return res.status(400).json({ message: 'A valid app id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyApp.findUnique({ where: { id: appId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'App entry not found.' });
+    }
+
+    const validation = validateAppInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyApp.update({
+      where: { id: appId },
+      data: {
+        title: validation.title,
+        description: validation.description,
+        images: validation.images,
+      },
+    });
+
+    return res.json({
+      message: 'App entry updated.',
+      item: formatCaseStudyAppResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study app update failed', error);
+    return res.status(500).json({ message: 'Unable to update app entry right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/apps/:appId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const appId = parseIntegerId(req.params.appId);
+    if (!caseStudyId || !appId) return res.status(400).json({ message: 'A valid app id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyApp.findUnique({ where: { id: appId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'App entry not found.' });
+    }
+
+    await prisma.caseStudyApp.delete({ where: { id: appId } });
+    return res.json({ message: 'App entry deleted.' });
+  } catch (error) {
+    console.error('Case study app delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete app entry right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/team-members', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyTeamMember.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyTeamMemberResponse) });
+  } catch (error) {
+    console.error('Case study team members fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load team members right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/team-members', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateTeamMemberInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyTeamMember.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Team member created.',
+      item: formatCaseStudyTeamMemberResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study team member create failed', error);
+    return res.status(500).json({ message: 'Unable to create team member right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/team-members/:memberId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const memberId = parseIntegerId(req.params.memberId);
+    if (!caseStudyId || !memberId) return res.status(400).json({ message: 'A valid member id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyTeamMember.findUnique({ where: { id: memberId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Team member not found.' });
+    }
+
+    const validation = validateTeamMemberInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyTeamMember.update({
+      where: { id: memberId },
+      data: { title: validation.title },
+    });
+
+    return res.json({
+      message: 'Team member updated.',
+      item: formatCaseStudyTeamMemberResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study team member update failed', error);
+    return res.status(500).json({ message: 'Unable to update team member right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/team-members/:memberId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const memberId = parseIntegerId(req.params.memberId);
+    if (!caseStudyId || !memberId) return res.status(400).json({ message: 'A valid member id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyTeamMember.findUnique({ where: { id: memberId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Team member not found.' });
+    }
+
+    await prisma.caseStudyTeamMember.delete({ where: { id: memberId } });
+    return res.json({ message: 'Team member deleted.' });
+  } catch (error) {
+    console.error('Case study team member delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete team member right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/timelines', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyTimeline.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyTimelineResponse) });
+  } catch (error) {
+    console.error('Case study timelines fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load timeline right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/timelines', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateTimelineInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyTimeline.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+        description: validation.description,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Timeline created.',
+      item: formatCaseStudyTimelineResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study timeline create failed', error);
+    return res.status(500).json({ message: 'Unable to create timeline right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/timelines/:timelineId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const timelineId = parseIntegerId(req.params.timelineId);
+    if (!caseStudyId || !timelineId) return res.status(400).json({ message: 'A valid timeline id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyTimeline.findUnique({ where: { id: timelineId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Timeline not found.' });
+    }
+
+    const validation = validateTimelineInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyTimeline.update({
+      where: { id: timelineId },
+      data: {
+        title: validation.title,
+        description: validation.description,
+      },
+    });
+
+    return res.json({
+      message: 'Timeline updated.',
+      item: formatCaseStudyTimelineResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study timeline update failed', error);
+    return res.status(500).json({ message: 'Unable to update timeline right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/timelines/:timelineId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const timelineId = parseIntegerId(req.params.timelineId);
+    if (!caseStudyId || !timelineId) return res.status(400).json({ message: 'A valid timeline id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyTimeline.findUnique({ where: { id: timelineId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Timeline not found.' });
+    }
+
+    await prisma.caseStudyTimeline.delete({ where: { id: timelineId } });
+    return res.json({ message: 'Timeline deleted.' });
+  } catch (error) {
+    console.error('Case study timeline delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete timeline right now.' });
   }
 });
 
@@ -3651,7 +4573,7 @@ const validateImageUrl = (url) => {
   return null;
 };
 
-const validateCaseStudyDetailInput = (body = {}) => {
+const validateCaseStudyOverviewInput = (body = {}) => {
   const projectOverview = body.projectOverview || {};
 
   const title = normalizeText(projectOverview.title);
@@ -3668,94 +4590,6 @@ const validateCaseStudyDetailInput = (body = {}) => {
     return { error: overviewImageError };
   }
 
-  const approaches = [];
-  const approachesInput = Array.isArray(body.approaches) ? body.approaches : [];
-  for (const item of approachesInput) {
-    const approachTitle = normalizeText(item?.title);
-    const approachSubtitle = normalizeText(item?.subtitle);
-    const approachType = normalizeText(item?.approachType);
-    const approachImage = normalizeText(item?.image);
-
-    const imageError = validateImageUrl(approachImage);
-    if (imageError) {
-      return { error: imageError };
-    }
-
-    if (approachTitle || approachSubtitle || approachType || approachImage) {
-      approaches.push({
-        title: approachTitle || 'Approach',
-        subtitle: approachSubtitle,
-        approachType,
-        image: approachImage || null,
-      });
-    }
-  }
-
-  const solutions = [];
-  const solutionsInput = Array.isArray(body.solutions) ? body.solutions : [];
-  for (const item of solutionsInput) {
-    const solutionTitle = normalizeText(item?.title);
-    const solutionSubtitle = normalizeText(item?.subtitle);
-    const tags = normalizeStringArray(item?.tags);
-
-    if (solutionTitle || solutionSubtitle || tags.length) {
-      solutions.push({
-        title: solutionTitle || 'Solution',
-        subtitle: solutionSubtitle,
-        tags,
-      });
-    }
-  }
-
-  const technologies = [];
-  const technologiesInput = Array.isArray(body.technologies) ? body.technologies : [];
-  for (const item of technologiesInput) {
-    const techTitle = normalizeText(item?.title);
-    const techImage = normalizeText(item?.image);
-
-    const imageError = validateImageUrl(techImage);
-    if (imageError) {
-      return { error: imageError };
-    }
-
-    if (techTitle || techImage) {
-      technologies.push({
-        title: techTitle || 'Technology',
-        image: techImage || null,
-      });
-    }
-  }
-
-  const features = [];
-  const featuresInput = Array.isArray(body.features) ? body.features : [];
-  for (const item of featuresInput) {
-    const featureTitle = normalizeText(item?.title);
-    if (featureTitle) {
-      features.push({ title: featureTitle });
-    }
-  }
-
-  const screenshots = [];
-  const screenshotsInput = Array.isArray(body.screenshots) ? body.screenshots : [];
-  for (const item of screenshotsInput) {
-    const shotTitle = normalizeText(item?.title);
-    const shotSubtitle = normalizeText(item?.subtitle);
-    const shotImage = normalizeText(item?.image);
-
-    const imageError = validateImageUrl(shotImage);
-    if (imageError) {
-      return { error: imageError };
-    }
-
-    if (shotTitle || shotSubtitle || shotImage) {
-      screenshots.push({
-        title: shotTitle || 'Screenshot',
-        subtitle: shotSubtitle,
-        image: shotImage || null,
-      });
-    }
-  }
-
   return {
     projectOverview: {
       title,
@@ -3763,13 +4597,107 @@ const validateCaseStudyDetailInput = (body = {}) => {
       description,
       image: image || null,
     },
-    approaches,
-    solutions,
-    technologies,
-    features,
-    screenshots,
   };
 };
+
+const validateProblemInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  const description = normalizeText(body.description);
+
+  if (!title) return { error: 'Problem title is required.' };
+
+  return { title, description: description || null };
+};
+
+const validateSolutionInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  const description = normalizeText(body.description);
+
+  if (!title) return { error: 'Solution title is required.' };
+
+  return { title, description: description || null };
+};
+
+const validateFeatureInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  const description = normalizeText(body.description);
+  const image = normalizeText(body.image);
+
+  if (!title) return { error: 'Feature title is required.' };
+
+  const imageError = validateImageUrl(image);
+  if (imageError) {
+    return { error: imageError };
+  }
+
+  return { title, description: description || null, image: image || null };
+};
+
+const validateDevelopmentChallengeInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  const image = normalizeText(body.image);
+  const solutionTitle = normalizeText(body.solutionTitle);
+  const solutionSubtitle = normalizeText(body.solutionSubtitle);
+  const solutionDescription = normalizeText(body.solutionDescription);
+
+  if (!title) return { error: 'Challenge title is required.' };
+
+  const imageError = validateImageUrl(image);
+  if (imageError) {
+    return { error: imageError };
+  }
+
+  return {
+    title,
+    image: image || null,
+    solutionTitle: solutionTitle || null,
+    solutionSubtitle: solutionSubtitle || null,
+    solutionDescription: solutionDescription || null,
+  };
+};
+
+const validateAppInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  const description = normalizeText(body.description);
+  const images = Array.isArray(body.images) ? body.images : [];
+
+  if (!title) return { error: 'App title is required.' };
+
+  const cleanedImages = [];
+  for (const image of images) {
+    const normalized = normalizeText(image);
+    if (!normalized) continue;
+    const imageError = validateImageUrl(normalized);
+    if (imageError) {
+      return { error: imageError };
+    }
+    cleanedImages.push(normalized);
+  }
+
+  return {
+    title,
+    description: description || null,
+    images: cleanedImages,
+  };
+};
+
+const validateTeamMemberInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  if (!title) return { error: 'Team member title is required.' };
+  return { title };
+};
+
+const validateTimelineInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  const description = normalizeText(body.description);
+
+  if (!title) return { error: 'Timeline title is required.' };
+
+  return { title, description: description || null };
+};
+
+const findCaseStudyDetailByCaseStudyId = (caseStudyId) =>
+  prisma.caseStudyDetail.findUnique({ where: { caseStudyId } });
 
 const mapBannerToResponse = (banner) => {
   const isHome = banner.type === 'HOME';
