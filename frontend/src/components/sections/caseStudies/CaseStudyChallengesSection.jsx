@@ -14,8 +14,7 @@ const CaseStudyChallengesSection = ({ caseStudy, animate = true, accentColor = "
   const isDark = theme.palette.mode === "dark";
 
   const safeAccent = accentColor && accentColor.trim() ? accentColor : "#a855f7";
-  const tealAccent = "#22d3ee"; // ✅ left arrow color (cyan/teal like screenshot)
-
+  const tealAccent = "#22d3ee"; 
   const scrollRef = useRef(null);
 
   const cards = useMemo(() => {
