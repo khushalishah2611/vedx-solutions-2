@@ -14,7 +14,7 @@ const CaseStudyChallengesSection = ({ caseStudy, animate = true, accentColor = "
   const isDark = theme.palette.mode === "dark";
 
   const safeAccent = accentColor && accentColor.trim() ? accentColor : "#a855f7";
-  const tealAccent = "#22d3ee"; 
+  const tealAccent = "#22d3ee";
   const scrollRef = useRef(null);
 
   const cards = useMemo(() => {
@@ -90,7 +90,8 @@ const CaseStudyChallengesSection = ({ caseStudy, animate = true, accentColor = "
             <Box
               component="span"
               sx={{
-                background: `linear-gradient(90deg, ${safeAccent} 0%, #2196f3 100%)`,
+                background:
+                  'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}

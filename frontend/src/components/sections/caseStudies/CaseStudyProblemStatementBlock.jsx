@@ -43,7 +43,8 @@ const CaseStudyProblemStatementBlock = ({
               <Box
                 component="span"
                 sx={{
-                  background: `linear-gradient(90deg, ${accentColor}, #2196f3)`,
+                  background:
+                    'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}

@@ -68,7 +68,8 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
             <Box
               component="span"
               sx={{
-                background: `linear-gradient(90deg, ${accentColor}, #2196f3)`,
+                background:
+                  'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}
@@ -110,7 +111,7 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
                     width: 250,
                     height: 250,
                     overflow: 'hidden',
-                  
+
                     opacity: animate ? 1 : 0,
                     transform: animate ? 'none' : 'translateY(20px)',
                     transition: 'all 600ms ease',
