@@ -20,10 +20,7 @@ const DEFAULT_DETAIL = {
   screenshots: [],
 };
 
-const emptyApproach = { title: '', subtitle: '', approachType: '', image: '' };
-const emptySolution = { title: '', subtitle: '', tagsInput: '' };
 const emptyTechnology = { title: '', image: '' };
-const emptyFeature = { title: '' };
 const emptyScreenshot = { title: '', subtitle: '', image: '' };
 const trimValue = (value) => (typeof value === 'string' ? value.trim() : String(value ?? '').trim());
 
@@ -84,53 +81,23 @@ const AdminCaseStudyDetailsPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const [approachForm, setApproachForm] = useState(emptyApproach);
-  const [approachEditIndex, setApproachEditIndex] = useState(-1);
-  const [approachPage, setApproachPage] = useState(1);
-
-  const [solutionForm, setSolutionForm] = useState(emptySolution);
-  const [solutionEditIndex, setSolutionEditIndex] = useState(-1);
-  const [solutionPage, setSolutionPage] = useState(1);
-
   const [technologyForm, setTechnologyForm] = useState(emptyTechnology);
   const [technologyEditIndex, setTechnologyEditIndex] = useState(-1);
   const [technologyPage, setTechnologyPage] = useState(1);
-
-  const [featureForm, setFeatureForm] = useState(emptyFeature);
-  const [featureEditIndex, setFeatureEditIndex] = useState(-1);
-  const [featurePage, setFeaturePage] = useState(1);
 
   const [screenshotForm, setScreenshotForm] = useState(emptyScreenshot);
   const [screenshotEditIndex, setScreenshotEditIndex] = useState(-1);
   const [screenshotPage, setScreenshotPage] = useState(1);
 
   const resetPagination = () => {
-    setApproachPage(1);
-    setSolutionPage(1);
     setTechnologyPage(1);
-    setFeaturePage(1);
     setScreenshotPage(1);
   };
-
-  useEffect(() => {
-    const totalApproachPages = Math.max(1, Math.ceil(detail.approaches.length / ITEMS_PER_PAGE) || 1);
-    setApproachPage((prev) => Math.min(prev, totalApproachPages));
-  }, [detail.approaches]);
-
-  useEffect(() => {
-    const totalSolutionPages = Math.max(1, Math.ceil(detail.solutions.length / ITEMS_PER_PAGE) || 1);
-    setSolutionPage((prev) => Math.min(prev, totalSolutionPages));
-  }, [detail.solutions]);
 
   useEffect(() => {
     const totalTechPages = Math.max(1, Math.ceil(detail.technologies.length / ITEMS_PER_PAGE) || 1);
     setTechnologyPage((prev) => Math.min(prev, totalTechPages));
   }, [detail.technologies]);
-
-  useEffect(() => {
-    const totalFeaturePages = Math.max(1, Math.ceil(detail.features.length / ITEMS_PER_PAGE) || 1);
-    setFeaturePage((prev) => Math.min(prev, totalFeaturePages));
-  }, [detail.features]);
 
   useEffect(() => {
     const totalScreenshotPages = Math.max(1, Math.ceil(detail.screenshots.length / ITEMS_PER_PAGE) || 1);
@@ -145,8 +112,6 @@ const AdminCaseStudyDetailsPage = () => {
     approachType: item.approachType || '',
     tags: Array.isArray(item.tags) ? item.tags : [],
   });
-
-  const toCommaString = (values = []) => values.join(', ');
 
   const buildDetailState = (caseStudyData, incomingDetail = {}) => ({
     projectOverview: {
@@ -229,14 +194,8 @@ const AdminCaseStudyDetailsPage = () => {
   };
 
   const resetForms = () => {
-    setApproachForm(emptyApproach);
-    setApproachEditIndex(-1);
-    setSolutionForm(emptySolution);
-    setSolutionEditIndex(-1);
     setTechnologyForm(emptyTechnology);
     setTechnologyEditIndex(-1);
-    setFeatureForm(emptyFeature);
-    setFeatureEditIndex(-1);
     setScreenshotForm(emptyScreenshot);
     setScreenshotEditIndex(-1);
   };
@@ -321,49 +280,12 @@ const AdminCaseStudyDetailsPage = () => {
     }
   };
 
-  const handleApproachSave = () => {
-    if (!(approachForm.title || approachForm.subtitle || approachForm.approachType || approachForm.image)) return;
-    updateList('approaches', { ...approachForm }, approachEditIndex);
-    setApproachForm(emptyApproach);
-    setApproachEditIndex(-1);
-    setApproachPage(1);
-  };
-
-  const handleSolutionSave = () => {
-    if (!(solutionForm.title || solutionForm.subtitle || solutionForm.tagsInput)) return;
-    const tags = solutionForm.tagsInput
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-
-    updateList(
-      'solutions',
-      {
-        title: solutionForm.title,
-        subtitle: solutionForm.subtitle,
-        tags,
-      },
-      solutionEditIndex,
-    );
-    setSolutionForm(emptySolution);
-    setSolutionEditIndex(-1);
-    setSolutionPage(1);
-  };
-
   const handleTechnologySave = () => {
     if (!(technologyForm.title || technologyForm.image)) return;
     updateList('technologies', { ...technologyForm }, technologyEditIndex);
     setTechnologyForm(emptyTechnology);
     setTechnologyEditIndex(-1);
     setTechnologyPage(1);
-  };
-
-  const handleFeatureSave = () => {
-    if (!featureForm.title) return;
-    updateList('features', { ...featureForm }, featureEditIndex);
-    setFeatureForm(emptyFeature);
-    setFeatureEditIndex(-1);
-    setFeaturePage(1);
   };
 
   const handleScreenshotSave = () => {
@@ -486,7 +408,7 @@ const AdminCaseStudyDetailsPage = () => {
               Admin Case Study Details
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Manage project overview, approach, solution, technologies, features, screenshots, and list content.
+              Manage project overview, technologies, and application screenshots.
             </Typography>
           </Box>
         </Stack>
@@ -538,11 +460,8 @@ const AdminCaseStudyDetailsPage = () => {
         allowScrollButtonsMobile
       >
         <Tab label="Project Overview" id="tab-0" />
-        <Tab label="Our Approach" id="tab-1" />
-        <Tab label="Our Solution" id="tab-2" />
-        <Tab label="Technologies We Support" id="tab-3" />
-        <Tab label="Features" id="tab-4" />
-        <Tab label="Application Screenshots" id="tab-5" />
+        <Tab label="Technologies We Support" id="tab-1" />
+        <Tab label="Application Screenshots" id="tab-2" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
@@ -611,135 +530,6 @@ const AdminCaseStudyDetailsPage = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
-              <CardHeader title={approachEditIndex >= 0 ? 'Edit Approach' : 'Add Approach'} />
-              <CardContent>
-                <Stack spacing={2}>
-                  <AppTextField
-                    label="Title"
-                    value={approachForm.title}
-                    onChange={(e) => setApproachForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Subtitle"
-                    value={approachForm.subtitle}
-                    onChange={(e) => setApproachForm((prev) => ({ ...prev, subtitle: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Approach Type"
-                    value={approachForm.approachType}
-                    onChange={(e) => setApproachForm((prev) => ({ ...prev, approachType: e.target.value }))}
-                    helperText="Use comma-separated values for multiple approach types."
-                    fullWidth
-                  />
-                  <ImageUpload
-                    label="Approach Image"
-                    value={approachForm.image}
-                    onChange={(value) => setApproachForm((prev) => ({ ...prev, image: value }))}
-                  />
-                  <Stack direction="row" spacing={1}>
-                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleApproachSave}>
-                      {approachEditIndex >= 0 ? 'Update' : 'Add Approach'}
-                    </AppButton>
-                    {approachEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setApproachEditIndex(-1)}>
-                        Cancel
-                      </AppButton>
-                    )}
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={7}>
-            {renderListSection(
-              'Approach List',
-              'Manage approach cards with title, subtitle, image, and approach type.',
-              ['title', 'subtitle', 'approachType', 'image'],
-              detail.approaches,
-              (index) => {
-                const current = detail.approaches[index];
-                setApproachForm({ ...current });
-                setApproachEditIndex(index);
-                setActiveTab(1);
-              },
-              (index) => removeFromList('approaches', index),
-              approachPage,
-              setApproachPage,
-            )}
-          </Grid>
-        </Grid>
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={2}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={5}>
-            <Card>
-              <CardHeader title={solutionEditIndex >= 0 ? 'Edit Solution' : 'Add Solution'} />
-              <CardContent>
-                <Stack spacing={2}>
-                  <AppTextField
-                    label="Title"
-                    value={solutionForm.title}
-                    onChange={(e) => setSolutionForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Subtitle"
-                    value={solutionForm.subtitle}
-                    onChange={(e) => setSolutionForm((prev) => ({ ...prev, subtitle: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Tags"
-                    value={solutionForm.tagsInput}
-                    onChange={(e) => setSolutionForm((prev) => ({ ...prev, tagsInput: e.target.value }))}
-                    helperText="Enter comma-separated tags (e.g., mobile app, fintech)."
-                    fullWidth
-                  />
-                  <Stack direction="row" spacing={1}>
-                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleSolutionSave}>
-                      {solutionEditIndex >= 0 ? 'Update' : 'Add Solution'}
-                    </AppButton>
-                    {solutionEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setSolutionEditIndex(-1)}>
-                        Cancel
-                      </AppButton>
-                    )}
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={7}>
-            {renderListSection(
-              'Solution List',
-              'Title, subtitle, and comma-separated tags.',
-              ['title', 'subtitle', 'tags'],
-              detail.solutions,
-              (index) => {
-                const current = detail.solutions[index];
-                setSolutionForm({
-                  title: current.title,
-                  subtitle: current.subtitle,
-                  tagsInput: toCommaString(current.tags),
-                });
-                setSolutionEditIndex(index);
-                setActiveTab(2);
-              },
-              (index) => removeFromList('solutions', index),
-              solutionPage,
-              setSolutionPage,
-            )}
-          </Grid>
-        </Grid>
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={3}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={5}>
-            <Card>
               <CardHeader title={technologyEditIndex >= 0 ? 'Edit Technology' : 'Add Technology'} />
               <CardContent>
                 <Stack spacing={2}>
@@ -778,7 +568,7 @@ const AdminCaseStudyDetailsPage = () => {
                 const current = detail.technologies[index];
                 setTechnologyForm({ ...current });
                 setTechnologyEditIndex(index);
-                setActiveTab(3);
+                setActiveTab(1);
               },
               (index) => removeFromList('technologies', index),
               technologyPage,
@@ -788,54 +578,7 @@ const AdminCaseStudyDetailsPage = () => {
         </Grid>
       </TabPanel>
 
-      <TabPanel value={activeTab} index={4}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={5}>
-            <Card>
-              <CardHeader title={featureEditIndex >= 0 ? 'Edit Feature' : 'Add Feature'} />
-              <CardContent>
-                <Stack spacing={2}>
-                  <AppTextField
-                    label="Title"
-                    value={featureForm.title}
-                    onChange={(e) => setFeatureForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <Stack direction="row" spacing={1}>
-                    <AppButton variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleFeatureSave}>
-                      {featureEditIndex >= 0 ? 'Update' : 'Add Feature'}
-                    </AppButton>
-                    {featureEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setFeatureEditIndex(-1)}>
-                        Cancel
-                      </AppButton>
-                    )}
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={7}>
-            {renderListSection(
-              'Feature List',
-              'Capture feature highlights with simple titles.',
-              ['title'],
-              detail.features,
-              (index) => {
-                const current = detail.features[index];
-                setFeatureForm({ ...current });
-                setFeatureEditIndex(index);
-                setActiveTab(4);
-              },
-              (index) => removeFromList('features', index),
-              featurePage,
-              setFeaturePage,
-            )}
-          </Grid>
-        </Grid>
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={5}>
+      <TabPanel value={activeTab} index={2}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
@@ -883,7 +626,7 @@ const AdminCaseStudyDetailsPage = () => {
                 const current = detail.screenshots[index];
                 setScreenshotForm({ ...current });
                 setScreenshotEditIndex(index);
-                setActiveTab(5);
+                setActiveTab(2);
               },
               (index) => removeFromList('screenshots', index),
               screenshotPage,
