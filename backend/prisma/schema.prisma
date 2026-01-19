@@ -399,6 +399,8 @@ model CaseStudy {
   subtitle    String?
   description String?  @db.LongText
   coverImage  String?  @db.LongText
+  status      PublishStatus @default(DRAFT)
+  publishedAt DateTime?
 
   tags        Tag[]    @relation("CaseStudyTags")
   detail      CaseStudyDetail?

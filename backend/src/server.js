@@ -470,6 +470,8 @@ const formatCaseStudyResponse = (caseStudy) => ({
   subtitle: caseStudy.subtitle || '',
   description: caseStudy.description || '',
   coverImage: caseStudy.coverImage || '',
+  publishDate: caseStudy.publishedAt ? caseStudy.publishedAt.toISOString().split('T')[0] : null,
+  status: deriveBlogUiStatus(caseStudy.status, caseStudy.publishedAt ? caseStudy.publishedAt.toISOString().split('T')[0] : null),
   tags: Array.isArray(caseStudy.tags) ? caseStudy.tags.map(formatTagResponse) : [],
   tagIds: Array.isArray(caseStudy.tags) ? caseStudy.tags.map((tag) => tag.id) : [],
   detail: caseStudy.detail ? formatCaseStudyDetailResponse(caseStudy.detail) : undefined,
@@ -621,6 +623,8 @@ const validateCaseStudyInput = (body) => {
   const description = normalizeText(body?.description);
   const coverImage = normalizeText(body?.coverImage) || null;
   const slug = normalizeSlug(body?.slug || title) || null;
+  const publishDate = normalizePublishDate(body?.publishDate);
+  const status = normalizeBlogStatus(body?.status);
   const tagIds = Array.isArray(body?.tagIds)
     ? (body.tagIds || [])
         .map((value) => parseIntegerId(value))
@@ -630,7 +634,7 @@ const validateCaseStudyInput = (body) => {
   if (!title) return { error: 'Title is required.' };
   if (!slug) return { error: 'A valid slug is required.' };
 
-  return { title, subtitle, description, coverImage, slug, tagIds };
+  return { title, subtitle, description, coverImage, slug, tagIds, publishDate, status };
 };
 
 const normalizePublishDate = (value) => {
@@ -2845,7 +2849,7 @@ app.post('/api/admin/case-studies', async (req, res) => {
     const validation = validateCaseStudyInput(req.body || {});
     if (validation.error) return res.status(400).json({ message: validation.error });
 
-    const { title, subtitle, description, coverImage, slug, tagIds } = validation;
+    const { title, subtitle, description, coverImage, slug, tagIds, publishDate, status: uiStatus } = validation;
 
     if (tagIds.length > 0) {
       const existingTags = await prisma.tag.findMany({ where: { id: { in: tagIds } } });
@@ -2861,6 +2865,8 @@ app.post('/api/admin/case-studies', async (req, res) => {
         description,
         coverImage,
         slug,
+        status: mapUiStatusToPublishStatus(uiStatus),
+        publishedAt: publishDate,
         tags: tagIds.length ? { connect: tagIds.map((id) => ({ id })) } : undefined,
       },
       include: { tags: true },
@@ -2896,7 +2902,7 @@ app.put('/api/admin/case-studies/:id', async (req, res) => {
     const existing = await prisma.caseStudy.findUnique({ where: { id: caseStudyId }, include: { tags: true } });
     if (!existing) return res.status(404).json({ message: 'Case study not found.' });
 
-    const { title, subtitle, description, coverImage, slug, tagIds } = validation;
+    const { title, subtitle, description, coverImage, slug, tagIds, publishDate, status: uiStatus } = validation;
 
     if (tagIds.length > 0) {
       const existingTags = await prisma.tag.findMany({ where: { id: { in: tagIds } } });
@@ -2913,6 +2919,8 @@ app.put('/api/admin/case-studies/:id', async (req, res) => {
         description,
         coverImage,
         slug,
+        status: mapUiStatusToPublishStatus(uiStatus),
+        publishedAt: publishDate,
         tags: {
           set: tagIds.map((id) => ({ id })),
         },

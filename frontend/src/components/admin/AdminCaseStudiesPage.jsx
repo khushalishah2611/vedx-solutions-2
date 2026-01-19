@@ -19,6 +19,19 @@ const slugify = (value = '') =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+const deriveStatusFromDate = (status, publishDate) => {
+  if (status === 'Draft') return 'Draft';
+  if (publishDate && publishDate > new Date().toISOString().split('T')[0]) return 'Scheduled';
+  return 'Published';
+};
+
+const normalizeDateInput = (value) => {
+  if (!value) return new Date().toISOString().split('T')[0];
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return new Date().toISOString().split('T')[0];
+  return parsed.toISOString().split('T')[0];
+};
+
 const defaultFormState = {
   id: '',
   title: '',
@@ -27,6 +40,8 @@ const defaultFormState = {
   slug: '',
   coverImage: '',
   tagIds: [],
+  publishDate: new Date().toISOString().split('T')[0],
+  status: 'Draft',
 };
 
 const formatCaseStudyRow = (item) => ({
@@ -36,6 +51,8 @@ const formatCaseStudyRow = (item) => ({
   description: item.description || '',
   slug: item.slug || '',
   coverImage: item.coverImage || '',
+  publishDate: item.publishDate ? normalizeDateInput(item.publishDate) : new Date().toISOString().split('T')[0],
+  status: deriveStatusFromDate(item.status, item.publishDate),
   tagIds: Array.isArray(item.tagIds) ? item.tagIds : [],
   tags: Array.isArray(item.tags) ? item.tags : [],
   createdAt: item.createdAt,
@@ -73,6 +90,7 @@ const ImageUpload = ({ label, value, onChange }) => {
 };
 
 const AdminCaseStudiesPage = () => {
+  const statusOptions = ['Draft', 'Published', 'Scheduled'];
   const token = useMemo(() => localStorage.getItem('adminToken'), []);
   const navigate = useNavigate();
 
@@ -276,6 +294,8 @@ const AdminCaseStudiesPage = () => {
       description: item.description || '',
       slug: item.slug || '',
       coverImage: item.coverImage || '',
+      publishDate: item.publishDate || new Date().toISOString().split('T')[0],
+      status: item.status || 'Draft',
       tagIds: Array.isArray(item.tagIds) ? item.tagIds : [],
     });
     setDialogOpen(true);
@@ -312,6 +332,8 @@ const AdminCaseStudiesPage = () => {
         coverImage: formState.coverImage,
         slug: trimmedSlug,
         tagIds: formState.tagIds,
+        publishDate: formState.publishDate,
+        status: formState.status,
       };
 
       const response = await fetch(
@@ -488,7 +510,8 @@ const AdminCaseStudiesPage = () => {
                     <TableRow>
                       <TableCell>Title</TableCell>
                       <TableCell>Tags</TableCell>
-                 
+                      <TableCell>Publish date</TableCell>
+                      <TableCell>Status</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -529,7 +552,15 @@ const AdminCaseStudiesPage = () => {
                             ))}
                           </Stack>
                         </TableCell>
-                        
+                        <TableCell>{item.publishDate || '—'}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={item.status || 'Draft'}
+                            size="small"
+                            color={item.status === 'Published' ? 'success' : item.status === 'Scheduled' ? 'warning' : 'default'}
+                            variant="outlined"
+                          />
+                        </TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <Tooltip title="Manage Details">
@@ -612,6 +643,35 @@ const AdminCaseStudiesPage = () => {
               multiline
               minRows={3}
             />
+            <AppTextField
+              label="Publish date"
+              type="date"
+              value={formState.publishDate}
+              onChange={(e) => setFormState((prev) => ({ ...prev, publishDate: e.target.value }))}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              helperText="Scheduled case studies publish automatically on this date"
+              sx={{
+                '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                  filter: 'invert(1)',
+                  cursor: 'pointer',
+                },
+              }}
+              required
+            />
+            <AppSelectField
+              label="Status"
+              value={formState.status}
+              onChange={(e) => setFormState((prev) => ({ ...prev, status: e.target.value }))}
+              fullWidth
+              required
+            >
+              {statusOptions.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
+            </AppSelectField>
             <ImageUpload
               label="Cover Image"
               value={formState.coverImage}
@@ -678,6 +738,10 @@ const AdminCaseStudiesPage = () => {
                   {viewCaseStudy.subtitle}
                 </Typography>
               </Box>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Chip label={`Publish date: ${viewCaseStudy.publishDate || '—'}`} size="small" />
+                <Chip label={`Status: ${viewCaseStudy.status || 'Draft'}`} size="small" />
+              </Stack>
               <Divider />
               <Typography variant="body1">{viewCaseStudy.description || 'No description provided.'}</Typography>
               {viewCaseStudy.tags?.length > 0 && (
