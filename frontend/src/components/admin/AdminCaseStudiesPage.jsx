@@ -35,7 +35,6 @@ const normalizeDateInput = (value) => {
 const defaultFormState = {
   id: '',
   title: '',
-  subtitle: '',
   description: '',
   slug: '',
   coverImage: '',
@@ -47,7 +46,6 @@ const defaultFormState = {
 const formatCaseStudyRow = (item) => ({
   id: item.id,
   title: item.title || '',
-  subtitle: item.subtitle || '',
   description: item.description || '',
   slug: item.slug || '',
   coverImage: item.coverImage || '',
@@ -290,7 +288,6 @@ const AdminCaseStudiesPage = () => {
     setFormState({
       id: item.id,
       title: item.title || '',
-      subtitle: item.subtitle || '',
       description: item.description || '',
       slug: item.slug || '',
       coverImage: item.coverImage || '',
@@ -327,7 +324,6 @@ const AdminCaseStudiesPage = () => {
       if (!token) throw new Error('Your session expired. Please log in again.');
       const payload = {
         title: trimmedTitle,
-        subtitle: formState.subtitle,
         description: formState.description,
         coverImage: formState.coverImage,
         slug: trimmedSlug,
@@ -539,9 +535,6 @@ const AdminCaseStudiesPage = () => {
                             )}
                             <Box>
                               <Typography fontWeight={700}>{item.title}</Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {item.subtitle || '—'}
-                              </Typography>
                             </Box>
                           </Stack>
                         </TableCell>
@@ -621,12 +614,6 @@ const AdminCaseStudiesPage = () => {
               onChange={(e) => setFormState((prev) => ({ ...prev, title: e.target.value }))}
               fullWidth
               required
-            />
-            <AppTextField
-              label="Subtitle"
-              value={formState.subtitle}
-              onChange={(e) => setFormState((prev) => ({ ...prev, subtitle: e.target.value }))}
-              fullWidth
             />
             <AppTextField
               label="Slug"
@@ -733,9 +720,6 @@ const AdminCaseStudiesPage = () => {
                 </Typography>
                 <Typography variant="h6" fontWeight={700}>
                   {viewCaseStudy.title}
-                </Typography>
-                <Typography variant="subtitle1" color="text.secondary">
-                  {viewCaseStudy.subtitle}
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>

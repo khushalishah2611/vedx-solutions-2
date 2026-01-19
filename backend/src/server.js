@@ -296,7 +296,6 @@ const formatCaseStudyDetailResponse = (detail) => {
 
   const projectOverview = {
     title: detail.projectTitle,
-    subtitle: detail.projectSubtitle || '',
     description: detail.projectDescription || '',
     image: detail.projectImage || '',
   };
@@ -348,7 +347,6 @@ const formatCaseStudyDetailResponse = (detail) => {
       id: item.id,
       title: item.title,
       image: item.image || '',
-      subtitle: item.subtitle || '',
       description: item.description || '',
     }))
     : [];
@@ -431,7 +429,6 @@ const formatCaseStudyChallengeResponse = (item) => ({
   id: item.id,
   title: item.title,
   image: item.image || '',
-  subtitle: item.subtitle || '',
   description: item.description || '',
 });
 
@@ -467,7 +464,6 @@ const formatCaseStudyResponse = (caseStudy) => ({
   id: caseStudy.id,
   slug: caseStudy.slug,
   title: caseStudy.title,
-  subtitle: caseStudy.subtitle || '',
   description: caseStudy.description || '',
   coverImage: caseStudy.coverImage || '',
   publishDate: caseStudy.publishedAt ? caseStudy.publishedAt.toISOString().split('T')[0] : null,
@@ -619,7 +615,6 @@ const validateTagInput = (body) => {
 
 const validateCaseStudyInput = (body) => {
   const title = normalizeText(body?.title);
-  const subtitle = normalizeText(body?.subtitle);
   const description = normalizeText(body?.description);
   const coverImage = normalizeText(body?.coverImage) || null;
   const slug = normalizeSlug(body?.slug || title) || null;
@@ -634,7 +629,7 @@ const validateCaseStudyInput = (body) => {
   if (!title) return { error: 'Title is required.' };
   if (!slug) return { error: 'A valid slug is required.' };
 
-  return { title, subtitle, description, coverImage, slug, tagIds, publishDate, status };
+  return { title, description, coverImage, slug, tagIds, publishDate, status };
 };
 
 const normalizePublishDate = (value) => {
@@ -2715,7 +2710,6 @@ app.get('/api/case-studies', async (req, res) => {
     if (searchTerm) {
       where.OR = [
         { title: { contains: searchTerm, mode: 'insensitive' } },
-        { subtitle: { contains: searchTerm, mode: 'insensitive' } },
         { description: { contains: searchTerm, mode: 'insensitive' } },
       ];
     }
@@ -2806,7 +2800,6 @@ app.get('/api/admin/case-studies', async (req, res) => {
     if (searchTerm) {
       where.OR = [
         { title: { contains: searchTerm, mode: 'insensitive' } },
-        { subtitle: { contains: searchTerm, mode: 'insensitive' } },
         { description: { contains: searchTerm, mode: 'insensitive' } },
       ];
     }
@@ -2849,7 +2842,7 @@ app.post('/api/admin/case-studies', async (req, res) => {
     const validation = validateCaseStudyInput(req.body || {});
     if (validation.error) return res.status(400).json({ message: validation.error });
 
-    const { title, subtitle, description, coverImage, slug, tagIds, publishDate, status: uiStatus } = validation;
+    const { title, description, coverImage, slug, tagIds, publishDate, status: uiStatus } = validation;
 
     if (tagIds.length > 0) {
       const existingTags = await prisma.tag.findMany({ where: { id: { in: tagIds } } });
@@ -2861,7 +2854,6 @@ app.post('/api/admin/case-studies', async (req, res) => {
     const created = await prisma.caseStudy.create({
       data: {
         title,
-        subtitle,
         description,
         coverImage,
         slug,
@@ -2902,7 +2894,7 @@ app.put('/api/admin/case-studies/:id', async (req, res) => {
     const existing = await prisma.caseStudy.findUnique({ where: { id: caseStudyId }, include: { tags: true } });
     if (!existing) return res.status(404).json({ message: 'Case study not found.' });
 
-    const { title, subtitle, description, coverImage, slug, tagIds, publishDate, status: uiStatus } = validation;
+    const { title, description, coverImage, slug, tagIds, publishDate, status: uiStatus } = validation;
 
     if (tagIds.length > 0) {
       const existingTags = await prisma.tag.findMany({ where: { id: { in: tagIds } } });
@@ -2915,7 +2907,6 @@ app.put('/api/admin/case-studies/:id', async (req, res) => {
       where: { id: caseStudyId },
       data: {
         title,
-        subtitle,
         description,
         coverImage,
         slug,
@@ -3014,14 +3005,12 @@ app.put('/api/admin/case-studies/:id/details', async (req, res) => {
       where: { caseStudyId },
       update: {
         projectTitle: validation.projectOverview.title,
-        projectSubtitle: validation.projectOverview.subtitle,
         projectDescription: validation.projectOverview.description,
         projectImage: validation.projectOverview.image,
       },
       create: {
         caseStudyId,
         projectTitle: validation.projectOverview.title,
-        projectSubtitle: validation.projectOverview.subtitle,
         projectDescription: validation.projectOverview.description,
         projectImage: validation.projectOverview.image,
       },
@@ -3549,7 +3538,6 @@ app.post('/api/admin/case-studies/:id/development-challenges', async (req, res) 
         detailId: detail.id,
         title: validation.title,
         image: validation.image,
-        subtitle: validation.subtitle,
         description: validation.description,
       },
     });
@@ -3592,7 +3580,6 @@ app.put('/api/admin/case-studies/:id/development-challenges/:challengeId', async
       data: {
         title: validation.title,
         image: validation.image,
-        subtitle: validation.subtitle,
         description: validation.description,
       },
     });
@@ -4955,7 +4942,6 @@ const validateCaseStudyOverviewInput = (body = {}) => {
   const projectOverview = body.projectOverview || {};
 
   const title = normalizeText(projectOverview.title);
-  const subtitle = normalizeText(projectOverview.subtitle);
   const description = normalizeText(projectOverview.description);
   const image = normalizeText(projectOverview.image);
 
@@ -4971,7 +4957,6 @@ const validateCaseStudyOverviewInput = (body = {}) => {
   return {
     projectOverview: {
       title,
-      subtitle,
       description,
       image: image || null,
     },
@@ -5066,7 +5051,6 @@ const validateFeatureInput = (body = {}) => {
 const validateDevelopmentChallengeInput = (body = {}) => {
   const title = normalizeText(body.title);
   const image = normalizeText(body.image);
-  const subtitle = normalizeText(body.subtitle);
   const description = normalizeText(body.description);
 
   if (!title) return { error: 'Challenge title is required.' };
@@ -5079,7 +5063,6 @@ const validateDevelopmentChallengeInput = (body = {}) => {
   return {
     title,
     image: image || null,
-    subtitle: subtitle || null,
     description: description || null,
   };
 };

@@ -396,7 +396,6 @@ model CaseStudy {
   id          Int      @id @default(autoincrement())
   slug        String   @unique
   title       String
-  subtitle    String?
   description String?  @db.LongText
   coverImage  String?  @db.LongText
   status      PublishStatus @default(DRAFT)
@@ -418,7 +417,6 @@ model CaseStudyDetail {
   caseStudy          CaseStudy               @relation(fields: [caseStudyId], references: [id], onDelete: Cascade)
 
   projectTitle       String
-  projectSubtitle    String?
   projectDescription String?                 @db.LongText
   projectImage       String?                 @db.LongText
 
@@ -495,7 +493,6 @@ model CaseStudyDevelopmentChallenge {
 
   title       String
   image       String?          @db.LongText
-  subtitle    String?
   description String?          @db.LongText
 
   createdAt   DateTime         @default(now())

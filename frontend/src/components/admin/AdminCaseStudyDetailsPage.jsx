@@ -38,7 +38,7 @@ import { apiUrl } from '../../utils/const.js';
 import { fileToDataUrl } from '../../utils/files.js';
 
 const DEFAULT_DETAIL = {
-  projectOverview: { title: '', subtitle: '', description: '', image: '' },
+  projectOverview: { title: '', description: '', image: '' },
   problemConfig: { description: '', image: '' },
   solutionConfig: { description: '' },
   appConfig: { description: '' },
@@ -59,7 +59,6 @@ const emptySolution = { description: '', image: '' };
 const emptyFeature = { title: '', description: '', image: '' };
 const emptyChallenge = {
   title: '',
-  subtitle: '',
   description: '',
   image: '',
 };
@@ -112,7 +111,7 @@ const ImageUpload = ({ label, value, onChange }) => {
   );
 };
 
-const MultiImageUpload = ({ label, values, onChange, maxItems = 5 }) => {
+const MultiImageUpload = ({ label, values, onChange, maxItems = 10 }) => {
   const [dragIndex, setDragIndex] = useState(null);
   const [limitMessage, setLimitMessage] = useState('');
 
@@ -130,7 +129,7 @@ const MultiImageUpload = ({ label, values, onChange, maxItems = 5 }) => {
   };
 
   const handleRemove = (index) => {
-    const next = (values || []).filter((_, idx) => idx !== indexndex);
+    const next = (values || []).filter((_, idx) => idx !== index);
     onChange?.(next);
     setLimitMessage('');
   };
@@ -342,7 +341,6 @@ const AdminCaseStudyDetailsPage = () => {
   const buildDetailState = (caseStudyData, incomingDetail = {}) => ({
     projectOverview: {
       title: incomingDetail.projectOverview?.title || caseStudyData?.title || '',
-      subtitle: incomingDetail.projectOverview?.subtitle || caseStudyData?.subtitle || '',
       description: incomingDetail.projectOverview?.description || caseStudyData?.description || '',
       image: incomingDetail.projectOverview?.image || '',
     },
@@ -430,7 +428,6 @@ const AdminCaseStudyDetailsPage = () => {
     const payload = {
       projectOverview: {
         title: trimmedOverviewTitle,
-        subtitle: trimValue(detail.projectOverview.subtitle),
         description: trimValue(detail.projectOverview.description),
         image: trimValue(detail.projectOverview.image),
       },
@@ -623,7 +620,7 @@ const AdminCaseStudyDetailsPage = () => {
                                     <Box
                                       component="img"
                                       src={value}
-                                      alt={row.title || row.subtitle || 'Preview'}
+                                      alt={row.title || 'Preview'}
                                       sx={{ width: 64, height: 48, borderRadius: 1, objectFit: 'cover' }}
                                     />
                                   ) : (
@@ -773,7 +770,7 @@ const AdminCaseStudyDetailsPage = () => {
                 {caseStudy?.title || 'Case study details'}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {caseStudy?.subtitle || 'Update the supporting details for this case study.'}
+                Update the supporting details for this case study.
               </Typography>
             </Box>
           </Stack>
@@ -801,7 +798,7 @@ const AdminCaseStudyDetailsPage = () => {
 
       <TabPanel value={activeTab} index={0}>
         <Card>
-          <CardHeader title="Project Overview" subheader="Update the hero image, title, subtitle, and description." />
+          <CardHeader title="Project Overview" subheader="Update the hero image, title, and description." />
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
@@ -816,17 +813,6 @@ const AdminCaseStudyDetailsPage = () => {
                       }))
                     }
                     required
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Subtitle"
-                    value={detail.projectOverview.subtitle}
-                    onChange={(e) =>
-                      setDetail((prev) => ({
-                        ...prev,
-                        projectOverview: { ...prev.projectOverview, subtitle: e.target.value },
-                      }))
-                    }
                     fullWidth
                   />
                   <AppTextField
@@ -1269,14 +1255,6 @@ const AdminCaseStudyDetailsPage = () => {
                       onChange={(value) => setChallengeForm((prev) => ({ ...prev, image: value }))}
                     />
                     <AppTextField
-                      label="Subtitle"
-                      value={challengeForm.subtitle}
-                      onChange={(e) => setChallengeForm((prev) => ({ ...prev, subtitle: e.target.value }))}
-                      multiline
-                      minRows={2}
-                      fullWidth
-                    />
-                    <AppTextField
                       label="Description"
                       value={challengeForm.description}
                       onChange={(e) => setChallengeForm((prev) => ({ ...prev, description: e.target.value }))}
@@ -1318,11 +1296,10 @@ const AdminCaseStudyDetailsPage = () => {
             <Grid item xs={12} md={7}>
               {renderListSection(
                 'Development Challenges',
-                'Capture challenge title, subtitle, and long-form descriptions.',
+                'Capture challenge titles and long-form descriptions.',
                 [
                   { key: 'title', label: 'Title', type: 'longtext' },
                   { key: 'image', label: 'Image', type: 'image' },
-                  { key: 'subtitle', label: 'Subtitle', type: 'longtext' },
                   { key: 'description', label: 'Description', type: 'longtext' },
                 ],
                 detail.developmentChallenges,
@@ -1331,7 +1308,6 @@ const AdminCaseStudyDetailsPage = () => {
                   setChallengeForm({
                     title: current.title,
                     image: current.image,
-                    subtitle: current.subtitle,
                     description: current.description,
                   });
                   setChallengeEditIndex(index);
