@@ -31,6 +31,7 @@ import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { apiUrl } from '../../utils/const.js';
@@ -109,17 +110,27 @@ const ImageUpload = ({ label, value, onChange }) => {
   );
 };
 
-const MultiImageUpload = ({ label, values, onChange }) => {
+const MultiImageUpload = ({ label, values, onChange, maxItems = 5 }) => {
+  const [dragIndex, setDragIndex] = useState(null);
+  const [limitMessage, setLimitMessage] = useState('');
+
   const handleChange = async (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
     const dataUrls = await Promise.all(files.map((file) => fileToDataUrl(file)));
-    onChange?.([...(values || []), ...dataUrls]);
+    const merged = [...(values || []), ...dataUrls];
+    if (merged.length > maxItems) {
+      setLimitMessage(`Only ${maxItems} images are allowed. Extra selections were ignored.`);
+    } else {
+      setLimitMessage('');
+    }
+    onChange?.(merged.slice(0, maxItems));
   };
 
   const handleRemove = (index) => {
     const next = (values || []).filter((_, idx) => idx !== index);
     onChange?.(next);
+    setLimitMessage('');
   };
 
   const moveImage = (fromIndex, toIndex) => {
@@ -130,23 +141,66 @@ const MultiImageUpload = ({ label, values, onChange }) => {
     onChange?.(next);
   };
 
+  const handleDragStart = (index) => setDragIndex(index);
+
+  const handleDrop = (index) => {
+    if (dragIndex === null || dragIndex === index) return;
+    moveImage(dragIndex, index);
+    setDragIndex(null);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
   return (
     <Stack spacing={1} alignItems="flex-start">
       <AppButton component="label" variant="outlined">
         {values?.length ? `Add ${label}` : `Upload ${label}`}
         <input type="file" hidden accept="image/*" multiple onChange={handleChange} />
       </AppButton>
+      <Typography variant="caption" color="text.secondary">
+        Drag and drop images to reorder. Maximum {maxItems} images.
+      </Typography>
+      {limitMessage ? (
+        <Alert severity="warning" sx={{ width: '100%' }}>
+          {limitMessage}
+        </Alert>
+      ) : null}
       {values?.length ? (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Stack spacing={1} sx={{ width: '100%' }}>
           {values.map((src, index) => (
-            <Stack key={`${src}-${index}`} spacing={1} alignItems="center">
+            <Box
+              key={`${src}-${index}`}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(index)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                p: 1,
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: dragIndex === index ? 'primary.main' : 'divider',
+                backgroundColor: dragIndex === index ? 'action.hover' : 'background.paper',
+                cursor: 'grab',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                <DragIndicatorIcon fontSize="small" />
+              </Box>
+              <Typography variant="body2" sx={{ minWidth: 18 }}>
+                {index + 1}.
+              </Typography>
               <Box
                 component="img"
                 src={src}
                 alt={`${label} ${index + 1}`}
                 sx={{ width: 110, height: 80, borderRadius: 1, objectFit: 'cover' }}
               />
-              <Stack direction="row" spacing={0.5}>
+              <Stack direction="row" spacing={0.5} ml="auto">
                 <AppButton
                   size="small"
                   color="inherit"
@@ -167,7 +221,7 @@ const MultiImageUpload = ({ label, values, onChange }) => {
                   Remove
                 </AppButton>
               </Stack>
-            </Stack>
+            </Box>
           ))}
         </Stack>
       ) : null}
@@ -569,7 +623,20 @@ const AdminCaseStudyDetailsPage = () => {
                               return (
                                 <TableCell key={`${column.key}-${actualIndex}`}>
                                   {Array.isArray(value) && value.length ? (
-                                    <Chip size="small" label={`${value.length} images`} />
+                                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                                      {value.slice(0, 5).map((src, imgIndex) => (
+                                        <Box
+                                          key={`${src}-${imgIndex}`}
+                                          component="img"
+                                          src={src}
+                                          alt={`${row.title || 'App image'} ${imgIndex + 1}`}
+                                          sx={{ width: 48, height: 36, borderRadius: 0.5, objectFit: 'cover' }}
+                                        />
+                                      ))}
+                                      {value.length > 5 ? (
+                                        <Chip size="small" label={`+${value.length - 5}`} />
+                                      ) : null}
+                                    </Stack>
                                   ) : (
                                     '—'
                                   )}
