@@ -130,7 +130,7 @@ const MultiImageUpload = ({ label, values, onChange, maxItems = 5 }) => {
   };
 
   const handleRemove = (index) => {
-    const next = (values || []).filter((_, idx) => idx !== index);
+    const next = (values || []).filter((_, idx) => idx !== indexndex);
     onChange?.(next);
     setLimitMessage('');
   };
