@@ -247,6 +247,18 @@ const AdminDashboardPage = () => {
   const [expertisePage, setExpertisePage] = useState(1);
 
   /* --------------------------
+   * TECHNOLOGIES
+   * -------------------------- */
+  const [technologies, setTechnologies] = useState([]);
+  const [technologyForm, setTechnologyForm] = useState({ id: "", title: "", image: "", items: [] });
+  const [technologyDialogOpen, setTechnologyDialogOpen] = useState(false);
+  const [technologyDialogMode, setTechnologyDialogMode] = useState("create");
+  const [technologyDialogError, setTechnologyDialogError] = useState("");
+  const [technologyToDelete, setTechnologyToDelete] = useState(null);
+  const [technologyPage, setTechnologyPage] = useState(1);
+  const [savingTechnology, setSavingTechnology] = useState(false);
+
+  /* --------------------------
    * Derived selections
    * -------------------------- */
   const selectedSliderForServiceDialog =
@@ -292,6 +304,7 @@ const AdminDashboardPage = () => {
           loadWhyVedxReasons(),
           loadTechSolutions(),
           loadExpertise(),
+          loadTechnologies(),
         ]);
       } catch (err) {
         console.error("Initial load error", err);
@@ -426,6 +439,18 @@ const AdminDashboardPage = () => {
       setExpertiseItems(items);
     } catch (err) {
       console.error("loadExpertise error", err);
+    }
+  };
+
+  const loadTechnologies = async () => {
+    try {
+      const headers = getAdminAuthHeaders();
+      const res = await fetch(apiUrl("/api/technologies"), { headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to fetch technologies");
+      setTechnologies(data || []);
+    } catch (err) {
+      console.error("loadTechnologies error", err);
     }
   };
 
@@ -1347,6 +1372,106 @@ const AdminDashboardPage = () => {
   };
 
   /* -----------------------------------
+   * Technology handlers
+   * ----------------------------------- */
+  const openTechnologyDialog = (item = null) => {
+    setTechnologyDialogError("");
+    if (item) {
+      setTechnologyDialogMode("edit");
+      setTechnologyForm({
+        id: item.id,
+        title: item.title || "",
+        image: item.image || "",
+        items: Array.isArray(item.items) ? item.items : [],
+      });
+    } else {
+      setTechnologyDialogMode("create");
+      setTechnologyForm({ id: "", title: "", image: "", items: [] });
+    }
+    setTechnologyDialogOpen(true);
+  };
+
+  const closeTechnologyDialog = () => {
+    setTechnologyDialogOpen(false);
+    setTechnologyDialogError("");
+    setTechnologyForm({ id: "", title: "", image: "", items: [] });
+  };
+
+  const handleTechnologySubmit = async (event) => {
+    event?.preventDefault();
+    setTechnologyDialogError("");
+    const trimmedTitle = technologyForm.title.trim();
+
+    if (!trimmedTitle || !technologyForm.image) {
+      setTechnologyDialogError("Title and image are required.");
+      return;
+    }
+
+    setSavingTechnology(true);
+
+    try {
+      const payload = {
+        title: trimmedTitle,
+        image: technologyForm.image,
+        items: Array.isArray(technologyForm.items) ? technologyForm.items : [],
+      };
+
+      const isEdit = technologyDialogMode === "edit" && technologyForm.id;
+      const res = await fetch(
+        isEdit ? apiUrl(`/api/technologies/${technologyForm.id}`) : apiUrl("/api/technologies"),
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getAdminAuthHeaders(),
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to save technology");
+
+      if (isEdit) {
+        setTechnologies((prev) => prev.map((item) => (item.id === data.id ? data : item)));
+      } else {
+        setTechnologies((prev) => [data, ...prev]);
+        setTechnologyPage(1);
+      }
+
+      closeTechnologyDialog();
+    } catch (err) {
+      console.error("handleTechnologySubmit error", err);
+      setTechnologyDialogError(err?.message || "Unable to save technology.");
+    } finally {
+      setSavingTechnology(false);
+    }
+  };
+
+  const confirmDeleteTechnology = async () => {
+    if (!technologyToDelete) return;
+    try {
+      const res = await fetch(apiUrl(`/api/technologies/${technologyToDelete.id}`), {
+        method: "DELETE",
+        headers: getAdminAuthHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to delete technology");
+      setTechnologies((prev) => {
+        const updated = prev.filter((item) => item.id !== technologyToDelete.id);
+        setTechnologyPage((prevPage) => {
+          const totalPages = Math.max(1, Math.ceil(updated.length / rowsPerPage));
+          return Math.min(prevPage, totalPages);
+        });
+        return updated;
+      });
+      setTechnologyToDelete(null);
+    } catch (err) {
+      console.error("confirmDeleteTechnology error", err);
+    }
+  };
+
+  /* -----------------------------------
    * Pagination slices
    * ----------------------------------- */
   const paginatedBanners = sortedBanners.slice(
@@ -1372,6 +1497,10 @@ const AdminDashboardPage = () => {
   const paginatedExpertise = expertiseItems.slice(
     (expertisePage - 1) * rowsPerPage,
     expertisePage * rowsPerPage
+  );
+  const paginatedTechnologies = technologies.slice(
+    (technologyPage - 1) * rowsPerPage,
+    technologyPage * rowsPerPage
   );
   const paginatedServices = services.slice(
     (ourServicePage - 1) * rowsPerPage,
@@ -1421,6 +1550,7 @@ const AdminDashboardPage = () => {
             <Tab value="why-vedx" label="Why VEDX solutions" />
             <Tab value="tech-solutions" label="Tech solutions" />
             <Tab value="expertise" label="Expertise models" />
+            <Tab value="technologies" label="Technologies" />
       
           </Tabs>
         </Box>
@@ -2538,6 +2668,99 @@ const AdminDashboardPage = () => {
           </Card>
         )}
 
+        {/* TECHNOLOGIES TAB */}
+        {activeTab === "technologies" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+            <CardHeader
+              title="Technologies"
+              subheader="Create technology cards with a title and image."
+              action={
+                <AppButton
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() => openTechnologyDialog()}
+                >
+                  Add technology
+                </AppButton>
+              }
+            />
+            <Divider />
+            <CardContent>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Image</TableCell>
+                    <TableCell>Title</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedTechnologies.map((item) => (
+                    <TableRow key={item.id} hover>
+                      <TableCell width={120}>
+                        {item.image ? (
+                          <Box
+                            component="img"
+                            src={item.image}
+                            alt={item.title || "Technology preview"}
+                            sx={{
+                              width: 88,
+                              height: 56,
+                              objectFit: "cover",
+                              borderRadius: 1,
+                              border: "1px solid",
+                              borderColor: "divider",
+                            }}
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            No image
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Edit">
+                          <IconButton size="small" onClick={() => openTechnologyDialog(item)}>
+                            <EditOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            color="error"
+                            size="small"
+                            onClick={() => setTechnologyToDelete(item)}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!technologies.length && (
+                    <TableRow>
+                      <TableCell colSpan={3}>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                          No technologies added yet.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              <Stack mt={2} alignItems="flex-end">
+                <Pagination
+                  count={Math.max(1, Math.ceil(technologies.length / rowsPerPage))}
+                  page={technologyPage}
+                  onChange={(_, page) => setTechnologyPage(page)}
+                  color="primary"
+                  size="small"
+                />
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
+
       </Stack>
 
       {/* Our services slider dialog */}
@@ -3095,12 +3318,80 @@ const AdminDashboardPage = () => {
             </Stack>
           </Stack>
         </AppDialogContent>
-        <AppDialogActions>
+      <AppDialogActions>
           <AppButton onClick={closeExpertiseDialog} color="inherit">
             Cancel
           </AppButton>
           <AppButton onClick={handleExpertiseSubmit} variant="contained">
             {editingExpertiseId ? "Update expertise" : "Add expertise"}
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+
+      {/* Technology dialog */}
+      <AppDialog
+        open={technologyDialogOpen}
+        onClose={closeTechnologyDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <AppDialogTitle>
+          {technologyDialogMode === "edit" ? "Edit technology" : "Add technology"}
+        </AppDialogTitle>
+        <AppDialogContent>
+          <Stack spacing={2} mt={1} component="form" onSubmit={handleTechnologySubmit}>
+            <AppTextField
+              label="Title"
+              required
+              value={technologyForm.title}
+              onChange={(event) =>
+                setTechnologyForm((prev) => ({ ...prev, title: event.target.value }))
+              }
+              fullWidth
+            />
+            <ImageUpload
+              label="Technology image"
+              value={technologyForm.image}
+              onChange={(value) => setTechnologyForm((prev) => ({ ...prev, image: value }))}
+              required
+            />
+            {technologyDialogError ? (
+              <Typography variant="body2" color="error.main">
+                {technologyDialogError}
+              </Typography>
+            ) : null}
+          </Stack>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeTechnologyDialog} color="inherit">
+            Cancel
+          </AppButton>
+          <AppButton onClick={handleTechnologySubmit} variant="contained" disabled={savingTechnology}>
+            {technologyDialogMode === "edit" ? "Save changes" : "Add technology"}
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+
+      {/* Delete technology dialog */}
+      <AppDialog
+        open={Boolean(technologyToDelete)}
+        onClose={() => setTechnologyToDelete(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <AppDialogTitle>Delete technology</AppDialogTitle>
+        <AppDialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{technologyToDelete?.title}"? This action cannot be
+            undone.
+          </Typography>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setTechnologyToDelete(null)} color="inherit">
+            Cancel
+          </AppButton>
+          <AppButton onClick={confirmDeleteTechnology} color="error" variant="contained">
+            Delete
           </AppButton>
         </AppDialogActions>
       </AppDialog>

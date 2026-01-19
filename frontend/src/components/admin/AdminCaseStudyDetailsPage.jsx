@@ -31,6 +31,7 @@ import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { apiUrl } from '../../utils/const.js';
@@ -47,6 +48,7 @@ const DEFAULT_DETAIL = {
   features: [],
   developmentChallenges: [],
   apps: [],
+  technologies: [],
   impacts: [],
   teamMembers: [],
   timelines: [],
@@ -62,6 +64,7 @@ const emptyChallenge = {
   image: '',
 };
 const emptyApp = { images: [] };
+const emptyTechnology = { title: '', image: '' };
 const emptyImpact = { title: '', image: '' };
 const emptyTeamMember = { title: '' };
 const emptyTimeline = { title: '', description: '' };
@@ -109,17 +112,27 @@ const ImageUpload = ({ label, value, onChange }) => {
   );
 };
 
-const MultiImageUpload = ({ label, values, onChange }) => {
+const MultiImageUpload = ({ label, values, onChange, maxItems = 5 }) => {
+  const [dragIndex, setDragIndex] = useState(null);
+  const [limitMessage, setLimitMessage] = useState('');
+
   const handleChange = async (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
     const dataUrls = await Promise.all(files.map((file) => fileToDataUrl(file)));
-    onChange?.([...(values || []), ...dataUrls]);
+    const merged = [...(values || []), ...dataUrls];
+    if (merged.length > maxItems) {
+      setLimitMessage(`Only ${maxItems} images are allowed. Extra selections were ignored.`);
+    } else {
+      setLimitMessage('');
+    }
+    onChange?.(merged.slice(0, maxItems));
   };
 
   const handleRemove = (index) => {
     const next = (values || []).filter((_, idx) => idx !== index);
     onChange?.(next);
+    setLimitMessage('');
   };
 
   const moveImage = (fromIndex, toIndex) => {
@@ -130,23 +143,66 @@ const MultiImageUpload = ({ label, values, onChange }) => {
     onChange?.(next);
   };
 
+  const handleDragStart = (index) => setDragIndex(index);
+
+  const handleDrop = (index) => {
+    if (dragIndex === null || dragIndex === index) return;
+    moveImage(dragIndex, index);
+    setDragIndex(null);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
   return (
     <Stack spacing={1} alignItems="flex-start">
       <AppButton component="label" variant="outlined">
         {values?.length ? `Add ${label}` : `Upload ${label}`}
         <input type="file" hidden accept="image/*" multiple onChange={handleChange} />
       </AppButton>
+      <Typography variant="caption" color="text.secondary">
+        Drag and drop images to reorder. Maximum {maxItems} images.
+      </Typography>
+      {limitMessage ? (
+        <Alert severity="warning" sx={{ width: '100%' }}>
+          {limitMessage}
+        </Alert>
+      ) : null}
       {values?.length ? (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Stack spacing={1} sx={{ width: '100%' }}>
           {values.map((src, index) => (
-            <Stack key={`${src}-${index}`} spacing={1} alignItems="center">
+            <Box
+              key={`${src}-${index}`}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(index)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                p: 1,
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: dragIndex === index ? 'primary.main' : 'divider',
+                backgroundColor: dragIndex === index ? 'action.hover' : 'background.paper',
+                cursor: 'grab',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                <DragIndicatorIcon fontSize="small" />
+              </Box>
+              <Typography variant="body2" sx={{ minWidth: 18 }}>
+                {index + 1}.
+              </Typography>
               <Box
                 component="img"
                 src={src}
                 alt={`${label} ${index + 1}`}
                 sx={{ width: 110, height: 80, borderRadius: 1, objectFit: 'cover' }}
               />
-              <Stack direction="row" spacing={0.5}>
+              <Stack direction="row" spacing={0.5} ml="auto">
                 <AppButton
                   size="small"
                   color="inherit"
@@ -167,7 +223,7 @@ const MultiImageUpload = ({ label, values, onChange }) => {
                   Remove
                 </AppButton>
               </Stack>
-            </Stack>
+            </Box>
           ))}
         </Stack>
       ) : null}
@@ -210,6 +266,10 @@ const AdminCaseStudyDetailsPage = () => {
   const [appEditIndex, setAppEditIndex] = useState(-1);
   const [appPage, setAppPage] = useState(1);
 
+  const [technologyForm, setTechnologyForm] = useState(emptyTechnology);
+  const [technologyEditIndex, setTechnologyEditIndex] = useState(-1);
+  const [technologyPage, setTechnologyPage] = useState(1);
+
   const [impactForm, setImpactForm] = useState(emptyImpact);
   const [impactEditIndex, setImpactEditIndex] = useState(-1);
   const [impactPage, setImpactPage] = useState(1);
@@ -228,6 +288,7 @@ const AdminCaseStudyDetailsPage = () => {
     setFeaturePage(1);
     setChallengePage(1);
     setAppPage(1);
+    setTechnologyPage(1);
     setImpactPage(1);
     setTeamPage(1);
     setTimelinePage(1);
@@ -257,6 +318,11 @@ const AdminCaseStudyDetailsPage = () => {
     const totalPages = Math.max(1, Math.ceil(detail.apps.length / ITEMS_PER_PAGE) || 1);
     setAppPage((prev) => Math.min(prev, totalPages));
   }, [detail.apps]);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(detail.technologies.length / ITEMS_PER_PAGE) || 1);
+    setTechnologyPage((prev) => Math.min(prev, totalPages));
+  }, [detail.technologies]);
 
   useEffect(() => {
     const totalPages = Math.max(1, Math.ceil(detail.impacts.length / ITEMS_PER_PAGE) || 1);
@@ -301,6 +367,7 @@ const AdminCaseStudyDetailsPage = () => {
       ? incomingDetail.developmentChallenges
       : [],
     apps: Array.isArray(incomingDetail.apps) ? incomingDetail.apps : [],
+    technologies: Array.isArray(incomingDetail.technologies) ? incomingDetail.technologies : [],
     impacts: Array.isArray(incomingDetail.impacts) ? incomingDetail.impacts : [],
     teamMembers: Array.isArray(incomingDetail.teamMembers) ? incomingDetail.teamMembers : [],
     timelines: Array.isArray(incomingDetail.timelines) ? incomingDetail.timelines : [],
@@ -569,7 +636,20 @@ const AdminCaseStudyDetailsPage = () => {
                               return (
                                 <TableCell key={`${column.key}-${actualIndex}`}>
                                   {Array.isArray(value) && value.length ? (
-                                    <Chip size="small" label={`${value.length} images`} />
+                                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                                      {value.slice(0, 5).map((src, imgIndex) => (
+                                        <Box
+                                          key={`${src}-${imgIndex}`}
+                                          component="img"
+                                          src={src}
+                                          alt={`${row.title || 'App image'} ${imgIndex + 1}`}
+                                          sx={{ width: 48, height: 36, borderRadius: 0.5, objectFit: 'cover' }}
+                                        />
+                                      ))}
+                                      {value.length > 5 ? (
+                                        <Chip size="small" label={`+${value.length - 5}`} />
+                                      ) : null}
+                                    </Stack>
                                   ) : (
                                     '—'
                                   )}
@@ -714,8 +794,9 @@ const AdminCaseStudyDetailsPage = () => {
         <Tab label="Development Challenges" id="tab-4" />
         <Tab label="Impact" id="tab-5" />
         <Tab label="Our App" id="tab-6" />
-        <Tab label="Team Members" id="tab-7" />
-        <Tab label="Timeline" id="tab-8" />
+        <Tab label="Technologies" id="tab-7" />
+        <Tab label="Team Members" id="tab-8" />
+        <Tab label="Timeline" id="tab-9" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
@@ -1465,6 +1546,86 @@ const AdminCaseStudyDetailsPage = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
+              <CardHeader title={technologyEditIndex >= 0 ? 'Edit Technology' : 'Add Technology'} />
+              <CardContent>
+                <Stack spacing={2}>
+                  <AppTextField
+                    label="Title"
+                    value={technologyForm.title}
+                    onChange={(e) => setTechnologyForm((prev) => ({ ...prev, title: e.target.value }))}
+                    fullWidth
+                  />
+                  <ImageUpload
+                    label="Technology Image"
+                    value={technologyForm.image}
+                    onChange={(value) => setTechnologyForm((prev) => ({ ...prev, image: value }))}
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: technologyForm,
+                          editIndex: technologyEditIndex,
+                          list: detail.technologies,
+                          endpointBase: 'technologies',
+                          sectionKey: 'technologies',
+                          resetForm: () => {
+                            setTechnologyForm(emptyTechnology);
+                            setTechnologyEditIndex(-1);
+                            setTechnologyPage(1);
+                          },
+                        })
+                      }
+                    >
+                      {technologyEditIndex >= 0 ? 'Update' : 'Add Technology'}
+                    </AppButton>
+                    {technologyEditIndex >= 0 && (
+                      <AppButton variant="text" onClick={() => setTechnologyEditIndex(-1)}>
+                        Cancel
+                      </AppButton>
+                    )}
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={7}>
+            {renderListSection(
+              'Technology List',
+              'List the technologies used in this case study.',
+              [
+                { key: 'title', label: 'Title' },
+                { key: 'image', label: 'Image', type: 'image' },
+              ],
+              detail.technologies,
+              (index) => {
+                const current = detail.technologies[index];
+                setTechnologyForm({
+                  title: current.title,
+                  image: current.image,
+                });
+                setTechnologyEditIndex(index);
+                setActiveTab(7);
+              },
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'technologies',
+                  endpointBase: 'technologies',
+                  itemId: detail.technologies[index]?.id,
+                }),
+              technologyPage,
+              setTechnologyPage
+            )}
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={8}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={5}>
+            <Card>
               <CardHeader title={teamEditIndex >= 0 ? 'Edit Team Member' : 'Add Team Member'} />
               <CardContent>
                 <Stack spacing={2}>
@@ -1515,7 +1676,7 @@ const AdminCaseStudyDetailsPage = () => {
                 const current = detail.teamMembers[index];
                 setTeamForm({ title: current.title });
                 setTeamEditIndex(index);
-                setActiveTab(7);
+                setActiveTab(8);
               },
               (index) =>
                 handleSectionDelete({
@@ -1530,7 +1691,7 @@ const AdminCaseStudyDetailsPage = () => {
         </Grid>
       </TabPanel>
 
-      <TabPanel value={activeTab} index={8}>
+      <TabPanel value={activeTab} index={9}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={5}>
             <Card>
@@ -1595,7 +1756,7 @@ const AdminCaseStudyDetailsPage = () => {
                 const current = detail.timelines[index];
                 setTimelineForm({ title: current.title, description: current.description });
                 setTimelineEditIndex(index);
-                setActiveTab(8);
+                setActiveTab(9);
               },
               (index) =>
                 handleSectionDelete({

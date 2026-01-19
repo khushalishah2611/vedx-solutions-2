@@ -399,6 +399,8 @@ model CaseStudy {
   subtitle    String?
   description String?  @db.LongText
   coverImage  String?  @db.LongText
+  status      PublishStatus @default(DRAFT)
+  publishedAt DateTime?
 
   tags        Tag[]    @relation("CaseStudyTags")
   detail      CaseStudyDetail?
@@ -435,6 +437,7 @@ model CaseStudyDetail {
   features           CaseStudyFeature[]
   developmentChallenges CaseStudyDevelopmentChallenge[]
   apps               CaseStudyApp[]
+  technologies       CaseStudyTechnology[]
   impacts            CaseStudyImpact[]
   teamMembers        CaseStudyTeamMember[]
   timelines          CaseStudyTimeline[]
@@ -507,6 +510,20 @@ model CaseStudyApp {
   detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   images      Json?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyTechnology {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
+  title       String
+  image       String?          @db.LongText
 
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt

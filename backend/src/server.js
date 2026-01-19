@@ -360,6 +360,14 @@ const formatCaseStudyDetailResponse = (detail) => {
     }))
     : [];
 
+  const technologies = Array.isArray(detail.technologies)
+    ? detail.technologies.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.image || '',
+    }))
+    : [];
+
   const impacts = Array.isArray(detail.impacts)
     ? detail.impacts.map((item) => ({
       id: item.id,
@@ -394,6 +402,7 @@ const formatCaseStudyDetailResponse = (detail) => {
     features,
     developmentChallenges,
     apps,
+    technologies,
     impacts,
     teamMembers,
     timelines,
@@ -431,6 +440,12 @@ const formatCaseStudyAppResponse = (item) => ({
   images: normalizeStringArray(item.images),
 });
 
+const formatCaseStudyTechnologyResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  image: item.image || '',
+});
+
 const formatCaseStudyImpactResponse = (item) => ({
   id: item.id,
   title: item.title,
@@ -455,6 +470,8 @@ const formatCaseStudyResponse = (caseStudy) => ({
   subtitle: caseStudy.subtitle || '',
   description: caseStudy.description || '',
   coverImage: caseStudy.coverImage || '',
+  publishDate: caseStudy.publishedAt ? caseStudy.publishedAt.toISOString().split('T')[0] : null,
+  status: deriveBlogUiStatus(caseStudy.status, caseStudy.publishedAt ? caseStudy.publishedAt.toISOString().split('T')[0] : null),
   tags: Array.isArray(caseStudy.tags) ? caseStudy.tags.map(formatTagResponse) : [],
   tagIds: Array.isArray(caseStudy.tags) ? caseStudy.tags.map((tag) => tag.id) : [],
   detail: caseStudy.detail ? formatCaseStudyDetailResponse(caseStudy.detail) : undefined,
@@ -606,6 +623,8 @@ const validateCaseStudyInput = (body) => {
   const description = normalizeText(body?.description);
   const coverImage = normalizeText(body?.coverImage) || null;
   const slug = normalizeSlug(body?.slug || title) || null;
+  const publishDate = normalizePublishDate(body?.publishDate);
+  const status = normalizeBlogStatus(body?.status);
   const tagIds = Array.isArray(body?.tagIds)
     ? (body.tagIds || [])
         .map((value) => parseIntegerId(value))
@@ -615,7 +634,7 @@ const validateCaseStudyInput = (body) => {
   if (!title) return { error: 'Title is required.' };
   if (!slug) return { error: 'A valid slug is required.' };
 
-  return { title, subtitle, description, coverImage, slug, tagIds };
+  return { title, subtitle, description, coverImage, slug, tagIds, publishDate, status };
 };
 
 const normalizePublishDate = (value) => {
@@ -2737,6 +2756,7 @@ const CASE_STUDY_DETAIL_INCLUDE = {
       features: true,
       developmentChallenges: true,
       apps: true,
+      technologies: true,
       impacts: true,
       teamMembers: true,
       timelines: true,
@@ -2829,7 +2849,7 @@ app.post('/api/admin/case-studies', async (req, res) => {
     const validation = validateCaseStudyInput(req.body || {});
     if (validation.error) return res.status(400).json({ message: validation.error });
 
-    const { title, subtitle, description, coverImage, slug, tagIds } = validation;
+    const { title, subtitle, description, coverImage, slug, tagIds, publishDate, status: uiStatus } = validation;
 
     if (tagIds.length > 0) {
       const existingTags = await prisma.tag.findMany({ where: { id: { in: tagIds } } });
@@ -2845,6 +2865,8 @@ app.post('/api/admin/case-studies', async (req, res) => {
         description,
         coverImage,
         slug,
+        status: mapUiStatusToPublishStatus(uiStatus),
+        publishedAt: publishDate,
         tags: tagIds.length ? { connect: tagIds.map((id) => ({ id })) } : undefined,
       },
       include: { tags: true },
@@ -2880,7 +2902,7 @@ app.put('/api/admin/case-studies/:id', async (req, res) => {
     const existing = await prisma.caseStudy.findUnique({ where: { id: caseStudyId }, include: { tags: true } });
     if (!existing) return res.status(404).json({ message: 'Case study not found.' });
 
-    const { title, subtitle, description, coverImage, slug, tagIds } = validation;
+    const { title, subtitle, description, coverImage, slug, tagIds, publishDate, status: uiStatus } = validation;
 
     if (tagIds.length > 0) {
       const existingTags = await prisma.tag.findMany({ where: { id: { in: tagIds } } });
@@ -2897,6 +2919,8 @@ app.put('/api/admin/case-studies/:id', async (req, res) => {
         description,
         coverImage,
         slug,
+        status: mapUiStatusToPublishStatus(uiStatus),
+        publishedAt: publishDate,
         tags: {
           set: tagIds.map((id) => ({ id })),
         },
@@ -3736,6 +3760,140 @@ app.delete('/api/admin/case-studies/:id/apps/:appId', async (req, res) => {
   } catch (error) {
     console.error('Case study app delete failed', error);
     return res.status(500).json({ message: 'Unable to delete app entry right now.' });
+  }
+});
+
+app.get('/api/admin/case-studies/:id/technologies', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyTechnology.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyTechnologyResponse) });
+  } catch (error) {
+    console.error('Case study technologies fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load technologies right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/technologies', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateCaseStudyTechnologyInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyTechnology.create({
+      data: {
+        detailId: detail.id,
+        title: validation.title,
+        image: validation.image,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Technology created.',
+      item: formatCaseStudyTechnologyResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study technology create failed', error);
+    return res.status(500).json({ message: 'Unable to create technology right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/technologies/:technologyId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const technologyId = parseIntegerId(req.params.technologyId);
+    if (!caseStudyId || !technologyId) {
+      return res.status(400).json({ message: 'A valid technology id is required.' });
+    }
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyTechnology.findUnique({ where: { id: technologyId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Technology not found.' });
+    }
+
+    const validation = validateCaseStudyTechnologyInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyTechnology.update({
+      where: { id: technologyId },
+      data: {
+        title: validation.title,
+        image: validation.image,
+      },
+    });
+
+    return res.json({
+      message: 'Technology updated.',
+      item: formatCaseStudyTechnologyResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study technology update failed', error);
+    return res.status(500).json({ message: 'Unable to update technology right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/technologies/:technologyId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const technologyId = parseIntegerId(req.params.technologyId);
+    if (!caseStudyId || !technologyId) {
+      return res.status(400).json({ message: 'A valid technology id is required.' });
+    }
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyTechnology.findUnique({ where: { id: technologyId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Technology not found.' });
+    }
+
+    await prisma.caseStudyTechnology.delete({ where: { id: technologyId } });
+    return res.json({ message: 'Technology deleted.' });
+  } catch (error) {
+    console.error('Case study technology delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete technology right now.' });
   }
 });
 
@@ -4945,6 +5103,20 @@ const validateAppInput = (body = {}) => {
   return {
     images: cleanedImages,
   };
+};
+
+const validateCaseStudyTechnologyInput = (body = {}) => {
+  const title = normalizeText(body.title);
+  const image = normalizeText(body.image);
+
+  if (!title) return { error: 'Technology title is required.' };
+
+  const imageError = validateImageUrl(image);
+  if (imageError) {
+    return { error: imageError };
+  }
+
+  return { title, image: image || null };
 };
 
 const validateImpactInput = (body = {}) => {
