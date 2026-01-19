@@ -302,27 +302,26 @@ const formatCaseStudyDetailResponse = (detail) => {
   };
 
   const problemConfig = {
-    title: detail.problemTitle || '',
     description: detail.problemDescription || '',
     image: detail.problemImage || '',
   };
 
   const solutionConfig = {
-    title: detail.solutionTitle || '',
     description: detail.solutionDescription || '',
-    image: detail.solutionImage || '',
   };
 
   const appConfig = {
-    title: detail.appTitle || '',
     description: detail.appDescription || '',
-    image: detail.appImage || '',
+  };
+
+  const developmentConfig = {
+    title: detail.developmentTitle || '',
+    image: detail.developmentImage || '',
   };
 
   const problems = Array.isArray(detail.problems)
     ? detail.problems.map((item) => ({
       id: item.id,
-      title: item.title,
       description: item.description || '',
     }))
     : [];
@@ -330,7 +329,6 @@ const formatCaseStudyDetailResponse = (detail) => {
   const solutions = Array.isArray(detail.solutions)
     ? detail.solutions.map((item) => ({
       id: item.id,
-      title: item.title,
       image: item.image || '',
       description: item.description || '',
     }))
@@ -350,17 +348,14 @@ const formatCaseStudyDetailResponse = (detail) => {
       id: item.id,
       title: item.title,
       image: item.image || '',
-      solutionTitle: item.solutionTitle || '',
-      solutionSubtitle: item.solutionSubtitle || '',
-      solutionDescription: item.solutionDescription || '',
+      subtitle: item.subtitle || '',
+      description: item.description || '',
     }))
     : [];
 
   const apps = Array.isArray(detail.apps)
     ? detail.apps.map((item) => ({
       id: item.id,
-      title: item.title,
-      description: item.description || '',
       images: normalizeStringArray(item.images),
     }))
     : [];
@@ -393,6 +388,7 @@ const formatCaseStudyDetailResponse = (detail) => {
     problemConfig,
     solutionConfig,
     appConfig,
+    developmentConfig,
     problems,
     solutions,
     features,
@@ -406,13 +402,11 @@ const formatCaseStudyDetailResponse = (detail) => {
 
 const formatCaseStudyProblemResponse = (item) => ({
   id: item.id,
-  title: item.title,
   description: item.description || '',
 });
 
 const formatCaseStudySolutionResponse = (item) => ({
   id: item.id,
-  title: item.title,
   image: item.image || '',
   description: item.description || '',
 });
@@ -428,15 +422,12 @@ const formatCaseStudyChallengeResponse = (item) => ({
   id: item.id,
   title: item.title,
   image: item.image || '',
-  solutionTitle: item.solutionTitle || '',
-  solutionSubtitle: item.solutionSubtitle || '',
-  solutionDescription: item.solutionDescription || '',
+  subtitle: item.subtitle || '',
+  description: item.description || '',
 });
 
 const formatCaseStudyAppResponse = (item) => ({
   id: item.id,
-  title: item.title,
-  description: item.description || '',
   images: normalizeStringArray(item.images),
 });
 
@@ -3043,30 +3034,32 @@ app.put('/api/admin/case-studies/:id/section-configs', async (req, res) => {
     if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
 
     const updateData = {};
-    const { problemConfig, solutionConfig, appConfig } = req.body || {};
+    const { problemConfig, solutionConfig, appConfig, developmentConfig } = req.body || {};
 
     if (problemConfig) {
-      const validation = validateCaseStudySectionConfigInput(problemConfig, 'Problem');
+      const validation = validateProblemConfigInput(problemConfig);
       if (validation.error) return res.status(400).json({ message: validation.error });
-      updateData.problemTitle = validation.title;
       updateData.problemDescription = validation.description;
       updateData.problemImage = validation.image;
     }
 
     if (solutionConfig) {
-      const validation = validateCaseStudySectionConfigInput(solutionConfig, 'Solution');
+      const validation = validateSolutionConfigInput(solutionConfig);
       if (validation.error) return res.status(400).json({ message: validation.error });
-      updateData.solutionTitle = validation.title;
       updateData.solutionDescription = validation.description;
-      updateData.solutionImage = validation.image;
     }
 
     if (appConfig) {
-      const validation = validateCaseStudySectionConfigInput(appConfig, 'App');
+      const validation = validateAppConfigInput(appConfig);
       if (validation.error) return res.status(400).json({ message: validation.error });
-      updateData.appTitle = validation.title;
       updateData.appDescription = validation.description;
-      updateData.appImage = validation.image;
+    }
+
+    if (developmentConfig) {
+      const validation = validateDevelopmentConfigInput(developmentConfig);
+      if (validation.error) return res.status(400).json({ message: validation.error });
+      updateData.developmentTitle = validation.title;
+      updateData.developmentImage = validation.image;
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -3140,7 +3133,6 @@ app.post('/api/admin/case-studies/:id/problems', async (req, res) => {
     const created = await prisma.caseStudyProblem.create({
       data: {
         detailId: detail.id,
-        title: validation.title,
         description: validation.description,
       },
     });
@@ -3181,7 +3173,6 @@ app.put('/api/admin/case-studies/:id/problems/:problemId', async (req, res) => {
     const updated = await prisma.caseStudyProblem.update({
       where: { id: problemId },
       data: {
-        title: validation.title,
         description: validation.description,
       },
     });
@@ -3270,7 +3261,6 @@ app.post('/api/admin/case-studies/:id/solutions', async (req, res) => {
     const created = await prisma.caseStudySolution.create({
       data: {
         detailId: detail.id,
-        title: validation.title,
         image: validation.image,
         description: validation.description,
       },
@@ -3312,7 +3302,6 @@ app.put('/api/admin/case-studies/:id/solutions/:solutionId', async (req, res) =>
     const updated = await prisma.caseStudySolution.update({
       where: { id: solutionId },
       data: {
-        title: validation.title,
         image: validation.image,
         description: validation.description,
       },
@@ -3536,9 +3525,8 @@ app.post('/api/admin/case-studies/:id/development-challenges', async (req, res) 
         detailId: detail.id,
         title: validation.title,
         image: validation.image,
-        solutionTitle: validation.solutionTitle,
-        solutionSubtitle: validation.solutionSubtitle,
-        solutionDescription: validation.solutionDescription,
+        subtitle: validation.subtitle,
+        description: validation.description,
       },
     });
 
@@ -3580,9 +3568,8 @@ app.put('/api/admin/case-studies/:id/development-challenges/:challengeId', async
       data: {
         title: validation.title,
         image: validation.image,
-        solutionTitle: validation.solutionTitle,
-        solutionSubtitle: validation.solutionSubtitle,
-        solutionDescription: validation.solutionDescription,
+        subtitle: validation.subtitle,
+        description: validation.description,
       },
     });
 
@@ -3670,8 +3657,6 @@ app.post('/api/admin/case-studies/:id/apps', async (req, res) => {
     const created = await prisma.caseStudyApp.create({
       data: {
         detailId: detail.id,
-        title: validation.title,
-        description: validation.description,
         images: validation.images,
       },
     });
@@ -3712,8 +3697,6 @@ app.put('/api/admin/case-studies/:id/apps/:appId', async (req, res) => {
     const updated = await prisma.caseStudyApp.update({
       where: { id: appId },
       data: {
-        title: validation.title,
-        description: validation.description,
         images: validation.images,
       },
     });
@@ -4837,14 +4820,42 @@ const validateCaseStudyOverviewInput = (body = {}) => {
   };
 };
 
-const validateCaseStudySectionConfigInput = (config = {}, label) => {
-  const title = normalizeText(config.title);
+const validateProblemConfigInput = (config = {}) => {
   const description = normalizeText(config.description);
   const image = normalizeText(config.image);
 
-  if (!title) {
-    return { error: `${label} title is required.` };
+  const imageError = validateImageUrl(image);
+  if (imageError) {
+    return { error: imageError };
   }
+
+  return {
+    description: description || null,
+    image: image || null,
+  };
+};
+
+const validateSolutionConfigInput = (config = {}) => {
+  const description = normalizeText(config.description);
+
+  return {
+    description: description || null,
+  };
+};
+
+const validateAppConfigInput = (config = {}) => {
+  const description = normalizeText(config.description);
+
+  return {
+    description: description || null,
+  };
+};
+
+const validateDevelopmentConfigInput = (config = {}) => {
+  const title = normalizeText(config.title);
+  const image = normalizeText(config.image);
+
+  if (!title) return { error: 'Development title is required.' };
 
   const imageError = validateImageUrl(image);
   if (imageError) {
@@ -4853,33 +4864,30 @@ const validateCaseStudySectionConfigInput = (config = {}, label) => {
 
   return {
     title,
-    description: description || null,
     image: image || null,
   };
 };
 
 const validateProblemInput = (body = {}) => {
-  const title = normalizeText(body.title);
   const description = normalizeText(body.description);
 
-  if (!title) return { error: 'Problem title is required.' };
+  if (!description) return { error: 'Problem description is required.' };
 
-  return { title, description: description || null };
+  return { description };
 };
 
 const validateSolutionInput = (body = {}) => {
-  const title = normalizeText(body.title);
   const description = normalizeText(body.description);
   const image = normalizeText(body.image);
 
-  if (!title) return { error: 'Solution title is required.' };
+  if (!description) return { error: 'Solution description is required.' };
 
   const imageError = validateImageUrl(image);
   if (imageError) {
     return { error: imageError };
   }
 
-  return { title, description: description || null, image: image || null };
+  return { description, image: image || null };
 };
 
 const validateFeatureInput = (body = {}) => {
@@ -4900,9 +4908,8 @@ const validateFeatureInput = (body = {}) => {
 const validateDevelopmentChallengeInput = (body = {}) => {
   const title = normalizeText(body.title);
   const image = normalizeText(body.image);
-  const solutionTitle = normalizeText(body.solutionTitle);
-  const solutionSubtitle = normalizeText(body.solutionSubtitle);
-  const solutionDescription = normalizeText(body.solutionDescription);
+  const subtitle = normalizeText(body.subtitle);
+  const description = normalizeText(body.description);
 
   if (!title) return { error: 'Challenge title is required.' };
 
@@ -4914,18 +4921,13 @@ const validateDevelopmentChallengeInput = (body = {}) => {
   return {
     title,
     image: image || null,
-    solutionTitle: solutionTitle || null,
-    solutionSubtitle: solutionSubtitle || null,
-    solutionDescription: solutionDescription || null,
+    subtitle: subtitle || null,
+    description: description || null,
   };
 };
 
 const validateAppInput = (body = {}) => {
-  const title = normalizeText(body.title);
-  const description = normalizeText(body.description);
   const images = Array.isArray(body.images) ? body.images : [];
-
-  if (!title) return { error: 'App title is required.' };
 
   const cleanedImages = [];
   for (const image of images) {
@@ -4938,9 +4940,9 @@ const validateAppInput = (body = {}) => {
     cleanedImages.push(normalized);
   }
 
+  if (cleanedImages.length === 0) return { error: 'At least one app image is required.' };
+
   return {
-    title,
-    description: description || null,
     images: cleanedImages,
   };
 };

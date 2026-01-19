@@ -29,6 +29,8 @@ import { AppButton, AppTextField } from '../shared/FormControls.jsx';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { apiUrl } from '../../utils/const.js';
@@ -36,9 +38,10 @@ import { fileToDataUrl } from '../../utils/files.js';
 
 const DEFAULT_DETAIL = {
   projectOverview: { title: '', subtitle: '', description: '', image: '' },
-  problemConfig: { title: '', description: '', image: '' },
-  solutionConfig: { title: '', description: '', image: '' },
-  appConfig: { title: '', description: '', image: '' },
+  problemConfig: { description: '', image: '' },
+  solutionConfig: { description: '' },
+  appConfig: { description: '' },
+  developmentConfig: { title: '', image: '' },
   problems: [],
   solutions: [],
   features: [],
@@ -49,17 +52,16 @@ const DEFAULT_DETAIL = {
   timelines: [],
 };
 
-const emptyProblem = { title: '', description: '' };
-const emptySolution = { title: '', description: '', image: '' };
+const emptyProblem = { description: '' };
+const emptySolution = { description: '', image: '' };
 const emptyFeature = { title: '', description: '', image: '' };
 const emptyChallenge = {
   title: '',
+  subtitle: '',
+  description: '',
   image: '',
-  solutionTitle: '',
-  solutionSubtitle: '',
-  solutionDescription: '',
 };
-const emptyApp = { title: '', description: '', images: [] };
+const emptyApp = { images: [] };
 const emptyImpact = { title: '', image: '' };
 const emptyTeamMember = { title: '' };
 const emptyTimeline = { title: '', description: '' };
@@ -99,7 +101,7 @@ const ImageUpload = ({ label, value, onChange }) => {
         />
       )}
       {value && (
-        <AppButton color="secondary" size="small" onClick={() => onChange?.('')}>
+        <AppButton color="inherit" size="small" onClick={() => onChange?.('')}>
           Remove {label}
         </AppButton>
       )}
@@ -120,6 +122,14 @@ const MultiImageUpload = ({ label, values, onChange }) => {
     onChange?.(next);
   };
 
+  const moveImage = (fromIndex, toIndex) => {
+    if (!values?.length) return;
+    const next = [...values];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    onChange?.(next);
+  };
+
   return (
     <Stack spacing={1} alignItems="flex-start">
       <AppButton component="label" variant="outlined">
@@ -136,9 +146,27 @@ const MultiImageUpload = ({ label, values, onChange }) => {
                 alt={`${label} ${index + 1}`}
                 sx={{ width: 110, height: 80, borderRadius: 1, objectFit: 'cover' }}
               />
-              <AppButton size="small" color="secondary" onClick={() => handleRemove(index)}>
-                Remove
-              </AppButton>
+              <Stack direction="row" spacing={0.5}>
+                <AppButton
+                  size="small"
+                  color="inherit"
+                  onClick={() => moveImage(index, Math.max(0, index - 1))}
+                  disabled={index === 0}
+                >
+                  <ArrowUpwardIcon fontSize="inherit" />
+                </AppButton>
+                <AppButton
+                  size="small"
+                  color="inherit"
+                  onClick={() => moveImage(index, Math.min(values.length - 1, index + 1))}
+                  disabled={index === values.length - 1}
+                >
+                  <ArrowDownwardIcon fontSize="inherit" />
+                </AppButton>
+                <AppButton size="small" color="inherit" onClick={() => handleRemove(index)}>
+                  Remove
+                </AppButton>
+              </Stack>
             </Stack>
           ))}
         </Stack>
@@ -253,19 +281,18 @@ const AdminCaseStudyDetailsPage = () => {
       image: incomingDetail.projectOverview?.image || '',
     },
     problemConfig: {
-      title: incomingDetail.problemConfig?.title || '',
       description: incomingDetail.problemConfig?.description || '',
       image: incomingDetail.problemConfig?.image || '',
     },
     solutionConfig: {
-      title: incomingDetail.solutionConfig?.title || '',
       description: incomingDetail.solutionConfig?.description || '',
-      image: incomingDetail.solutionConfig?.image || '',
     },
     appConfig: {
-      title: incomingDetail.appConfig?.title || '',
       description: incomingDetail.appConfig?.description || '',
-      image: incomingDetail.appConfig?.image || '',
+    },
+    developmentConfig: {
+      title: incomingDetail.developmentConfig?.title || '',
+      image: incomingDetail.developmentConfig?.image || '',
     },
     problems: Array.isArray(incomingDetail.problems) ? incomingDetail.problems : [],
     solutions: Array.isArray(incomingDetail.solutions) ? incomingDetail.solutions : [],
@@ -368,26 +395,34 @@ const AdminCaseStudyDetailsPage = () => {
     }
   };
 
-  const handleSaveSectionConfig = async (sectionKey, payloadKey, label) => {
+  const handleSaveSectionConfig = async (sectionKey, payloadKey, label, options = {}) => {
     setSaving(true);
     setError('');
     setSuccess('');
 
     const config = detail[sectionKey] || {};
-    const title = trimValue(config.title);
-    if (!title) {
-      setSaving(false);
-      setError(`${label} title is required.`);
-      return;
+    const payload = { [payloadKey]: {} };
+    if (options.includeTitle) {
+      const title = trimValue(config.title);
+      if (options.requireTitle && !title) {
+        setSaving(false);
+        setError(`${label} title is required.`);
+        return;
+      }
+      payload[payloadKey].title = title;
     }
-
-    const payload = {
-      [payloadKey]: {
-        title,
-        description: trimValue(config.description),
-        image: trimValue(config.image),
-      },
-    };
+    if (options.includeDescription) {
+      const description = trimValue(config.description);
+      if (options.requireDescription && !description) {
+        setSaving(false);
+        setError(`${label} description is required.`);
+        return;
+      }
+      payload[payloadKey].description = description;
+    }
+    if (options.includeImage) {
+      payload[payloadKey].image = trimValue(config.image);
+    }
 
     try {
       if (!token) throw new Error('Your session expired. Please log in again.');
@@ -748,23 +783,11 @@ const AdminCaseStudyDetailsPage = () => {
       <TabPanel value={activeTab} index={1}>
         <Stack spacing={2}>
           <Card>
-            <CardHeader title="Problem Section Header" subheader="Set the hero title, description, and image." />
+            <CardHeader title="Problem Section Header" subheader="Set the description and image." />
             <CardContent>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={7}>
                   <Stack spacing={2}>
-                    <AppTextField
-                      label="Title"
-                      value={detail.problemConfig.title}
-                      onChange={(e) =>
-                        setDetail((prev) => ({
-                          ...prev,
-                          problemConfig: { ...prev.problemConfig, title: e.target.value },
-                        }))
-                      }
-                      fullWidth
-                      required
-                    />
                     <AppTextField
                       label="Description"
                       value={detail.problemConfig.description}
@@ -781,7 +804,12 @@ const AdminCaseStudyDetailsPage = () => {
                     <AppButton
                       variant="contained"
                       startIcon={<SaveOutlinedIcon />}
-                      onClick={() => handleSaveSectionConfig('problemConfig', 'problemConfig', 'Problem section')}
+                      onClick={() =>
+                        handleSaveSectionConfig('problemConfig', 'problemConfig', 'Problem section', {
+                          includeDescription: true,
+                          includeImage: true,
+                        })
+                      }
                       disabled={saving}
                     >
                       {saving ? 'Saving...' : 'Save Section Header'}
@@ -810,12 +838,6 @@ const AdminCaseStudyDetailsPage = () => {
                 <CardHeader title={problemEditIndex >= 0 ? 'Edit Problem' : 'Add Problem'} />
                 <CardContent>
                   <Stack spacing={2}>
-                    <AppTextField
-                      label="Title"
-                      value={problemForm.title}
-                      onChange={(e) => setProblemForm((prev) => ({ ...prev, title: e.target.value }))}
-                      fullWidth
-                    />
                     <AppTextField
                       label="Description"
                       value={problemForm.description}
@@ -860,13 +882,12 @@ const AdminCaseStudyDetailsPage = () => {
                 'Problem List',
                 'Capture each problem statement with long-form details.',
                 [
-                  { key: 'title', label: 'Title' },
                   { key: 'description', label: 'Description', type: 'longtext' },
                 ],
                 detail.problems,
                 (index) => {
                   const current = detail.problems[index];
-                  setProblemForm({ title: current.title, description: current.description });
+                  setProblemForm({ description: current.description });
                   setProblemEditIndex(index);
                   setActiveTab(1);
                 },
@@ -887,23 +908,11 @@ const AdminCaseStudyDetailsPage = () => {
       <TabPanel value={activeTab} index={2}>
         <Stack spacing={2}>
           <Card>
-            <CardHeader title="Solutions Section Header" subheader="Set the hero title, description, and image." />
+            <CardHeader title="Solutions Section Header" subheader="Set the description for the header copy." />
             <CardContent>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={7}>
                   <Stack spacing={2}>
-                    <AppTextField
-                      label="Title"
-                      value={detail.solutionConfig.title}
-                      onChange={(e) =>
-                        setDetail((prev) => ({
-                          ...prev,
-                          solutionConfig: { ...prev.solutionConfig, title: e.target.value },
-                        }))
-                      }
-                      fullWidth
-                      required
-                    />
                     <AppTextField
                       label="Description"
                       value={detail.solutionConfig.description}
@@ -920,24 +929,16 @@ const AdminCaseStudyDetailsPage = () => {
                     <AppButton
                       variant="contained"
                       startIcon={<SaveOutlinedIcon />}
-                      onClick={() => handleSaveSectionConfig('solutionConfig', 'solutionConfig', 'Solution section')}
+                      onClick={() =>
+                        handleSaveSectionConfig('solutionConfig', 'solutionConfig', 'Solution section', {
+                          includeDescription: true,
+                        })
+                      }
                       disabled={saving}
                     >
                       {saving ? 'Saving...' : 'Save Section Header'}
                     </AppButton>
                   </Stack>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <ImageUpload
-                    label="Solution Section Image"
-                    value={detail.solutionConfig.image}
-                    onChange={(value) =>
-                      setDetail((prev) => ({
-                        ...prev,
-                        solutionConfig: { ...prev.solutionConfig, image: value },
-                      }))
-                    }
-                  />
                 </Grid>
               </Grid>
             </CardContent>
@@ -949,12 +950,6 @@ const AdminCaseStudyDetailsPage = () => {
                 <CardHeader title={solutionEditIndex >= 0 ? 'Edit Solution' : 'Add Solution'} />
                 <CardContent>
                   <Stack spacing={2}>
-                    <AppTextField
-                      label="Title"
-                      value={solutionForm.title}
-                      onChange={(e) => setSolutionForm((prev) => ({ ...prev, title: e.target.value }))}
-                      fullWidth
-                    />
                     <AppTextField
                       label="Description"
                       value={solutionForm.description}
@@ -1002,9 +997,8 @@ const AdminCaseStudyDetailsPage = () => {
             <Grid item xs={12} md={7}>
               {renderListSection(
                 'Solution List',
-                'Add solution titles with supporting long-form descriptions.',
+                'Add solution descriptions with supporting imagery.',
                 [
-                  { key: 'title', label: 'Title' },
                   { key: 'image', label: 'Image', type: 'image' },
                   { key: 'description', label: 'Description', type: 'longtext' },
                 ],
@@ -1012,7 +1006,6 @@ const AdminCaseStudyDetailsPage = () => {
                 (index) => {
                   const current = detail.solutions[index];
                   setSolutionForm({
-                    title: current.title,
                     description: current.description,
                     image: current.image,
                   });
@@ -1124,109 +1117,157 @@ const AdminCaseStudyDetailsPage = () => {
       </TabPanel>
 
       <TabPanel value={activeTab} index={4}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={5}>
-            <Card>
-              <CardHeader title={challengeEditIndex >= 0 ? 'Edit Challenge' : 'Add Challenge'} />
-              <CardContent>
-                <Stack spacing={2}>
-                  <AppTextField
-                    label="Title"
-                    value={challengeForm.title}
-                    onChange={(e) => setChallengeForm((prev) => ({ ...prev, title: e.target.value }))}
-                    fullWidth
-                  />
-                  <ImageUpload
-                    label="Challenge Image"
-                    value={challengeForm.image}
-                    onChange={(value) => setChallengeForm((prev) => ({ ...prev, image: value }))}
-                  />
-                  <AppTextField
-                    label="Solution Title"
-                    value={challengeForm.solutionTitle}
-                    onChange={(e) => setChallengeForm((prev) => ({ ...prev, solutionTitle: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Solution Subtitle"
-                    value={challengeForm.solutionSubtitle}
-                    onChange={(e) => setChallengeForm((prev) => ({ ...prev, solutionSubtitle: e.target.value }))}
-                    fullWidth
-                  />
-                  <AppTextField
-                    label="Solution Description"
-                    value={challengeForm.solutionDescription}
-                    onChange={(e) => setChallengeForm((prev) => ({ ...prev, solutionDescription: e.target.value }))}
-                    multiline
-                    minRows={4}
-                    fullWidth
-                  />
-                  <Stack direction="row" spacing={1}>
+        <Stack spacing={2}>
+          <Card>
+            <CardHeader title="Development Challenges Header" subheader="Set the header title and image." />
+            <CardContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={7}>
+                  <Stack spacing={2}>
+                    <AppTextField
+                      label="Title"
+                      value={detail.developmentConfig.title}
+                      onChange={(e) =>
+                        setDetail((prev) => ({
+                          ...prev,
+                          developmentConfig: { ...prev.developmentConfig, title: e.target.value },
+                        }))
+                      }
+                      fullWidth
+                      required
+                    />
                     <AppButton
                       variant="contained"
-                      startIcon={<AddCircleOutlineIcon />}
+                      startIcon={<SaveOutlinedIcon />}
                       onClick={() =>
-                        handleSectionSave({
-                          form: challengeForm,
-                          editIndex: challengeEditIndex,
-                          list: detail.developmentChallenges,
-                          endpointBase: 'development-challenges',
-                          sectionKey: 'developmentChallenges',
-                          resetForm: () => {
-                            setChallengeForm(emptyChallenge);
-                            setChallengeEditIndex(-1);
-                            setChallengePage(1);
-                          },
+                        handleSaveSectionConfig('developmentConfig', 'developmentConfig', 'Development section', {
+                          includeTitle: true,
+                          includeImage: true,
+                          requireTitle: true,
                         })
                       }
+                      disabled={saving}
                     >
-                      {challengeEditIndex >= 0 ? 'Update' : 'Add Challenge'}
+                      {saving ? 'Saving...' : 'Save Section Header'}
                     </AppButton>
-                    {challengeEditIndex >= 0 && (
-                      <AppButton variant="text" onClick={() => setChallengeEditIndex(-1)}>
-                        Cancel
-                      </AppButton>
-                    )}
                   </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <ImageUpload
+                    label="Development Header Image"
+                    value={detail.developmentConfig.image}
+                    onChange={(value) =>
+                      setDetail((prev) => ({
+                        ...prev,
+                        developmentConfig: { ...prev.developmentConfig, image: value },
+                      }))
+                    }
+                  />
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={5}>
+              <Card>
+                <CardHeader title={challengeEditIndex >= 0 ? 'Edit Challenge' : 'Add Challenge'} />
+                <CardContent>
+                  <Stack spacing={2}>
+                    <AppTextField
+                      label="Title"
+                      value={challengeForm.title}
+                      onChange={(e) => setChallengeForm((prev) => ({ ...prev, title: e.target.value }))}
+                      multiline
+                      minRows={2}
+                      fullWidth
+                    />
+                    <ImageUpload
+                      label="Challenge Image"
+                      value={challengeForm.image}
+                      onChange={(value) => setChallengeForm((prev) => ({ ...prev, image: value }))}
+                    />
+                    <AppTextField
+                      label="Subtitle"
+                      value={challengeForm.subtitle}
+                      onChange={(e) => setChallengeForm((prev) => ({ ...prev, subtitle: e.target.value }))}
+                      multiline
+                      minRows={2}
+                      fullWidth
+                    />
+                    <AppTextField
+                      label="Description"
+                      value={challengeForm.description}
+                      onChange={(e) => setChallengeForm((prev) => ({ ...prev, description: e.target.value }))}
+                      multiline
+                      minRows={4}
+                      fullWidth
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <AppButton
+                        variant="contained"
+                        startIcon={<AddCircleOutlineIcon />}
+                        onClick={() =>
+                          handleSectionSave({
+                            form: challengeForm,
+                            editIndex: challengeEditIndex,
+                            list: detail.developmentChallenges,
+                            endpointBase: 'development-challenges',
+                            sectionKey: 'developmentChallenges',
+                            resetForm: () => {
+                              setChallengeForm(emptyChallenge);
+                              setChallengeEditIndex(-1);
+                              setChallengePage(1);
+                            },
+                          })
+                        }
+                      >
+                        {challengeEditIndex >= 0 ? 'Update' : 'Add Challenge'}
+                      </AppButton>
+                      {challengeEditIndex >= 0 && (
+                        <AppButton variant="text" onClick={() => setChallengeEditIndex(-1)}>
+                          Cancel
+                        </AppButton>
+                      )}
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={7}>
+              {renderListSection(
+                'Development Challenges',
+                'Capture challenge title, subtitle, and long-form descriptions.',
+                [
+                  { key: 'title', label: 'Title', type: 'longtext' },
+                  { key: 'image', label: 'Image', type: 'image' },
+                  { key: 'subtitle', label: 'Subtitle', type: 'longtext' },
+                  { key: 'description', label: 'Description', type: 'longtext' },
+                ],
+                detail.developmentChallenges,
+                (index) => {
+                  const current = detail.developmentChallenges[index];
+                  setChallengeForm({
+                    title: current.title,
+                    image: current.image,
+                    subtitle: current.subtitle,
+                    description: current.description,
+                  });
+                  setChallengeEditIndex(index);
+                  setActiveTab(4);
+                },
+                (index) =>
+                  handleSectionDelete({
+                    sectionKey: 'developmentChallenges',
+                    endpointBase: 'development-challenges',
+                    itemId: detail.developmentChallenges[index]?.id,
+                  }),
+                challengePage,
+                setChallengePage
+              )}
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={7}>
-            {renderListSection(
-              'Development Challenges',
-              'Capture challenges and their supporting solution details.',
-              [
-                { key: 'title', label: 'Title' },
-                { key: 'image', label: 'Image', type: 'image' },
-                { key: 'solutionTitle', label: 'Solution Title' },
-                { key: 'solutionSubtitle', label: 'Solution Subtitle' },
-                { key: 'solutionDescription', label: 'Solution Description', type: 'longtext' },
-              ],
-              detail.developmentChallenges,
-              (index) => {
-                const current = detail.developmentChallenges[index];
-                setChallengeForm({
-                  title: current.title,
-                  image: current.image,
-                  solutionTitle: current.solutionTitle,
-                  solutionSubtitle: current.solutionSubtitle,
-                  solutionDescription: current.solutionDescription,
-                });
-                setChallengeEditIndex(index);
-                setActiveTab(4);
-              },
-              (index) =>
-                handleSectionDelete({
-                  sectionKey: 'developmentChallenges',
-                  endpointBase: 'development-challenges',
-                  itemId: detail.developmentChallenges[index]?.id,
-                }),
-              challengePage,
-              setChallengePage
-            )}
-          </Grid>
-        </Grid>
+        </Stack>
       </TabPanel>
 
       <TabPanel value={activeTab} index={5}>
@@ -1312,23 +1353,11 @@ const AdminCaseStudyDetailsPage = () => {
       <TabPanel value={activeTab} index={6}>
         <Stack spacing={2}>
           <Card>
-            <CardHeader title="App Section Header" subheader="Set the hero title, description, and image." />
+            <CardHeader title="App Section Header" subheader="Set the description for the app section." />
             <CardContent>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={7}>
                   <Stack spacing={2}>
-                    <AppTextField
-                      label="Title"
-                      value={detail.appConfig.title}
-                      onChange={(e) =>
-                        setDetail((prev) => ({
-                          ...prev,
-                          appConfig: { ...prev.appConfig, title: e.target.value },
-                        }))
-                      }
-                      fullWidth
-                      required
-                    />
                     <AppTextField
                       label="Description"
                       value={detail.appConfig.description}
@@ -1345,24 +1374,16 @@ const AdminCaseStudyDetailsPage = () => {
                     <AppButton
                       variant="contained"
                       startIcon={<SaveOutlinedIcon />}
-                      onClick={() => handleSaveSectionConfig('appConfig', 'appConfig', 'App section')}
+                      onClick={() =>
+                        handleSaveSectionConfig('appConfig', 'appConfig', 'App section', {
+                          includeDescription: true,
+                        })
+                      }
                       disabled={saving}
                     >
                       {saving ? 'Saving...' : 'Save Section Header'}
                     </AppButton>
                   </Stack>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <ImageUpload
-                    label="App Section Image"
-                    value={detail.appConfig.image}
-                    onChange={(value) =>
-                      setDetail((prev) => ({
-                        ...prev,
-                        appConfig: { ...prev.appConfig, image: value },
-                      }))
-                    }
-                  />
                 </Grid>
               </Grid>
             </CardContent>
@@ -1374,20 +1395,6 @@ const AdminCaseStudyDetailsPage = () => {
                 <CardHeader title={appEditIndex >= 0 ? 'Edit App Entry' : 'Add App Entry'} />
                 <CardContent>
                   <Stack spacing={2}>
-                    <AppTextField
-                      label="Title"
-                      value={appForm.title}
-                      onChange={(e) => setAppForm((prev) => ({ ...prev, title: e.target.value }))}
-                      fullWidth
-                    />
-                    <AppTextField
-                      label="Description"
-                      value={appForm.description}
-                      onChange={(e) => setAppForm((prev) => ({ ...prev, description: e.target.value }))}
-                      multiline
-                      minRows={4}
-                      fullWidth
-                    />
                     <MultiImageUpload
                       label="App Images"
                       values={appForm.images}
@@ -1427,18 +1434,14 @@ const AdminCaseStudyDetailsPage = () => {
             <Grid item xs={12} md={7}>
               {renderListSection(
                 'Our App',
-                'Store app descriptions with multiple screenshots.',
+                'Store app screenshots in the preferred order.',
                 [
-                  { key: 'title', label: 'Title' },
-                  { key: 'description', label: 'Description', type: 'longtext' },
                   { key: 'images', label: 'Images', type: 'images' },
                 ],
                 detail.apps,
                 (index) => {
                   const current = detail.apps[index];
                   setAppForm({
-                    title: current.title,
-                    description: current.description,
                     images: Array.isArray(current.images) ? current.images : [],
                   });
                   setAppEditIndex(index);
