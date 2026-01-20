@@ -52,6 +52,7 @@ const DEFAULT_DETAIL = {
   impacts: [],
   teamMembers: [],
   timelines: [],
+  conclusions: [],
 };
 
 const emptyProblem = { description: '' };
@@ -67,6 +68,7 @@ const emptyTechnology = { title: '', image: '' };
 const emptyImpact = { title: '', image: '' };
 const emptyTeamMember = { title: '' };
 const emptyTimeline = { title: '', description: '' };
+const emptyConclusion = { description: '' };
 const trimValue = (value) => (typeof value === 'string' ? value.trim() : String(value ?? '').trim());
 
 const ITEMS_PER_PAGE = 5;
@@ -281,6 +283,10 @@ const AdminCaseStudyDetailsPage = () => {
   const [timelineEditIndex, setTimelineEditIndex] = useState(-1);
   const [timelinePage, setTimelinePage] = useState(1);
 
+  const [conclusionForm, setConclusionForm] = useState(emptyConclusion);
+  const [conclusionEditIndex, setConclusionEditIndex] = useState(-1);
+  const [conclusionPage, setConclusionPage] = useState(1);
+
   const resetPagination = () => {
     setProblemPage(1);
     setSolutionPage(1);
@@ -291,6 +297,7 @@ const AdminCaseStudyDetailsPage = () => {
     setImpactPage(1);
     setTeamPage(1);
     setTimelinePage(1);
+    setConclusionPage(1);
   };
 
   useEffect(() => {
@@ -338,6 +345,11 @@ const AdminCaseStudyDetailsPage = () => {
     setTimelinePage((prev) => Math.min(prev, totalPages));
   }, [detail.timelines]);
 
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(detail.conclusions.length / ITEMS_PER_PAGE) || 1);
+    setConclusionPage((prev) => Math.min(prev, totalPages));
+  }, [detail.conclusions]);
+
   const buildDetailState = (caseStudyData, incomingDetail = {}) => ({
     projectOverview: {
       title: incomingDetail.projectOverview?.title || caseStudyData?.title || '',
@@ -369,6 +381,7 @@ const AdminCaseStudyDetailsPage = () => {
     impacts: Array.isArray(incomingDetail.impacts) ? incomingDetail.impacts : [],
     teamMembers: Array.isArray(incomingDetail.teamMembers) ? incomingDetail.teamMembers : [],
     timelines: Array.isArray(incomingDetail.timelines) ? incomingDetail.timelines : [],
+    conclusions: Array.isArray(incomingDetail.conclusions) ? incomingDetail.conclusions : [],
   });
 
   const loadDetail = async () => {
@@ -794,6 +807,7 @@ const AdminCaseStudyDetailsPage = () => {
         <Tab label="Technologies" id="tab-7" />
         <Tab label="Team Members" id="tab-8" />
         <Tab label="Timeline" id="tab-9" />
+        <Tab label="Conclusion" id="tab-10" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
@@ -1742,6 +1756,77 @@ const AdminCaseStudyDetailsPage = () => {
                 }),
               timelinePage,
               setTimelinePage
+            )}
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={10}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={5}>
+            <Card>
+              <CardHeader title={conclusionEditIndex >= 0 ? 'Edit Conclusion' : 'Add Conclusion'} />
+              <CardContent>
+                <Stack spacing={2}>
+                  <AppTextField
+                    label="Description"
+                    value={conclusionForm.description}
+                    onChange={(e) => setConclusionForm((prev) => ({ ...prev, description: e.target.value }))}
+                    multiline
+                    minRows={4}
+                    fullWidth
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <AppButton
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        handleSectionSave({
+                          form: conclusionForm,
+                          editIndex: conclusionEditIndex,
+                          list: detail.conclusions,
+                          endpointBase: 'conclusions',
+                          sectionKey: 'conclusions',
+                          resetForm: () => {
+                            setConclusionForm(emptyConclusion);
+                            setConclusionEditIndex(-1);
+                            setConclusionPage(1);
+                          },
+                        })
+                      }
+                    >
+                      {conclusionEditIndex >= 0 ? 'Update' : 'Add Conclusion'}
+                    </AppButton>
+                    {conclusionEditIndex >= 0 && (
+                      <AppButton variant="text" onClick={() => setConclusionEditIndex(-1)}>
+                        Cancel
+                      </AppButton>
+                    )}
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={7}>
+            {renderListSection(
+              'Conclusion',
+              'Summarize the case study conclusion details.',
+              [{ key: 'description', label: 'Description', type: 'longtext' }],
+              detail.conclusions,
+              (index) => {
+                const current = detail.conclusions[index];
+                setConclusionForm({ description: current.description });
+                setConclusionEditIndex(index);
+                setActiveTab(10);
+              },
+              (index) =>
+                handleSectionDelete({
+                  sectionKey: 'conclusions',
+                  endpointBase: 'conclusions',
+                  itemId: detail.conclusions[index]?.id,
+                }),
+              conclusionPage,
+              setConclusionPage
             )}
           </Grid>
         </Grid>
