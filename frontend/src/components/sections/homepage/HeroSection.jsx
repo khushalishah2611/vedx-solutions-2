@@ -3,7 +3,7 @@ import { Box, ButtonBase, Container, Fade, Stack, Typography, alpha, useTheme } 
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import { heroContent } from '../../../data/content.js';
-import { useBannerByType } from '../../../hooks/useBannerByType.js';
+import { useBannersByType } from '../../../hooks/useBannersByType.js';
 
 const SLIDE_INTERVAL = 7000;
 
@@ -11,20 +11,25 @@ const HeroSection = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const fallbackSlides = heroContent.slides;
-  const { banner } = useBannerByType('home');
+  const { banners } = useBannersByType('home');
   const slides = useMemo(() => {
-    if (!banner?.images?.length) return fallbackSlides;
+    if (!banners.length) return fallbackSlides;
 
-    const defaultTitle = banner.title?.trim();
-    return banner.images.map((image, index) => {
-      const fallbackSlide = fallbackSlides[index % fallbackSlides.length];
-      return {
-        image,
-        title: defaultTitle || fallbackSlide.title,
-        highlight: defaultTitle ? '' : fallbackSlide.highlight,
-      };
+    const apiSlides = banners.flatMap((banner) => {
+      const bannerTitle = banner.title?.trim();
+      const images = banner.images?.length ? banner.images : [];
+      return images.map((image, index) => {
+        const fallbackSlide = fallbackSlides[index % fallbackSlides.length];
+        return {
+          image,
+          title: bannerTitle || fallbackSlide.title,
+          highlight: bannerTitle ? '' : fallbackSlide.highlight,
+        };
+      });
     });
-  }, [banner, fallbackSlides]);
+
+    return apiSlides.length > 0 ? apiSlides : fallbackSlides;
+  }, [banners, fallbackSlides]);
   const [activeSlide, setActiveSlide] = useState(0);
   const timerRef = useRef(null);
 

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Breadcrumbs, Container, Divider, Grid, Link as MuiLink, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { AppButton } from '../shared/FormControls.jsx';
 
@@ -8,6 +8,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import { blogPosts, getBlogBySlug, getRelatedPosts } from '../../data/blogs.js';
+import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 // === ANIMATIONS ===
 const slideInLeft = keyframes`
@@ -37,18 +39,89 @@ const BlogDetailPage = () => {
   const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
   const { slug } = useParams();
-  const post = getBlogBySlug(slug ?? '');
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiPost, setApiPost] = useState(null);
+  const [isApiLoading, setIsApiLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPost = async () => {
+      if (!slug) return;
+      setIsApiLoading(true);
+      try {
+        const response = await fetchWithLoading(apiUrl(`/api/blog-posts/${slug}`));
+        if (!response.ok) {
+          throw new Error('Failed to fetch blog post.');
+        }
+        const payload = await response.json();
+        if (!isMounted) return;
+        setApiPost(payload.post ?? null);
+      } catch (error) {
+        if (isMounted) setApiPost(null);
+      } finally {
+        if (isMounted) setIsApiLoading(false);
+      }
+    };
+
+    loadPost();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading, slug]);
+
+  const fallbackPost = getBlogBySlug(slug ?? '');
+
+  const normalizedApiPost = useMemo(() => {
+    if (!apiPost) return null;
+
+    const summary = apiPost.shortDescription || apiPost.description || '';
+    const longDescription = apiPost.longDescription || apiPost.conclusion || summary;
+    const conclusion = apiPost.conclusion || '';
+
+    return {
+      id: apiPost.id,
+      title: apiPost.title,
+      slug: apiPost.slug,
+      category: apiPost.category?.name || 'Uncategorized',
+      tags: apiPost.tags || [],
+      image: apiPost.coverImage || apiPost.blogImage || '',
+      heroImage: apiPost.coverImage || apiPost.blogImage || '',
+      publishedOn: apiPost.publishDate || apiPost.createdAt || '',
+      sections: [
+        {
+          heading: 'Overview',
+          paragraphs: longDescription ? [longDescription] : [],
+        },
+      ],
+      conclusion: {
+        heading: 'Conclusion',
+        paragraphs: conclusion ? [conclusion] : [],
+      },
+      cta: {
+        heading: 'Let’s build your next release',
+        description:
+          'Talk to VedX Solutions about turning roadmap priorities into reliable digital outcomes.',
+        primaryCtaLabel: 'Contact us',
+        primaryCtaHref: '/contact',
+      },
+    };
+  }, [apiPost]);
+
+  const post = normalizedApiPost ?? fallbackPost;
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug]);
 
   useEffect(() => {
-    if (!post) {
+    if (!post && !isApiLoading) {
       navigate('/blog', { replace: true });
     }
-  }, [navigate, post]);
+  }, [isApiLoading, navigate, post]);
 
+  if (!post && isApiLoading) return null;
   if (!post) return null;
 
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.9 : 0.75);

@@ -6,7 +6,10 @@ import { blogPosts } from '../../data/blogs.js';
 import BlogPreviewCard from './BlogPreviewCard.jsx';
 import { Link as RouterLink } from 'react-router-dom';
 
-const ServicesBlog = ({ showHeading = true }) => {
+const ServicesBlog = ({ showHeading = true, posts, limit = 4 }) => {
+  const resolvedPosts = posts ?? blogPosts;
+  const visiblePosts = Number.isFinite(limit) ? resolvedPosts.slice(0, limit) : resolvedPosts;
+
   return (
     <Box component="section">
       {showHeading && (
@@ -26,7 +29,7 @@ const ServicesBlog = ({ showHeading = true }) => {
       )}
 
       <Grid container spacing={2}>
-        {blogPosts.slice(0, 4).map((post) => (
+        {visiblePosts.map((post) => (
           <Grid item xs={12} md={6} lg={3} key={post.slug}>
             <BlogPreviewCard
               post={post}
@@ -42,7 +45,9 @@ const ServicesBlog = ({ showHeading = true }) => {
 };
 
 ServicesBlog.propTypes = {
-  showHeading: PropTypes.bool
+  showHeading: PropTypes.bool,
+  posts: PropTypes.arrayOf(PropTypes.object),
+  limit: PropTypes.number,
 };
 
 export default ServicesBlog;

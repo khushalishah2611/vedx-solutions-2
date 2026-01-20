@@ -7,6 +7,8 @@ import { useSearchParams } from 'react-router-dom';
 import { blogPosts } from '../../data/blogs.js';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import { useBannerByType } from '../../hooks/useBannerByType.js';
+import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 const POSTS_PER_PAGE = 4;
 
 const BlogListPage = () => {
@@ -18,15 +20,70 @@ const BlogListPage = () => {
   const heroImage =
     banner?.image ||
     'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80';
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiPosts, setApiPosts] = useState([]);
+  const [apiCategories, setApiCategories] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') ?? '';
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10);
   const [searchValue, setSearchValue] = useState(queryParam);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBlogData = async () => {
+      try {
+        const [categoriesResponse, postsResponse] = await Promise.all([
+          fetchWithLoading(apiUrl('/api/blog-categories')),
+          fetchWithLoading(apiUrl('/api/blog-posts?page=1&pageSize=50')),
+        ]);
+
+        if (!categoriesResponse.ok || !postsResponse.ok) {
+          throw new Error('Failed to load blog data.');
+        }
+
+        const categoriesPayload = await categoriesResponse.json();
+        const postsPayload = await postsResponse.json();
+
+        if (!isMounted) return;
+
+        const mappedPosts = (postsPayload.posts ?? []).map((post) => ({
+          id: post.id,
+          title: post.title,
+          slug: post.slug,
+          category: post.category?.name || 'Uncategorized',
+          tags: post.tags || [],
+          excerpt: post.shortDescription || post.description || '',
+          image: post.coverImage || post.blogImage || '',
+          heroImage: post.coverImage || post.blogImage || '',
+          publishedOn: post.publishDate || post.createdAt || '',
+        }));
+
+        setApiPosts(mappedPosts);
+        setApiCategories(categoriesPayload.categories ?? []);
+      } catch (error) {
+        console.error('Failed to load blog list data', error);
+      }
+    };
+
+    loadBlogData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const allPosts = apiPosts.length > 0 ? apiPosts : blogPosts;
+
   const categories = useMemo(() => {
-    const unique = new Set(blogPosts.map((post) => post.category));
+    if (apiCategories.length > 0) {
+      const unique = new Set(apiCategories.map((category) => category.name));
+      return ['all', ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
+    }
+
+    const unique = new Set(allPosts.map((post) => post.category));
     return ['all', ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
-  }, []);
+  }, [allPosts, apiCategories]);
 
   const categoryParam = searchParams.get('category');
   const categoriesParam = searchParams.get('categories');
@@ -48,7 +105,7 @@ const BlogListPage = () => {
   const hasAllSelected = selectedCategories.includes('all');
 
   const categoryCounts = useMemo(() => {
-    return blogPosts.reduce(
+    return allPosts.reduce(
       (acc, post) => {
         acc.all += 1;
         acc[post.category] = (acc[post.category] ?? 0) + 1;
@@ -56,7 +113,7 @@ const BlogListPage = () => {
       },
       { all: 0 }
     );
-  }, []);
+  }, [allPosts]);
 
   const activeCategories = useMemo(
     () => (hasAllSelected ? [] : selectedCategories),
@@ -72,7 +129,7 @@ const BlogListPage = () => {
   const filteredPosts = useMemo(() => {
     const normalisedQuery = queryParam.trim().toLowerCase();
 
-    return blogPosts.filter((post) => {
+    return allPosts.filter((post) => {
       if (activeCategories.length > 0 && !activeCategories.includes(post.category)) return false;
       if (!normalisedQuery) return true;
 
@@ -81,7 +138,7 @@ const BlogListPage = () => {
         .toLowerCase();
       return haystack.includes(normalisedQuery);
     });
-  }, [activeCategories, queryParam]);
+  }, [activeCategories, allPosts, queryParam]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE));
   const currentPage = Math.min(totalPages, normalisedPage);
@@ -402,7 +459,7 @@ const BlogListPage = () => {
 
                 {paginatedPosts.length > 0 ? (
                   <Box my={10}>
-                    <ServicesBlog showHeading={false} />
+                    <ServicesBlog showHeading={false} posts={paginatedPosts} limit={paginatedPosts.length} />
                   </Box>
                 ) : (
                   <Paper
