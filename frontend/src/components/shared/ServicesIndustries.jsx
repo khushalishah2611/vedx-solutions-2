@@ -1,11 +1,65 @@
 import { Box, Grid, Paper, Stack, Typography, Divider, alpha, useTheme } from '@mui/material';
+import { useEffect, useState } from 'react';
 import { industriesServed } from '../../data/servicesPage.js';
+import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const ServicesIndustries = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiConfig, setApiConfig] = useState(null);
+  const [apiIndustries, setApiIndustries] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadIndustries = async () => {
+      try {
+        const [configResponse, itemsResponse] = await Promise.all([
+          fetchWithLoading(apiUrl('/api/industries/config')),
+          fetchWithLoading(apiUrl('/api/industries')),
+        ]);
+
+        if (!configResponse.ok || !itemsResponse.ok) {
+          throw new Error('Failed to fetch industries');
+        }
+
+        const configData = await configResponse.json();
+        const itemsData = await itemsResponse.json();
+
+        if (!isMounted) return;
+
+        setApiConfig(configData);
+        const mapped = (itemsData ?? [])
+          .filter((item) => item?.isActive ?? true)
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((item) => ({
+            title: item.title,
+            description: item.description || '',
+            image: item.image,
+          }));
+        setApiIndustries(mapped);
+      } catch (error) {
+        console.error('Failed to load industries', error);
+      }
+    };
+
+    loadIndustries();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const resolvedIndustries =
+    apiIndustries.length > 0 ? apiIndustries : industriesServed;
+  const headerTitle = apiConfig?.title || 'Industry we serve';
+  const headerDescription =
+    apiConfig?.description ||
+    'Deep domain partnerships let us tailor solutions that match regulatory, customer, and market realities across sectors.';
 
   return (
     <Box component="section">
@@ -25,7 +79,7 @@ const ServicesIndustries = () => {
             fontWeight: 700,
           }}
         >
-          Industry we serve
+          {headerTitle}
         </Typography>
         <Typography
           variant="body1"
@@ -34,14 +88,13 @@ const ServicesIndustries = () => {
             maxWidth: 720,
           }}
         >
-          Deep domain partnerships let us tailor solutions that match regulatory,
-          customer, and market realities across sectors.
+          {headerDescription}
         </Typography>
       </Stack>
 
       {/* Industry Cards */}
       <Grid container spacing={2} justifyContent="center">
-        {industriesServed.map((industry) => (
+        {resolvedIndustries.map((industry) => (
           <Grid item xs={12} sm={6} md={3} key={industry.title}>
             <Paper
               elevation={0}

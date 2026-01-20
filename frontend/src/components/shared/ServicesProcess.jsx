@@ -16,10 +16,14 @@ import { keyframes } from "@mui/system";
 import KeyboardArrowLeftRoundedIcon from "@mui/icons-material/KeyboardArrowLeftRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 import { processSteps } from "../../data/servicesPage.js";
+import { apiUrl } from "../../utils/const.js";
+import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
 const ServicesProcess = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiSteps, setApiSteps] = useState([]);
 
   const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
@@ -37,7 +41,8 @@ const ServicesProcess = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [animationDirection, setAnimationDirection] = useState("right");
-  const total = Array.isArray(processSteps) ? processSteps.length : 0;
+  const resolvedSteps = apiSteps.length > 0 ? apiSteps : processSteps;
+  const total = Array.isArray(resolvedSteps) ? resolvedSteps.length : 0;
   const maxIndex = Math.max(0, total - stepsPerView);
 
 
@@ -63,7 +68,7 @@ const ServicesProcess = () => {
     );
   }, [maxIndex, stepsPerView]);
 
-  const visibleSteps = (processSteps ?? []).slice(
+  const visibleSteps = (resolvedSteps ?? []).slice(
     currentIndex,
     currentIndex + stepsPerView
   );
@@ -251,3 +256,34 @@ const ServicesProcess = () => {
 };
 
 export default ServicesProcess;
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSteps = async () => {
+      try {
+        const response = await fetchWithLoading(apiUrl("/api/process-steps"));
+        if (!response.ok) {
+          throw new Error("Failed to fetch process steps");
+        }
+        const data = await response.json();
+        if (!isMounted) return;
+        const mapped = (data ?? [])
+          .filter((item) => item?.isActive ?? true)
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((item) => ({
+            title: item.title,
+            description: item.description || "",
+            image: item.image,
+          }));
+        setApiSteps(mapped);
+      } catch (error) {
+        console.error("Failed to load process steps", error);
+      }
+    };
+
+    loadSteps();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);

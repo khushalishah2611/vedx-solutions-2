@@ -1,6 +1,6 @@
 /* ONLY HOVER ANIMATION ADDED — NO OTHER CHANGES */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   ButtonBase,
@@ -15,16 +15,26 @@ import {
 } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { servicesShowcase } from "../../../data/content.js";
+import { apiUrl } from "../../../utils/const.js";
+import { useLoadingFetch } from "../../../hooks/useLoadingFetch.js";
 
 const ServicesShowcase = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiSliders, setApiSliders] = useState([]);
+  const [apiServices, setApiServices] = useState([]);
 
   const { heading, services } = servicesShowcase;
+  const resolvedServices = useMemo(
+    () => (apiServices.length > 0 ? apiServices : services),
+    [apiServices, services]
+  );
+  const resolvedHeading = apiSliders[0]?.sliderTitle || heading;
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeService = services[activeIndex];
+  const activeService = resolvedServices[activeIndex] ?? resolvedServices[0];
 
   const scrollRef = useRef(null);
 
@@ -42,19 +52,19 @@ const ServicesShowcase = () => {
 
   const goNext = useCallback(() => {
     setActiveIndex((prev) => {
-      const next = (prev + 1) % services.length;
+      const next = (prev + 1) % resolvedServices.length;
       scrollToIndex(next);
       return next;
     });
-  }, [scrollToIndex, services.length]);
+  }, [resolvedServices.length, scrollToIndex]);
 
   const goPrev = useCallback(() => {
     setActiveIndex((prev) => {
-      const next = (prev - 1 + services.length) % services.length;
+      const next = (prev - 1 + resolvedServices.length) % resolvedServices.length;
       scrollToIndex(next);
       return next;
     });
-  }, [scrollToIndex, services.length]);
+  }, [resolvedServices.length, scrollToIndex]);
 
   const syncActiveIndexWithScroll = useCallback(() => {
     if (!scrollRef.current) return;
@@ -90,6 +100,56 @@ const ServicesShowcase = () => {
     };
   }, [syncActiveIndexWithScroll]);
 
+  useEffect(() => {
+    if (activeIndex >= resolvedServices.length) {
+      setActiveIndex(0);
+    }
+  }, [activeIndex, resolvedServices.length]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadShowcase = async () => {
+      try {
+        const [slidersResponse, servicesResponse] = await Promise.all([
+          fetchWithLoading(apiUrl("/api/our-services/sliders")),
+          fetchWithLoading(apiUrl("/api/our-services/services")),
+        ]);
+
+        if (!slidersResponse.ok || !servicesResponse.ok) {
+          throw new Error("Failed to fetch services showcase");
+        }
+
+        const slidersData = await slidersResponse.json();
+        const servicesData = await servicesResponse.json();
+
+        if (!isMounted) return;
+
+        const activeSliders = (slidersData ?? []).filter((item) => item?.isActive ?? true);
+        setApiSliders(activeSliders);
+
+        const mappedServices = (servicesData ?? [])
+          .filter((item) => item?.isFeatured ?? true)
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((item) => ({
+            title: item.title,
+            image: item.image,
+            blurb: item.subtitle || item.description || "",
+            capabilities: [],
+          }));
+        setApiServices(mappedServices);
+      } catch (error) {
+        console.error("Failed to load services showcase", error);
+      }
+    };
+
+    loadShowcase();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
   const activeBorder = `2px solid ${alpha(accentColor, 0.9)}`;
   const inactiveBorder = `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`;
 
@@ -124,7 +184,7 @@ const ServicesShowcase = () => {
               lineHeight: 1.1,
             }}
           >
-            {heading}
+            {resolvedHeading}
           </Typography>
         </Stack>
 
@@ -192,7 +252,7 @@ const ServicesShowcase = () => {
                   "&::-webkit-scrollbar": { display: "none" },
                 }}
               >
-                {services.map((service, index) => {
+                {resolvedServices.map((service, index) => {
                   const active = index === activeIndex;
                   return (
                     <Box key={service.title} sx={{ minWidth: "75%", scrollSnapAlign: "center" }}>
@@ -256,7 +316,7 @@ const ServicesShowcase = () => {
 
             {/* DESKTOP GRID */}
             <Grid container spacing={2} sx={{ display: { xs: "none", md: "flex" } }}>
-              {services.map((service, index) => {
+              {resolvedServices.map((service, index) => {
                 const active = index === activeIndex;
                 return (
                   <Grid item xs={12} sm={4} key={service.title}>
@@ -319,7 +379,7 @@ const ServicesShowcase = () => {
 
           {/* RIGHT SIDE CONTENT */}
           <Grid item xs={12} md={6} sx={{ mt: { xs: 5, md: 0 } }}>
-            <Slide in={true} direction="left" timeout={500} key={activeService.title}>
+            <Slide in={true} direction="left" timeout={500} key={activeService?.title}>
               <Stack spacing={3}>
 
                 <Typography
@@ -329,37 +389,39 @@ const ServicesShowcase = () => {
                     fontWeight: 700,
                   }}
                 >
-                  {activeService.title}
+                  {activeService?.title}
                 </Typography>
 
                 <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.7) }} />
 
                 <Typography variant="body1" sx={{ color: supportingTextColor }}>
-                  {activeService.blurb}
+                  {activeService?.blurb}
                 </Typography>
 
-                <Stack spacing={1.5}>
-                  {activeService.capabilities.map((capability) => (
-                    <Typography
-                      key={capability}
-                      variant="body2"
-                      sx={{
-                        fontWeight: 900,
-                        cursor: "pointer",
-                        transition: "0.3s",
-                        color: supportingTextColor,
+                {activeService?.capabilities?.length > 0 && (
+                  <Stack spacing={1.5}>
+                    {activeService.capabilities.map((capability) => (
+                      <Typography
+                        key={capability}
+                        variant="body2"
+                        sx={{
+                          fontWeight: 900,
+                          cursor: "pointer",
+                          transition: "0.3s",
+                          color: supportingTextColor,
 
-                        "&:hover": {
-                          color: "transparent",
-                          backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
-                          WebkitBackgroundClip: "text",
-                        },
-                      }}
-                    >
-                      {capability}
-                    </Typography>
-                  ))}
-                </Stack>
+                          "&:hover": {
+                            color: "transparent",
+                            backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
+                            WebkitBackgroundClip: "text",
+                          },
+                        }}
+                      >
+                        {capability}
+                      </Typography>
+                    ))}
+                  </Stack>
+                )}
 
               </Stack>
             </Slide>

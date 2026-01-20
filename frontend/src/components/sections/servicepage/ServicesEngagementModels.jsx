@@ -1,10 +1,63 @@
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { useEffect, useState } from 'react';
 import { engagementModels } from '../../../data/servicesPage.js';
+import { apiUrl } from '../../../utils/const.js';
+import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 
 const ServicesEngagementModels = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiConfig, setApiConfig] = useState(null);
+  const [apiModels, setApiModels] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadExpertise = async () => {
+      try {
+        const [configResponse, itemsResponse] = await Promise.all([
+          fetchWithLoading(apiUrl('/api/expertise/config')),
+          fetchWithLoading(apiUrl('/api/expertise')),
+        ]);
+
+        if (!configResponse.ok || !itemsResponse.ok) {
+          throw new Error('Failed to fetch expertise');
+        }
+
+        const configData = await configResponse.json();
+        const itemsData = await itemsResponse.json();
+
+        if (!isMounted) return;
+
+        setApiConfig(configData);
+        const mapped = (itemsData ?? [])
+          .filter((item) => item?.isActive ?? true)
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((item) => ({
+            title: item.title,
+            description: item.description || '',
+            image: item.image,
+          }));
+        setApiModels(mapped);
+      } catch (error) {
+        console.error('Failed to load expertise', error);
+      }
+    };
+
+    loadExpertise();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const resolvedModels = apiModels.length > 0 ? apiModels : engagementModels;
+  const headerTitle = apiConfig?.title || 'Ways to Choose Our Expertise for VedX Solutions';
+  const headerDescription =
+    apiConfig?.description ||
+    'Select the engagement model that aligns with your budget, project goals, and delivery rhythm — from flexible collaborations to dedicated teams tailored for your business success.';
 
   return (
     <Box component="section" >
@@ -56,7 +109,7 @@ const ServicesEngagementModels = () => {
             fontWeight: 700,
           }}
         >
-          Ways to Choose Our Expertise for VedX Solutions
+          {headerTitle}
         </Typography>
 
         <Typography
@@ -66,14 +119,13 @@ const ServicesEngagementModels = () => {
             maxWidth: 720,
           }}
         >
-          Select the engagement model that aligns with your budget, project goals, and delivery rhythm —
-          from flexible collaborations to dedicated teams tailored for your business success.
+          {headerDescription}
         </Typography>
       </Stack>
 
       {/* Engagement Cards */}
       <Grid container spacing={2}>
-        {engagementModels.map((model) => (
+        {resolvedModels.map((model) => (
           <Grid item xs={12} md={4} key={model.title}>
             <Paper
               elevation={0}

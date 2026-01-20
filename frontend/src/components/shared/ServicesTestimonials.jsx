@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import FormatQuoteRoundedIcon from '@mui/icons-material/FormatQuoteRounded';
 import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded';
 import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRounded';
@@ -15,6 +15,8 @@ import {
   useMediaQuery
 } from '@mui/material';
 import { testimonialList } from '../../data/servicesPage.js';
+import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const ServicesTestimonials = () => {
   const theme = useTheme();
@@ -22,18 +24,61 @@ const ServicesTestimonials = () => {
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiFeedbacks, setApiFeedbacks] = useState([]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const testimonials = testimonialList.filter(
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFeedbacks = async () => {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      try {
+        const response = await fetchWithLoading(apiUrl('/api/admin/feedbacks'), {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch feedbacks');
+        }
+        const payload = await response.json();
+        if (!isMounted) return;
+        const mapped = (payload.feedbacks ?? []).map((feedback) => ({
+          quote: feedback.description || '',
+          name: feedback.name || '',
+          title: feedback.title || '',
+          rating: feedback.rating ?? 5,
+        }));
+        setApiFeedbacks(mapped);
+      } catch (error) {
+        console.error('Failed to load feedbacks', error);
+      }
+    };
+
+    loadFeedbacks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const testimonials = useMemo(() => {
+    const resolved = apiFeedbacks.length > 0 ? apiFeedbacks : testimonialList;
+    return resolved.filter((testimonial) => testimonial?.quote && testimonial?.name);
+  }, [apiFeedbacks]);
+
+  const testimonialSource = testimonialList.filter(
     (testimonial) => testimonial?.quote && testimonial?.name
   );
+  const resolvedTestimonials = testimonials.length > 0 ? testimonials : testimonialSource;
 
   // Total slides to handle pagination
-  const slidesCount = testimonials.length === 0
+  const slidesCount = resolvedTestimonials.length === 0
     ? 0
     : isMobile
-      ? testimonials.length
-      : Math.ceil(testimonials.length / 2);
+      ? resolvedTestimonials.length
+      : Math.ceil(resolvedTestimonials.length / 2);
 
   const handlePrev = () => {
     if (slidesCount === 0) return;
@@ -56,19 +101,19 @@ const ServicesTestimonials = () => {
   }, [isMobile, slidesCount]);
 
   // Visible testimonials
-  if (testimonials.length === 0) {
+  if (resolvedTestimonials.length === 0) {
     return null;
   }
 
   const startIndex = isMobile
-    ? currentIndex % testimonials.length
-    : (currentIndex * 2) % testimonials.length;
+    ? currentIndex % resolvedTestimonials.length
+    : (currentIndex * 2) % resolvedTestimonials.length;
 
   const visibleTestimonials = isMobile
-    ? [testimonials[startIndex]]
+    ? [resolvedTestimonials[startIndex]]
     : [
-      testimonials[startIndex],
-      testimonials[(startIndex + 1) % testimonials.length]
+      resolvedTestimonials[startIndex],
+      resolvedTestimonials[(startIndex + 1) % resolvedTestimonials.length]
     ];
 
   return (

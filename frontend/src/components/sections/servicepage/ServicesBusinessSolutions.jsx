@@ -4,6 +4,8 @@ import { Box, ButtonBase, Divider, Grid, Paper, Stack, Typography, alpha, useMed
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import { businessSolutions } from '../../../data/servicesPage.js';
+import { apiUrl } from '../../../utils/const.js';
+import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 
 const ServicesBusinessSolutions = () => {
   const theme = useTheme();
@@ -11,6 +13,9 @@ const ServicesBusinessSolutions = () => {
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.6);
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiConfig, setApiConfig] = useState(null);
+  const [apiSolutions, setApiSolutions] = useState([]);
 
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -23,7 +28,59 @@ const ServicesBusinessSolutions = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const activeSolution = businessSolutions[activeIndex];
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSolutions = async () => {
+      try {
+        const [configResponse, itemsResponse] = await Promise.all([
+          fetchWithLoading(apiUrl('/api/tech-solutions/config')),
+          fetchWithLoading(apiUrl('/api/tech-solutions')),
+        ]);
+
+        if (!configResponse.ok || !itemsResponse.ok) {
+          throw new Error('Failed to fetch tech solutions');
+        }
+
+        const configData = await configResponse.json();
+        const itemsData = await itemsResponse.json();
+
+        if (!isMounted) return;
+
+        setApiConfig(configData);
+        const mapped = (itemsData ?? [])
+          .filter((item) => item?.isActive ?? true)
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((item) => ({
+            title: item.title,
+            description: item.description || '',
+          }));
+        setApiSolutions(mapped);
+      } catch (error) {
+        console.error('Failed to load tech solutions', error);
+      }
+    };
+
+    loadSolutions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const resolvedSolutions = apiSolutions.length > 0 ? apiSolutions : businessSolutions;
+  const headerTitle = apiConfig?.title || 'Tech solutions for all business types';
+  const headerDescription =
+    apiConfig?.description ||
+    'Whether you are validating an idea or optimising global operations, our playbooks adapt to your stage and ambition.';
+
+  const activeSolution = resolvedSolutions[activeIndex] ?? resolvedSolutions[0];
+
+  useEffect(() => {
+    if (activeIndex >= resolvedSolutions.length) {
+      setActiveIndex(0);
+    }
+  }, [activeIndex, resolvedSolutions.length]);
 
   return (
     <Box component="section">
@@ -47,7 +104,7 @@ const ServicesBusinessSolutions = () => {
             transition: 'opacity 0.45s ease, transform 0.45s ease',
           }}
         >
-          Tech solutions for all business types
+          {headerTitle}
         </Typography>
         <Typography
           variant="body1"
@@ -60,8 +117,7 @@ const ServicesBusinessSolutions = () => {
             transitionDelay: '80ms',
           }}
         >
-          Whether you are validating an idea or optimising global operations,
-          our playbooks adapt to your stage and ambition.
+          {headerDescription}
         </Typography>
       </Stack>
 
@@ -71,7 +127,7 @@ const ServicesBusinessSolutions = () => {
         spacing={2}
         sx={{ display: { xs: 'flex', md: 'none' } }}
       >
-        {businessSolutions.map((solution, index) => (
+        {resolvedSolutions.map((solution, index) => (
           <Grid item xs={12} sm={6} key={solution.title}>
             <Paper
               elevation={0}
@@ -156,7 +212,7 @@ const ServicesBusinessSolutions = () => {
         {/* Left: List of titles */}
         <Grid item xs={12} md={4}>
           <Stack spacing={1.5}>
-            {businessSolutions.map((solution, index) => {
+            {resolvedSolutions.map((solution, index) => {
               const isActive = index === activeIndex;
               return (
                 <ButtonBase
