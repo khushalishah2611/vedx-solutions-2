@@ -1,9 +1,5 @@
-import {
-  Box,
-  Divider,
-  alpha,
-  useTheme,Container
-} from '@mui/material';
+import { useMemo } from 'react';
+import { Box, Divider, alpha, useTheme, Container } from '@mui/material';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import {
   aboutHero,
@@ -18,6 +14,7 @@ import {
 } from '../sections/aboutpage/index.js';
 
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
+import { useBannerByType } from '../../hooks/useBannerByType.js';
 
 import {
   CareerBenefitsSection, CareerStorySection
@@ -27,10 +24,19 @@ const AboutPage = () => {
 
   const dividerColor = alpha(theme.palette.divider, 0.6);
   const { openDialog: handleOpenContact } = useContactDialog();
+  const { banner } = useBannerByType('about');
+  const resolvedHero = useMemo(
+    () => ({
+      ...aboutHero,
+      title: banner?.title || aboutHero.title,
+      baseImage: banner?.image || aboutHero.baseImage,
+    }),
+    [banner]
+  );
 
   return (
     <Box sx={{ bgcolor: 'background.default', overflow: 'hidden' }}>
-      <AboutHeroSection hero={aboutHero} stats={aboutStats} onCtaClick={handleOpenContact} />
+      <AboutHeroSection hero={resolvedHero} stats={aboutStats} onCtaClick={handleOpenContact} />
 
 
       <Container

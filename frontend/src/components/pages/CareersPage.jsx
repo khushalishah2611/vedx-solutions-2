@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Box, Divider, alpha, useTheme, Container } from '@mui/material';
 import {
   careerBenefits,
@@ -9,6 +10,7 @@ import {
 } from '../../data/company.js';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
+import { useBannerByType } from '../../hooks/useBannerByType.js';
 import {
   CareerBenefitsSection,
   CareerHeroSection,
@@ -22,10 +24,19 @@ const CareersPage = () => {
   const { openDialog: handleOpenContact } = useContactDialog();
   const theme = useTheme();
   const dividerColor = alpha(theme.palette.divider, 0.6);
+  const { banner } = useBannerByType('career');
+  const resolvedHero = useMemo(
+    () => ({
+      ...careerHero,
+      title: banner?.title || careerHero.title,
+      image: banner?.image || careerHero.image,
+    }),
+    [banner]
+  );
 
   return (
     <Box sx={{ bgcolor: 'background.default', overflow: 'hidden', }}>
-      <CareerHeroSection hero={careerHero} />
+      <CareerHeroSection hero={resolvedHero} />
 
       <Container
         maxWidth={false}

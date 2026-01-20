@@ -6,12 +6,18 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useSearchParams } from 'react-router-dom';
 import { blogPosts } from '../../data/blogs.js';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
+import { useBannerByType } from '../../hooks/useBannerByType.js';
 const POSTS_PER_PAGE = 4;
 
 const BlogListPage = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const { banner } = useBannerByType('blogs');
+  const heroTitle = banner?.title || 'Insights that Power Product Growth';
+  const heroImage =
+    banner?.image ||
+    'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80';
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') ?? '';
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10);
@@ -156,7 +162,7 @@ const BlogListPage = () => {
       <Box
         sx={{
           backgroundImage:
-            'linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80)',
+            `linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(${heroImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -186,7 +192,7 @@ const BlogListPage = () => {
                 textAlign: { xs: 'center', md: 'left' }
               }}
             >
-              Insights that Power Product Growth
+              {heroTitle}
             </Typography>
 
             <Typography

@@ -1,15 +1,30 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, ButtonBase, Container, Fade, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import { heroContent } from '../../../data/content.js';
+import { useBannerByType } from '../../../hooks/useBannerByType.js';
 
 const SLIDE_INTERVAL = 7000;
 
 const HeroSection = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const slides = heroContent.slides;
+  const fallbackSlides = heroContent.slides;
+  const { banner } = useBannerByType('home');
+  const slides = useMemo(() => {
+    if (!banner?.images?.length) return fallbackSlides;
+
+    const defaultTitle = banner.title?.trim();
+    return banner.images.map((image, index) => {
+      const fallbackSlide = fallbackSlides[index % fallbackSlides.length];
+      return {
+        image,
+        title: defaultTitle || fallbackSlide.title,
+        highlight: defaultTitle ? '' : fallbackSlide.highlight,
+      };
+    });
+  }, [banner, fallbackSlides]);
   const [activeSlide, setActiveSlide] = useState(0);
   const timerRef = useRef(null);
 
@@ -31,7 +46,8 @@ const HeroSection = () => {
     startAutoplay();
   };
 
-  const currentSlide = slides[activeSlide];
+  const currentSlide = slides[activeSlide] ?? fallbackSlides[0];
+  const hasHighlight = Boolean(currentSlide?.highlight);
 
   return (
     <Box
@@ -101,19 +117,22 @@ const HeroSection = () => {
                 variant="h2"
                 sx={{ fontSize: { xs: 44, md: 64 }, lineHeight: 1.05 }}
               >
-                {currentSlide.title}{' '}
-                <Box
-                  component="span"
-                  sx={{
-                    background:
-                      'linear-gradient(90deg, #67e8f9 0%, #a855f7 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    display: 'inline-block',
-                  }}
-                >
-                  {currentSlide.highlight}
-                </Box>
+                {currentSlide.title}
+                {hasHighlight && (
+                  <Box
+                    component="span"
+                    sx={{
+                      background:
+                        'linear-gradient(90deg, #67e8f9 0%, #a855f7 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      display: 'inline-block',
+                      ml: 1,
+                    }}
+                  >
+                    {currentSlide.highlight}
+                  </Box>
+                )}
               </Typography>
 
 

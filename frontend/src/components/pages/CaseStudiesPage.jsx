@@ -3,11 +3,14 @@ import CaseStudiesHero from '../sections/caseStudies/CaseStudiesHero.jsx';
 import CaseStudyCard from '../sections/caseStudies/CaseStudyCard.jsx';
 
 import { featuredCaseStudies } from '../../data/caseStudies.js';
+import { useBannerByType } from '../../hooks/useBannerByType.js';
 
 const CaseStudiesPage = () => {
+  const { banner } = useBannerByType('case-study');
+
   return (
     <Box sx={{ bgcolor: 'background.default', overflow: 'hidden' }}>
-      <CaseStudiesHero />
+      <CaseStudiesHero banner={banner} />
 
       <Container
         maxWidth={false}

@@ -1,13 +1,21 @@
+import PropTypes from 'prop-types';
 import { alpha, Box, Container, Grid, Stack, Typography, useTheme } from '@mui/material';
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
-const CaseStudiesHero = () => {
+const DEFAULT_BACKGROUND =
+  'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80';
+
+const DEFAULT_TITLE = 'Explore Our Case Studies Gallery, Where Ideas Flourish.';
+
+const CaseStudiesHero = ({ banner }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.75);
+  const bannerImage = banner?.image || DEFAULT_BACKGROUND;
+  const bannerTitle = banner?.title || DEFAULT_TITLE;
 
   // Dynamic overlay gradient based on theme
   const overlayGradient = isDark
@@ -18,8 +26,7 @@ const CaseStudiesHero = () => {
     <Box
       component="section"
       sx={{
-       backgroundImage:
-            'linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80)',
+       backgroundImage: `linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(${bannerImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -61,7 +68,7 @@ const CaseStudiesHero = () => {
                   color: isDark ? '#f9fafb' : '#0f172a',
                 }}
               >
-                Explore Our Case Studies Gallery, Where Ideas Flourish.
+                {bannerTitle}
               </Typography>
 
               <Typography
@@ -106,6 +113,17 @@ const CaseStudiesHero = () => {
       </Container>
     </Box>
   );
+};
+
+CaseStudiesHero.propTypes = {
+  banner: PropTypes.shape({
+    title: PropTypes.string,
+    image: PropTypes.string,
+  }),
+};
+
+CaseStudiesHero.defaultProps = {
+  banner: null,
 };
 
 export default CaseStudiesHero;
