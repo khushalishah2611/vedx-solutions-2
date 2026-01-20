@@ -86,6 +86,38 @@ const ServicesProcess = () => {
     return () => clearInterval(autoScroll);
   }, [handleNext, isPaused, showNavigation]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSteps = async () => {
+      try {
+        const response = await fetchWithLoading(apiUrl("/api/process-steps"));
+        if (!response.ok) {
+          throw new Error("Failed to fetch process steps");
+        }
+        const data = await response.json();
+        if (!isMounted) return;
+        const mapped = (data ?? [])
+          .filter((item) => item?.isActive ?? true)
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((item) => ({
+            title: item.title,
+            description: item.description || "",
+            image: item.image,
+          }));
+        setApiSteps(mapped);
+      } catch (error) {
+        console.error("Failed to load process steps", error);
+      }
+    };
+
+    loadSteps();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
   return (
     <Box
       component="section"
@@ -256,34 +288,3 @@ const ServicesProcess = () => {
 };
 
 export default ServicesProcess;
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadSteps = async () => {
-      try {
-        const response = await fetchWithLoading(apiUrl("/api/process-steps"));
-        if (!response.ok) {
-          throw new Error("Failed to fetch process steps");
-        }
-        const data = await response.json();
-        if (!isMounted) return;
-        const mapped = (data ?? [])
-          .filter((item) => item?.isActive ?? true)
-          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-          .map((item) => ({
-            title: item.title,
-            description: item.description || "",
-            image: item.image,
-          }));
-        setApiSteps(mapped);
-      } catch (error) {
-        console.error("Failed to load process steps", error);
-      }
-    };
-
-    loadSteps();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [fetchWithLoading]);

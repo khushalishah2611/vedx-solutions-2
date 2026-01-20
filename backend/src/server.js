@@ -389,6 +389,13 @@ const formatCaseStudyDetailResponse = (detail) => {
     }))
     : [];
 
+  const conclusions = Array.isArray(detail.conclusions)
+    ? detail.conclusions.map((item) => ({
+      id: item.id,
+      description: item.description || '',
+    }))
+    : [];
+
   return {
     projectOverview,
     problemConfig,
@@ -404,6 +411,7 @@ const formatCaseStudyDetailResponse = (detail) => {
     impacts,
     teamMembers,
     timelines,
+    conclusions,
   };
 };
 
@@ -457,6 +465,11 @@ const formatCaseStudyTeamMemberResponse = (item) => ({
 const formatCaseStudyTimelineResponse = (item) => ({
   id: item.id,
   title: item.title,
+  description: item.description || '',
+});
+
+const formatCaseStudyConclusionResponse = (item) => ({
+  id: item.id,
   description: item.description || '',
 });
 
@@ -2754,6 +2767,7 @@ const CASE_STUDY_DETAIL_INCLUDE = {
       impacts: true,
       teamMembers: true,
       timelines: true,
+      conclusions: true,
     },
   },
 };
@@ -4270,6 +4284,138 @@ app.delete('/api/admin/case-studies/:id/timelines/:timelineId', async (req, res)
   }
 });
 
+app.get('/api/admin/case-studies/:id/conclusions', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.json({ items: [] });
+
+    const items = await prisma.caseStudyConclusion.findMany({
+      where: { detailId: detail.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ items: items.map(formatCaseStudyConclusionResponse) });
+  } catch (error) {
+    console.error('Case study conclusions fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load conclusions right now.' });
+  }
+});
+
+app.post('/api/admin/case-studies/:id/conclusions', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    if (!caseStudyId) return res.status(400).json({ message: 'A valid case study id is required.' });
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const validation = validateConclusionInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const created = await prisma.caseStudyConclusion.create({
+      data: {
+        detailId: detail.id,
+        description: validation.description,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Conclusion created.',
+      item: formatCaseStudyConclusionResponse(created),
+    });
+  } catch (error) {
+    console.error('Case study conclusion create failed', error);
+    return res.status(500).json({ message: 'Unable to create conclusion right now.' });
+  }
+});
+
+app.put('/api/admin/case-studies/:id/conclusions/:conclusionId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const conclusionId = parseIntegerId(req.params.conclusionId);
+    if (!caseStudyId || !conclusionId) {
+      return res.status(400).json({ message: 'A valid conclusion id is required.' });
+    }
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyConclusion.findUnique({ where: { id: conclusionId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Conclusion not found.' });
+    }
+
+    const validation = validateConclusionInput(req.body || {});
+    if (validation.error) return res.status(400).json({ message: validation.error });
+
+    const updated = await prisma.caseStudyConclusion.update({
+      where: { id: conclusionId },
+      data: {
+        description: validation.description,
+      },
+    });
+
+    return res.json({
+      message: 'Conclusion updated.',
+      item: formatCaseStudyConclusionResponse(updated),
+    });
+  } catch (error) {
+    console.error('Case study conclusion update failed', error);
+    return res.status(500).json({ message: 'Unable to update conclusion right now.' });
+  }
+});
+
+app.delete('/api/admin/case-studies/:id/conclusions/:conclusionId', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      return res.status(status).json({ message });
+    }
+
+    const caseStudyId = parseIntegerId(req.params.id);
+    const conclusionId = parseIntegerId(req.params.conclusionId);
+    if (!caseStudyId || !conclusionId) {
+      return res.status(400).json({ message: 'A valid conclusion id is required.' });
+    }
+
+    const detail = await findCaseStudyDetailByCaseStudyId(caseStudyId);
+    if (!detail) return res.status(400).json({ message: 'Save the project overview first.' });
+
+    const existing = await prisma.caseStudyConclusion.findUnique({ where: { id: conclusionId } });
+    if (!existing || existing.detailId !== detail.id) {
+      return res.status(404).json({ message: 'Conclusion not found.' });
+    }
+
+    await prisma.caseStudyConclusion.delete({ where: { id: conclusionId } });
+    return res.json({ message: 'Conclusion deleted.' });
+  } catch (error) {
+    console.error('Case study conclusion delete failed', error);
+    return res.status(500).json({ message: 'Unable to delete conclusion right now.' });
+  }
+});
+
 // ---------- Contact Routes ----------
 
 app.post('/api/contact', async (req, res) => {
@@ -5129,6 +5275,14 @@ const validateTimelineInput = (body = {}) => {
   if (!title) return { error: 'Timeline title is required.' };
 
   return { title, description: description || null };
+};
+
+const validateConclusionInput = (body = {}) => {
+  const description = normalizeText(body.description);
+
+  if (!description) return { error: 'Conclusion description is required.' };
+
+  return { description };
 };
 
 const findCaseStudyDetailByCaseStudyId = (caseStudyId) =>

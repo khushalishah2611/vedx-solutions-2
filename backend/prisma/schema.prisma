@@ -439,6 +439,7 @@ model CaseStudyDetail {
   impacts            CaseStudyImpact[]
   teamMembers        CaseStudyTeamMember[]
   timelines          CaseStudyTimeline[]
+  conclusions        CaseStudyConclusion[]
 
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
@@ -561,6 +562,19 @@ model CaseStudyTimeline {
   detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
 
   title       String
+  description String?          @db.LongText
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([detailId])
+}
+
+model CaseStudyConclusion {
+  id          Int              @id @default(autoincrement())
+  detailId    Int
+  detail      CaseStudyDetail  @relation(fields: [detailId], references: [id], onDelete: Cascade)
+
   description String?          @db.LongText
 
   createdAt   DateTime         @default(now())
