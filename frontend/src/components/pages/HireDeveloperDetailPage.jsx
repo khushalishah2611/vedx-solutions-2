@@ -18,15 +18,25 @@ import ServicesBlog from '../shared/ServicesBlog.jsx';
 
 import { hireDeveloperDetailContent } from '../../data/hireDevelopers.js';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
+import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 
 const HireDeveloperDetailPage = () => {
   const theme = useTheme();
   const { categorySlug, roleSlug } = useParams();
   const navigate = useNavigate();
   const { openDialog } = useContactDialog();
+  const { hireCategories, hireRoles, isLoading } = useServiceHireCatalog();
 
   const category = hireDeveloperDetailContent[categorySlug ?? ''];
   const role = category?.roles?.[roleSlug ?? ''];
+  const apiCategory = useMemo(
+    () => hireCategories.find((item) => item.slug === categorySlug),
+    [categorySlug, hireCategories]
+  );
+  const apiRole = useMemo(
+    () => hireRoles.find((item) => item.slug === roleSlug),
+    [hireRoles, roleSlug]
+  );
 
   // Scroll to top on slug change
   useEffect(() => {
@@ -35,10 +45,10 @@ const HireDeveloperDetailPage = () => {
 
   // Redirect if invalid category / role
   useEffect(() => {
-    if (!category || !role) {
+    if (!category && !role && !apiCategory && !apiRole && !isLoading) {
       navigate('/hire-developers', { replace: true });
     }
-  }, [category, navigate, role]);
+  }, [apiCategory, apiRole, category, isLoading, navigate, role]);
 
   const handleOpenContact = useCallback(() => {
     openDialog();
@@ -52,7 +62,7 @@ const HireDeveloperDetailPage = () => {
   }, [category, roleSlug]);
 
   // If redirecting, avoid rendering
-  if (!category || !role) {
+  if (!category && !role && !apiCategory && !apiRole && isLoading) {
     return null;
   }
 
@@ -75,8 +85,8 @@ const HireDeveloperDetailPage = () => {
     >
       {/* === HERO SECTION === */}
       <HireDeveloperHero
-        category={category}
-        role={role}
+        category={category ?? apiCategory}
+        role={role ?? apiRole}
         stats={servicesHeroStats}
         onContactClick={handleOpenContact}
         dividerColor={dividerColor}

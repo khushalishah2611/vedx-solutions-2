@@ -6,6 +6,7 @@ import NavigationBar from './shared/NavigationBar.jsx';
 import ContactDialog from './shared/ContactDialog.jsx';
 import ContactDialogContext from '../contexts/ContactDialogContext.jsx';
 import ScrollToTopButton from './shared/ScrollToTopButton.jsx';
+import LoadingOverlay from './shared/LoadingOverlay.jsx';
 
 const SiteLayout = () => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
@@ -32,6 +33,7 @@ const SiteLayout = () => {
           flexDirection: 'column'
         }}
       >
+        <LoadingOverlay />
         <NavigationBar />
         <Box component="main" sx={{ flexGrow: 1 }}>
           <Outlet />

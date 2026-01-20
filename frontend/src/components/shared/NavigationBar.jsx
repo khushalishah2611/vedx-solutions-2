@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { AppBar, Box, ButtonBase, Collapse, Divider, Drawer, IconButton, List, ListItemButton, ListItemText, MenuItem, MenuList, Popover, Stack, Toolbar, Typography, alpha, useMediaQuery, useTheme } from '@mui/material';
 import { AppButton } from './FormControls.jsx';
 
@@ -14,6 +14,7 @@ import { ColorModeContext } from '../../contexts/ColorModeContext.jsx';
 import { Link as RouterLink } from 'react-router-dom';
 import { createAnchorHref } from '../../utils/formatters.js';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
+import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 
 const aboutMenuItems = [
   { label: 'About Us', to: '/about' },
@@ -25,8 +26,17 @@ const NavigationBar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode } = useContext(ColorModeContext);
   const { openDialog: openContactDialog } = useContactDialog();
+  const { serviceMenu, hireMenu } = useServiceHireCatalog();
 
   const [open, setOpen] = useState(false);
+
+  const menuContent = useMemo(
+    () => ({
+      services: serviceMenu ?? megaMenuContent.services,
+      hireDevelopers: hireMenu ?? megaMenuContent.hireDevelopers,
+    }),
+    [hireMenu, serviceMenu]
+  );
 
   const createDefaultExpanded = () => ({
     services: false,
@@ -34,15 +44,15 @@ const NavigationBar = () => {
     about: false
   });
 
-  const createDefaultCategoryExpanded = () =>
-    Object.keys(megaMenuContent).reduce((acc, key) => {
+  const createDefaultCategoryExpanded = (menuConfig) =>
+    Object.keys(menuConfig).reduce((acc, key) => {
       acc[key] = {};
       return acc;
     }, {});
 
   const [expandedMenus, setExpandedMenus] = useState(createDefaultExpanded);
   const [expandedCategories, setExpandedCategories] = useState(
-    createDefaultCategoryExpanded
+    () => createDefaultCategoryExpanded(menuContent)
   );
   const [serviceAnchor, setServiceAnchor] = useState(null);
   const [hireAnchor, setHireAnchor] = useState(null);
@@ -59,6 +69,22 @@ const NavigationBar = () => {
   };
 
   const highlightColor = mode === 'dark' ? '#67e8f9' : theme.palette.primary.main;
+
+  useEffect(() => {
+    setExpandedCategories(createDefaultCategoryExpanded(menuContent));
+  }, [menuContent]);
+
+  useEffect(() => {
+    if (activeServiceIndex >= menuContent.services.categories.length) {
+      setActiveServiceIndex(0);
+    }
+  }, [activeServiceIndex, menuContent.services.categories.length]);
+
+  useEffect(() => {
+    if (activeHireIndex >= menuContent.hireDevelopers.categories.length) {
+      setActiveHireIndex(0);
+    }
+  }, [activeHireIndex, menuContent.hireDevelopers.categories.length]);
 
   const desktopLinkSx = {
     fontWeight: 600,
@@ -86,7 +112,7 @@ const NavigationBar = () => {
 
   const resetDrawerState = () => {
     setExpandedMenus(createDefaultExpanded());
-    setExpandedCategories(createDefaultCategoryExpanded());
+    setExpandedCategories(createDefaultCategoryExpanded(menuContent));
     setServiceAnchor(null);
     setHireAnchor(null);
     setAboutAnchor(null);
@@ -714,7 +740,7 @@ const NavigationBar = () => {
                 }
 
                 const isExpanded = expandedMenus[item.menu];
-                const config = megaMenuContent[item.menu];
+                const config = menuContent[item.menu];
 
                 return (
                   <Box key={item.label}>
@@ -946,7 +972,7 @@ const NavigationBar = () => {
         renderMegaMenu(
           serviceAnchor,
           handleServiceClose,
-          megaMenuContent.services,
+          menuContent.services,
           activeServiceIndex,
           setActiveServiceIndex
         )}
@@ -954,7 +980,7 @@ const NavigationBar = () => {
         renderMegaMenu(
           hireAnchor,
           handleHireClose,
-          megaMenuContent.hireDevelopers,
+          menuContent.hireDevelopers,
           activeHireIndex,
           setActiveHireIndex
         )}

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import ColorModeProvider from './contexts/ColorModeContext.jsx';
+import { LoadingProvider } from './contexts/LoadingContext.jsx';
 
 const registerCopyPrevention = () => {
   document.addEventListener('contextmenu', (event) => event.preventDefault());
@@ -62,13 +63,14 @@ const hideSplashScreen = () => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ColorModeProvider>
-      <App />
-    </ColorModeProvider>
+    <LoadingProvider>
+      <ColorModeProvider>
+        <App />
+      </ColorModeProvider>
+    </LoadingProvider>
   </React.StrictMode>
 );
 
 registerCopyPrevention();
 registerScreenshotPrevention();
 hideSplashScreen();
-

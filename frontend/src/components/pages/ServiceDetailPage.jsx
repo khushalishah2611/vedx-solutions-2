@@ -6,7 +6,7 @@ import {
   useTheme
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { serviceDetailContent } from '../../data/serviceDetailContent.js';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
@@ -21,31 +21,41 @@ import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import ServiceHero from '../sections/servicepage/ServiceHero.jsx';
+import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 
 const ServiceDetailPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { categorySlug, serviceSlug } = useParams();
   const { openDialog } = useContactDialog();
+  const { serviceCategories, serviceSubCategories, isLoading } = useServiceHireCatalog();
 
   const category = serviceDetailContent[categorySlug ?? ''];
   const service = category?.services?.[serviceSlug ?? ''];
+  const apiCategory = useMemo(
+    () => serviceCategories.find((item) => item.slug === categorySlug),
+    [categorySlug, serviceCategories]
+  );
+  const apiSubCategory = useMemo(
+    () => serviceSubCategories.find((item) => item.slug === serviceSlug),
+    [serviceSlug, serviceSubCategories]
+  );
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [categorySlug, serviceSlug]);
 
   useEffect(() => {
-    if (!category || !service) {
+    if (!category && !service && !apiCategory && !apiSubCategory && !isLoading) {
       navigate('/services', { replace: true });
     }
-  }, [category, navigate, service]);
+  }, [apiCategory, apiSubCategory, category, isLoading, navigate, service]);
 
   const handleOpenContact = useCallback(() => {
     openDialog();
   }, [openDialog]);
 
-  if (!category || !service) {
+  if (!category && !service && !apiCategory && !apiSubCategory && isLoading) {
     return null;
   }
 
@@ -53,10 +63,10 @@ const ServiceDetailPage = () => {
 
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
 
-  const categoryTitle = category.menuLabel ?? 'Services';
-  const serviceName = service.name ?? 'Service Detail';
-  const heroTitle = category.title;
-  const heroDescription = category.description;
+  const categoryTitle = category?.menuLabel ?? apiCategory?.name ?? 'Services';
+  const serviceName = service?.name ?? apiSubCategory?.name ?? 'Service Detail';
+  const heroTitle = category?.title ?? apiSubCategory?.name ?? apiCategory?.name;
+  const heroDescription = category?.description ?? apiSubCategory?.description ?? apiCategory?.description;
 
 
   return (

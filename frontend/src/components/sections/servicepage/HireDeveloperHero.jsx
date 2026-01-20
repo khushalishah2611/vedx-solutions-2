@@ -28,11 +28,11 @@ const HireDeveloperHero = ({
     [dividerColor, isDark, theme.palette.divider]
   );
 
-  const categoryTitle = category?.title ?? 'Services';
-  const serviceName = role?.name ?? 'Service Details';
+  const categoryTitle = category?.title ?? category?.name ?? 'Services';
+  const serviceName = role?.name ?? role?.title ?? 'Service Details';
 
   const resolvedHeroTitle =
-    heroTitle || role?.heroTitle || role?.name || 'Full Stack Development Services';
+    heroTitle || role?.heroTitle || role?.name || role?.title || 'Full Stack Development Services';
 
   const resolvedHeroDescription =
     heroDescription ||
