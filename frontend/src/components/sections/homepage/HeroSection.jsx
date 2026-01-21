@@ -92,9 +92,26 @@ const HeroSection = () => {
           sx={{
             position: 'absolute',
             inset: 0,
+            pointerEvents: 'none',
             background: isDark
-              ? 'radial-gradient(circle at 20% 20%, rgba(99,102,241,0.35), transparent 45%), rgba(5,9,18,0.78)'
-              : 'radial-gradient(circle at 20% 20%, rgba(79,70,229,0.18), transparent 45%), rgba(241,245,249,0.88)',
+              ? `
+        linear-gradient(
+          90deg,
+          rgba(5,9,18,0.85) 0%,
+          rgba(5,9,18,0.65) 40%,
+          rgba(5,9,18,0.2) 70%,
+          rgba(5,9,18,0) 100%
+        )
+      `
+              : `
+        linear-gradient(
+          90deg,
+          rgba(241,245,249,0.9) 0%,
+          rgba(241,245,249,0.7) 40%,
+          rgba(241,245,249,0.3) 70%,
+          rgba(241,245,249,0) 100%
+        )
+      `,
           }}
         />
       </Box>
