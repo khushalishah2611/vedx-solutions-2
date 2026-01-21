@@ -22,7 +22,7 @@ const ServicesWhyChoose = () => {
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const { fetchWithLoading } = useLoadingFetch();
-  const [apiHighlights, setApiHighlights] = useState([]);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -54,7 +54,7 @@ const ServicesWhyChoose = () => {
   }, [fetchWithLoading]);
 
   const highlights = useMemo(() => {
-    const resolved = apiHighlights.length > 0 ? apiHighlights : whyChooseVedx;
+    const resolved =  whyChooseVedx;
     return resolved.filter((item) => item?.title);
   }, [apiHighlights]);
 
@@ -130,14 +130,13 @@ const ServicesWhyChoose = () => {
                 {/* Icon */}
                 <Box
                   sx={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 2,
+                    width: 70,
+                    height: 70,
+                    borderRadius: 0.5,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: alpha(accentColor, 0.16),
-                    color: accentColor,
+                  
                     mb: 2,
                   }}
                 >
@@ -146,7 +145,7 @@ const ServicesWhyChoose = () => {
                       component="img"
                       src={highlight.image}
                       alt={highlight.title}
-                      sx={{ width: 32, height: 32, objectFit: 'contain' }}
+                      sx={{ width: 70, height: 70, objectFit: 'contain' }}
                     />
                   ) : (
                     Icon && <Icon />

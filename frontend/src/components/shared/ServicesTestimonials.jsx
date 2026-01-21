@@ -1,7 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import FormatQuoteRoundedIcon from '@mui/icons-material/FormatQuoteRounded';
-import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded';
-import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import {
   Box,
@@ -14,7 +11,7 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
-import { testimonialList } from '../../data/servicesPage.js';
+
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
