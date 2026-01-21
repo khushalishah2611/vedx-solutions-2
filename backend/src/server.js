@@ -8218,6 +8218,9 @@ app.get('/api/home/why-vedx-reasons/:id', async (req, res) => {
 // Admin: GET all reasons
 app.get('/api/admin/home/why-vedx-reasons', async (req, res) => {
   try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
     const items = await prisma.whyVedxReason.findMany({
       orderBy: { createdAt: 'desc' },
     });
@@ -8344,7 +8347,7 @@ app.delete('/api/admin/home/why-vedx-reasons/:id', async (req, res) => {
 });
 
 /* ============================================================
- * HIRE DEVELOPER – APIS
+ * HIRE DEVELOPER â€“ APIS
  * ============================================================
  */
 
@@ -9926,12 +9929,9 @@ const validateHomeWhyVedxReasonInputs = (body) => {
 };
 
 
-// Admin: GET all reasons
-app.get('/api/homes/why-vedx-reasons', async (req, res) => {
+// Public: GET all reasons (NO AUTH)
+app.get('/api/homes/why-vedx-reasons', async (_req, res) => {
   try {
-    const { admin, status, message } = await getAuthenticatedAdmin(req);
-    if (!admin) return res.status(status).json({ message });
-
     const items = await prisma.homeWhyVedxReason.findMany({
       orderBy: { createdAt: 'desc' },
     });
@@ -9942,6 +9942,7 @@ app.get('/api/homes/why-vedx-reasons', async (req, res) => {
     return res.status(500).json({ message: 'Unable to load reasons right now.' });
   }
 });
+
 
 // Admin: CREATE reason
 app.post('/api/homes/why-vedx-reasons', async (req, res) => {
@@ -10060,6 +10061,6 @@ process.on('SIGINT', async () => {
 });
 
 app.listen(port, () => {
-  console.log(`✅ API server listening on port ${port}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`âœ… API server listening on port ${port}`);
+  console.log(`ðŸ“Š Environment: ${process.env.NODE_ENV || 'development'}`);
 });
