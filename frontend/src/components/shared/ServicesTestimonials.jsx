@@ -33,7 +33,10 @@ const ServicesTestimonials = () => {
 
     const loadFeedbacks = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/admin/feedbacks?public=true'));
+        const token = localStorage.getItem('adminToken');
+        const response = await fetchWithLoading(apiUrl('/api/admin/feedbacks'), {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch feedbacks');
         }
