@@ -160,12 +160,13 @@ const ServicesEngagementModels = () => {
               {/* Image Section */}
               <Box
                 sx={{
-                  height: 300,
+                  height: 320,
                   backgroundImage: `url(${model.image})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   borderRadius: 0.5,
-
+                  p:2
+ 
                 }}
               />
 

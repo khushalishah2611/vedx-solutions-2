@@ -42,7 +42,7 @@ const ServicesWhyChoose = ({
 
     const loadHighlights = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/admin/home/why-vedx-reasons'));
+        const response = await fetchWithLoading(apiUrl('/api/homes/why-vedx-reasons'));
         if (!response.ok) {
           throw new Error('Failed to fetch why VEDX reasons');
         }

@@ -1,6 +1,4 @@
-/* ONLY HOVER ANIMATION ADDED — NO OTHER CHANGES */
-
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   ButtonBase,
@@ -12,11 +10,114 @@ import {
   Typography,
   alpha,
   useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { apiUrl } from "../../../utils/const.js";
 import { useLoadingFetch } from "../../../hooks/useLoadingFetch.js";
 
+
+function ServiceDetails({ activeService, theme, supportingTextColor }) {
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const capabilitiesList = useMemo(() => {
+    const raw =
+      (Array.isArray(activeService?.capabilities) && activeService.capabilities.length
+        ? activeService.capabilities
+        : null) ??
+      activeService?.capabilitiesText ??
+      activeService?.title ??
+      "";
+
+    if (Array.isArray(raw)) {
+      return raw.map((s) => String(s).trim()).filter(Boolean);
+    }
+
+    return String(raw)
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .filter((v, i, arr) => arr.indexOf(v) === i);
+  }, [activeService]);
+
+  const title = activeService?.sliderTitle ?? activeService?.title ?? "Service";
+  const description = activeService?.sliderDescription ?? activeService?.description ?? "";
+
+  const renderCapabilityText = (capability) => (
+    <Typography
+      key={capability}
+      variant="body2"
+      sx={{
+        fontWeight: 600,
+        cursor: "pointer",
+        transition: "0.3s",
+        color: supportingTextColor,
+        "&:hover": {
+          color: "transparent",
+          backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
+          WebkitBackgroundClip: "text",
+        },
+      }}
+    >
+      {capability}
+    </Typography>
+  );
+
+  return (
+    <Grid item xs={12} md={6} sx={{ mt: { xs: 5, md: 0 } }}>
+      <Slide in={true} direction="left" timeout={500} key={title}>
+        <Stack spacing={3}>
+          <Typography variant="h4" sx={{ fontSize: { xs: 26, md: 34 }, fontWeight: 700 }}>
+            {title}
+          </Typography>
+
+          <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.7) }} />
+
+          <Typography variant="body1" sx={{ color: supportingTextColor }}>
+            {description}
+          </Typography>
+
+
+          {capabilitiesList.length > 0 && (
+            isMobile ? (
+              capabilitiesList.length < 10 ? (
+
+                <Stack spacing={1.2}>{capabilitiesList.map(renderCapabilityText)}</Stack>
+              ) : (
+
+                <Grid container spacing={1.5}>
+                  {capabilitiesList.map((capability) => (
+                    <Grid item xs={6} key={capability}>
+                      {renderCapabilityText(capability)}
+                    </Grid>
+                  ))}
+                </Grid>
+              )
+            ) : (
+              capabilitiesList.length < 10 ? (
+
+                <Stack spacing={1.2}>{capabilitiesList.map(renderCapabilityText)}</Stack>
+              ) : (
+
+                <Grid container spacing={1.5}>
+                  {capabilitiesList.map((capability) => (
+                    <Grid item xs={6} sm={4} md={6} key={capability}>
+                      {renderCapabilityText(capability)}
+                    </Grid>
+                  ))}
+                </Grid>
+              )
+            )
+          )}
+        </Stack>
+      </Slide>
+    </Grid>
+  );
+}
+
+/* =========================
+   MAIN COMPONENT
+========================= */
 const ServicesShowcase = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -25,19 +126,72 @@ const ServicesShowcase = () => {
 
   const [apiSliders, setApiSliders] = useState([]);
   const [apiServices, setApiServices] = useState([]);
-
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // ✅ ONLY API DATA (static removed)
+
   const resolvedServices = useMemo(() => apiServices ?? [], [apiServices]);
 
-  const activeService = resolvedServices[activeIndex] ?? resolvedServices[0];
+
+  const resolvedSliders = useMemo(() => apiSliders ?? [], [apiSliders]);
+
+
+  const leftItems = useMemo(() => {
+    if (resolvedSliders.length > 0) return resolvedSliders;
+    return (resolvedServices ?? []).map((s) => ({
+      id: s?.sliderId ?? s?.slider?.id ?? null,
+      title: s?.sliderTitle ?? s?.title ?? "",
+      image: s?.sliderImage ?? s?.image ?? "",
+    }));
+  }, [resolvedSliders, resolvedServices]);
+
+  const leftItemsLength = leftItems.length;
+
+  const safeServiceIndex = useMemo(() => {
+    if (!resolvedServices.length) return 0;
+    return Math.min(activeIndex, Math.max(0, resolvedServices.length - 1));
+  }, [activeIndex, resolvedServices.length]);
+
+
+  const activeServiceFromServices = useMemo(() => {
+    if (!resolvedServices.length) return null;
+
+    const left = leftItems?.[activeIndex];
+    const leftId = left?.id;
+
+    if (leftId != null) {
+      const match = resolvedServices.find((s) => s?.sliderId === leftId);
+      if (match) return match;
+    }
+
+    return resolvedServices[safeServiceIndex] ?? null;
+  }, [resolvedServices, leftItems, activeIndex, safeServiceIndex]);
+
+  const activeService = useMemo(() => {
+    const fallbackLeft = leftItems?.[activeIndex] ?? null;
+
+    return {
+      ...(activeServiceFromServices ?? {}),
+
+
+      sliderTitle:
+        activeServiceFromServices?.sliderTitle ||
+        activeServiceFromServices?.title ||
+        fallbackLeft?.title ||
+        "Service",
+
+
+      sliderDescription:
+        activeServiceFromServices?.sliderDescription ||
+        activeServiceFromServices?.blurb ||
+        activeServiceFromServices?.description ||
+        "",
+    };
+  }, [activeServiceFromServices, leftItems, activeIndex]);
 
   const scrollRef = useRef(null);
 
   const scrollToIndex = useCallback((index) => {
     if (!scrollRef.current) return;
-
     const card = scrollRef.current.children[index];
     if (!card) return;
 
@@ -48,22 +202,22 @@ const ServicesShowcase = () => {
   }, []);
 
   const goNext = useCallback(() => {
-    if (!resolvedServices.length) return;
+    if (!leftItemsLength) return;
     setActiveIndex((prev) => {
-      const next = (prev + 1) % resolvedServices.length;
+      const next = (prev + 1) % leftItemsLength;
       scrollToIndex(next);
       return next;
     });
-  }, [resolvedServices.length, scrollToIndex]);
+  }, [leftItemsLength, scrollToIndex]);
 
   const goPrev = useCallback(() => {
-    if (!resolvedServices.length) return;
+    if (!leftItemsLength) return;
     setActiveIndex((prev) => {
-      const next = (prev - 1 + resolvedServices.length) % resolvedServices.length;
+      const next = (prev - 1 + leftItemsLength) % leftItemsLength;
       scrollToIndex(next);
       return next;
     });
-  }, [resolvedServices.length, scrollToIndex]);
+  }, [leftItemsLength, scrollToIndex]);
 
   const syncActiveIndexWithScroll = useCallback(() => {
     if (!scrollRef.current) return;
@@ -94,16 +248,14 @@ const ServicesShowcase = () => {
     const handleScroll = () => syncActiveIndexWithScroll();
     container.addEventListener("scroll", handleScroll, { passive: true });
 
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-    };
+    return () => container.removeEventListener("scroll", handleScroll);
   }, [syncActiveIndexWithScroll]);
 
   useEffect(() => {
-    if (activeIndex >= resolvedServices.length) {
+    if (activeIndex >= leftItemsLength && leftItemsLength > 0) {
       setActiveIndex(0);
     }
-  }, [activeIndex, resolvedServices.length]);
+  }, [activeIndex, leftItemsLength]);
 
   useEffect(() => {
     let isMounted = true;
@@ -124,21 +276,55 @@ const ServicesShowcase = () => {
 
         if (!isMounted) return;
 
-        const activeSliders = (slidersData ?? []).filter((item) => item?.isActive ?? true);
+        const activeSliders = (slidersData ?? [])
+          .filter((item) => (item?.isActive ?? true) === true)
+          .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+          .map((item) => ({
+            id: item?.id ?? item?._id ?? null,
+            title: item?.sliderTitle ?? item?.title ?? "",
+            image: item?.sliderImage ?? item?.image ?? "",
+          }))
+          .filter((x) => x?.title || x?.image);
+
         setApiSliders(activeSliders);
 
         const mappedServices = (servicesData ?? [])
-          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-          .map((item) => ({
-            title: item.title,
-            image: item.image,
-            blurb: item.subtitle || item.description || "",
-            capabilities: item.capabilities ?? [],
-          }));
+          .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+          .map((item) => {
+            const sliderObj = item?.slider ?? null;
+
+            const sliderId = sliderObj?.id ?? item?.sliderId ?? null;
+            const sliderTitle = sliderObj?.sliderTitle ?? item?.sliderTitle ?? item?.title ?? "";
+            const sliderDescription =
+              sliderObj?.sliderDescription ??
+              item?.sliderDescription ??
+              item?.subtitle ??
+              item?.description ??
+              "";
+
+            return {
+              sliderId,
+              sliderTitle,
+              sliderDescription,
+              sliderImage: sliderObj?.sliderImage ?? item?.sliderImage ?? item?.image ?? "",
+
+              title: item?.title ?? "",
+              image: item?.image ?? "",
+              blurb: item?.subtitle || item?.description || "",
+
+              capabilities: Array.isArray(item?.capabilities)
+                ? item.capabilities
+                : typeof item?.capabilities === "string"
+                  ? item.capabilities
+                  : [],
+            };
+          })
+          .filter((x) => x?.sliderTitle || x?.title || x?.sliderDescription || x?.blurb || x?.image);
 
         setApiServices(mappedServices);
       } catch (error) {
         console.error("Failed to load services showcase", error);
+        setApiSliders([]);
         setApiServices([]);
       }
     };
@@ -166,22 +352,6 @@ const ServicesShowcase = () => {
     : "linear-gradient(180deg, rgba(15,23,42,0.35) 15%, rgba(15,23,42,0.75) 90%)";
 
   const supportingTextColor = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.9);
-
-  // ✅ if API empty
-  if (!resolvedServices.length) {
-    return (
-      <Box id="services">
-        <Stack spacing={3} alignItems="center" textAlign="center">
-          <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 44 }, fontWeight: 700 }}>
-            Our Services
-          </Typography>
-          <Typography sx={{ color: supportingTextColor }}>
-            No services found. Please add featured services from admin or check API.
-          </Typography>
-        </Stack>
-      </Box>
-    );
-  }
 
   return (
     <Box id="services">
@@ -256,10 +426,13 @@ const ServicesShowcase = () => {
                   "&::-webkit-scrollbar": { display: "none" },
                 }}
               >
-                {resolvedServices.map((service, index) => {
+                {leftItems.map((item, index) => {
                   const active = index === activeIndex;
                   return (
-                    <Box key={service.title} sx={{ minWidth: "75%", scrollSnapAlign: "center" }}>
+                    <Box
+                      key={`${item?.title ?? "item"}-${index}`}
+                      sx={{ minWidth: "75%", scrollSnapAlign: "center" }}
+                    >
                       <ButtonBase
                         onClick={() => {
                           setActiveIndex(index);
@@ -274,7 +447,6 @@ const ServicesShowcase = () => {
                           boxShadow: active ? activeShadow : baseShadow,
                           transition: "all 0.35s ease",
                           position: "relative",
-                          /* --- HOVER ANIMATION ADDED --- */
                           "&:hover .hover-img": { transform: "scale(1.09)" },
                         }}
                       >
@@ -283,7 +455,7 @@ const ServicesShowcase = () => {
                           sx={{
                             position: "absolute",
                             inset: 0,
-                            backgroundImage: `url(${service.image})`,
+                            backgroundImage: `url(${item?.image || ""})`,
                             backgroundSize: "cover",
                             backgroundPosition: "center",
                             transform: active ? "scale(1.06)" : "scale(1)",
@@ -295,6 +467,8 @@ const ServicesShowcase = () => {
                           <Typography
                             sx={{
                               fontWeight: 700,
+                              px: 2,
+                              pb: 1.5,
                               "&:hover": {
                                 color: "transparent",
                                 backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
@@ -302,7 +476,7 @@ const ServicesShowcase = () => {
                               },
                             }}
                           >
-                            {service.title}
+                            {item?.title}
                           </Typography>
                         </Stack>
                       </ButtonBase>
@@ -314,10 +488,10 @@ const ServicesShowcase = () => {
 
             {/* DESKTOP GRID */}
             <Grid container spacing={2} sx={{ display: { xs: "none", md: "flex" } }}>
-              {resolvedServices.map((service, index) => {
+              {leftItems.map((item, index) => {
                 const active = index === activeIndex;
                 return (
-                  <Grid item xs={12} sm={4} key={service.title}>
+                  <Grid item xs={12} sm={4} key={`${item?.title ?? "item"}-${index}`}>
                     <ButtonBase
                       onClick={() => setActiveIndex(index)}
                       sx={{
@@ -329,7 +503,6 @@ const ServicesShowcase = () => {
                         boxShadow: active ? activeShadow : baseShadow,
                         transition: "all 0.35s ease",
                         position: "relative",
-                        /* --- HOVER ANIMATION ADDED --- */
                         "&:hover .hover-img": { transform: "scale(1.09)" },
                       }}
                     >
@@ -338,10 +511,11 @@ const ServicesShowcase = () => {
                         sx={{
                           position: "absolute",
                           inset: 0,
-                          backgroundImage: `url(${service.image})`,
+                          backgroundImage: `url(${item?.image || ""})`,
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                           transition: "transform 0.45s ease",
+                          transform: active ? "scale(1.06)" : "scale(1)",
                         }}
                       />
                       <Box sx={{ position: "absolute", inset: 0, background: overlayGradient }} />
@@ -349,6 +523,8 @@ const ServicesShowcase = () => {
                         <Typography
                           sx={{
                             fontWeight: 700,
+                            px: 2,
+                            pb: 1.5,
                             "&:hover": {
                               color: "transparent",
                               backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
@@ -356,7 +532,7 @@ const ServicesShowcase = () => {
                             },
                           }}
                         >
-                          {service.title}
+                          {item?.title}
                         </Typography>
                       </Stack>
                     </ButtonBase>
@@ -366,51 +542,10 @@ const ServicesShowcase = () => {
             </Grid>
           </Grid>
 
-          {/* DIVIDER */}
           <Grid item md="auto" sx={{ display: { xs: "none", md: "flex" }, alignItems: "stretch" }}>
             <Divider orientation="vertical" flexItem sx={{ borderColor: alpha(theme.palette.divider, 0.7), mx: 3 }} />
           </Grid>
-
-          {/* RIGHT SIDE CONTENT */}
-          <Grid item xs={12} md={6} sx={{ mt: { xs: 5, md: 0 } }}>
-            <Slide in={true} direction="left" timeout={500} key={activeService?.title}>
-              <Stack spacing={3}>
-                <Typography variant="h4" sx={{ fontSize: { xs: 26, md: 34 }, fontWeight: 700 }}>
-                  {activeService?.title}
-                </Typography>
-
-                <Divider sx={{ borderColor: alpha(theme.palette.divider, 0.7) }} />
-
-                <Typography variant="body1" sx={{ color: supportingTextColor }}>
-                  {activeService?.blurb}
-                </Typography>
-
-                {activeService?.capabilities?.length > 0 && (
-                  <Stack spacing={1.5}>
-                    {activeService.capabilities.map((capability) => (
-                      <Typography
-                        key={capability}
-                        variant="body2"
-                        sx={{
-                          fontWeight: 900,
-                          cursor: "pointer",
-                          transition: "0.3s",
-                          color: supportingTextColor,
-                          "&:hover": {
-                            color: "transparent",
-                            backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
-                            WebkitBackgroundClip: "text",
-                          },
-                        }}
-                      >
-                        {capability}
-                      </Typography>
-                    ))}
-                  </Stack>
-                )}
-              </Stack>
-            </Slide>
-          </Grid>
+          <ServiceDetails activeService={activeService} theme={theme} supportingTextColor={supportingTextColor} />
         </Grid>
       </Stack>
     </Box>
