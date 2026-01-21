@@ -30,7 +30,7 @@ const ServicesTestimonials = () => {
 
     const loadFeedbacks = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/admin/feedbacks'));
+        const response = await fetchWithLoading(apiUrl('/api/feedbacks'));
         if (!response.ok) {
           throw new Error('Failed to fetch feedbacks');
         }

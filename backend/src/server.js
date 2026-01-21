@@ -4591,6 +4591,19 @@ app.delete('/api/admin/contacts/:id', async (req, res) => {
 
 // ---------- Feedback Routes ----------
 
+app.get('/api/feedbacks', async (req, res) => {
+  try {
+    const feedbacks = await prisma.clientFeedback.findMany({
+      orderBy: [{ createdAt: 'desc' }],
+    });
+
+    return res.json({ feedbacks: feedbacks.map(formatFeedbackResponse) });
+  } catch (error) {
+    console.error('Feedback list (public) failed', error);
+    return res.status(500).json({ message: 'Unable to load feedbacks right now.' });
+  }
+});
+
 app.get('/api/admin/feedbacks', async (req, res) => {
   try {
     const allowPublic = req.query.public === 'true';

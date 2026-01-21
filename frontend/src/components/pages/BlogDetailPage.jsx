@@ -76,25 +76,33 @@ const BlogDetailPage = () => {
   const normalizedApiPost = useMemo(() => {
     if (!apiPost) return null;
 
-    const summary = apiPost.shortDescription || apiPost.description || '';
-    const longDescription = apiPost.longDescription || apiPost.conclusion || summary;
+    const summary = apiPost.shortDescription || apiPost.description || apiPost.subtitle || '';
+    const longDescription = apiPost.longDescription || apiPost.conclusion || apiPost.description || '';
     const conclusion = apiPost.conclusion || '';
+    const sections = [];
+
+    if (summary) {
+      sections.push({ heading: 'Summary', paragraphs: [summary] });
+    }
+
+    if (longDescription && longDescription !== summary) {
+      sections.push({
+        heading: summary ? 'Details' : 'Overview',
+        paragraphs: [longDescription],
+      });
+    }
 
     return {
       id: apiPost.id,
       title: apiPost.title,
+      subtitle: apiPost.subtitle || '',
       slug: apiPost.slug,
       category: apiPost.category?.name || 'Uncategorized',
       tags: apiPost.tags || [],
       image: apiPost.coverImage || apiPost.blogImage || '',
       heroImage: apiPost.coverImage || apiPost.blogImage || '',
       publishedOn: apiPost.publishDate || apiPost.createdAt || '',
-      sections: [
-        {
-          heading: 'Overview',
-          paragraphs: longDescription ? [longDescription] : [],
-        },
-      ],
+      sections,
       conclusion: {
         heading: 'Conclusion',
         paragraphs: conclusion ? [conclusion] : [],
@@ -251,6 +259,18 @@ const BlogDetailPage = () => {
               >
                 {post.title}
               </Typography>
+              {post.subtitle && (
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: alpha('#f8fafc', 0.85),
+                    fontWeight: 500,
+                    maxWidth: 720,
+                  }}
+                >
+                  {post.subtitle}
+                </Typography>
+              )}
 
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}

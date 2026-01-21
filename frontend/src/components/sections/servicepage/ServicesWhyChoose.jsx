@@ -22,6 +22,7 @@ const ServicesWhyChoose = () => {
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const { fetchWithLoading } = useLoadingFetch();
+  const [apiHighlights, setApiHighlights] = useState([]);
 
 
   useEffect(() => {
@@ -54,7 +55,7 @@ const ServicesWhyChoose = () => {
   }, [fetchWithLoading]);
 
   const highlights = useMemo(() => {
-    const resolved =  whyChooseVedx;
+    const resolved = apiHighlights.length > 0 ? apiHighlights : whyChooseVedx;
     return resolved.filter((item) => item?.title);
   }, [apiHighlights]);
 
