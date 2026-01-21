@@ -141,6 +141,7 @@ const BlogDetailPage = () => {
     : 'linear-gradient(180deg, rgba(15,23,42,0.38) 0%, rgba(15,23,42,0.82) 100%)';
 
   const relatedPosts = getRelatedPosts(post.slug, post.category, post.tags);
+  const buildHtml = (value) => ({ __html: value ?? '' });
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
@@ -351,10 +352,10 @@ const BlogDetailPage = () => {
                       <Typography
                         key={i}
                         variant="body1"
+                        component="div"
                         sx={{ color: subtleText, lineHeight: 1.8 }}
-                      >
-                        {p}
-                      </Typography>
+                        dangerouslySetInnerHTML={buildHtml(p)}
+                      />
                     ))}
 
                     {section.bullets && (
@@ -388,10 +389,10 @@ const BlogDetailPage = () => {
                     <Typography
                       key={i}
                       variant="body1"
+                      component="div"
                       sx={{ color: subtleText, lineHeight: 1.8 }}
-                    >
-                      {p}
-                    </Typography>
+                      dangerouslySetInnerHTML={buildHtml(p)}
+                    />
                   ))}
                 </Stack>
 
