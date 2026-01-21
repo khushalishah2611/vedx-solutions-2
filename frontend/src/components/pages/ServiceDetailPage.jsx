@@ -76,6 +76,7 @@ const ServiceDetailPage = () => {
         serviceName={serviceName}
         heroTitle={heroTitle}
         heroDescription={heroDescription}
+        onContactClick={handleOpenContact}
         stats={[
           { label: 'Projects Delivered', value: '120+' },
           { label: 'Client Retention', value: '95%' },
@@ -101,7 +102,7 @@ const ServiceDetailPage = () => {
         <Box my={10}><FullStackDeveloper onContactClick={handleOpenContact} /></Box>
         <Box my={10}><ServicesTechnologies /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}><ServicesWhyChoose /></Box>
+        <Box my={10}><ServicesWhyChoose onContactClick={handleOpenContact} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}><ServicesProcess /></Box>
         <Divider sx={{ borderColor: dividerColor }} />

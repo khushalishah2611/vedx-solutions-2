@@ -49,7 +49,7 @@ const HireDevelopersPage = () => {
         </Box>
 
         <Box my={10}>
-          <ServicesWhyChoose />
+          <ServicesWhyChoose onContactClick={handleOpenContact} />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 

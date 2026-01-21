@@ -23,7 +23,7 @@ const HomePage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
-      <HeroSection />
+      <HeroSection onRequestContact={handleContactRequest} />
 
 
 
@@ -45,7 +45,9 @@ const HomePage = () => {
         </Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}> <ServicesWhyChoose /></Box>
+        <Box my={10}>
+          <ServicesWhyChoose onRequestContact={handleContactRequest} />
+        </Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
 

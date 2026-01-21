@@ -9,12 +9,23 @@ const ServiceHero = ({
   serviceName,
   heroTitle,
   heroDescription,
+  onContactClick,
+  onRequestContact,
+  contactAnchorId = 'contact-section',
   stats = [], // [{ label, value }]
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.75);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const handleContactClick = () => {
+    onRequestContact?.(serviceName || '');
+    onContactClick?.();
+    const anchor = document.getElementById(contactAnchorId);
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <Box
@@ -143,7 +154,7 @@ const ServiceHero = ({
               <AppButton
                 variant="contained"
                 size="large"
-                href="#contact"
+                onClick={handleContactClick}
                 sx={{
                   background:
                     'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',

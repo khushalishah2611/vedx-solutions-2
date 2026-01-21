@@ -7,7 +7,7 @@ import { useBannersByType } from '../../../hooks/useBannersByType.js';
 
 const SLIDE_INTERVAL = 7000;
 
-const HeroSection = () => {
+const HeroSection = ({ onRequestContact, contactAnchorId = 'contact-section' }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const fallbackSlides = heroContent.slides;
@@ -53,6 +53,13 @@ const HeroSection = () => {
 
   const currentSlide = slides[activeSlide] ?? fallbackSlides[0];
   const hasHighlight = Boolean(currentSlide?.highlight);
+  const handleContactClick = () => {
+    onRequestContact?.('');
+    const anchor = document.getElementById(contactAnchorId);
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <Box
@@ -162,7 +169,7 @@ const HeroSection = () => {
               <AppButton
                 variant="contained"
                 size="large"
-                href="#contact"
+                onClick={handleContactClick}
                 sx={{
                   background:
                     'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',

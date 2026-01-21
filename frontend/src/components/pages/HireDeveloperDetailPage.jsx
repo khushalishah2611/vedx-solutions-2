@@ -121,7 +121,7 @@ const HireDeveloperDetailPage = () => {
         </Box>
 
         <Box my={10}>
-          <ServicesWhyChoose />
+          <ServicesWhyChoose onContactClick={handleOpenContact} />
         </Box>
 
         <Box my={10}>

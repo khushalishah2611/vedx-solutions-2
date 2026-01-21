@@ -16,11 +16,23 @@ const highlightIcons = [
   AutoAwesomeRoundedIcon
 ];
 
-const ServicesWhyChoose = () => {
+const ServicesWhyChoose = ({
+  onContactClick,
+  onRequestContact,
+  contactAnchorId = 'contact-section',
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
+  const handleRequestQuote = () => {
+    onRequestContact?.('');
+    onContactClick?.();
+    const anchor = document.getElementById(contactAnchorId);
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
   const { fetchWithLoading } = useLoadingFetch();
   const [apiHighlights, setApiHighlights] = useState([]);
 
@@ -184,6 +196,7 @@ const ServicesWhyChoose = () => {
           variant="contained"
           size="large"
           endIcon={<ArrowOutwardRoundedIcon />}
+          onClick={handleRequestQuote}
           sx={{
             background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
             color: '#fff',

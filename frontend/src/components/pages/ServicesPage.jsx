@@ -64,7 +64,7 @@ const ServicesPage = ({ showHero = true }) => {
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
-          <ServicesWhyChoose />
+          <ServicesWhyChoose onContactClick={handleOpenContact} />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 

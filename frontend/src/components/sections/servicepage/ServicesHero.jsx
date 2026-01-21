@@ -3,11 +3,23 @@ import { AppButton } from '../../shared/FormControls.jsx';
 
 import { servicesHeroStats } from "../../../data/servicesPage.js";
 
-const ServicesHero = ({ onContactClick }) => {
+const ServicesHero = ({
+  onContactClick,
+  onRequestContact,
+  contactAnchorId = 'contact-section',
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
+  const handleContactClick = () => {
+    onRequestContact?.('');
+    onContactClick?.();
+    const anchor = document.getElementById(contactAnchorId);
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   return (
     <Box
@@ -78,7 +90,7 @@ const ServicesHero = ({ onContactClick }) => {
               <AppButton
                 variant="contained"
                 size="large"
-                href="#contact"
+                onClick={handleContactClick}
                 sx={{
                   background:
                     "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
