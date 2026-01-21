@@ -32,12 +32,10 @@ const ServicesTestimonials = () => {
     let isMounted = true;
 
     const loadFeedbacks = async () => {
-      const token = localStorage.getItem('adminToken');
-      if (!token) return;
-
       try {
+        const token = localStorage.getItem('adminToken');
         const response = await fetchWithLoading(apiUrl('/api/admin/feedbacks'), {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
         if (!response.ok) {
           throw new Error('Failed to fetch feedbacks');

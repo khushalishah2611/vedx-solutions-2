@@ -34,6 +34,7 @@ const mapCaseStudyDetailFromApi = (caseStudy) => {
   const developmentChallenges = Array.isArray(detail.developmentChallenges) ? detail.developmentChallenges : [];
   const apps = Array.isArray(detail.apps) ? detail.apps : [];
   const impacts = Array.isArray(detail.impacts) ? detail.impacts : [];
+  const timelines = Array.isArray(detail.timelines) ? detail.timelines : [];
   const conclusions = Array.isArray(detail.conclusions) ? detail.conclusions : [];
 
   const screenshots = apps.flatMap((app) => (Array.isArray(app.images) ? app.images : []));
@@ -68,7 +69,12 @@ const mapCaseStudyDetailFromApi = (caseStudy) => {
       label: `Impact ${index + 1}`,
       value: impact.title || '',
     })),
-    conclusion: conclusions.map((item) => item.description).filter(Boolean).join(' '),
+    timelineSteps: timelines.map((item) => ({
+      label: item.title || '',
+      duration: item.duration || item.time || '',
+      detail: item.description || '',
+    })),
+    conclusion: conclusions[0]?.description || '',
   };
 };
 
@@ -207,7 +213,7 @@ const CaseStudyDetailPage = () => {
             </Box>
 
             <Box sx={{ my: sectionSpacing }}>
-              <CaseStudyRoadmapSection animate={animate} />
+              <CaseStudyRoadmapSection animate={animate} steps={caseStudy.timelineSteps} />
             </Box>
 
             <Box sx={{ my: sectionSpacing }}>

@@ -2,7 +2,7 @@ import React from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { Box, Stack, Typography, Card, CardContent } from '@mui/material';
 
-const steps = [
+const DEFAULT_STEPS = [
   {
     label: 'Discovery & planning Phase',
     duration: '4 Weeks',
@@ -158,13 +158,15 @@ const RoadmapStep = ({ step, index, isEven, animate = true }) => {
         >
           <CardContent sx={{ p: { xs: 1.8, md: 2.2 } }}>
             <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.2 }}>
-              {step.label}{' '}
-              <Typography
-                component="span"
-                sx={{ color: '#a1a1aa', fontWeight: 400, ml: 0.5 }}
-              >
-                {step.duration}
-              </Typography>
+              {step.label}
+              {step.duration ? (
+                <Typography
+                  component="span"
+                  sx={{ color: '#a1a1aa', fontWeight: 400, ml: 0.5 }}
+                >
+                  {step.duration}
+                </Typography>
+              ) : null}
             </Typography>
 
             <Typography variant="body2" sx={{ color: '#9ca3af', mt: 1 }}>
@@ -309,10 +311,11 @@ const RoadmapStep = ({ step, index, isEven, animate = true }) => {
   );
 };
 
-const CaseStudyRoadmapSection = ({ animate = true }) => {
+const CaseStudyRoadmapSection = ({ animate = true, steps }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = '#a855f7';
+  const stepsToRender = Array.isArray(steps) && steps.length > 0 ? steps : DEFAULT_STEPS;
 
   return (
     <Box
@@ -367,7 +370,7 @@ const CaseStudyRoadmapSection = ({ animate = true }) => {
       {/* ✅ MOBILE EXTRA SPACE FIX: remove big mt/mb wrappers */}
       <Box sx={{ mt: { xs: 8, md: 5 }, minHeight: '100vh'  }} >
         <Stack alignItems="center">
-          {steps.map((step, index) => (
+          {stepsToRender.map((step, index) => (
             <RoadmapStep
               key={index}
               step={step}

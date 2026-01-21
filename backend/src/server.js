@@ -480,6 +480,7 @@ const formatCaseStudyResponse = (caseStudy) => ({
   description: caseStudy.description || '',
   coverImage: caseStudy.coverImage || '',
   publishDate: caseStudy.publishedAt ? caseStudy.publishedAt.toISOString().split('T')[0] : null,
+  publishedAt: caseStudy.publishedAt ? caseStudy.publishedAt.toISOString() : null,
   status: deriveBlogUiStatus(caseStudy.status, caseStudy.publishedAt ? caseStudy.publishedAt.toISOString().split('T')[0] : null),
   tags: Array.isArray(caseStudy.tags) ? caseStudy.tags.map(formatTagResponse) : [],
   tagIds: Array.isArray(caseStudy.tags) ? caseStudy.tags.map((tag) => tag.id) : [],
@@ -2713,8 +2714,12 @@ app.get('/api/case-studies', async (req, res) => {
     const { page, pageSize, skip } = getPaginationParams(req.query, { defaultPageSize: 9, maxPageSize: 50 });
     const tagIds = parseIdList(req.query.tagIds || req.query.tags);
     const searchTerm = normalizeText(req.query.search || req.query.q);
+    const now = new Date();
 
-    const where = {};
+    const where = {
+      status: 'PUBLISHED',
+      OR: [{ publishedAt: null }, { publishedAt: { lte: now } }],
+    };
 
     if (tagIds.length > 0) {
       where.tags = { some: { id: { in: tagIds } } };
@@ -2776,9 +2781,14 @@ app.get('/api/case-studies/:slug', async (req, res) => {
   try {
     const slug = normalizeSlug(req.params.slug);
     if (!slug) return res.status(400).json({ message: 'A valid slug is required.' });
+    const now = new Date();
 
     const caseStudy = await prisma.caseStudy.findFirst({
-      where: { slug },
+      where: {
+        slug,
+        status: 'PUBLISHED',
+        OR: [{ publishedAt: null }, { publishedAt: { lte: now } }],
+      },
       include: CASE_STUDY_DETAIL_INCLUDE,
     });
 
@@ -4470,9 +4480,10 @@ app.get('/api/admin/contacts', async (req, res) => {
 
 app.post('/api/admin/contacts', async (req, res) => {
   try {
+    const allowPublic = req.query.public === 'true';
     const { admin, status, message } = await getAuthenticatedAdmin(req);
 
-    if (!admin) {
+    if (!admin && !allowPublic) {
       return res.status(status).json({ message });
     }
 
@@ -4582,9 +4593,10 @@ app.delete('/api/admin/contacts/:id', async (req, res) => {
 
 app.get('/api/admin/feedbacks', async (req, res) => {
   try {
+    const allowPublic = req.query.public === 'true';
     const { admin, status, message } = await getAuthenticatedAdmin(req);
 
-    if (!admin) {
+    if (!admin && !allowPublic) {
       return res.status(status).json({ message });
     }
 

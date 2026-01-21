@@ -1,10 +1,13 @@
-import { Box, Card, CardContent, Container, Grid, MenuItem, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Alert, Box, Card, CardContent, Container, Grid, MenuItem, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { AppButton, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
 
 import PhoneInTalkRoundedIcon from '@mui/icons-material/PhoneInTalkRounded';
 import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import { contactProjectTypes } from '../../data/servicesPage.js';
+import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const contactLocation = {
   address: 'Suite 6, Sharvari, Vadodra, India',
@@ -40,6 +43,106 @@ const ContactPage = () => {
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
+  const { fetchWithLoading } = useLoadingFetch();
+  const [projectTypes, setProjectTypes] = useState(contactProjectTypes || []);
+  const [formValues, setFormValues] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    projectType: '',
+    description: '',
+  });
+  const [statusMessage, setStatusMessage] = useState('');
+  const [statusSeverity, setStatusSeverity] = useState('success');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProjectTypes = async () => {
+      try {
+        const response = await fetchWithLoading(apiUrl('/api/project-types'));
+        if (!response.ok) {
+          throw new Error('Failed to fetch project types');
+        }
+        const payload = await response.json();
+        if (!isMounted) return;
+        const types = (payload.projectTypes || []).map((item) => item.name).filter(Boolean);
+        if (types.length > 0) {
+          setProjectTypes(types);
+        }
+      } catch (error) {
+        console.error('Failed to load project types', error);
+      }
+    };
+
+    loadProjectTypes();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const resolvedProjectType = useMemo(() => projectTypes?.[0] || '', [projectTypes]);
+
+  useEffect(() => {
+    setFormValues((prev) => {
+      if (!prev.projectType) {
+        return { ...prev, projectType: resolvedProjectType };
+      }
+      return prev;
+    });
+  }, [resolvedProjectType]);
+
+  const handleChange = (field) => (event) => {
+    setFormValues((prev) => ({ ...prev, [field]: event.target.value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setStatusMessage('');
+
+    const token = localStorage.getItem('adminToken');
+    const endpoint = token ? '/api/admin/contacts' : '/api/admin/contacts?public=true';
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    try {
+      const response = await fetch(apiUrl(endpoint), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: formValues.name,
+          email: formValues.email,
+          phone: formValues.phone,
+          projectType: formValues.projectType,
+          description: formValues.description,
+          contactType: 'Contact',
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to submit request.');
+      }
+      setStatusSeverity('success');
+      setStatusMessage(payload?.message || 'Thanks! Your enquiry has been received.');
+      setFormValues({
+        name: '',
+        email: '',
+        phone: '',
+        projectType: resolvedProjectType,
+        description: '',
+      });
+    } catch (error) {
+      setStatusSeverity('error');
+      setStatusMessage(error?.message || 'Unable to submit your enquiry right now.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Box
@@ -263,23 +366,51 @@ const ContactPage = () => {
                     </Typography>
                   </Stack>
 
-                  <Stack component="form" spacing={2} noValidate>
+                  <Stack component="form" spacing={2} noValidate onSubmit={handleSubmit}>
+                    {statusMessage ? (
+                      <Alert severity={statusSeverity}>{statusMessage}</Alert>
+                    ) : null}
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
-                      <AppTextField label="Name" fullWidth required variant="outlined" size="medium" />
-                      <AppTextField label="Email" type="email" fullWidth required variant="outlined" size="medium" />
+                      <AppTextField
+                        label="Name"
+                        fullWidth
+                        required
+                        variant="outlined"
+                        size="medium"
+                        value={formValues.name}
+                        onChange={handleChange('name')}
+                      />
+                      <AppTextField
+                        label="Email"
+                        type="email"
+                        fullWidth
+                        required
+                        variant="outlined"
+                        size="medium"
+                        value={formValues.email}
+                        onChange={handleChange('email')}
+                      />
                     </Stack>
 
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
-                      <AppTextField label="Mobile Number" fullWidth variant="outlined" size="medium" />
+                      <AppTextField
+                        label="Mobile Number"
+                        fullWidth
+                        variant="outlined"
+                        size="medium"
+                        value={formValues.phone}
+                        onChange={handleChange('phone')}
+                      />
                       <AppSelectField
                        
                         label="Project Type"
                         fullWidth
-                        defaultValue={contactProjectTypes?.[0] || ''}
+                        value={formValues.projectType}
                         variant="outlined"
                         size="medium"
+                        onChange={handleChange('projectType')}
                       >
-                        {(contactProjectTypes || []).map((type) => (
+                        {(projectTypes || []).map((type) => (
                           <MenuItem key={type} value={type}>
                             {type}
                           </MenuItem>
@@ -294,11 +425,15 @@ const ContactPage = () => {
                       minRows={4}
                       variant="outlined"
                       size="medium"
+                      value={formValues.description}
+                      onChange={handleChange('description')}
                     />
 
                     <AppButton
                       variant="contained"
                       size="large"
+                      type="submit"
+                      disabled={submitting}
                       sx={{
                         alignSelf: { xs: 'stretch', sm: 'flex-start' },
                         background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
@@ -313,7 +448,7 @@ const ContactPage = () => {
                         }
                       }}
                     >
-                      Submit Now
+                      {submitting ? 'Submitting...' : 'Submit Now'}
                     </AppButton>
                   </Stack>
                 </Stack>

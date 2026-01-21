@@ -1,4 +1,5 @@
 import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
+import { useCallback, useState } from 'react';
 import CreativeAgencySection from '../sections/homepage/CreativeAgencySection.jsx';
 import HeroSection from '../sections/homepage/HeroSection.jsx';
 import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
@@ -14,6 +15,11 @@ import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 const HomePage = () => {
   const theme = useTheme();
   const dividerColor = alpha(theme.palette.divider, 0.6);
+  const [contactPrefill, setContactPrefill] = useState('');
+
+  const handleContactRequest = useCallback((projectType) => {
+    setContactPrefill(projectType || '');
+  }, []);
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
@@ -49,7 +55,9 @@ const HomePage = () => {
         <Box my={10}><ServicesIndustries /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}><ServicesBusinessSolutions /></Box>
+        <Box my={10}>
+          <ServicesBusinessSolutions onRequestContact={handleContactRequest} />
+        </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}><ServicesTestimonials /></Box>
@@ -58,7 +66,9 @@ const HomePage = () => {
         <Box my={10}><ServicesEngagementModels /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}> <ServicesContact /></Box>
+        <Box my={10}>
+          <ServicesContact contactType="Home" prefillProjectType={contactPrefill} />
+        </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
