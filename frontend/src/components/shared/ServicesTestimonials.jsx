@@ -56,7 +56,7 @@ const ServicesTestimonials = () => {
   }, [fetchWithLoading]);
 
   const testimonials = useMemo(() => {
-    const resolved = apiFeedbacks.length > 0 ? apiFeedbacks : testimonialList;
+    const resolved =  apiFeedbacks;
     return resolved.filter((testimonial) => testimonial?.quote && testimonial?.name);
   }, [apiFeedbacks]);
 
