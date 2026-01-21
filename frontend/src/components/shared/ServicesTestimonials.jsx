@@ -177,8 +177,7 @@ const ServicesTestimonials = () => {
             maxWidth: 720
           }}
         >
-          There are many variations of passages of Lorem Ipsum available, but the
-          majority have suffered alteration.
+          Discover why clients choose us for innovative solutions, dependable service, and consistent project success.
         </Typography>
       </Stack>
 
@@ -224,7 +223,7 @@ const ServicesTestimonials = () => {
                 '&:hover': {
                   transform: 'translateY(-8px) scale(1.02)',
 
-                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
+                  borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
                 }
               }}
             >
