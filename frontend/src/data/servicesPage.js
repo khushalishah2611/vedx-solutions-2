@@ -114,37 +114,6 @@ export const technologyTabs = [
     ]
   },
   {
-    category: 'UI/UX',
-    technologies: [
-      { name: 'Figma', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg' },
-      { name: 'Adobe XD', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/xd/xd-plain.svg' },
-      { name: 'Sketch', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sketch/sketch-original.svg' },
-      { name: 'InVision', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/invision/invision-original.svg' },
-      { name: 'Framer', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/framer/framer-original.svg' },
-      { name: 'Zeplin', icon: 'https://cdn.worldvectorlogo.com/logos/zeplin.svg' },
-      { name: 'Miro', icon: 'https://cdn.worldvectorlogo.com/logos/miro-2.svg' },
-      { name: 'UserTesting', icon: 'https://seeklogo.com/images/U/usertesting-logo-3A6F5F8260-seeklogo.com.png' },
-      { name: 'Hotjar', icon: 'https://seeklogo.com/images/H/hotjar-logo-B72D9B9D8A-seeklogo.com.png' },
-      { name: 'Maze', icon: 'https://assets-global.website-files.com/5ff66329429d880392f6cba2/621e444a0bbd2c5b8ebce7b9_maze-logo-icon.png' },
-      { name: 'Optimal Workshop', icon: 'https://uploads-ssl.webflow.com/5fb3694be0c812a015d32660/5fb36a08832d40ca5cc11988_logo_yellow.svg' },
-      { name: 'Crazy Egg', icon: 'https://seeklogo.com/images/C/crazy-egg-logo-F6A8F1F064-seeklogo.com.png' }
-    ]
-  },
-  {
-    category: 'Databases',
-    technologies: [
-      { name: 'PostgreSQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg' },
-      { name: 'MySQL', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg' },
-      { name: 'MongoDB', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg' },
-      { name: 'Redis', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg' },
-      { name: 'SQLite', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sqlite/sqlite-original.svg' },
-      { name: 'Firebase', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg' },
-      { name: 'Supabase', icon: 'https://seeklogo.com/images/S/supabase-logo-DCC676FFE2-seeklogo.com.png' },
-      { name: 'DynamoDB', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg' },
-      { name: 'Elasticsearch', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/elasticsearch/elasticsearch-original.svg' }
-    ]
-  },
-  {
     category: 'DevOps & Tools',
     technologies: [
       { name: 'Docker', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg' },

@@ -1,4 +1,5 @@
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
@@ -6,6 +7,8 @@ import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
 import { whyChooseVedx } from '../../../data/servicesPage.js';
+import { apiUrl } from '../../../utils/const.js';
+import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 
 const highlightIcons = [
   WorkspacePremiumRoundedIcon,
@@ -18,6 +21,42 @@ const ServicesWhyChoose = () => {
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiHighlights, setApiHighlights] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHighlights = async () => {
+      try {
+        const response = await fetchWithLoading(apiUrl('/api/home/why-vedx-reasons'));
+        if (!response.ok) {
+          throw new Error('Failed to fetch why VEDX reasons');
+        }
+        const payload = await response.json();
+        if (!isMounted) return;
+        const mapped = (payload || []).map((item) => ({
+          title: item.title || '',
+          description: item.description || '',
+          image: item.image || '',
+        }));
+        setApiHighlights(mapped);
+      } catch (error) {
+        console.error('Failed to load why VEDX reasons', error);
+      }
+    };
+
+    loadHighlights();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const highlights = useMemo(() => {
+    const resolved = apiHighlights.length > 0 ? apiHighlights : whyChooseVedx;
+    return resolved.filter((item) => item?.title);
+  }, [apiHighlights]);
 
   return (
     <Box component="section">
@@ -53,7 +92,7 @@ const ServicesWhyChoose = () => {
           alignItems: 'stretch',
         }}
       >
-        {whyChooseVedx.map((highlight, index) => {
+        {highlights.map((highlight, index) => {
           const Icon = highlight.icon ?? highlightIcons[index % highlightIcons.length];
           return (
             <Grid item xs={12} sm={6} md={4} key={highlight.title}>
@@ -102,7 +141,16 @@ const ServicesWhyChoose = () => {
                     mb: 2,
                   }}
                 >
-                  {Icon && <Icon />}
+                  {highlight.image ? (
+                    <Box
+                      component="img"
+                      src={highlight.image}
+                      alt={highlight.title}
+                      sx={{ width: 32, height: 32, objectFit: 'contain' }}
+                    />
+                  ) : (
+                    Icon && <Icon />
+                  )}
                 </Box>
 
                 {/* Text */}
