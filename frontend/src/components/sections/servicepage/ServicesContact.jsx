@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Box, Grid, MenuItem, Stack, Typography, alpha, useTheme } from '@mui/material';
-import { AppButton, AppSelectField, AppTextField } from '../../shared/FormControls.jsx';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Box, Grid, MenuItem, Stack, Typography, alpha, useTheme } from "@mui/material";
+import { AppButton, AppSelectField, AppTextField } from "../../shared/FormControls.jsx";
 
-import { contactProjectTypes, servicesContactImage } from '../../../data/servicesPage.js';
-import { apiUrl } from '../../../utils/const.js';
-import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
+import { contactProjectTypes, servicesContactImage } from "../../../data/servicesPage.js";
+import { apiUrl } from "../../../utils/const.js";
+import { useLoadingFetch } from "../../../hooks/useLoadingFetch.js";
 
 // Simple hook to detect when an element enters the viewport
 const useInView = (options = {}) => {
@@ -15,8 +15,8 @@ const useInView = (options = {}) => {
     if (!ref.current) return;
 
     const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
+      (entries) => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setInView(true);
             observer.unobserve(entry.target); // run once
@@ -27,31 +27,39 @@ const useInView = (options = {}) => {
     );
 
     observer.observe(ref.current);
-
     return () => observer.disconnect();
   }, [options]);
 
   return [ref, inView];
 };
 
-const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectionId = 'contact-section' }) => {
+const ServicesContact = ({
+  contactType = "Home",
+  prefillProjectType = "",
+  sectionId = "contact-section",
+}) => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
+  const isDark = theme.palette.mode === "dark";
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const { fetchWithLoading } = useLoadingFetch();
 
   const [leftRef, leftInView] = useInView();
   const [rightRef, rightInView] = useInView();
+
+  // Project types list (from fallback + API)
   const [projectTypes, setProjectTypes] = useState(contactProjectTypes || []);
+
+  // Keep projectType empty initially so placeholder shows
   const [formValues, setFormValues] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    projectType: prefillProjectType || '',
-    description: '',
+    name: "",
+    email: "",
+    phone: "",
+    projectType: prefillProjectType || "", // if prefilled then select it, else show placeholder
+    description: "",
   });
-  const [statusMessage, setStatusMessage] = useState('');
-  const [statusSeverity, setStatusSeverity] = useState('success');
+
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusSeverity, setStatusSeverity] = useState("success");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -59,18 +67,19 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
 
     const loadProjectTypes = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/project-types'));
-        if (!response.ok) {
-          throw new Error('Failed to fetch project types');
-        }
+        const response = await fetchWithLoading(apiUrl("/api/project-types"));
+        if (!response.ok) throw new Error("Failed to fetch project types");
+
         const payload = await response.json();
         if (!isMounted) return;
-        const types = (payload.projectTypes || []).map((item) => item.name).filter(Boolean);
-        if (types.length > 0) {
-          setProjectTypes(types);
-        }
+
+        const types = (payload.projectTypes || [])
+          .map((item) => item?.name)
+          .filter(Boolean);
+
+        if (types.length > 0) setProjectTypes(types);
       } catch (error) {
-        console.error('Failed to load project types', error);
+        console.error("Failed to load project types", error);
       }
     };
 
@@ -81,19 +90,16 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
     };
   }, [fetchWithLoading]);
 
-  const resolvedProjectType = useMemo(() => projectTypes?.[0] || '', [projectTypes]);
-
+  // Default selection rule:
+  // - if prefillProjectType exists => set it
+  // - else keep empty ("") so placeholder stays until user selects
+  // (No auto-select first option.)
   useEffect(() => {
-    setFormValues((prev) => {
-      if (prefillProjectType && prefillProjectType !== prev.projectType) {
-        return { ...prev, projectType: prefillProjectType };
-      }
-      if (!prev.projectType) {
-        return { ...prev, projectType: resolvedProjectType };
-      }
-      return prev;
-    });
-  }, [prefillProjectType, resolvedProjectType]);
+    if (!prefillProjectType) return;
+    setFormValues((prev) =>
+      prefillProjectType !== prev.projectType ? { ...prev, projectType: prefillProjectType } : prev
+    );
+  }, [prefillProjectType]);
 
   const handleChange = (field) => (event) => {
     setFormValues((prev) => ({ ...prev, [field]: event.target.value }));
@@ -102,18 +108,18 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    setStatusMessage('');
+    setStatusMessage("");
 
-    const token = localStorage.getItem('adminToken');
-    const endpoint = token ? '/api/admin/contacts' : '/api/admin/contacts?public=true';
+    const token = localStorage.getItem("adminToken");
+    const endpoint = token ? "/api/admin/contacts" : "/api/admin/contacts?public=true";
     const headers = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
     try {
       const response = await fetch(apiUrl(endpoint), {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify({
           name: formValues.name,
@@ -124,22 +130,26 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
           contactType,
         }),
       });
+
       const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload?.message || 'Unable to submit request.');
-      }
-      setStatusSeverity('success');
-      setStatusMessage(payload?.message || 'Thanks! Your enquiry has been received.');
+      if (!response.ok) throw new Error(payload?.message || "Unable to submit request.");
+
+      setStatusSeverity("success");
+      setStatusMessage(payload?.message || "Thanks! Your enquiry has been received.");
+
+      // Reset after submit:
+      // - keep prefillProjectType if provided
+      // - else back to empty so placeholder shows again
       setFormValues({
-        name: '',
-        email: '',
-        phone: '',
-        projectType: prefillProjectType || resolvedProjectType,
-        description: '',
+        name: "",
+        email: "",
+        phone: "",
+        projectType: prefillProjectType || "",
+        description: "",
       });
     } catch (error) {
-      setStatusSeverity('error');
-      setStatusMessage(error?.message || 'Unable to submit your enquiry right now.');
+      setStatusSeverity("error");
+      setStatusMessage(error?.message || "Unable to submit your enquiry right now.");
     } finally {
       setSubmitting(false);
     }
@@ -154,7 +164,7 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
           sx={{
             fontSize: { xs: 28, md: 40 },
             fontWeight: 700,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           Contact Us
@@ -164,7 +174,7 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
           sx={{
             color: subtleText,
             maxWidth: 600,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           Share your idea, challenge, or growth plan — we’ll help you turn it into a solid product roadmap.
@@ -176,10 +186,8 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
         container
         sx={{
           borderRadius: 0.5,
-          overflow: 'hidden',
-          boxShadow: isDark
-            ? '0 24px 48px rgba(15,23,42,0.7)'
-            : '0 24px 48px rgba(15,23,42,0.14)',
+          overflow: "hidden",
+          boxShadow: isDark ? "0 24px 48px rgba(15,23,42,0.7)" : "0 24px 48px rgba(15,23,42,0.14)",
         }}
       >
         {/* Left: Image */}
@@ -189,13 +197,13 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
           md={5}
           ref={leftRef}
           sx={{
-            minHeight: { xs: 260, md: '70vh' },
+            minHeight: { xs: 260, md: "70vh" },
             backgroundImage: `url(${servicesContactImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
             opacity: leftInView ? 1 : 0,
-            transform: leftInView ? 'translateX(0)' : 'translateX(-40px)',
-            transition: 'opacity 0.7s ease, transform 0.7s ease',
+            transform: leftInView ? "translateX(0)" : "translateX(-40px)",
+            transition: "opacity 0.7s ease, transform 0.7s ease",
           }}
         />
 
@@ -206,25 +214,20 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
           md={7}
           ref={rightRef}
           sx={{
-            backgroundColor: isDark ? alpha('#020617', 0.96) : '#ffffff',
+            backgroundColor: isDark ? alpha("#020617", 0.96) : "#ffffff",
             opacity: rightInView ? 1 : 0,
-            transform: rightInView ? 'translateX(0)' : 'translateX(40px)',
-            transition: 'opacity 0.7s ease, transform 0.7s ease',
+            transform: rightInView ? "translateX(0)" : "translateX(40px)",
+            transition: "opacity 0.7s ease, transform 0.7s ease",
           }}
         >
-          <Stack
-            spacing={3}
-            sx={{
-              p: { xs: 3, md: 5 },
-            }}
-          >
+          <Stack spacing={3} sx={{ p: { xs: 3, md: 5 } }}>
             {/* Title & Subtitle */}
             <Stack spacing={1}>
               <Typography
                 variant="h4"
                 sx={{
                   fontWeight: 700,
-                  textAlign: { xs: 'center', md: 'left' },
+                  textAlign: { xs: "center", md: "left" },
                 }}
               >
                 Ready to build something remarkable?
@@ -233,7 +236,7 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
                 variant="body1"
                 sx={{
                   color: subtleText,
-                  textAlign: { xs: 'center', md: 'left' },
+                  textAlign: { xs: "center", md: "left" },
                 }}
               >
                 Tell us about your next project and we’ll assemble the right team within 48 hours.
@@ -242,11 +245,10 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
 
             {/* Form */}
             <Stack component="form" spacing={2.5} onSubmit={handleSubmit}>
-              {statusMessage ? (
-                <Alert severity={statusSeverity}>{statusMessage}</Alert>
-              ) : null}
+              {statusMessage ? <Alert severity={statusSeverity}>{statusMessage}</Alert> : null}
+
               {/* Name + Email */}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5}>
                 <AppTextField
                   label="Name"
                   fullWidth
@@ -254,7 +256,7 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
                   variant="outlined"
                   size="medium"
                   value={formValues.name}
-                  onChange={handleChange('name')}
+                  onChange={handleChange("name")}
                 />
                 <AppTextField
                   label="Email"
@@ -264,30 +266,48 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
                   variant="outlined"
                   size="medium"
                   value={formValues.email}
-                  onChange={handleChange('email')}
+                  onChange={handleChange("email")}
                 />
               </Stack>
 
               {/* Mobile + Project Type */}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5}>
                 <AppTextField
                   label="Mobile Number"
                   fullWidth
                   variant="outlined"
                   size="medium"
                   value={formValues.phone}
-                  onChange={handleChange('phone')}
+                  onChange={handleChange("phone")}
                 />
+
                 <AppSelectField
-                 
                   label="Project Type"
                   fullWidth
+                  required
                   value={formValues.projectType}
                   variant="outlined"
                   size="medium"
-                  onChange={handleChange('projectType')}
+                  onChange={handleChange("projectType")}
+                  // IMPORTANT: show placeholder when value is ""
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return (
+                        <span style={{ color: alpha(theme.palette.text.secondary, isDark ? 0.7 : 0.85) }}>
+                          Select Project Type
+                        </span>
+                      );
+                    }
+                    return selected;
+                  }}
                 >
-                  {projectTypes.map(type => (
+                  {/* Placeholder item */}
+                  <MenuItem value="" disabled>
+                    Select Project Type
+                  </MenuItem>
+
+                  {projectTypes.map((type) => (
                     <MenuItem key={type} value={type}>
                       {type}
                     </MenuItem>
@@ -303,14 +323,14 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
                 minRows={4}
                 variant="outlined"
                 value={formValues.description}
-                onChange={handleChange('description')}
+                onChange={handleChange("description")}
               />
 
               {/* Submit Button */}
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  display: "flex",
+                  justifyContent: { xs: "center", md: "flex-start" },
                   mt: 1,
                 }}
               >
@@ -320,19 +340,19 @@ const ServicesContact = ({ contactType = 'Home', prefillProjectType = '', sectio
                   type="submit"
                   disabled={submitting}
                   sx={{
-                    background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                    color: '#fff',
-                    borderRadius: '12px',
-                    textTransform: 'none',
+                    background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                    color: "#fff",
+                    borderRadius: "12px",
+                    textTransform: "none",
                     fontWeight: 600,
                     px: { xs: 4, md: 6 },
                     py: { xs: 1.5, md: 1.75 },
-                    '&:hover': {
-                      background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                    "&:hover": {
+                      background: "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
                     },
                   }}
                 >
-                  {submitting ? 'Submitting...' : 'Submit Now'}
+                  {submitting ? "Submitting..." : "Submit Now"}
                 </AppButton>
               </Box>
             </Stack>

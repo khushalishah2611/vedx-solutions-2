@@ -46,7 +46,7 @@ const BlogPreviewCard = ({
       >
         <Box
           sx={{
-            height: imageHeight,
+            height: 350,
             borderRadius: 0.5,
             backgroundImage: `url(${post.image})`,
             backgroundSize: 'cover',

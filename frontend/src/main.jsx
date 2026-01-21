@@ -71,6 +71,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 
-registerCopyPrevention();
-registerScreenshotPrevention();
+// registerCopyPrevention();
+// registerScreenshotPrevention();
 hideSplashScreen();
