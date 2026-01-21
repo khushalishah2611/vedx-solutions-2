@@ -42,13 +42,14 @@ const ServicesWhyChoose = ({
 
     const loadHighlights = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/home/why-vedx-reasons'));
+        const response = await fetchWithLoading(apiUrl('/api/admin/home/why-vedx-reasons'));
         if (!response.ok) {
           throw new Error('Failed to fetch why VEDX reasons');
         }
         const payload = await response.json();
+        const reasons = Array.isArray(payload) ? payload : payload?.reasons;
         if (!isMounted) return;
-        const mapped = (payload || []).map((item) => ({
+        const mapped = (reasons || []).map((item) => ({
           title: item.title || '',
           description: item.description || '',
           image: item.image || '',

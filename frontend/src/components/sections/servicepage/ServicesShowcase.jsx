@@ -128,7 +128,6 @@ const ServicesShowcase = () => {
         setApiSliders(activeSliders);
 
         const mappedServices = (servicesData ?? [])
-          .filter((item) => item?.isFeatured ?? true)
           .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
           .map((item) => ({
             title: item.title,
