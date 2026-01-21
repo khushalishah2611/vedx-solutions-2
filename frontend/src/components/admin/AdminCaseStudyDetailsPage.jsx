@@ -350,6 +350,20 @@ const AdminCaseStudyDetailsPage = () => {
     setConclusionPage((prev) => Math.min(prev, totalPages));
   }, [detail.conclusions]);
 
+  useEffect(() => {
+    if (detail.conclusions.length > 0) {
+      const current = detail.conclusions[0];
+      setConclusionForm({ description: current.description || '' });
+      setConclusionEditIndex(0);
+      setConclusionPage(1);
+      return;
+    }
+
+    setConclusionForm(emptyConclusion);
+    setConclusionEditIndex(-1);
+    setConclusionPage(1);
+  }, [detail.conclusions]);
+
   const buildDetailState = (caseStudyData, incomingDetail = {}) => ({
     projectOverview: {
       title: incomingDetail.projectOverview?.title || caseStudyData?.title || '',
@@ -718,6 +732,8 @@ const AdminCaseStudyDetailsPage = () => {
       </Card>
     );
   };
+
+  const conclusionRows = detail.conclusions.slice(0, 1);
 
   if (loading) {
     return (
@@ -1812,9 +1828,9 @@ const AdminCaseStudyDetailsPage = () => {
               'Conclusion',
               'Summarize the case study conclusion details.',
               [{ key: 'description', label: 'Description', type: 'longtext' }],
-              detail.conclusions,
+              conclusionRows,
               (index) => {
-                const current = detail.conclusions[index];
+                const current = conclusionRows[index];
                 setConclusionForm({ description: current.description });
                 setConclusionEditIndex(index);
                 setActiveTab(10);
@@ -1823,7 +1839,7 @@ const AdminCaseStudyDetailsPage = () => {
                 handleSectionDelete({
                   sectionKey: 'conclusions',
                   endpointBase: 'conclusions',
-                  itemId: detail.conclusions[index]?.id,
+                  itemId: conclusionRows[index]?.id,
                 }),
               conclusionPage,
               setConclusionPage
