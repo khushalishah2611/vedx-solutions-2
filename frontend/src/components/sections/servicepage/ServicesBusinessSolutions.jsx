@@ -7,7 +7,7 @@ import { businessSolutions } from '../../../data/servicesPage.js';
 import { apiUrl } from '../../../utils/const.js';
 import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 
-const ServicesBusinessSolutions = () => {
+const ServicesBusinessSolutions = ({ onRequestContact, contactAnchorId = 'contact-section' }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
@@ -323,6 +323,13 @@ const ServicesBusinessSolutions = () => {
           variant="contained"
           size="large"
           endIcon={<ArrowOutwardRoundedIcon />}
+          onClick={() => {
+            onRequestContact?.(activeSolution?.title || '');
+            const anchor = document.getElementById(contactAnchorId);
+            if (anchor) {
+              anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }}
           sx={{
             background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
             color: '#fff',
