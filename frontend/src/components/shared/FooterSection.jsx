@@ -9,12 +9,15 @@ import {
   alpha,
   useTheme
 } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import { footerContent } from '../../data/content.js';
 import { createAnchorHref } from '../../utils/formatters.js';
 import { Link as RouterLink } from 'react-router-dom';
+import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const socialIcons = {
   linkedin: LinkedInIcon,
@@ -28,6 +31,9 @@ const FOOTER_BACKGROUND_IMAGE =
 const FooterSection = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const { fetchWithLoading } = useLoadingFetch();
+  const [serviceLinks, setServiceLinks] = useState([]);
+  const [hireDeveloperLinks, setHireDeveloperLinks] = useState([]);
   const overlayGradient = isDark
     ? 'linear-gradient(180deg, rgba(5,9,18,0.94) 0%, rgba(5,9,18,0.96) 65%, rgba(1,1,3,0.98) 100%)'
     : `linear-gradient(180deg, ${alpha(theme.palette.background.default, 0.9)} 0%, ${alpha(
@@ -41,6 +47,63 @@ const FooterSection = () => {
     ? alpha('#ffffff', 0.65)
     : alpha(theme.palette.text.secondary, 0.85);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFooterLinks = async () => {
+      try {
+        const [servicesResponse, hireDevelopersResponse] = await Promise.all([
+          fetchWithLoading(apiUrl('/api/our-services/sliders')),
+          fetchWithLoading(apiUrl('/api/hire-developer/our-services')),
+        ]);
+
+        if (!servicesResponse.ok || !hireDevelopersResponse.ok) {
+          throw new Error('Failed to fetch footer links');
+        }
+
+        const servicesPayload = await servicesResponse.json();
+        const hireDevelopersPayload = await hireDevelopersResponse.json();
+
+        if (!isMounted) return;
+
+        const mappedServices = (servicesPayload || [])
+          .filter((item) => item?.sliderTitle)
+          .map((item) => item.sliderTitle.trim())
+          .filter(Boolean);
+        const mappedHireDevelopers = (hireDevelopersPayload || [])
+          .filter((item) => item?.title)
+          .map((item) => item.title.trim())
+          .filter(Boolean);
+
+        setServiceLinks(mappedServices);
+        setHireDeveloperLinks(mappedHireDevelopers);
+      } catch (error) {
+        console.error('Failed to load footer links', error);
+      }
+    };
+
+    loadFooterLinks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const footerColumns = useMemo(() => {
+    const [servicesColumn, hireDevelopersColumn, ...restColumns] = footerContent.columns;
+    return [
+      {
+        ...servicesColumn,
+        links: serviceLinks.length > 0 ? serviceLinks : servicesColumn.links,
+      },
+      {
+        ...hireDevelopersColumn,
+        links: hireDeveloperLinks.length > 0 ? hireDeveloperLinks : hireDevelopersColumn.links,
+      },
+      ...restColumns,
+    ];
+  }, [hireDeveloperLinks, serviceLinks]);
 
   return (
     <Box
@@ -125,7 +188,7 @@ const FooterSection = () => {
           }}
         >
           {/* Link columns */}
-          {footerContent.columns.map((column, index) => (
+          {footerColumns.map((column, index) => (
             <Stack
               key={column.title}
               spacing={1.5}
