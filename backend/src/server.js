@@ -8218,9 +8218,6 @@ app.get('/api/home/why-vedx-reasons/:id', async (req, res) => {
 // Admin: GET all reasons
 app.get('/api/admin/home/why-vedx-reasons', async (req, res) => {
   try {
-    const { admin, status, message } = await getAuthenticatedAdmin(req);
-    if (!admin) return res.status(status).json({ message });
-
     const items = await prisma.whyVedxReason.findMany({
       orderBy: { createdAt: 'desc' },
     });
