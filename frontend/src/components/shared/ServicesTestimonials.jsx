@@ -33,14 +33,7 @@ const ServicesTestimonials = () => {
 
     const loadFeedbacks = async () => {
       try {
-<<<<<<< HEAD
-        const token = localStorage.getItem('adminToken');
-        const response = await fetchWithLoading(apiUrl('/api/admin/feedbacks'), {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-=======
         const response = await fetchWithLoading(apiUrl('/api/admin/feedbacks'));
->>>>>>> origin/codex/show-api-case-study-conclusion-details-xqetfm
         if (!response.ok) {
           throw new Error('Failed to fetch feedbacks');
         }
