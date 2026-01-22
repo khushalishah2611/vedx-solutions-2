@@ -1,42 +1,46 @@
-import PropTypes from 'prop-types';
-import { alpha, Box, Container, Grid, Stack, Typography, useTheme } from '@mui/material';
-import { AppButton } from '../../shared/FormControls.jsx';
+import PropTypes from "prop-types";
+import { alpha, Box, Container, Grid, Stack, Typography, useTheme } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { AppButton } from "../../shared/FormControls.jsx";
 
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const DEFAULT_BACKGROUND =
-  'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80';
+  "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80";
 
-const DEFAULT_TITLE = 'Explore Our Case Studies Gallery, Where Ideas Flourish.';
+const DEFAULT_TITLE = "Explore Our Case Studies Gallery, Where Ideas Flourish.";
 
 const CaseStudiesHero = ({ banner }) => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
+  const isDark = theme.palette.mode === "dark";
+  const navigate = useNavigate();
 
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.75);
+
   const bannerImage = banner?.image || DEFAULT_BACKGROUND;
   const bannerTitle = banner?.title || DEFAULT_TITLE;
 
-  // Dynamic overlay gradient based on theme
-  const overlayGradient = isDark
-    ? `radial-gradient(circle at 20% 20%, rgba(99,102,241,0.35), transparent 45%), rgba(5,9,18,0.78)`
-    : `radial-gradient(circle at 20% 20%, rgba(79,70,229,0.18), transparent 45%), rgba(241,245,249,0.88)`;
+  const onContact = () => {
+    navigate("/contact");
+    // optional: ensure top after navigation
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <Box
       component="section"
       sx={{
-       backgroundImage: `linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(${bannerImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        transition: 'transform 0.6s ease, filter 0.6s ease',
-        filter: isDark ? 'brightness(0.9)' : 'brightness(0.8)',
-        position: 'relative',
-        overflow: 'hidden',
-       minHeight: { xs: "60vh", md: "70vh" },
-        display: 'flex',
-        alignItems: 'center',
+        backgroundImage: `linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(${bannerImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        transition: "transform 0.6s ease, filter 0.6s ease",
+        filter: isDark ? "brightness(0.9)" : "brightness(0.8)",
+        position: "relative",
+        overflow: "hidden",
+        minHeight: { xs: "60vh", md: "70vh" },
+        display: "flex",
+        alignItems: "center",
         pb: { xs: 12, md: 14 },
         pt: { xs: 14, md: 18 },
       }}
@@ -44,7 +48,7 @@ const CaseStudiesHero = ({ banner }) => {
       <Container
         maxWidth={false}
         sx={{
-          position: 'relative',
+          position: "relative",
           zIndex: 1,
           px: { xs: 3, md: 20 },
         }}
@@ -55,8 +59,8 @@ const CaseStudiesHero = ({ banner }) => {
             <Stack
               spacing={4}
               sx={{
-                textAlign: { xs: 'center', md: 'left' },
-                alignItems: { xs: 'center', md: 'flex-start' },
+                textAlign: { xs: "center", md: "left" },
+                alignItems: { xs: "center", md: "flex-start" },
               }}
             >
               <Typography
@@ -65,7 +69,7 @@ const CaseStudiesHero = ({ banner }) => {
                   fontSize: { xs: 32, sm: 40, md: 52 },
                   fontWeight: 800,
                   lineHeight: 1.1,
-                  color: isDark ? '#f9fafb' : '#0f172a',
+                  color: isDark ? "#f9fafb" : "#0f172a",
                 }}
               >
                 {bannerTitle}
@@ -88,20 +92,18 @@ const CaseStudiesHero = ({ banner }) => {
               <AppButton
                 variant="contained"
                 size="large"
-                href="#contact"
+                onClick={onContact}
                 endIcon={<ArrowForwardIcon />}
                 sx={{
-                  background:
-                    'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                  color: '#fff',
-                  borderRadius: '12px',
-                  textTransform: 'none',
+                  background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                  color: "#fff",
+                  borderRadius: "12px",
+                  textTransform: "none",
                   fontWeight: 600,
                   px: { xs: 4, md: 6 },
                   py: { xs: 1.5, md: 1.75 },
-                  '&:hover': {
-                    background:
-                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
                   },
                 }}
               >

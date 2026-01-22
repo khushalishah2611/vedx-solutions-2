@@ -85,30 +85,13 @@ const CaseStudiesPage = () => {
         </Box>
 
         <Box my={10}>
-          {loading ? (
-            <Stack alignItems="center" spacing={2} py={6}>
-              <CircularProgress />
-              <Typography variant="body2" color="text.secondary">
-                Loading case studies...
-              </Typography>
-            </Stack>
-          ) : null}
-
-          {error ? (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          ) : null}
-
-          {!loading && !error ? (
-            <Grid container spacing={2}>
+        <Grid container spacing={2}>
               {caseStudies.map((study) => (
                 <Grid item xs={12} sm={6} md={3} key={study.slug}>
                   <CaseStudyCard caseStudy={study} />
                 </Grid>
               ))}
             </Grid>
-          ) : null}
         </Box>
       </Container>
     </Box>
