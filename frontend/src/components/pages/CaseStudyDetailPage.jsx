@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import { Alert, alpha, Box, CircularProgress, Container, Divider, Stack, Typography, useTheme } from '@mui/material';
+import { alpha, Box, Container, Divider, useTheme } from '@mui/material';
 import CaseStudyDetailHero from '../sections/caseStudies/CaseStudyDetailHero.jsx';
 import CaseStudyOverviewSection from '../sections/caseStudies/CaseStudyOverviewSection.jsx';
 import CaseStudySolutionSection from '../sections/caseStudies/CaseStudySolutionSection.jsx';
@@ -158,21 +158,6 @@ const CaseStudyDetailPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
-      {loading ? (
-        <Stack alignItems="center" spacing={2} py={10}>
-          <CircularProgress />
-          <Typography variant="body2" color="text.secondary">
-            Loading case study...
-          </Typography>
-        </Stack>
-      ) : null}
-
-      {error ? (
-        <Container maxWidth="md" sx={{ py: 6 }}>
-          <Alert severity="error">{error}</Alert>
-        </Container>
-      ) : null}
-
       {!loading && caseStudy ? (
         <>
           <CaseStudyDetailHero caseStudy={caseStudy} />

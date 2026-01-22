@@ -833,25 +833,9 @@ const BlogDetailPage = () => {
         {/* Related Posts */}
         {relatedPosts.length > 0 ? (
           <Box mt={10}>
-            <Container maxWidth="lg">
-              <Stack sx={{ mb: 6, alignItems: "center", textAlign: "center" }}>
-                <Typography variant="h4" sx={{ fontSize: { xs: 26, md: 36 }, fontWeight: 800 }}>
-                  Related Blogs
-                </Typography>
-                <Typography variant="body1" sx={{ color: subtleText, maxWidth: 600 }}>
-                  Continue exploring insights curated by our full stack engineers,
-                  product strategists, and UX experts.
-                </Typography>
-              </Stack>
-            </Container>
-
-          <ServicesBlog showHeading={false} posts={relatedPosts} limit={3} />
+            <ServicesBlog headingText="Related Blogs" posts={relatedPosts} limit={3} />
           </Box>
-        ) : (
-          <Box >
-           
-          </Box>
-        )}
+        ) : null}
       </Container>
     </Box>
   );

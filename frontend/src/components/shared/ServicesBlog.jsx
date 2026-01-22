@@ -6,7 +6,7 @@ import BlogPreviewCard from "./BlogPreviewCard.jsx";
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
-const ServicesBlog = ({ showHeading = true, posts, limit }) => {
+const ServicesBlog = ({ showHeading = true, headingText = "Latest Blogs", posts, limit }) => {
   const [apiPosts, setApiPosts] = useState([]);
   const { fetchWithLoading } = useLoadingFetch();
 
@@ -105,7 +105,7 @@ const ServicesBlog = ({ showHeading = true, posts, limit }) => {
               width: '100%',
             }}
           >
-            Latest Blogs
+            {headingText}
           </Typography>
         </Stack>
       )}
@@ -128,6 +128,7 @@ const ServicesBlog = ({ showHeading = true, posts, limit }) => {
 
 ServicesBlog.propTypes = {
   showHeading: PropTypes.bool,
+  headingText: PropTypes.string,
   posts: PropTypes.arrayOf(PropTypes.object),
   limit: PropTypes.number,
 };

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, ButtonBase, Container, Fade, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import { heroContent } from '../../../data/content.js';
@@ -7,8 +8,9 @@ import { useBannersByType } from '../../../hooks/useBannersByType.js';
 
 const SLIDE_INTERVAL = 7000;
 
-const HeroSection = ({ onRequestContact, contactAnchorId = 'contact-section' }) => {
+const HeroSection = ({ onRequestContact }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const isDark = theme.palette.mode === 'dark';
   const fallbackSlides = heroContent.slides;
   const { banners } = useBannersByType('home');
@@ -55,10 +57,13 @@ const HeroSection = ({ onRequestContact, contactAnchorId = 'contact-section' }) 
   const hasHighlight = Boolean(currentSlide?.highlight);
   const handleContactClick = () => {
     onRequestContact?.('');
-    const anchor = document.getElementById(contactAnchorId);
-    if (anchor) {
-      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    navigate('/contact');
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 120);
   };
 
   return (
@@ -185,7 +190,7 @@ const HeroSection = ({ onRequestContact, contactAnchorId = 'contact-section' }) 
                   },
                 }}
               >
-                Contact us
+                Let&apos;s Build Together
               </AppButton>
             </Stack>
           </Fade>
