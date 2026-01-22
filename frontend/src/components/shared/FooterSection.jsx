@@ -14,7 +14,7 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import { footerContent } from '../../data/content.js';
-import { createAnchorHref } from '../../utils/formatters.js';
+import { createAnchorHref, createSlug } from '../../utils/formatters.js';
 import { Link as RouterLink } from 'react-router-dom';
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
@@ -48,6 +48,11 @@ const FooterSection = () => {
     : alpha(theme.palette.text.secondary, 0.85);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 
+  const getCategoryHref = (basePath, label) => {
+    const slug = createSlug(label);
+    return slug ? `${basePath}/${slug}` : basePath;
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -69,12 +74,18 @@ const FooterSection = () => {
 
         const mappedServices = (servicesPayload || [])
           .filter((item) => item?.sliderTitle)
-          .map((item) => item.sliderTitle.trim())
-          .filter(Boolean);
+          .map((item) => ({
+            label: item.sliderTitle.trim(),
+            href: item?.slug ? getCategoryHref('/services', item.slug) : undefined,
+          }))
+          .filter((item) => item.label);
         const mappedHireDevelopers = (hireDevelopersPayload || [])
           .filter((item) => item?.title)
-          .map((item) => item.title.trim())
-          .filter(Boolean);
+          .map((item) => ({
+            label: item.title.trim(),
+            href: item?.slug ? getCategoryHref('/hire-developers', item.slug) : undefined,
+          }))
+          .filter((item) => item.label);
 
         setServiceLinks(mappedServices);
         setHireDeveloperLinks(mappedHireDevelopers);
@@ -104,6 +115,22 @@ const FooterSection = () => {
       ...restColumns,
     ];
   }, [hireDeveloperLinks, serviceLinks]);
+
+  const resolveFooterHref = (columnTitle, linkData) => {
+    if (linkData?.href) {
+      return linkData.href;
+    }
+
+    if (columnTitle === 'Services') {
+      return getCategoryHref('/services', linkData.label);
+    }
+
+    if (columnTitle === 'Hire Developers') {
+      return getCategoryHref('/hire-developers', linkData.label);
+    }
+
+    return createAnchorHref(linkData.label);
+  };
 
   return (
     <Box
@@ -203,7 +230,7 @@ const FooterSection = () => {
               <Stack spacing={1}>
                 {column.links.map((link) => {
                   const linkData = typeof link === 'string' ? { label: link } : link;
-                  const resolvedHref = linkData.href ?? createAnchorHref(linkData.label);
+                  const resolvedHref = resolveFooterHref(column.title, linkData);
                   const isRouteLink = resolvedHref.startsWith('/');
                   const linkProps = isRouteLink
                     ? { component: RouterLink, to: resolvedHref }

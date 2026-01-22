@@ -62,10 +62,12 @@ const App = () => {
             <Route index element={<HomePage />} />
             <Route path="services">
               <Route index element={<ServicesPage />} />
+              <Route path=":categorySlug" element={<ServiceDetailPage />} />
               <Route path=":categorySlug/:serviceSlug" element={<ServiceDetailPage />} />
             </Route>
             <Route path="hire-developers">
               <Route index element={<HireDevelopersPage />} />
+              <Route path=":categorySlug" element={<HireDeveloperDetailPage />} />
               <Route path=":categorySlug/:roleSlug" element={<HireDeveloperDetailPage />} />
           
             </Route>

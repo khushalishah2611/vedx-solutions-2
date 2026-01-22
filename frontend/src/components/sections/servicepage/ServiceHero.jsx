@@ -9,6 +9,7 @@ const ServiceHero = ({
   serviceName,
   heroTitle,
   heroDescription,
+  categoryHref = '/services',
   onContactClick,
   onRequestContact,
   contactAnchorId = 'contact-section',
@@ -109,7 +110,7 @@ const ServiceHero = ({
                 component={RouterLink}
                 underline="hover"
                 color="#fff"
-                to="/services"
+                to={categoryHref}
               >
                 {categoryTitle}
               </MuiLink>
