@@ -177,21 +177,42 @@ const CaseStudyChallengesSection = ({ caseStudy, animate = true, accentColor = "
                       },
                     }}
                   >
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 1.5,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        mb: 2,
-                        border: `1px solid ${alpha(safeAccent, 0.45)}`,
-                        bgcolor: alpha(safeAccent, isDark ? 0.12 : 0.10),
-                      }}
-                    >
-                      <Icon sx={{ fontSize: 28, color: safeAccent }} />
-                    </Box>
+                    {card.image ? (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: 120,
+                          borderRadius: 1.5,
+                          overflow: "hidden",
+                          mb: 2,
+                          border: `1px solid ${alpha(safeAccent, 0.45)}`,
+                          bgcolor: alpha(safeAccent, isDark ? 0.12 : 0.1),
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={card.image}
+                          alt={card.title}
+                          sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 1.5,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mb: 2,
+                          border: `1px solid ${alpha(safeAccent, 0.45)}`,
+                          bgcolor: alpha(safeAccent, isDark ? 0.12 : 0.10),
+                        }}
+                      >
+                        <Icon sx={{ fontSize: 28, color: safeAccent }} />
+                      </Box>
+                    )}
 
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
                       {card.title}

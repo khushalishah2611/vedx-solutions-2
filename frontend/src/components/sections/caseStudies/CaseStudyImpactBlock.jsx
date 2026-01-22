@@ -98,6 +98,8 @@ const CaseStudyImpactBlock = ({ impactMetrics }) => {
         <Grid container spacing={2.5} justifyContent="center">
           {impactMetrics.map((metric, index) => {
             const Icon = impactIcons[index % impactIcons.length];
+            const title = metric.title || metric.value || "";
+            const caption = metric.label || "";
 
             return (
               <Grid
@@ -106,7 +108,7 @@ const CaseStudyImpactBlock = ({ impactMetrics }) => {
                 sm={6}
                 md={4}
                 lg={2.4} // 👈 visual equivalent, layout fixed by maxWidth
-                key={`${metric.label}-${index}`}
+                key={`${metric.label || metric.title || "impact"}-${index}`}
                 sx={{
                   display: "flex",
                 }}
@@ -150,24 +152,38 @@ const CaseStudyImpactBlock = ({ impactMetrics }) => {
                       borderRadius: 1.5,
                       bgcolor: alpha(safeAccent, 0.15),
                       border: `1px solid ${alpha(safeAccent, 0.4)}`,
+                      overflow: "hidden",
                     }}
                   >
-                    <Icon sx={{ color: safeAccent }} />
+                    {metric.image ? (
+                      <Box
+                        component="img"
+                        src={metric.image}
+                        alt={title || `Impact ${index + 1}`}
+                        sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <Icon sx={{ color: safeAccent }} />
+                    )}
                   </Box>
 
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {metric.value}
-                  </Typography>
+                  {title ? (
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      {title}
+                    </Typography>
+                  ) : null}
 
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: alpha(theme.palette.text.primary, 0.65),
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {metric.label}
-                  </Typography>
+                  {caption ? (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: alpha(theme.palette.text.primary, 0.65),
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {caption}
+                    </Typography>
+                  ) : null}
                 </Paper>
               </Grid>
             );
@@ -181,8 +197,10 @@ const CaseStudyImpactBlock = ({ impactMetrics }) => {
 CaseStudyImpactBlock.propTypes = {
   impactMetrics: PropTypes.arrayOf(
     PropTypes.shape({
-      label: PropTypes.string.isRequired,
-      value: PropTypes.string.isRequired,
+      title: PropTypes.string,
+      image: PropTypes.string,
+      label: PropTypes.string,
+      value: PropTypes.string,
     })
   ).isRequired,
 };

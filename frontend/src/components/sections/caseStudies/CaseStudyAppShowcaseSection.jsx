@@ -7,7 +7,23 @@ const CaseStudyAppShowcaseSection = ({ caseStudy, animate }) => {
   const isDark = theme.palette.mode === 'dark';
 
   const accentColor = '#a855f7';
-  const screenshots = caseStudy.screenshots?.slice(0, 5) || [];
+  const screenshots = (caseStudy.screenshots || [])
+    .map((shot, index) => {
+      if (typeof shot === 'string') {
+        return { src: shot, alt: `App screenshot ${index + 1}` };
+      }
+
+      if (shot && typeof shot === 'object') {
+        return {
+          src: shot.src || shot.image || '',
+          alt: shot.alt || `App screenshot ${index + 1}`,
+        };
+      }
+
+      return null;
+    })
+    .filter((shot) => shot?.src)
+    .slice(0, 5);
 
   return (
     <Stack spacing={3} alignItems="center" textAlign="center">
@@ -49,7 +65,8 @@ const CaseStudyAppShowcaseSection = ({ caseStudy, animate }) => {
 
         <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
           {
-            'The Anveshaka App simplifies every aspect of trip planning by allowing users to search, compare, and book flights, hotels, and transportation — all in one place. With AI-powered recommendations, users receive personalized travel options based on their preferences, budget, and past trips. The app ensures a smooth booking experience with secure payments, real-time availability updates, and instant confirmations. Integrated maps and itinerary management help travelers stay organized, while 24/7 customer support provides assistance anytime, anywhere — making travel smarter, faster, and stress-free.'}
+            caseStudy.appDescription
+            || 'The Anveshaka App simplifies every aspect of trip planning by allowing users to search, compare, and book flights, hotels, and transportation — all in one place. With AI-powered recommendations, users receive personalized travel options based on their preferences, budget, and past trips. The app ensures a smooth booking experience with secure payments, real-time availability updates, and instant confirmations. Integrated maps and itinerary management help travelers stay organized, while 24/7 customer support provides assistance anytime, anywhere — making travel smarter, faster, and stress-free.'}
         </Typography>
 
 
@@ -66,7 +83,7 @@ const CaseStudyAppShowcaseSection = ({ caseStudy, animate }) => {
       >
         {screenshots.map((shot, index) => (
           <Box
-            key={shot.src}
+            key={`${shot.src}-${index}`}
             sx={{
               width: { xs: 160, sm: 180, md: 200 },
               height: { xs: 250, sm: 290, md: 330 },

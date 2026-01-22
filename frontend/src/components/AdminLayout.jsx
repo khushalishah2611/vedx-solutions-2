@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Avatar, Box, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, AppBar, Stack } from '@mui/material';
 import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogContentText, AppDialogTitle } from './shared/FormControls.jsx';
 
@@ -33,6 +33,25 @@ const AdminLayout = () => {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [profile, setProfile] = useState(() => getStoredAdminProfile());
 
+  const clearAdminSession = useCallback(
+    ({ redirect = true } = {}) => {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminSessionExpiry');
+      localStorage.removeItem('adminProfile');
+      sessionStorage.removeItem('adminResetEmail');
+      sessionStorage.removeItem('adminResetOtp');
+
+      if (redirect) {
+        navigate('/admin', { replace: true });
+      }
+
+      if (!isMdUp) {
+        setMobileOpen(false);
+      }
+    },
+    [isMdUp, navigate]
+  );
+
   useEffect(() => {
     setProfile(getStoredAdminProfile());
   }, [location.pathname]);
@@ -56,6 +75,51 @@ const AdminLayout = () => {
     window.addEventListener('adminProfileUpdated', handleProfileUpdate);
     return () => window.removeEventListener('adminProfileUpdated', handleProfileUpdate);
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    const expiry = localStorage.getItem('adminSessionExpiry');
+
+    if (!token) {
+      clearAdminSession();
+      return undefined;
+    }
+
+    if (expiry) {
+      const expiryDate = new Date(expiry);
+      if (Number.isNaN(expiryDate.getTime()) || expiryDate <= new Date()) {
+        clearAdminSession();
+        return undefined;
+      }
+    }
+
+    let isActive = true;
+
+    const verifySession = async () => {
+      try {
+        const response = await fetch(apiUrl('/api/admin/session'), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok && isActive) {
+          clearAdminSession();
+        }
+      } catch (error) {
+        console.error('Session verification failed', error);
+        if (isActive) {
+          clearAdminSession();
+        }
+      }
+    };
+
+    verifySession();
+
+    return () => {
+      isActive = false;
+    };
+  }, [clearAdminSession, location.pathname]);
 
   const handleDrawerToggle = () => {
     setMobileOpen((prev) => !prev);
@@ -87,17 +151,7 @@ const AdminLayout = () => {
     } catch (error) {
       console.error('Logout failed', error);
     } finally {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminSessionExpiry');
-      localStorage.removeItem('adminProfile');
-      sessionStorage.removeItem('adminResetEmail');
-      sessionStorage.removeItem('adminResetOtp');
-
-      navigate('/admin', { replace: true });
-
-      if (!isMdUp) {
-        setMobileOpen(false);
-      }
+      clearAdminSession();
 
       setLoggingOut(false);
     }

@@ -64,10 +64,11 @@ const mapCaseStudyDetailFromApi = (caseStudy) => {
       description: challenge.description || '',
       image: challenge.image || '',
     })),
+    appDescription: detail.appConfig?.description || '',
     screenshots,
-    impactMetrics: impacts.map((impact, index) => ({
-      label: `Impact ${index + 1}`,
-      value: impact.title || '',
+    impactMetrics: impacts.map((impact) => ({
+      title: impact.title || '',
+      image: impact.image || '',
     })),
     timelineSteps: timelines.map((item) => ({
       label: item.title || '',
