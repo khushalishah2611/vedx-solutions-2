@@ -3,11 +3,19 @@ export const createAnchorHref = (label) => {
     return '#';
   }
 
-  return `#${label
+  return `#${createSlug(label)}`;
+};
+
+export const createSlug = (label) => {
+  if (!label) {
+    return '';
+  }
+
+  return label
     .toString()
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')}`;
+    .replace(/-+/g, '-');
 };

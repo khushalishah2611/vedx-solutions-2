@@ -15,6 +15,7 @@ const HireDeveloperHero = ({
   dividerColor,
   heroTitle,
   heroDescription,
+  categoryHref = '/hire-developers',
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -125,7 +126,7 @@ const HireDeveloperHero = ({
                 component={RouterLink}
                 underline="hover"
                 color="#fff"
-                to="/hire-developers"
+                to={categoryHref}
               >
                 {categoryTitle}
               </MuiLink>

@@ -67,6 +67,7 @@ const ServiceDetailPage = () => {
   const serviceName = service?.name ?? apiSubCategory?.name ?? 'Service Detail';
   const heroTitle = category?.title ?? apiSubCategory?.name ?? apiCategory?.name;
   const heroDescription = category?.description ?? apiSubCategory?.description ?? apiCategory?.description;
+  const categoryHref = categorySlug ? `/services/${categorySlug}` : '/services';
 
 
   return (
@@ -76,6 +77,7 @@ const ServiceDetailPage = () => {
         serviceName={serviceName}
         heroTitle={heroTitle}
         heroDescription={heroDescription}
+        categoryHref={categoryHref}
         onContactClick={handleOpenContact}
         stats={[
           { label: 'Projects Delivered', value: '120+' },

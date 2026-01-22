@@ -68,6 +68,7 @@ const HireDeveloperDetailPage = () => {
 
   const isDark = theme.palette.mode === 'dark';
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
+  const categoryHref = categorySlug ? `/hire-developers/${categorySlug}` : '/hire-developers';
 
   const servicesHeroStats = [
     { label: 'Projects Delivered', value: '120+' },
@@ -90,6 +91,7 @@ const HireDeveloperDetailPage = () => {
         stats={servicesHeroStats}
         onContactClick={handleOpenContact}
         dividerColor={dividerColor}
+        categoryHref={categoryHref}
       />
 
       {/* === MAIN CONTENT === */}
