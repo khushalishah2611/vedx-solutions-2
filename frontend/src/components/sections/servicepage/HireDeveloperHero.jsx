@@ -30,7 +30,8 @@ const HireDeveloperHero = ({
   );
 
   const categoryTitle = category?.title ?? category?.name ?? 'Services';
-  const serviceName = role?.name ?? role?.title ?? 'Service Details';
+  const serviceName =
+    role?.name ?? role?.title ?? category?.title ?? category?.name ?? 'Service Details';
 
   const resolvedHeroTitle =
     heroTitle || role?.heroTitle || role?.name || role?.title || 'Full Stack Development Services';
