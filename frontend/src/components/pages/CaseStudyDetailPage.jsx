@@ -7,6 +7,7 @@ import CaseStudySolutionSection from '../sections/caseStudies/CaseStudySolutionS
 import CaseStudyKeyFeaturesSection from '../sections/caseStudies/CaseStudyKeyFeaturesSection.jsx';
 import CaseStudyChallengesSection from '../sections/caseStudies/CaseStudyChallengesSection.jsx';
 import CaseStudyAppShowcaseSection from '../sections/caseStudies/CaseStudyAppShowcaseSection.jsx';
+import CaseStudyTechnologiesSection from '../sections/caseStudies/CaseStudyTechnologiesSection.jsx';
 import CaseStudyTeamSection from '../sections/caseStudies/CaseStudyTeamSection.jsx';
 import CaseStudyRoadmapSection from '../sections/caseStudies/CaseStudyRoadmapSection.jsx';
 import CaseStudyRelatedSection from '../sections/caseStudies/CaseStudyRelatedSection.jsx';
@@ -36,6 +37,7 @@ const mapCaseStudyDetailFromApi = (caseStudy) => {
   const impacts = Array.isArray(detail.impacts) ? detail.impacts : [];
   const timelines = Array.isArray(detail.timelines) ? detail.timelines : [];
   const conclusions = Array.isArray(detail.conclusions) ? detail.conclusions : [];
+  const technologies = Array.isArray(detail.technologies) ? detail.technologies : [];
 
   const screenshots = apps.flatMap((app) => (Array.isArray(app.images) ? app.images : []));
 
@@ -69,6 +71,10 @@ const mapCaseStudyDetailFromApi = (caseStudy) => {
     impactMetrics: impacts.map((impact) => ({
       title: impact.title || '',
       image: impact.image || '',
+    })),
+    technologyHighlights: technologies.map((technology) => ({
+      title: technology.title || '',
+      image: technology.image || '',
     })),
     timelineSteps: timelines.map((item) => ({
       label: item.title || '',
@@ -192,6 +198,10 @@ const CaseStudyDetailPage = () => {
 
             <Box sx={{ my: sectionSpacing }}>
               <CaseStudyAppShowcaseSection caseStudy={caseStudy} animate={animate} />
+            </Box>
+
+            <Box sx={{ my: sectionSpacing }}>
+              <CaseStudyTechnologiesSection caseStudy={caseStudy} animate={animate} />
             </Box>
 
             <Box sx={{ my: sectionSpacing }}>
