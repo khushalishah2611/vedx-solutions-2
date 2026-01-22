@@ -1,28 +1,46 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Container, Grid, List, ListItemButton, ListItemText, Pagination, PaginationItem, Paper, Stack, Typography, alpha, useTheme, InputAdornment } from '@mui/material';
-import { AppTextField } from '../shared/FormControls.jsx';
-
+import {
+  Box,
+  Container,
+  Grid,
+  List,
+  ListItemButton,
+  ListItemText,
+  Pagination,
+  PaginationItem,
+  Paper,
+  Stack,
+  Typography,
+  alpha,
+  useTheme,
+  InputAdornment,
+} from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useSearchParams } from 'react-router-dom';
-import { blogPosts } from '../../data/blogs.js';
+
+import { AppTextField } from '../shared/FormControls.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import { useBannerByType } from '../../hooks/useBannerByType.js';
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
+
 const POSTS_PER_PAGE = 4;
 
 const BlogListPage = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+
   const { banner } = useBannerByType('blogs');
-  const heroTitle = banner?.title || 'Insights that Power Product Growth';
+  const heroTitle = banner?.title;
   const heroImage =
-    banner?.image ||
-    'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80';
+    banner?.image;
+
   const { fetchWithLoading } = useLoadingFetch();
+
   const [apiPosts, setApiPosts] = useState([]);
   const [apiCategories, setApiCategories] = useState([]);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') ?? '';
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10);
@@ -47,20 +65,20 @@ const BlogListPage = () => {
 
         if (!isMounted) return;
 
-        const mappedPosts = (postsPayload.posts ?? []).map((post) => ({
+        const mappedPosts = (postsPayload.posts ?? postsPayload.blogPosts ?? postsPayload.items ?? []).map((post) => ({
           id: post.id,
-          title: post.title,
-          slug: post.slug,
-          category: post.category?.name || 'Uncategorized',
+          title: post.title || '',
+          slug: post.slug || '',
+          category: post.category?.name || post.categoryName || post.category || 'Uncategorized',
           tags: post.tags || [],
           excerpt: post.shortDescription || post.description || '',
           image: post.coverImage || post.blogImage || '',
           heroImage: post.coverImage || post.blogImage || '',
-          publishedOn: post.publishDate || post.createdAt || '',
+          publishedOn: post.publishDate || post.publishedAt || post.createdAt || '',
         }));
 
         setApiPosts(mappedPosts);
-        setApiCategories(categoriesPayload.categories ?? []);
+        setApiCategories(categoriesPayload.categories ?? categoriesPayload.items ?? []);
       } catch (error) {
         console.error('Failed to load blog list data', error);
       }
@@ -73,15 +91,16 @@ const BlogListPage = () => {
     };
   }, [fetchWithLoading]);
 
-  const allPosts = apiPosts.length > 0 ? apiPosts : blogPosts;
+  // ✅ no blogPosts fallback to avoid crash
+  const allPosts = apiPosts.length > 0 ? apiPosts : [];
 
   const categories = useMemo(() => {
     if (apiCategories.length > 0) {
-      const unique = new Set(apiCategories.map((category) => category.name));
+      const unique = new Set(apiCategories.map((category) => category?.name).filter(Boolean));
       return ['all', ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
     }
 
-    const unique = new Set(allPosts.map((post) => post.category));
+    const unique = new Set(allPosts.map((post) => post.category).filter(Boolean));
     return ['all', ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
   }, [allPosts, apiCategories]);
 
@@ -90,13 +109,12 @@ const BlogListPage = () => {
 
   const selectedCategories = useMemo(() => {
     const raw = categoriesParam ?? categoryParam;
-
     if (!raw) return ['all'];
 
     const parsed = raw
       .split(',')
       .map((item) => item.trim())
-      .filter((item) => item.length > 0);
+      .filter(Boolean);
 
     const valid = parsed.filter((item) => categories.includes(item));
     return valid.length > 0 ? valid : ['all'];
@@ -107,18 +125,16 @@ const BlogListPage = () => {
   const categoryCounts = useMemo(() => {
     return allPosts.reduce(
       (acc, post) => {
+        const cat = post.category || 'Uncategorized';
         acc.all += 1;
-        acc[post.category] = (acc[post.category] ?? 0) + 1;
+        acc[cat] = (acc[cat] ?? 0) + 1;
         return acc;
       },
       { all: 0 }
     );
   }, [allPosts]);
 
-  const activeCategories = useMemo(
-    () => (hasAllSelected ? [] : selectedCategories),
-    [hasAllSelected, selectedCategories]
-  );
+  const activeCategories = useMemo(() => (hasAllSelected ? [] : selectedCategories), [hasAllSelected, selectedCategories]);
 
   const normalisedPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
 
@@ -130,12 +146,11 @@ const BlogListPage = () => {
     const normalisedQuery = queryParam.trim().toLowerCase();
 
     return allPosts.filter((post) => {
-      if (activeCategories.length > 0 && !activeCategories.includes(post.category)) return false;
+      const cat = post.category || 'Uncategorized';
+      if (activeCategories.length > 0 && !activeCategories.includes(cat)) return false;
       if (!normalisedQuery) return true;
 
-      const haystack = [post.title, post.excerpt, ...(post.tags ?? [])]
-        .join(' ')
-        .toLowerCase();
+      const haystack = [post.title, post.excerpt, ...(post.tags ?? [])].join(' ').toLowerCase();
       return haystack.includes(normalisedQuery);
     });
   }, [activeCategories, allPosts, queryParam]);
@@ -156,12 +171,14 @@ const BlogListPage = () => {
 
   const handleCategoryChange = (value) => {
     const nextParams = new URLSearchParams(searchParams);
+
     if (value === 'all') {
       nextParams.delete('categories');
       nextParams.delete('category');
     } else {
       const currentSelections = hasAllSelected ? [] : [...selectedCategories];
       const exists = currentSelections.includes(value);
+
       const updatedSelections = exists
         ? currentSelections.filter((item) => item !== value)
         : [...currentSelections, value];
@@ -174,6 +191,7 @@ const BlogListPage = () => {
         nextParams.delete('category');
       }
     }
+
     nextParams.delete('page');
     setSearchParams(nextParams);
   };
@@ -181,9 +199,11 @@ const BlogListPage = () => {
   const handleSearchChange = (event) => {
     const value = event.target.value;
     setSearchValue(value);
+
     const nextParams = new URLSearchParams(searchParams);
     if (value.trim().length > 0) nextParams.set('q', value);
     else nextParams.delete('q');
+
     nextParams.delete('page');
     setSearchParams(nextParams);
   };
@@ -208,18 +228,28 @@ const BlogListPage = () => {
   const startIndex = totalResults === 0 ? 0 : (currentPage - 1) * POSTS_PER_PAGE + 1;
   const endIndex = Math.min(totalResults, currentPage * POSTS_PER_PAGE);
 
+  const heroGradient = isDark
+    ? `linear-gradient(
+        90deg,
+        rgba(5,9,18,0.85) 0%,
+        rgba(5,9,18,0.65) 40%,
+        rgba(5,9,18,0.2) 70%,
+        rgba(5,9,18,0) 100%
+      )`
+    : `linear-gradient(
+        90deg,
+        rgba(241,245,249,0.9) 0%,
+        rgba(241,245,249,0.7) 40%,
+        rgba(241,245,249,0.3) 70%,
+        rgba(241,245,249,0) 100%
+      )`;
+
   return (
-    <Box
-      sx={{
-        bgcolor: 'background.default',
-        overflowX: 'hidden'
-      }}
-    >
+    <Box sx={{ position: 'relative', overflow: 'hidden' }}>
       {/* HERO SECTION */}
       <Box
         sx={{
-          backgroundImage:
-            `linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(${heroImage})`,
+          backgroundImage: `${heroGradient}, url(${heroImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -229,14 +259,14 @@ const BlogListPage = () => {
           alignItems: 'center',
           pb: { xs: 10, md: 14 },
           pt: { xs: 12, md: 18 },
-          color: 'common.white'
+          color: 'common.white',
         }}
       >
         <Container
           maxWidth={false}
           sx={{
             zIndex: 1,
-            px: { xs: 3, md: 20 }
+            px: { xs: 3, md: 20 },
           }}
         >
           <Stack spacing={2.5} alignItems={{ xs: 'center', md: 'flex-start' }}>
@@ -246,7 +276,7 @@ const BlogListPage = () => {
                 fontSize: { xs: 34, sm: 42, md: 56 },
                 fontWeight: 800,
                 lineHeight: 1.1,
-                textAlign: { xs: 'center', md: 'left' }
+                textAlign: { xs: 'center', md: 'left' },
               }}
             >
               {heroTitle}
@@ -258,7 +288,7 @@ const BlogListPage = () => {
                 color: alpha('#ffffff', 0.85),
                 maxWidth: 640,
                 fontSize: { xs: 14, md: 16 },
-                textAlign: { xs: 'center', md: 'left' }
+                textAlign: { xs: 'center', md: 'left' },
               }}
             >
               Browse our latest thinking across engineering, UX, data, and growth. Filter by category or search for a topic to
@@ -276,7 +306,6 @@ const BlogListPage = () => {
           px: { xs: 3, md: 20 },
         }}
       >
-
         <Box my={10}>
           <Grid container spacing={{ xs: 6, md: 8 }}>
             {/* SIDEBAR – mobile top, desktop right */}
@@ -288,7 +317,7 @@ const BlogListPage = () => {
                   sx={{
                     p: { xs: 3, md: 4 },
                     borderRadius: 0.5,
-                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.92)
+                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.92),
                   }}
                 >
                   <Stack spacing={2.5}>
@@ -305,7 +334,7 @@ const BlogListPage = () => {
                           <InputAdornment position="start">
                             <SearchRoundedIcon fontSize="small" />
                           </InputAdornment>
-                        )
+                        ),
                       }}
                     />
                   </Stack>
@@ -317,13 +346,14 @@ const BlogListPage = () => {
                   sx={{
                     p: { xs: 3, md: 4 },
                     borderRadius: 0.5,
-                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.92)
+                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.92),
                   }}
                 >
                   <Stack spacing={2.5}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       Categories
                     </Typography>
+
                     <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {categories.map((item) => {
                         const label = item === 'all' ? 'All Topics' : item;
@@ -339,8 +369,8 @@ const BlogListPage = () => {
                               borderRadius: 0.5,
                               transition: 'all 0.2s ease',
                               '&.Mui-selected': {
-                                backgroundColor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.12)
-                              }
+                                backgroundColor: alpha(theme.palette.primary.main, isDark ? 0.2 : 0.12),
+                              },
                             }}
                           >
                             <ListItemText primary={label} />
@@ -369,6 +399,7 @@ const BlogListPage = () => {
                   <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: 26, md: 32 } }}>
                     Latest Articles
                   </Typography>
+
                   <Typography variant="body2" sx={{ color: subtleText }}>
                     {totalResults === 0
                       ? 'No posts match your filters yet.'
@@ -390,9 +421,7 @@ const BlogListPage = () => {
                             py: 1,
                             borderRadius: 0.5,
                             border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                            background: !isDark
-                              ? alpha('#ddddddff', 0.9)
-                              : alpha('#0000007c', 0.9),
+                            background: !isDark ? alpha('#ddddddff', 0.9) : alpha('#0000007c', 0.9),
                             color: alpha(accentColor, 0.9),
                             fontWeight: 600,
                             letterSpacing: 1,
@@ -400,7 +429,7 @@ const BlogListPage = () => {
                             fontSize: 11,
                             lineHeight: 1.3,
                             width: 'fit-content',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
                           }}
                           onClick={() => handleCategoryChange(category)}
                           title={`Remove ${category} filter`}
@@ -410,7 +439,7 @@ const BlogListPage = () => {
                             sx={{
                               background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                               WebkitBackgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent'
+                              WebkitTextFillColor: 'transparent',
                             }}
                           >
                             Category: {category}
@@ -427,9 +456,7 @@ const BlogListPage = () => {
                           py: 1,
                           borderRadius: 0.5,
                           border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                          background: !isDark
-                            ? alpha('#ddddddff', 0.9)
-                            : alpha('#0000007c', 0.9),
+                          background: !isDark ? alpha('#ddddddff', 0.9) : alpha('#0000007c', 0.9),
                           color: alpha(accentColor, 0.9),
                           fontWeight: 600,
                           letterSpacing: 1,
@@ -437,16 +464,17 @@ const BlogListPage = () => {
                           fontSize: 11,
                           lineHeight: 1.3,
                           width: 'fit-content',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
                         }}
                         onClick={clearSearch}
+                        title="Clear search"
                       >
                         <Box
                           component="span"
                           sx={{
                             background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
                             WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent'
+                            WebkitTextFillColor: 'transparent',
                           }}
                         >
                           Search: {queryParam.trim()}
@@ -455,7 +483,6 @@ const BlogListPage = () => {
                     )}
                   </Stack>
                 )}
-
 
                 {paginatedPosts.length > 0 ? (
                   <Box my={10}>
@@ -468,7 +495,7 @@ const BlogListPage = () => {
                       p: { xs: 4, md: 6 },
                       textAlign: 'center',
                       borderRadius: 0.5,
-                      backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.9)
+                      backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.5 : 0.9),
                     }}
                   >
                     <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
@@ -506,29 +533,25 @@ const BlogListPage = () => {
                             backgroundImage: item.selected
                               ? 'linear-gradient(135deg, #9333ea 0%, #ec4899 50%, #f97316 100%)'
                               : 'none',
-                            backgroundColor: item.selected
-                              ? 'transparent'
-                              : alpha('#000000', isDark ? 0.7 : 0.9),
+                            backgroundColor: item.selected ? 'transparent' : alpha('#000000', isDark ? 0.7 : 0.9),
                             color: '#ffffff',
                             '&:hover': {
                               backgroundImage: item.selected
                                 ? 'linear-gradient(135deg, #a855f7 0%, #f472b6 50%, #fb923c 100%)'
                                 : 'none',
-                              backgroundColor: item.selected
-                                ? 'transparent'
-                                : alpha('#000000', isDark ? 0.85 : 0.95)
+                              backgroundColor: item.selected ? 'transparent' : alpha('#000000', isDark ? 0.85 : 0.95),
                             },
                             '&.Mui-disabled': {
                               opacity: 0.4,
-                              boxShadow: 'none'
-                            }
+                              boxShadow: 'none',
+                            },
                           }}
                         />
                       )}
                       sx={{
                         '& .MuiPagination-ul': {
-                          m: 0
-                        }
+                          m: 0,
+                        },
                       }}
                     />
                   </Stack>
@@ -537,9 +560,8 @@ const BlogListPage = () => {
             </Grid>
           </Grid>
         </Box>
-
-      </Container >
-    </Box >
+      </Container>
+    </Box>
   );
 };
 

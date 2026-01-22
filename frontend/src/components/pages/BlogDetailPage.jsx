@@ -19,7 +19,6 @@ import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import { AppButton } from "../shared/FormControls.jsx";
 import ServicesBlog from "../shared/ServicesBlog.jsx";
 
-import { blogPosts, getBlogBySlug, getRelatedPosts } from "../../data/blogs.js";
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
@@ -37,13 +36,18 @@ const slideInRight = keyframes`
 `;
 
 /* =========================
-   OPTIONAL: date formatter
+   ✅ date formatter: "22 Jan 2025"
 ========================= */
 const formatDate = (value) => {
   if (!value) return "";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 const BlogDetailPage = () => {
@@ -55,6 +59,10 @@ const BlogDetailPage = () => {
 
   const [apiPost, setApiPost] = useState(null);
   const [isApiLoading, setIsApiLoading] = useState(true);
+
+  // ✅ NEW: store list for recent + related
+  const [apiAllPosts, setApiAllPosts] = useState([]);
+  const [isPostsLoading, setIsPostsLoading] = useState(true);
 
   /* =========================
      HELPERS (stable)
@@ -70,8 +78,24 @@ const BlogDetailPage = () => {
     return apiUrl(v.startsWith("/") ? v : `/${v}`);
   }, []);
 
+  // ✅ Navigate to contact AND scroll to top
+  const navigateToContactTop = useCallback(
+    (href = "/contact") => {
+      navigate(href);
+
+      // ensure scroll even after route render
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 120);
+    },
+    [navigate]
+  );
+
   /* =========================
-     FETCH API POST
+     FETCH API POST (detail)
   ========================= */
   useEffect(() => {
     let mounted = true;
@@ -107,11 +131,35 @@ const BlogDetailPage = () => {
   }, [fetchWithLoading, slug]);
 
   /* =========================
-     FALLBACK POST (static)
+     ✅ FETCH ALL POSTS (for Recent + Related)
+     - If your API path differs, just change this one line
   ========================= */
-  const fallbackPost = useMemo(() => {
-    return getBlogBySlug(slug ?? "");
-  }, [slug]);
+  useEffect(() => {
+    let mounted = true;
+
+    const loadAllPosts = async () => {
+      setIsPostsLoading(true);
+      try {
+        // ✅ Common listing endpoint. If yours is different, update here:
+        const res = await fetchWithLoading(apiUrl(`/api/blog-posts`));
+        if (!res?.ok) throw new Error("Failed to fetch blog posts list");
+        const payload = await res.json();
+
+        const items = payload?.posts || payload?.data || payload?.items || [];
+        if (!mounted) return;
+        setApiAllPosts(Array.isArray(items) ? items : []);
+      } catch (_e) {
+        if (mounted) setApiAllPosts([]);
+      } finally {
+        if (mounted) setIsPostsLoading(false);
+      }
+    };
+
+    loadAllPosts();
+    return () => {
+      mounted = false;
+    };
+  }, [fetchWithLoading]);
 
   /* =========================
      NORMALIZE API POST
@@ -134,15 +182,17 @@ const BlogDetailPage = () => {
       });
     }
 
-    const mainImage = resolveImg(apiPost.coverImage || apiPost.blogImage || apiPost.heroImage || "");
+    const mainImage = resolveImg(
+      apiPost.coverImage || apiPost.blogImage || apiPost.heroImage || ""
+    );
     const ctaImage = resolveImg(
       apiPost.ctaImage ||
-      apiPost.ctaImageUrl ||
-      apiPost.ctaBlobImage ||
-      apiPost.blobImage ||
-      apiPost.blogImage ||
-      apiPost.coverImage ||
-      ""
+        apiPost.ctaImageUrl ||
+        apiPost.ctaBlobImage ||
+        apiPost.blobImage ||
+        apiPost.blogImage ||
+        apiPost.coverImage ||
+        ""
     );
 
     const ctaHref =
@@ -158,13 +208,20 @@ const BlogDetailPage = () => {
       apiPost.primaryCtaLabel ||
       "Contact us";
 
+    // normalize tags to array of strings
+    const tags = Array.isArray(apiPost.tags)
+      ? apiPost.tags
+          .map((t) => (typeof t === "string" ? t : t?.name))
+          .filter(Boolean)
+      : [];
+
     return {
       id: apiPost.id,
       title: apiPost.title || "",
       subtitle: apiPost.subtitle || "",
       slug: apiPost.slug || slug || "",
-      category: apiPost.category?.name || "Uncategorized",
-      tags: Array.isArray(apiPost.tags) ? apiPost.tags : [],
+      category: apiPost.category?.name || apiPost.category || "Uncategorized",
+      tags,
       image: mainImage,
       heroImage: mainImage,
       publishedOn: apiPost.publishDate || apiPost.createdAt || "",
@@ -188,7 +245,7 @@ const BlogDetailPage = () => {
     };
   }, [apiPost, resolveImg, slug]);
 
-  const post = normalizedApiPost ?? fallbackPost;
+  const post = normalizedApiPost;
 
   /* =========================
      ✅ IMPORTANT: Hooks BEFORE returns
@@ -197,17 +254,79 @@ const BlogDetailPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [slug]);
 
+  // ✅ Local helper to get related posts (NO missing function crash)
+  const getRelatedPostsLocal = useCallback(
+    (currentSlug, category, tags) => {
+      const tagSet = new Set((tags || []).map((t) => String(t).toLowerCase()));
+
+      const normalized = (apiAllPosts || [])
+        .map((p) => ({
+          ...p,
+          slug: p.slug || "",
+          title: p.title || "",
+          subtitle: p.subtitle || "",
+          publishedOn: p.publishDate || p.createdAt || "",
+          category: p.category?.name || p.category || "Uncategorized",
+          tags: Array.isArray(p.tags)
+            ? p.tags
+                .map((t) => (typeof t === "string" ? t : t?.name))
+                .filter(Boolean)
+            : [],
+          image: resolveImg(p.coverImage || p.blogImage || p.heroImage || ""),
+        }))
+        .filter((p) => p.slug && p.slug !== currentSlug);
+
+      // score by same category + matching tags
+      const scored = normalized
+        .map((p) => {
+          const sameCategory =
+            String(p.category || "").toLowerCase() ===
+            String(category || "").toLowerCase();
+
+          const postTags = (p.tags || []).map((t) => String(t).toLowerCase());
+          const commonTags = postTags.filter((t) => tagSet.has(t)).length;
+
+          const score = (sameCategory ? 3 : 0) + commonTags;
+          return { p, score };
+        })
+        .sort((a, b) => b.score - a.score);
+
+      return scored
+        .filter((x) => x.score > 0)
+        .slice(0, 6)
+        .map((x) => x.p);
+    },
+    [apiAllPosts, resolveImg]
+  );
+
   const relatedPosts = useMemo(() => {
     const safeSlug = post?.slug || "";
     const safeCategory = post?.category || "";
     const safeTags = Array.isArray(post?.tags) ? post.tags : [];
     if (!safeSlug) return [];
-    try {
-      return getRelatedPosts(safeSlug, safeCategory, safeTags) || [];
-    } catch (_e) {
-      return [];
-    }
-  }, [post?.slug, post?.category, post?.tags]);
+    return getRelatedPostsLocal(safeSlug, safeCategory, safeTags) || [];
+  }, [getRelatedPostsLocal, post?.category, post?.slug, post?.tags]);
+
+  // ✅ Recent posts for sidebar (3 items)
+  const recentArticles = useMemo(() => {
+    const currentSlug = post?.slug || "";
+    const normalized = (apiAllPosts || [])
+      .map((p) => ({
+        slug: p.slug || "",
+        title: p.title || "",
+        publishedOn: p.publishDate || p.createdAt || "",
+      }))
+      .filter((p) => p.slug && p.slug !== currentSlug);
+
+    // sort by date desc
+    normalized.sort((a, b) => {
+      const da = new Date(a.publishedOn).getTime();
+      const db = new Date(b.publishedOn).getTime();
+      return (Number.isNaN(db) ? 0 : db) - (Number.isNaN(da) ? 0 : da);
+    });
+
+    return normalized.slice(0, 3);
+  }, [apiAllPosts, post?.slug]);
 
   useEffect(() => {
     if (!post && !isApiLoading) {
@@ -234,22 +353,21 @@ const BlogDetailPage = () => {
 
   // ✅ Breadcrumb label + Title bind
   const heroTitle = post.title || "";
-  const heroCategory = post.category || "Blog";
 
-  const onContact = () => navigate("/contact");
+  const onContact = () => navigateToContactTop("/contact");
 
   return (
     <Box sx={{ bgcolor: "background.default" }}>
       {/* =========================
-          HERO (Screenshot style)
+          HERO
       ========================= */}
       <Box
         sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          minHeight: { xs: '60vh', md: '70vh' },
-          display: 'flex',
-          alignItems: 'center',
+          position: "relative",
+          overflow: "hidden",
+          minHeight: { xs: "60vh", md: "70vh" },
+          display: "flex",
+          alignItems: "center",
           pb: { xs: 12, md: 14 },
           pt: { xs: 14, md: 18 },
         }}
@@ -269,20 +387,15 @@ const BlogDetailPage = () => {
           }}
         />
 
-        {/* Overlay (deep like screenshot) */}
+        {/* Overlay */}
         <Box
           sx={{
             position: "absolute",
             inset: 0,
             pointerEvents: "none",
-            background: `
-              linear-gradient(
-                90deg,
-                rgba(2,6,23,0.92) 0%,
-                rgba(2,6,23,0.78) 40%,
-                rgba(2,6,23,0.35) 100%
-              )
-            `,
+            background: isDark
+              ? `linear-gradient(90deg, rgba(5,9,18,0.85) 0%, rgba(5,9,18,0.65) 40%, rgba(5,9,18,0.2) 70%, rgba(5,9,18,0) 100%)`
+              : `linear-gradient(90deg, rgba(241,245,249,0.9) 0%, rgba(241,245,249,0.7) 40%, rgba(241,245,249,0.3) 70%, rgba(241,245,249,0) 100%)`,
           }}
         />
 
@@ -297,63 +410,77 @@ const BlogDetailPage = () => {
           <Stack spacing={2.2}>
             {/* Breadcrumbs */}
             <Breadcrumbs
-              separator={<NavigateNextIcon fontSize="small" sx={{ color: alpha("#e2e8f0", 0.9) }} />}
+              separator={
+                <NavigateNextIcon
+                  fontSize="small"
+                  sx={{ color: alpha("#e2e8f0", 0.9) }}
+                />
+              }
               aria-label="breadcrumb"
               sx={{
-                color: alpha('#fff', 0.85),
+                color: alpha("#fff", 0.85),
                 fontSize: { xs: 12, sm: 18 },
-                '& .MuiBreadcrumbs-ol': {
-                  flexWrap: 'wrap',
-                  justifyContent: { xs: 'center', md: 'flex-start' },
+                "& .MuiBreadcrumbs-ol": {
+                  flexWrap: "wrap",
+                  justifyContent: { xs: "center", md: "flex-start" },
                 },
-                '& .MuiBreadcrumbs-li': {
-                  display: 'flex',
-                  alignItems: 'center',
+                "& .MuiBreadcrumbs-li": {
+                  display: "flex",
+                  alignItems: "center",
                 },
-                '& a, & p': {
+                "& a, & p": {
                   fontSize: { xs: 12, sm: 18 },
-                  textAlign: { xs: 'center', md: 'left' },
+                  textAlign: { xs: "center", md: "left" },
                 },
               }}
             >
               <MuiLink component={RouterLink} underline="hover" color="inherit" to="/">
                 Home
               </MuiLink>
-              <MuiLink component={RouterLink} underline="hover" color="inherit" to="/blog">
+              <MuiLink
+                component={RouterLink}
+                underline="hover"
+                color="inherit"
+                to="/blog"
+              >
                 Blog
               </MuiLink>
               <Typography color="inherit">{post.title}</Typography>
             </Breadcrumbs>
+
             <Box
               sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
+                display: "inline-flex",
+                alignItems: "center",
                 px: 2,
                 py: 1,
                 borderRadius: 0.5,
-                border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                background: !isDark ? alpha('#ddddddff', 0.9) : alpha('#0000007c', 0.9),
+                border: `1px solid ${alpha("#ffffff", 0.1)}`,
+                background: !isDark
+                  ? alpha("#ddddddff", 0.9)
+                  : alpha("#0000007c", 0.9),
                 color: alpha(accentColor, 0.9),
                 fontWeight: 600,
                 letterSpacing: 1,
-                textTransform: 'uppercase',
+                textTransform: "uppercase",
                 fontSize: 11,
                 lineHeight: 1.3,
-                width: 'fit-content',
+                width: "fit-content",
               }}
             >
               <Box
                 component="span"
                 sx={{
-                  background: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  background: "linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
                 }}
               >
                 {post.category}
               </Box>
             </Box>
-            {/* Big Title (bind) */}
+
+            {/* Big Title */}
             <Typography
               variant="h1"
               sx={{
@@ -361,14 +488,14 @@ const BlogDetailPage = () => {
                 fontWeight: 800,
                 lineHeight: 1.08,
                 letterSpacing: -0.5,
-                fontSize: { xs: 30, sm: 38, md: 56 }, // screenshot vibe
+                fontSize: { xs: 30, sm: 38, md: 56 },
                 maxWidth: { xs: "100%", md: 980 },
               }}
             >
               {heroTitle}
             </Typography>
 
-            {/* Published date (optional) */}
+            {/* ✅ Published date format */}
             {post.publishedOn ? (
               <Typography
                 variant="body1"
@@ -378,7 +505,7 @@ const BlogDetailPage = () => {
               </Typography>
             ) : null}
 
-            {/* Contact button -> /contact */}
+            {/* Contact button -> /contact + scroll top */}
             <Box>
               <AppButton
                 variant="contained"
@@ -436,7 +563,10 @@ const BlogDetailPage = () => {
                     component="div"
                     sx={{
                       maxWidth: 780,
-                      color: alpha(theme.palette.text.primary, isDark ? 0.92 : 0.9),
+                      color: alpha(
+                        theme.palette.text.primary,
+                        isDark ? 0.92 : 0.9
+                      ),
                       lineHeight: 1.8,
                     }}
                     dangerouslySetInnerHTML={buildHtml(post.subtitle)}
@@ -445,7 +575,6 @@ const BlogDetailPage = () => {
 
                 <Divider sx={{ borderColor: dividerColor }} />
 
-              
                 {/* Conclusion */}
                 <Stack spacing={2.2}>
                   <Typography
@@ -472,17 +601,17 @@ const BlogDetailPage = () => {
                     position: "relative",
                     overflow: "hidden",
                     borderRadius: 0.5,
-                    border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.2)}`,
+                    border: `1px solid ${alpha(
+                      theme.palette.divider,
+                      isDark ? 0.5 : 0.2
+                    )}`,
                     p: { xs: 3, md: 4 },
-
-                    // ✅ Background image (IMPORTANT)
                     backgroundImage: post.cta?.image ? `url(${post.cta.image})` : "none",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
                   }}
                 >
-
                   <Box
                     sx={{
                       position: "absolute",
@@ -490,19 +619,17 @@ const BlogDetailPage = () => {
                       zIndex: 0,
                       pointerEvents: "none",
                       background: isDark
-                        ? `linear-gradient(90deg,
-            rgba(2,6,23,0.92) 0%,
-            rgba(2,6,23,0.72) 45%,
-            rgba(2,6,23,0.45) 100%)`
-                        : `linear-gradient(90deg,
-            rgba(255,255,255,0.95) 0%,
-            rgba(255,255,255,0.75) 45%,
-            rgba(255,255,255,0.55) 100%)`,
+                        ? `linear-gradient(90deg, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.72) 45%, rgba(2,6,23,0.45) 100%)`
+                        : `linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 45%, rgba(255,255,255,0.55) 100%)`,
                     }}
                   />
 
-                  {/* ✅ Content should be above overlay */}
-                  <Grid container spacing={3} alignItems="center" sx={{ position: "relative", zIndex: 1 }}>
+                  <Grid
+                    container
+                    spacing={3}
+                    alignItems="center"
+                    sx={{ position: "relative", zIndex: 1 }}
+                  >
                     <Grid item xs={12} md={7}>
                       <Stack spacing={2.3}>
                         <Typography
@@ -515,7 +642,10 @@ const BlogDetailPage = () => {
                           {post.cta?.heading}
                         </Typography>
 
-                        <Typography variant="body1" sx={{ color: subtleText, lineHeight: 1.8 }}>
+                        <Typography
+                          variant="body1"
+                          sx={{ color: subtleText, lineHeight: 1.8 }}
+                        >
                           {post.cta?.description}
                         </Typography>
 
@@ -523,16 +653,20 @@ const BlogDetailPage = () => {
                           <AppButton
                             variant="contained"
                             size="large"
-                            onClick={() => navigate(post.cta?.primaryCtaHref || "/contact")}
+                            onClick={() =>
+                              navigateToContactTop(post.cta?.primaryCtaHref || "/contact")
+                            }
                             endIcon={<ArrowForwardIcon />}
                             sx={{
-                              background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                              background:
+                                "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
                               color: "#fff",
                               borderRadius: "12px",
                               textTransform: "none",
                               fontWeight: 700,
                               "&:hover": {
-                                background: "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
+                                background:
+                                  "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
                               },
                             }}
                           >
@@ -543,7 +677,6 @@ const BlogDetailPage = () => {
                     </Grid>
                   </Grid>
                 </Box>
-
               </Stack>
             </Grid>
 
@@ -563,13 +696,22 @@ const BlogDetailPage = () => {
                 <Box
                   sx={{
                     borderRadius: 0.5,
-                    border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
-                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.6 : 0.96),
+                    border: `1px solid ${alpha(
+                      theme.palette.divider,
+                      isDark ? 0.5 : 0.22
+                    )}`,
+                    backgroundColor: alpha(
+                      theme.palette.background.paper,
+                      isDark ? 0.6 : 0.96
+                    ),
                     p: 2,
                   }}
                 >
                   <Stack spacing={2}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 0.5 }}>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ fontWeight: 800, letterSpacing: 0.5 }}
+                    >
                       Tags
                     </Typography>
 
@@ -585,7 +727,9 @@ const BlogDetailPage = () => {
                               py: 1,
                               borderRadius: 0.5,
                               border: `1px solid ${alpha("#ffffff", 0.1)}`,
-                              background: !isDark ? alpha("#ddddddff", 0.9) : alpha("#0000007c", 0.9),
+                              background: !isDark
+                                ? alpha("#ddddddff", 0.9)
+                                : alpha("#0000007c", 0.9),
                               color: alpha(accentColor, 0.9),
                               fontWeight: 700,
                               letterSpacing: 1,
@@ -598,7 +742,8 @@ const BlogDetailPage = () => {
                             <Box
                               component="span"
                               sx={{
-                                background: "linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)",
+                                background:
+                                  "linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
                               }}
@@ -616,45 +761,65 @@ const BlogDetailPage = () => {
                   </Stack>
                 </Box>
 
-                {/* Recent Articles (static) */}
+                {/* ✅ Recent Articles (API) */}
                 <Box
                   sx={{
                     borderRadius: 0.5,
-                    border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.5 : 0.22)}`,
-                    backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.6 : 0.96),
+                    border: `1px solid ${alpha(
+                      theme.palette.divider,
+                      isDark ? 0.5 : 0.22
+                    )}`,
+                    backgroundColor: alpha(
+                      theme.palette.background.paper,
+                      isDark ? 0.6 : 0.96
+                    ),
                     p: 2,
                   }}
                 >
                   <Stack spacing={2.3}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 0.5 }}>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ fontWeight: 800, letterSpacing: 0.5 }}
+                    >
                       Recent Articles
                     </Typography>
 
                     <Stack spacing={2.2}>
-                      {blogPosts.slice(0, 3).map((item) => (
-                        <Stack key={item.slug} spacing={0.5}>
-                          <Typography
-                            component={RouterLink}
-                            to={`/blog/${item.slug}`}
-                            sx={{
-                              textDecoration: "none",
-                              color: theme.palette.text.primary,
-                              fontWeight: 700,
-                              transition: "all 0.3s ease",
-                              "&:hover": {
-                                background: "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                              },
-                            }}
-                          >
-                            {item.title}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: subtleText }}>
-                            {item.publishedOn ?? "—"}
-                          </Typography>
-                        </Stack>
-                      ))}
+                      {isPostsLoading ? (
+                        <Typography variant="caption" sx={{ color: subtleText }}>
+                          Loading...
+                        </Typography>
+                      ) : recentArticles.length ? (
+                        recentArticles.map((item) => (
+                          <Stack key={item.slug} spacing={0.5}>
+                            <Typography
+                              component={RouterLink}
+                              to={`/blog/${item.slug}`}
+                              sx={{
+                                textDecoration: "none",
+                                color: theme.palette.text.primary,
+                                fontWeight: 700,
+                                transition: "all 0.3s ease",
+                                "&:hover": {
+                                  background:
+                                    "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
+                                  WebkitBackgroundClip: "text",
+                                  WebkitTextFillColor: "transparent",
+                                },
+                              }}
+                            >
+                              {item.title}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: subtleText }}>
+                              {item.publishedOn ? formatDate(item.publishedOn) : "—"}
+                            </Typography>
+                          </Stack>
+                        ))
+                      ) : (
+                        <Typography variant="caption" sx={{ color: subtleText }}>
+                          No recent articles
+                        </Typography>
+                      )}
                     </Stack>
                   </Stack>
                 </Box>
@@ -680,7 +845,7 @@ const BlogDetailPage = () => {
               </Stack>
             </Container>
 
-            <ServicesBlog showHeading={true} posts={relatedPosts} limit={4} />
+          <ServicesBlog showHeading={false} posts={relatedPosts} limit={3} />
           </Box>
         ) : (
           <Box >
