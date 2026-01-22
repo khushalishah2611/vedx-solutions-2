@@ -20,24 +20,7 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
     }
 
     return [
-      {
-        title: 'Delivery Command Center',
-        description:
-          'Operations dashboards blend telematics, kitchen queueing, and driver ETAs to predict late deliveries before they happen.',
-        image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
-      },
-      {
-        title: 'Community and Social Planning',
-        description:
-          'Create community groups, chat rooms, invite friends, and share itineraries with emergency contacts.',
-        image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
-      },
-      {
-        title: 'Personalised & AI Recommendations',
-        description:
-          'Smart itineraries, budget planning, and best-time insights powered by AI.',
-        image: 'https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?auto=format&fit=crop&w=1200&q=80',
-      },
+   
     ];
   }, [caseStudy]);
 
@@ -94,7 +77,7 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
               spacing={2}
               alignItems="center"
               direction={{
-                xs: 'column', // 📱 image top, text bottom
+                xs: 'column', 
                 md: imageLeftDesktop ? 'row-reverse' : 'row',
               }}
               textAlign={{ xs: 'center', md: 'left' }}
@@ -117,7 +100,8 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
                     opacity: animate ? 1 : 0,
                     transform: animate ? 'none' : 'translateY(20px)',
                     transition: 'all 600ms ease',
-                    borderRadius: 1.5,
+                    borderRadius: 0.5,
+                      position: "relative",
                     border: `1px solid ${alpha('#ffffff', 0.12)}`,
                   }}
                 >
@@ -125,7 +109,7 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
                     component="img"
                     src={
                       feature.image
-                      || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80'
+                  
                     }
                     alt={feature.title}
                     loading="lazy"
