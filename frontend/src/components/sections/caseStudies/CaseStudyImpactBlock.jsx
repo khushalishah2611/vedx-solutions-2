@@ -92,7 +92,7 @@ const CaseStudyImpactBlock = ({ impactMetrics }) => {
           </Box>
         </Box>
       </Box>
-
+  <Box mt={10} />
       {/* Cards wrapper → fixes left/right spacing */}
       <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto" }}>
         <Grid container spacing={2.5} justifyContent="center">

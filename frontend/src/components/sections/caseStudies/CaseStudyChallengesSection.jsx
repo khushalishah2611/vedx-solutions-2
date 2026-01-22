@@ -20,22 +20,7 @@ const CaseStudyChallengesSection = ({ caseStudy, animate = true, accentColor = "
   const cards = useMemo(() => {
     if (caseStudy?.challengeHighlights?.length > 0) return caseStudy.challengeHighlights;
     return [
-      {
-        title: "Fast Third-Party API Integrations",
-        description: "Implemented API caching and async request handling for reliable partner syncs.",
-      },
-      {
-        title: "Adaptive AI Travel Model",
-        description: "Feedback loops retrain recommendations so every itinerary stays relevant.",
-      },
-      {
-        title: "Offline Access for Travelers",
-        description: "Local data storage with periodic sync keeps maps and bookings available.",
-      },
-      {
-        title: "Security & Reliability",
-        description: "Geo-fencing, role-based access, and 99.9% uptime monitoring ensure trust.",
-      },
+     
     ];
   }, [caseStudy]);
 
@@ -101,8 +86,8 @@ const CaseStudyChallengesSection = ({ caseStudy, animate = true, accentColor = "
           </Box>
         </Box>
 
-        <Box sx={{ mt: 2 }} />
-
+       
+     <Box mt={10} />
         <Typography
           variant="body1"
           sx={{
@@ -122,6 +107,7 @@ const CaseStudyChallengesSection = ({ caseStudy, animate = true, accentColor = "
           preferences and previous journeys.`}
         </Typography>
       </Stack>
+      
 
       {/* Slider area */}
       <Box sx={{ position: "relative" }}>
