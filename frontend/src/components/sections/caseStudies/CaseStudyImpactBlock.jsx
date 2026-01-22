@@ -27,7 +27,7 @@ const impactIcons = [
 const CaseStudyImpactBlock = ({ impactMetrics }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const safeAccent = "#a855f7";
+  const safeAccent = "#38bdf8";
 
   const rootRef = useRef(null);
   const [inView, setInView] = useState(false);
@@ -150,8 +150,8 @@ const CaseStudyImpactBlock = ({ impactMetrics }) => {
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: 1.5,
-                      bgcolor: alpha(safeAccent, 0.15),
-                      border: `1px solid ${alpha(safeAccent, 0.4)}`,
+
+
                       overflow: "hidden",
                     }}
                   >
@@ -166,22 +166,23 @@ const CaseStudyImpactBlock = ({ impactMetrics }) => {
                       <Icon sx={{ color: safeAccent }} />
                     )}
                   </Box>
-
                   {title ? (
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      {title}
-                    </Typography>
-                  ) : null}
-
-                  {caption ? (
                     <Typography
-                      variant="caption"
+                      variant="subtitle1"
                       sx={{
-                        color: alpha(theme.palette.text.primary, 0.65),
-                        lineHeight: 1.6,
+                        fontWeight: 700,
+                        color: 'inherit',
+                        transition: 'color 0.3s ease, background-image 0.3s ease',
+                        '&:hover': {
+                          color: 'transparent',
+                          backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          WebkitBackgroundClip: 'text',
+                          backgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        },
                       }}
                     >
-                      {caption}
+                      {title}
                     </Typography>
                   ) : null}
                 </Paper>

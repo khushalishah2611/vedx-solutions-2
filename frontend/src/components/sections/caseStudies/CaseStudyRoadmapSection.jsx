@@ -326,12 +326,12 @@ const CaseStudyRoadmapSection = ({ animate = true, steps }) => {
     <Box
       sx={{
         mt: 10,
+        mb:10,
 
-        // ✅ FIX: overflow hidden was clipping the last step (especially with negative margins)
+      
         overflow: "visible",
 
-        // ✅ FIX: don't force 100vh here; just add bottom padding
-        pb: { xs: 6, md: 10 },
+
       }}
     >
       {/* Badge */}

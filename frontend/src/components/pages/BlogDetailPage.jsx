@@ -692,74 +692,7 @@ const BlogDetailPage = () => {
               }}
             >
               <Stack spacing={2}>
-                {/* Tags */}
-                <Box
-                  sx={{
-                    borderRadius: 0.5,
-                    border: `1px solid ${alpha(
-                      theme.palette.divider,
-                      isDark ? 0.5 : 0.22
-                    )}`,
-                    backgroundColor: alpha(
-                      theme.palette.background.paper,
-                      isDark ? 0.6 : 0.96
-                    ),
-                    p: 2,
-                  }}
-                >
-                  <Stack spacing={2}>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 800, letterSpacing: 0.5 }}
-                    >
-                      Tags
-                    </Typography>
-
-                    <Stack direction="row" flexWrap="wrap" gap={1.2}>
-                      {(post.tags || []).length ? (
-                        (post.tags || []).map((tag) => (
-                          <Box
-                            key={tag}
-                            sx={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              px: 2,
-                              py: 1,
-                              borderRadius: 0.5,
-                              border: `1px solid ${alpha("#ffffff", 0.1)}`,
-                              background: !isDark
-                                ? alpha("#ddddddff", 0.9)
-                                : alpha("#0000007c", 0.9),
-                              color: alpha(accentColor, 0.9),
-                              fontWeight: 700,
-                              letterSpacing: 1,
-                              textTransform: "uppercase",
-                              fontSize: 11,
-                              lineHeight: 1.3,
-                              width: "fit-content",
-                            }}
-                          >
-                            <Box
-                              component="span"
-                              sx={{
-                                background:
-                                  "linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                              }}
-                            >
-                              {tag}
-                            </Box>
-                          </Box>
-                        ))
-                      ) : (
-                        <Typography variant="caption" sx={{ color: subtleText }}>
-                          No tags
-                        </Typography>
-                      )}
-                    </Stack>
-                  </Stack>
-                </Box>
+              
 
                 {/* ✅ Recent Articles (API) */}
                 <Box

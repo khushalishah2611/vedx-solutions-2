@@ -1,3 +1,5 @@
+// ContactPage.jsx (SINGLE FILE) ✅ FULL + CORRECTED
+
 import {
   Alert,
   Box,
@@ -6,6 +8,7 @@ import {
   Container,
   Grid,
   MenuItem,
+  Rating, // ✅ FIX: Rating import missing
   Stack,
   Typography,
   alpha,
@@ -17,15 +20,25 @@ import { AppButton, AppSelectField, AppTextField } from "../shared/FormControls.
 import PhoneInTalkRoundedIcon from "@mui/icons-material/PhoneInTalkRounded";
 import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+
 import { contactProjectTypes } from "../../data/servicesPage.js";
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
+/* =========================================
+   ✅ MAP CONFIG (FIXED)
+   - Use lat/lng embed (no API key)
+   - Match your Google maps place coords: 22.3446425, 73.2147198
+========================================= */
 const contactLocation = {
-  address: "Suite 6, Sharvari, Vadodra, India",
-  mapUrl: "https://maps.app.goo.gl/4eSx5vwd2B52r7SU6",
-  embedUrl:
-    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.931298711962!2d73.16464287503293!3d22.618272779458066!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc92cc69482e9%3A0x4304382e37f95998!2sVedx%20solution%20Pvt%20ltd!5e0!3m2!1sen!2sin!4v1707162589470!5m2!1sen!2sin",
+  address: "Vedx Solution Pvt Ltd, Vadodara, Gujarat, India",
+  lat: 22.3446425,
+  lng: 73.2147198,
+  mapUrl:
+    "https://www.google.com/maps/place/Vedx+solution+Pvt+ltd/@22.344642,73.21472,14z/data=!4m6!3m5!1s0x395fcdb58438851d:0x38a17515d716976!8m2!3d22.3446425!4d73.2147198!16s%2Fg%2F11x34kz_b1?hl=en-GB&entry=ttu",
+  get embedUrl() {
+    return `https://www.google.com/maps?q=${this.lat},${this.lng}&z=15&output=embed`;
+  },
 };
 
 const contactDetails = [
@@ -62,7 +75,7 @@ const ContactPage = () => {
     name: "",
     email: "",
     phone: "",
-    projectType: "", // keep empty so placeholder shows
+    projectType: "",
     description: "",
   });
 
@@ -76,18 +89,18 @@ const ContactPage = () => {
     const loadProjectTypes = async () => {
       try {
         const response = await fetchWithLoading(apiUrl("/api/project-types"));
-        if (!response.ok) throw new Error("Failed to fetch project types");
-
+        if (!response?.ok) throw new Error("Failed to fetch project types");
         const payload = await response.json();
         if (!isMounted) return;
 
-        const types = (payload.projectTypes || [])
+        const types = (payload?.projectTypes || [])
           .map((item) => item?.name)
           .filter(Boolean);
 
         if (types.length > 0) setProjectTypes(types);
       } catch (error) {
         console.error("Failed to load project types", error);
+        // keep fallback list (contactProjectTypes)
       }
     };
 
@@ -97,7 +110,7 @@ const ContactPage = () => {
     };
   }, [fetchWithLoading]);
 
-  // Keep this for reset use if you want, but DO NOT auto-select it.
+  // keep for reset use, not auto-select (still useful if you want later)
   const resolvedProjectType = useMemo(() => projectTypes?.[0] || "", [projectTypes]);
 
   const handleChange = (field) => (event) => {
@@ -110,14 +123,18 @@ const ContactPage = () => {
     setStatusMessage("");
 
     const token = localStorage.getItem("adminToken");
+
+    // ✅ Keep your logic as-is, but make endpoint a bit safer:
+    // If you truly have a public route, prefer "/api/contacts" etc.
     const endpoint = token ? "/api/admin/contacts" : "/api/admin/contacts?public=true";
+
     const headers = {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
     try {
-      const response = await fetch(apiUrl(endpoint), {
+      const response = await fetchWithLoading(apiUrl(endpoint), {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -130,13 +147,20 @@ const ContactPage = () => {
         }),
       });
 
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.message || "Unable to submit request.");
+      let payload = {};
+      try {
+        payload = await response.json();
+      } catch {
+        payload = {};
+      }
+
+      if (!response?.ok) {
+        throw new Error(payload?.message || "Unable to submit request.");
+      }
 
       setStatusSeverity("success");
       setStatusMessage(payload?.message || "Thanks! Your enquiry has been received.");
 
-      // Reset -> show placeholder again
       setFormValues({
         name: "",
         email: "",
@@ -144,6 +168,10 @@ const ContactPage = () => {
         projectType: "",
         description: "",
       });
+
+      // Optional: you can auto-reset projectType to first option if you want:
+      // setFormValues((p) => ({ ...p, projectType: resolvedProjectType }));
+      void resolvedProjectType;
     } catch (error) {
       setStatusSeverity("error");
       setStatusMessage(error?.message || "Unable to submit your enquiry right now.");
@@ -153,13 +181,7 @@ const ContactPage = () => {
   };
 
   return (
-    <Box
-      component="main"
-      sx={{
-        bgcolor: "background.default",
-        overflowX: "hidden",
-      }}
-    >
+    <Box component="main" sx={{ bgcolor: "background.default", overflowX: "hidden" }}>
       {/* Hero Section */}
       <Box
         sx={{
@@ -177,13 +199,7 @@ const ContactPage = () => {
           color: "common.white",
         }}
       >
-        <Container
-          maxWidth={false}
-          sx={{
-            zIndex: 1,
-            px: { xs: 3, md: 20 },
-          }}
-        >
+        <Container maxWidth={false} sx={{ zIndex: 1, px: { xs: 3, md: 20 } }}>
           <Stack spacing={2.5} alignItems={{ xs: "center", md: "flex-start" }}>
             <Typography
               variant="h1"
@@ -213,14 +229,7 @@ const ContactPage = () => {
       </Box>
 
       {/* Contact Section */}
-      <Container
-        id="contact"
-        maxWidth={false}
-        sx={{
-          px: { xs: 3, md: 20 },
-          py: { xs: 6, md: 10 },
-        }}
-      >
+      <Container id="contact" maxWidth={false} sx={{ px: { xs: 3, md: 20 }, py: { xs: 6, md: 10 } }}>
         <Box my={5}>
           <Stack spacing={{ xs: 6, md: 10 }}>
             {/* Section Title */}
@@ -269,14 +278,7 @@ const ContactPage = () => {
             </Stack>
 
             {/* Contact Cards */}
-            <Grid
-              spacing={2}
-              container
-              sx={{
-                p: { xs: 3, sm: 4 },
-                m: 5,
-              }}
-            >
+            <Grid spacing={2} container sx={{ p: { xs: 3, sm: 4 }, m: { xs: 0, md: 5 } }}>
               {contactDetails.map((detail) => (
                 <Grid item xs={12} md={4} key={detail.label}>
                   <Card
@@ -337,7 +339,7 @@ const ContactPage = () => {
               ))}
             </Grid>
 
-            <Grid container spacing={{ md: 2 }}>
+            <Grid container spacing={{ xs: 4, md: 2 }}>
               {/* Form column */}
               <Grid item xs={12} md={6}>
                 <Stack
@@ -396,7 +398,6 @@ const ContactPage = () => {
                         onChange={handleChange("phone")}
                       />
 
-                      {/* ✅ Project Type with Placeholder (no default auto select) */}
                       <AppSelectField
                         label="Project Type"
                         fullWidth
@@ -409,7 +410,11 @@ const ContactPage = () => {
                         renderValue={(selected) => {
                           if (!selected) {
                             return (
-                              <span style={{ color: alpha(theme.palette.text.secondary, isDark ? 0.7 : 0.85) }}>
+                              <span
+                                style={{
+                                  color: alpha(theme.palette.text.secondary, isDark ? 0.7 : 0.85),
+                                }}
+                              >
                                 Select Project Type
                               </span>
                             );
@@ -467,31 +472,103 @@ const ContactPage = () => {
 
               {/* Map column */}
               <Grid item xs={12} md={6}>
-                <Box
-                  sx={{
-                    borderRadius: 0.5,
-                    overflow: "hidden",
-                    boxShadow: isDark ? "0 30px 60px rgba(3, 7, 18, 0.75)" : "0 30px 45px rgba(15, 23, 42, 0.18)",
-                    height: { xs: 260, sm: 340, md: "100%" },
-                    width: "100%",
-                    maxWidth: "100%",
-                  }}
-                >
+                <Stack spacing={1.5}>
                   <Box
-                    component="iframe"
-                    title="Vedx Solution Pvt Ltd map"
-                    src={contactLocation.embedUrl}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
                     sx={{
-                      display: "block",
-                      border: 0,
+                      position: "relative",
+                      borderRadius: 0.5,
+                      overflow: "hidden",
+                      boxShadow: isDark ? "0 30px 60px rgba(3, 7, 18, 0.75)" : "0 30px 45px rgba(15, 23, 42, 0.18)",
+                      height: { xs: 260, sm: 340, md: 520 },
                       width: "100%",
-                      height: "100%",
+                      maxWidth: "100%",
+                      border: `1px solid ${alpha(isDark ? accentColor : theme.palette.primary.main, 0.22)}`,
                     }}
-                  />
-                </Box>
+                  >
+                    {/* ✅ MAP IFRAME */}
+                    <Box
+                      component="iframe"
+                      title="Vedx Solution Pvt Ltd map"
+                      src={contactLocation.embedUrl}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      allowFullScreen
+                      sx={{
+                        display: "block",
+                        border: 0,
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    />
+
+                    {/* ✅ OVERLAY INFO CARD */}
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 14,
+                        left: 14,
+                        width: { xs: "calc(100% - 28px)", sm: 360 },
+                        bgcolor: "common.white",
+                        borderRadius: 1,
+                        boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+                        p: 1.5,
+                      }}
+                    >
+                      <Stack spacing={0.8}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
+                          <Box>
+                            <Typography sx={{ fontWeight: 800, fontSize: 16, color: "#111827" }}>
+                              Vedx solution Pvt ltd
+                            </Typography>
+
+                            <Typography sx={{ fontSize: 12.5, color: "#374151", lineHeight: 1.4 }}>
+                              {contactLocation.address}
+                            </Typography>
+                          </Box>
+
+                          <Box
+                            component="a"
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${contactLocation.lat},${contactLocation.lng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ textDecoration: "none" }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: 12.5,
+                                fontWeight: 700,
+                                color: "#2563eb",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Directions
+                            </Typography>
+                          </Box>
+                        </Stack>
+
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: "#111827" }}>5.0</Typography>
+                          <Rating value={5} precision={0.5} readOnly size="small" />
+                          <Typography sx={{ fontSize: 12, color: "#2563eb", fontWeight: 700 }}>2 reviews</Typography>
+                        </Stack>
+
+                        <Box
+                          component="a"
+                          href={contactLocation.mapUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ textDecoration: "none" }}
+                        >
+                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: "#2563eb" }}>
+                            View larger map
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  </Box>
+
+
+                </Stack>
               </Grid>
             </Grid>
           </Stack>
