@@ -339,22 +339,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 {ctaLabel}
               </AppButton>
 
-              {/* ✅ OPTIONAL: if you want "View Case Study" button which redirects to details route */}
-              {detailsRoute && (
-                <MuiLink
-                  component={RouterLink}
-                  to={detailsRoute}
-                  underline="none"
-                  sx={{
-                    mt: 1,
-                    color: alpha("#fff", 0.85),
-                    fontSize: 14,
-                    "&:hover": { color: "#fff", textDecoration: "underline" },
-                  }}
-                >
-                  Open this case study →
-                </MuiLink>
-              )}
+             
             </Stack>
           </Grid>
 
