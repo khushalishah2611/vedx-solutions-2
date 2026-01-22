@@ -28,6 +28,7 @@ const CaseStudyTechnologiesSection = ({ caseStudy, animate = true }) => {
           fontSize: 11,
           fontWeight: 600,
           letterSpacing: 1,
+
           textTransform: "uppercase",
         }}
       >
@@ -43,7 +44,9 @@ const CaseStudyTechnologiesSection = ({ caseStudy, animate = true }) => {
         </Box>
       </Box>
 
-      <Box sx={{ width: "100%", maxWidth: 1100 }}>
+      <Box sx={{ width: "100%" }}>
+
+        <Box mt={10}></Box>
         <Grid container spacing={2.5} justifyContent="center">
           {technologies.map((technology, index) => {
             const title = technology?.title || "Technology";
@@ -113,7 +116,7 @@ const CaseStudyTechnologiesSection = ({ caseStudy, animate = true }) => {
                         mb: 1.5,
                         borderRadius: 0.5,
                         overflow: "hidden",
-                        border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.45 : 0.25)}`,
+
                         transition: "all 0.3s ease",
                       }}
                     >

@@ -61,7 +61,7 @@ const CaseStudyAppShowcaseSection = ({ caseStudy, animate }) => {
             </Box>
           </Box>
         </Box>
-        <Box mb={10}></Box>
+        <Box mt={10}></Box>
 
         <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
           {

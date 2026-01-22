@@ -3,39 +3,7 @@ import { alpha, useTheme } from "@mui/material/styles";
 import { Box, Stack, Typography, Card, CardContent } from "@mui/material";
 
 const DEFAULT_STEPS = [
-  {
-    label: "Discovery & planning Phase",
-    duration: "4 Weeks",
-    detail: "Deliverables: FRD, SRD, Technology Architecture Blueprint",
-  },
-  {
-    label: "UI/UX",
-    duration: "7 Weeks",
-    detail: "Finalised UI screens, Interactive prototype for developer reference",
-  },
-  {
-    label: "Backend Development",
-    duration: "6 Weeks",
-    detail:
-      "Fully functional backend API, AI model with initial training data, API documentation",
-  },
-  {
-    label: "Frontend Development",
-    duration: "12 Weeks",
-    detail:
-      "Fully functional mobile app (Android & iOS), connected and tested with backend APIs",
-  },
-  {
-    label: "AI & Feature Enhancement",
-    duration: "5 Week",
-    detail:
-      "AI model fine-tuning for travel recommendations, Real-time event updates & personalisation.",
-  },
-  {
-    label: "Quality Assurance",
-    duration: "2 Weeks",
-    detail: "Bug-free release, QA Report",
-  },
+
 ];
 
 /** ✅ No-lib intersection observer hook */
@@ -93,12 +61,6 @@ const GradientBorderCard = ({ children, sx }) => {
   );
 };
 
-/**
- * ✅ FIXED:
- * - Removed md:-5 negative margin (that pushed last step outside container)
- * - Added isLast spacing on desktop + padding safety
- * - (Parent container also no longer clips with overflow:hidden)
- */
 const RoadmapStep = ({ step, index, isEven, animate = true, isLast = false }) => {
   const mainGradient = "linear-gradient(90deg, #5b5fe8 0%, #a855f7 100%)";
   const ringGradient = "linear-gradient(135deg, #a855f7 0%, #38bdf8 100%)";
@@ -126,8 +88,8 @@ const RoadmapStep = ({ step, index, isEven, animate = true, isLast = false }) =>
         transform: !animate
           ? "none"
           : inView
-          ? "translateY(0px)"
-          : "translateY(14px)",
+            ? "translateY(0px)"
+            : "translateY(14px)",
         transition: "opacity 700ms ease, transform 700ms ease",
       }}
     >
@@ -154,8 +116,8 @@ const RoadmapStep = ({ step, index, isEven, animate = true, isLast = false }) =>
             transform: !animate
               ? "none"
               : inView
-              ? "translateX(0px)"
-              : `translateX(${slideFrom}px)`,
+                ? "translateX(0px)"
+                : `translateX(${slideFrom}px)`,
             transition: "opacity 800ms ease, transform 800ms ease",
             transitionDelay: inView ? `${index * 80}ms` : "0ms",
 
@@ -225,8 +187,8 @@ const RoadmapStep = ({ step, index, isEven, animate = true, isLast = false }) =>
             animation: !animate
               ? "none"
               : inView
-              ? "pulseGlow 2.2s ease-in-out infinite"
-              : "none",
+                ? "pulseGlow 2.2s ease-in-out infinite"
+                : "none",
             "@keyframes pulseGlow": {
               "0%, 100%": { filter: "blur(0px)", opacity: 1 },
               "50%": { filter: "blur(0.6px)", opacity: 0.92 },
@@ -250,8 +212,8 @@ const RoadmapStep = ({ step, index, isEven, animate = true, isLast = false }) =>
             transform: !animate
               ? "none"
               : inView
-              ? "translateX(0px)"
-              : `translateX(${isEven ? 18 : -18}px)`,
+                ? "translateX(0px)"
+                : `translateX(${isEven ? 18 : -18}px)`,
             opacity: !animate ? 1 : inView ? 1 : 0,
             transition: "opacity 650ms ease, transform 650ms ease",
             transitionDelay: inView ? `${index * 80 + 200}ms` : "0ms",
@@ -285,8 +247,8 @@ const RoadmapStep = ({ step, index, isEven, animate = true, isLast = false }) =>
             transform: !animate
               ? "none"
               : inView
-              ? "scale(1) rotate(0deg)"
-              : "scale(0.9) rotate(-6deg)",
+                ? "scale(1) rotate(0deg)"
+                : "scale(0.9) rotate(-6deg)",
             transition: "transform 650ms ease",
             transitionDelay: inView ? `${index * 80 + 260}ms` : "0ms",
           }}
@@ -320,15 +282,12 @@ const CaseStudyRoadmapSection = ({ animate = true, steps }) => {
   const isDark = theme.palette.mode === "dark";
   const accentColor = "#a855f7";
   const stepsToRender =
-    Array.isArray(steps) && steps.length > 0 ? steps : DEFAULT_STEPS;
+    Array.isArray(steps) && steps.length > 0 ? steps : DAULT_STEPS;
 
   return (
     <Box
       sx={{
-        mt: 10,
-        mb:10,
 
-      
         overflow: "visible",
 
 
@@ -376,6 +335,7 @@ const CaseStudyRoadmapSection = ({ animate = true, steps }) => {
         </Box>
       </Box>
 
+      <Box mt={10}></Box>
       {/* ✅ FIX: remove inner minHeight 100vh (was causing odd cut/scroll behavior) */}
       <Box sx={{ mt: { xs: 8, md: 5 } }}>
         <Stack alignItems="center">
