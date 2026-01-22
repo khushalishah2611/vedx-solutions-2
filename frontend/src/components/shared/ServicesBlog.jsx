@@ -7,33 +7,51 @@ import BlogPreviewCard from './BlogPreviewCard.jsx';
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
-const ServicesBlog = ({ showHeading = true, posts, limit = 4 }) => {
+const ServicesBlog = ({ showHeading = true, posts, limit }) => {
   const [apiPosts, setApiPosts] = useState([]);
   const { fetchWithLoading } = useLoadingFetch();
+
+  // 👉 heading true = 4 cards, false = 3 cards
+  const resolvedLimit =  showHeading
+    ? 4
+    : 3;
 
   useEffect(() => {
     let isMounted = true;
 
     const loadLatestPosts = async () => {
       if (posts?.length) return;
-      const pageSize = Number.isFinite(limit) ? limit : 4;
 
       try {
         const response = await fetchWithLoading(
-          apiUrl(`/api/blog-posts?page=1&pageSize=${pageSize}`)
+          apiUrl(`/api/blog-posts?page=1&pageSize=${resolvedLimit}`)
         );
+
         if (!response.ok) {
           throw new Error('Failed to fetch latest blog posts');
         }
+
         const payload = await response.json();
         if (!isMounted) return;
-        const resolved = (payload.blogPosts || payload.posts || payload.blogs || payload.items || []).map((post) => ({
+
+        const resolved = (
+          payload.blogPosts ||
+          payload.posts ||
+          payload.blogs ||
+          payload.items ||
+          []
+        ).map((post) => ({
           title: post.title || '',
           slug: post.slug || '',
           image: post.coverImage || post.blogImage || '',
-          category: post.category?.name || post.categoryName || post.category || 'Uncategorized',
+          category:
+            post.category?.name ||
+            post.categoryName ||
+            post.category ||
+            'Uncategorized',
           publishDate: post.publishDate || post.publishedAt || '',
         }));
+
         setApiPosts(resolved);
       } catch (error) {
         console.error('Failed to load latest blog posts', error);
@@ -45,10 +63,11 @@ const ServicesBlog = ({ showHeading = true, posts, limit = 4 }) => {
     return () => {
       isMounted = false;
     };
-  }, [fetchWithLoading, limit, posts]);
+  }, [fetchWithLoading, posts, resolvedLimit]);
 
   const resolvedPosts = useMemo(() => {
     if (posts?.length) return posts;
+
     if (apiPosts.length > 0) {
       return [...apiPosts].sort((a, b) => {
         const dateA = a.publishDate ? new Date(a.publishDate).getTime() : 0;
@@ -56,10 +75,14 @@ const ServicesBlog = ({ showHeading = true, posts, limit = 4 }) => {
         return dateB - dateA;
       });
     }
+
     return blogPosts;
   }, [apiPosts, posts]);
 
-  const visiblePosts = Number.isFinite(limit) ? resolvedPosts.slice(0, limit) : resolvedPosts;
+  const visiblePosts = resolvedPosts.slice(0, resolvedLimit);
+
+  // ✅ Grid columns: if limit is 4 (or more), show 4 cards on lg (12/3 = 4)
+  const lgCols = resolvedLimit >= 4 ? 3 : 4;
 
   return (
     <Box component="section">
@@ -70,8 +93,8 @@ const ServicesBlog = ({ showHeading = true, posts, limit = 4 }) => {
             sx={{
               fontSize: { xs: 32, md: 42 },
               fontWeight: 700,
-              textAlign: "center",
-              width: "100%"
+              textAlign: 'center',
+              width: '100%',
             }}
           >
             Latest Blogs
@@ -80,8 +103,14 @@ const ServicesBlog = ({ showHeading = true, posts, limit = 4 }) => {
       )}
 
       <Grid container spacing={2}>
-        {visiblePosts.map((post) => (
-          <Grid item xs={12} md={6} lg={3} key={post.slug}>
+        {visiblePosts.map((post, idx) => (
+          <Grid
+            item
+            xs={12}
+            md={6}
+                        lg={lgCols}
+            key={post.slug || post.id || post.title || `blog-${idx}`}
+          >
             <BlogPreviewCard
               post={post}
               imageHeight={200}
