@@ -112,13 +112,12 @@ const ServicesBenefits = ({
                 {/* Icon */}
                 <Box
                   sx={{
-                    width: 52,
-                    height: 52,
-                 
+                    width: 70,
+                    height: 70,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-           
+                    borderRadius:0.5,
                     mb: 2,
                   }}
                 >
@@ -127,7 +126,7 @@ const ServicesBenefits = ({
                       component="img"
                       src={feature.image}
                       alt={feature.title}
-                      sx={{ width: 40, height: 40, objectFit: 'contain' }}
+                      sx={{ width: 70, height: 70, objectFit: 'contain' }}
                     />
                   ) : (
                     Icon && <Icon fontSize="medium" />

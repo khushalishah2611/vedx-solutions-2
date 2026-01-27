@@ -8,7 +8,7 @@ import {
   Container,
   Grid,
   MenuItem,
-  Rating, // ✅ FIX: Rating import missing
+  Rating, 
   Stack,
   Typography,
   alpha,
@@ -25,11 +25,7 @@ import { contactProjectTypes } from "../../data/servicesPage.js";
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
-/* =========================================
-   ✅ MAP CONFIG (FIXED)
-   - Use lat/lng embed (no API key)
-   - Match your Google maps place coords: 22.3446425, 73.2147198
-========================================= */
+
 const contactLocation = {
   address: "Vedx Solution Pvt Ltd, Vadodara, Gujarat, India",
   lat: 22.3446425,
@@ -71,7 +67,6 @@ const ContactPage = () => {
   const { fetchWithLoading } = useLoadingFetch();
 
   const [projectTypes, setProjectTypes] = useState(contactProjectTypes || []);
-  const [contactButtons, setContactButtons] = useState([]);
   const [formValues, setFormValues] = useState({
     name: "",
     email: "",
@@ -106,28 +101,6 @@ const ContactPage = () => {
     };
 
     loadProjectTypes();
-    return () => {
-      isMounted = false;
-    };
-  }, [fetchWithLoading]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadContactButtons = async () => {
-      try {
-        const response = await fetchWithLoading(apiUrl("/api/contact-buttons"));
-        if (!response?.ok) throw new Error("Failed to fetch contact buttons");
-        const payload = await response.json();
-        if (!isMounted) return;
-
-        setContactButtons(payload?.buttons || []);
-      } catch (error) {
-        console.error("Failed to load contact buttons", error);
-      }
-    };
-
-    loadContactButtons();
     return () => {
       isMounted = false;
     };
@@ -203,13 +176,6 @@ const ContactPage = () => {
     }
   };
 
-  const handleContactScroll = () => {
-    const anchor = document.getElementById("contact");
-    if (anchor) {
-      anchor.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
   return (
     <Box component="main" sx={{ bgcolor: "background.default", overflowX: "hidden" }}>
       {/* Hero Section */}
@@ -257,64 +223,6 @@ const ContactPage = () => {
           </Stack>
         </Container>
       </Box>
-
-      {contactButtons.length > 0 && (
-        <Box sx={{ bgcolor: "background.paper", py: { xs: 6, md: 8 } }}>
-          <Container maxWidth={false} sx={{ px: { xs: 3, md: 20 } }}>
-            <Stack spacing={1.5} sx={{ mb: { xs: 4, md: 5 } }}>
-              <Typography variant="overline" sx={{ letterSpacing: 2, color: accentColor }}>
-                Contact Buttons
-              </Typography>
-              <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                Let’s start your next project
-              </Typography>
-              <Typography variant="body1" sx={{ color: subtleText, maxWidth: 640 }}>
-                Explore the ways we can help. Tap a card to jump to the contact form.
-              </Typography>
-            </Stack>
-
-            <Grid container spacing={3}>
-              {contactButtons.map((button) => (
-                <Grid item xs={12} md={4} key={button.id}>
-                  <Card
-                    sx={{
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      borderRadius: 3,
-                      boxShadow: isDark ? "0 22px 50px rgba(15, 23, 42, 0.45)" : "0 20px 40px rgba(15, 23, 42, 0.12)",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        height: 200,
-                        backgroundImage: `url(${button.image})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    />
-                    <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                          {button.title}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: subtleText }}>
-                          {button.description || ""}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ mt: "auto" }}>
-                        <AppButton fullWidth onClick={handleContactScroll}>
-                          Contact Us
-                        </AppButton>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </Box>
-      )}
 
       {/* Contact Section */}
       <Container id="contact" maxWidth={false} sx={{ px: { xs: 3, md: 20 }, py: { xs: 6, md: 10 } }}>
