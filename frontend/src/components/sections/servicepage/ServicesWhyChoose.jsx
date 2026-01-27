@@ -37,22 +37,37 @@ const ServicesWhyChoose = ({
     }
   };
   const { fetchWithLoading } = useLoadingFetch();
+  const [apiConfig, setApiConfig] = useState(null);
   const [apiHighlights, setApiHighlights] = useState([]);
 
 
   useEffect(() => {
-    if (highlightsProp) return;
+    if (highlightsProp && title && description) return;
     let isMounted = true;
 
     const loadHighlights = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/homes/why-vedx-reasons'));
+        const response = await fetchWithLoading(apiUrl('/api/why-vedx'));
+        const data = await response.json();
         if (!response.ok) {
-          throw new Error('Failed to fetch why VEDX reasons');
+          throw new Error(data?.error || 'Failed to fetch why VEDX config');
         }
-        const payload = await response.json();
-        const reasons = Array.isArray(payload) ? payload : payload?.reasons;
+
+        const config = Array.isArray(data) ? data[0] : data;
+        if (isMounted) {
+          setApiConfig(config || null);
+        }
+
+        const reasonsParams = config?.id ? `?whyVedxId=${config.id}` : '';
+        const reasonsResponse = await fetchWithLoading(
+          apiUrl(`/api/why-vedx-reasons${reasonsParams}`)
+        );
+        const reasonsData = await reasonsResponse.json();
+        if (!reasonsResponse.ok) {
+          throw new Error(reasonsData?.error || 'Failed to fetch why VEDX reasons');
+        }
         if (!isMounted) return;
+        const reasons = Array.isArray(reasonsData) ? reasonsData : reasonsData?.reasons;
         const mapped = (reasons || []).map((item) => ({
           title: item.title || '',
           description: item.description || '',
@@ -69,7 +84,7 @@ const ServicesWhyChoose = ({
     return () => {
       isMounted = false;
     };
-  }, [fetchWithLoading, highlightsProp]);
+  }, [description, fetchWithLoading, highlightsProp, title]);
 
   const highlights = useMemo(() => {
     const resolved =
@@ -93,13 +108,14 @@ const ServicesWhyChoose = ({
           variant="h3"
           sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}
         >
-          {title || 'Why choose Vedx Solutions'}
+          {title || apiConfig?.heroTitle || 'Why choose Vedx Solutions'}
         </Typography>
         <Typography
           variant="body1"
           sx={{ color: subtleText, maxWidth: 720 }}
         >
           {description ||
+            apiConfig?.heroDescription ||
             `Vedx Solutions is recognized for its innovative approach to digital transformation. We combine technology with strategic insight to turn your ideas into impactful and scalable realities. By developing custom software and AI solutions, we help unlock the future of your business. We are also known for`}
         </Typography>
       </Stack>

@@ -5444,6 +5444,19 @@ const getOrCreateExpertiseConfig = async () => {
   return config;
 };
 
+const getOrCreateHomeWhyVedxConfig = async () => {
+  let config = await prisma.homeWhyVedxConfig.findFirst();
+  if (!config) {
+    config = await prisma.homeWhyVedxConfig.create({
+      data: {
+        title: 'Why choose Vedx Solutions',
+        description: '',
+      },
+    });
+  }
+  return config;
+};
+
 /* -----------------------------------
  * BANNERS (Banner + BannerImage)
  * ----------------------------------- */
@@ -9913,6 +9926,14 @@ const mapHomeWhyVedxReasonToResponses = (item) => ({
   updatedAt: item.updatedAt,
 });
 
+const mapHomeWhyVedxConfigToResponse = (config) => ({
+  id: config.id,
+  title: config.title,
+  description: config.description || '',
+  createdAt: config.createdAt,
+  updatedAt: config.updatedAt,
+});
+
 const validateHomeWhyVedxReasonInputs = (body) => {
   const title = normalizeText(body?.title);
   const description = normalizeText(body?.description);
@@ -9928,6 +9949,51 @@ const validateHomeWhyVedxReasonInputs = (body) => {
   return { title, description, image };
 };
 
+
+// Public: GET config (NO AUTH)
+app.get('/api/homes/why-vedx-config', async (_req, res) => {
+  try {
+    const config = await getOrCreateHomeWhyVedxConfig();
+    return res.json(mapHomeWhyVedxConfigToResponse(config));
+  } catch (err) {
+    console.error('GET /api/homes/why-vedx-config error', err);
+    return res.status(500).json({ message: 'Unable to load config right now.' });
+  }
+});
+
+// Admin: UPDATE config
+app.put('/api/homes/why-vedx-config', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const title = typeof req.body?.title === 'string' ? normalizeText(req.body.title) : undefined;
+    const description =
+      typeof req.body?.description === 'string' ? normalizeText(req.body.description) : undefined;
+
+    if (title !== undefined && !title) return res.status(400).json({ error: 'title is required' });
+
+    const existing = await prisma.homeWhyVedxConfig.findFirst();
+    const data = {
+      ...(title !== undefined ? { title } : {}),
+      ...(description !== undefined ? { description } : {}),
+    };
+
+    const updated = existing
+      ? await prisma.homeWhyVedxConfig.update({ where: { id: existing.id }, data })
+      : await prisma.homeWhyVedxConfig.create({
+          data: {
+            title: title || 'Why choose Vedx Solutions',
+            description: description || '',
+          },
+        });
+
+    return res.json(mapHomeWhyVedxConfigToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/homes/why-vedx-config error', err);
+    return res.status(500).json({ error: 'Failed to update config' });
+  }
+});
 
 // Public: GET all reasons (NO AUTH)
 app.get('/api/homes/why-vedx-reasons', async (_req, res) => {

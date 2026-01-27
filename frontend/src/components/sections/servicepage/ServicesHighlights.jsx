@@ -7,8 +7,10 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { fullStackBenefits } from '../../../data/servicesPage.js';
+import { apiUrl } from '../../../utils/const.js';
+import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 
 // Simple hook to detect when an element enters the viewport
 const useInView = (options = {}) => {
@@ -41,15 +43,100 @@ const useInView = (options = {}) => {
   return [ref, inView];
 };
 
-const ServicesHighlights = ({ title, description, image }) => {
+const ServicesHighlights = ({
+  title,
+  description,
+  image,
+  highlights: highlightsProp,
+  benefitsTitle,
+  benefitsDescription,
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiConfig, setApiConfig] = useState(null);
+  const [apiHighlights, setApiHighlights] = useState([]);
 
-  const imageUrl =
+  useEffect(() => {
+    const shouldFetch =
+      !title ||
+      !description ||
+      !image ||
+      !benefitsTitle ||
+      !benefitsDescription ||
+      !highlightsProp;
+
+    if (!shouldFetch) return;
+
+    let isMounted = true;
+
+    const loadHighlights = async () => {
+      try {
+        const response = await fetchWithLoading(apiUrl('/api/why-choose'));
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Unable to load why choose config');
+        }
+
+        const config = Array.isArray(data) ? data[0] : data;
+
+        if (isMounted) {
+          setApiConfig(config || null);
+        }
+
+        if (config?.id) {
+          const serviceResponse = await fetchWithLoading(
+            apiUrl(`/api/why-services?whyChooseId=${config.id}`)
+          );
+          const servicesData = await serviceResponse.json();
+          if (!serviceResponse.ok) {
+            throw new Error(servicesData?.error || 'Unable to load why services');
+          }
+
+          if (isMounted) {
+            setApiHighlights(
+              (servicesData || []).map((item) => ({
+                title: item.title || '',
+                description: item.description || '',
+              }))
+            );
+          }
+        } else if (isMounted) {
+          setApiHighlights([]);
+        }
+      } catch (error) {
+        console.error('Failed to load why choose highlights', error);
+      }
+    };
+
+    loadHighlights();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [benefitsDescription, benefitsTitle, description, fetchWithLoading, highlightsProp, image, title]);
+
+  const resolvedTitle = title || apiConfig?.heroTitle || 'Full Stack Development Service';
+  const resolvedDescription = description || apiConfig?.heroDescription;
+  const resolvedImage =
     image ||
+    apiConfig?.heroImage ||
     'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80';
+
+  const resolvedBenefitsTitle =
+    benefitsTitle || apiConfig?.tableTitle || 'Why Full Stack With Us?';
+  const resolvedBenefitsDescription =
+    benefitsDescription ||
+    apiConfig?.tableDescription ||
+    'We combine modern front-end frameworks, robust back-end engineering, and cloud-native practices to deliver reliable, future-ready digital products.';
+
+  const highlights = useMemo(() => {
+    if (highlightsProp?.length) return highlightsProp;
+    if (apiHighlights.length > 0) return apiHighlights;
+    return fullStackBenefits;
+  }, [apiHighlights, highlightsProp]);
 
   // Animation hooks
   const [leftRef, leftInView] = useInView();
@@ -86,13 +173,13 @@ const ServicesHighlights = ({ title, description, image }) => {
               mb: { xs: 4, md: 5 },
             }}
           >
-            {title || 'Full Stack Development Service'}
+            {resolvedTitle}
           </Typography>
 
           <Box
             component="img"
-            src={imageUrl}
-            alt={title || 'Full Stack Development'}
+            src={resolvedImage}
+            alt={resolvedTitle || 'Full Stack Development'}
             sx={{
               width: '100%',
               borderRadius: 0.5,
@@ -136,7 +223,7 @@ const ServicesHighlights = ({ title, description, image }) => {
                 lineHeight: 1.7,
               }}
             >
-              {description || (
+              {resolvedDescription || (
                 <>
                   From concept to deployment, we craft scalable, high-performance
                   web applications with clean, maintainable architecture across
@@ -188,7 +275,7 @@ const ServicesHighlights = ({ title, description, image }) => {
                   textAlign: 'center',
                 }}
               >
-                Why Full Stack With Us?
+                {resolvedBenefitsTitle}
               </Typography>
 
               <Typography
@@ -199,15 +286,15 @@ const ServicesHighlights = ({ title, description, image }) => {
                   textAlign: 'center',
                 }}
               >
-                We combine modern front-end frameworks, robust back-end
-                engineering, and cloud-native practices to deliver reliable,
-                future-ready digital products.
+                {resolvedBenefitsDescription}
               </Typography>
             </Stack>
 
             <Grid container spacing={2}>
-              {fullStackBenefits.map(({ title, description, Icon }) => (
-                <Grid item xs={12} sm={6} md={4} key={title}>
+              {highlights.map((highlight) => {
+                const Icon = highlight.Icon || highlight.icon;
+                return (
+                <Grid item xs={12} sm={6} md={4} key={highlight.title}>
                   <Paper
                     elevation={0}
                     sx={{
@@ -272,18 +359,19 @@ const ServicesHighlights = ({ title, description, image }) => {
                         },
                       }}
                     >
-                      {title}
+                      {highlight.title}
                     </Typography>
 
                     <Typography
                       variant="body2"
                       sx={{ color: subtleText, lineHeight: 1.7 }}
                     >
-                      {description}
+                      {highlight.description}
                     </Typography>
                   </Paper>
                 </Grid>
-              ))}
+                );
+              })}
             </Grid>
           </Grid>
         </Grid>
