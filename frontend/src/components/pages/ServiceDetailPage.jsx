@@ -7,7 +7,6 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCallback, useEffect, useMemo } from 'react';
-import { serviceDetailContent } from '../../data/serviceDetailContent.js';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
 import FullStackDeveloper from '../sections/servicepage/FullStackDeveloper.jsx';
@@ -30,8 +29,6 @@ const ServiceDetailPage = () => {
   const { openDialog } = useContactDialog();
   const { serviceCategories, serviceSubCategories, isLoading } = useServiceHireCatalog();
 
-  const category = serviceDetailContent[categorySlug ?? ''];
-  const service = category?.services?.[serviceSlug ?? ''];
   const apiCategory = useMemo(
     () => serviceCategories.find((item) => item.slug === categorySlug),
     [categorySlug, serviceCategories]
@@ -46,16 +43,16 @@ const ServiceDetailPage = () => {
   }, [categorySlug, serviceSlug]);
 
   useEffect(() => {
-    if (!category && !service && !apiCategory && !apiSubCategory && !isLoading) {
+    if (!apiCategory && !apiSubCategory && !isLoading) {
       navigate('/services', { replace: true });
     }
-  }, [apiCategory, apiSubCategory, category, isLoading, navigate, service]);
+  }, [apiCategory, apiSubCategory, isLoading, navigate]);
 
   const handleOpenContact = useCallback(() => {
     openDialog();
   }, [openDialog]);
 
-  if (!category && !service && !apiCategory && !apiSubCategory && isLoading) {
+  if (!apiCategory && !apiSubCategory && isLoading) {
     return null;
   }
 
@@ -63,10 +60,11 @@ const ServiceDetailPage = () => {
 
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
 
-  const categoryTitle = category?.menuLabel ?? apiCategory?.name ?? 'Services';
-  const serviceName = serviceSlug ? (service?.name ?? apiSubCategory?.name ?? serviceSlug) : null;
-  const heroTitle = category?.title ?? apiSubCategory?.name ?? apiCategory?.name;
-  const heroDescription = category?.description ?? apiSubCategory?.description ?? apiCategory?.description;
+  const categoryTitle = apiCategory?.name ?? 'Services';
+  const serviceName =
+    apiSubCategory?.name ?? apiCategory?.name ?? 'Service Detail';
+  const heroTitle = apiSubCategory?.name ?? apiCategory?.name;
+  const heroDescription = apiSubCategory?.description ?? apiCategory?.description;
   const categoryHref = categorySlug ? `/services/${categorySlug}` : '/services';
 
 
