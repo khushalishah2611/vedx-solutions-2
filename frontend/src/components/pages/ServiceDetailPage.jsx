@@ -64,8 +64,7 @@ const ServiceDetailPage = () => {
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
 
   const categoryTitle = category?.menuLabel ?? apiCategory?.name ?? 'Services';
-  const serviceName =
-    service?.name ?? apiSubCategory?.name ?? category?.menuLabel ?? apiCategory?.name ?? 'Service Detail';
+  const serviceName = serviceSlug ? (service?.name ?? apiSubCategory?.name ?? serviceSlug) : null;
   const heroTitle = category?.title ?? apiSubCategory?.name ?? apiCategory?.name;
   const heroDescription = category?.description ?? apiSubCategory?.description ?? apiCategory?.description;
   const categoryHref = categorySlug ? `/services/${categorySlug}` : '/services';

@@ -114,9 +114,11 @@ const ServiceHero = ({
               >
                 {categoryTitle}
               </MuiLink>
-              <Typography sx={{ color: alpha('#fff', 0.85) }}>
-                {serviceName}
-              </Typography>
+              {serviceName && (
+                <Typography sx={{ color: alpha('#fff', 0.85) }}>
+                  {serviceName}
+                </Typography>
+              )}
             </Breadcrumbs>
           </Grid>
 

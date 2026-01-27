@@ -30,8 +30,7 @@ const HireDeveloperHero = ({
   );
 
   const categoryTitle = category?.title ?? category?.name ?? 'Services';
-  const serviceName =
-    role?.name ?? role?.title ?? category?.title ?? category?.name ?? 'Service Details';
+  const serviceName = role?.name ?? role?.title;
 
   const resolvedHeroTitle =
     heroTitle || role?.heroTitle || role?.name || role?.title || 'Full Stack Development Services';
@@ -131,9 +130,11 @@ const HireDeveloperHero = ({
               >
                 {categoryTitle}
               </MuiLink>
-              <Typography sx={{ color: alpha('#fff', 0.85) }}>
-                {serviceName}
-              </Typography>
+              {serviceName && (
+                <Typography sx={{ color: alpha('#fff', 0.85) }}>
+                  {serviceName}
+                </Typography>
+              )}
             </Breadcrumbs>
           </Grid>
 
