@@ -59,8 +59,8 @@ const FooterSection = () => {
     const loadFooterLinks = async () => {
       try {
         const [servicesResponse, hireDevelopersResponse] = await Promise.all([
-          fetchWithLoading(apiUrl('/api/our-services/sliders')),
-          fetchWithLoading(apiUrl('/api/hire-developer/our-services')),
+          fetchWithLoading(apiUrl('/api/service-categories')),
+          fetchWithLoading(apiUrl('/api/hire-categories')),
         ]);
 
         if (!servicesResponse.ok || !hireDevelopersResponse.ok) {
@@ -72,19 +72,40 @@ const FooterSection = () => {
 
         if (!isMounted) return;
 
-        const mappedServices = (servicesPayload || [])
-          .filter((item) => item?.sliderTitle)
-          .map((item) => ({
-            label: item.sliderTitle.trim(),
-            href: item?.slug ? getCategoryHref('/services', item.slug) : undefined,
-          }))
+        const serviceCategories = servicesPayload?.categories ?? [];
+        const mappedServices = serviceCategories
+          .filter((category) => category?.name && category?.slug)
+          .map((category) => {
+            const subCategories = Array.isArray(category.subCategories)
+              ? category.subCategories
+              : [];
+            const sortedSubCategories = [...subCategories].sort((a, b) =>
+              (a?.name || '').localeCompare(b?.name || '')
+            );
+            const firstSubSlug = sortedSubCategories[0]?.slug;
+            const href = firstSubSlug
+              ? `/services/${category.slug}/${firstSubSlug}`
+              : `/services/${category.slug}`;
+
+            return {
+              label: category.name.trim(),
+              href,
+            };
+          })
           .filter((item) => item.label);
-        const mappedHireDevelopers = (hireDevelopersPayload || [])
-          .filter((item) => item?.title)
-          .map((item) => ({
-            label: item.title.trim(),
-            href: item?.slug ? getCategoryHref('/hire-developers', item.slug) : undefined,
-          }))
+
+        const hireCategories = hireDevelopersPayload?.categories ?? [];
+        const mappedHireDevelopers = hireCategories
+          .flatMap((category) => {
+            const roles = Array.isArray(category.roles) ? category.roles : [];
+            const sortedRoles = [...roles].sort((a, b) =>
+              (a?.title || '').localeCompare(b?.title || '')
+            );
+            return sortedRoles.map((role) => ({
+              label: role.title?.trim() || '',
+              href: role.slug ? `/hire-developers/${category.slug}/${role.slug}` : undefined,
+            }));
+          })
           .filter((item) => item.label);
 
         setServiceLinks(mappedServices);
