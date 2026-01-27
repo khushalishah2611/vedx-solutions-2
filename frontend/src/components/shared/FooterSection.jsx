@@ -16,8 +16,7 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import { footerContent } from '../../data/content.js';
 import { createAnchorHref, createSlug } from '../../utils/formatters.js';
 import { Link as RouterLink } from 'react-router-dom';
-import { apiUrl } from '../../utils/const.js';
-import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
+import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 
 const socialIcons = {
   linkedin: LinkedInIcon,
@@ -31,9 +30,9 @@ const FOOTER_BACKGROUND_IMAGE =
 const FooterSection = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const { fetchWithLoading } = useLoadingFetch();
   const [serviceLinks, setServiceLinks] = useState([]);
   const [hireDeveloperLinks, setHireDeveloperLinks] = useState([]);
+  const { serviceMenu, hireMenu } = useServiceHireCatalog();
   const overlayGradient = isDark
     ? 'linear-gradient(180deg, rgba(5,9,18,0.94) 0%, rgba(5,9,18,0.96) 65%, rgba(1,1,3,0.98) 100%)'
     : `linear-gradient(180deg, ${alpha(theme.palette.background.default, 0.9)} 0%, ${alpha(
@@ -54,73 +53,33 @@ const FooterSection = () => {
   };
 
   useEffect(() => {
-    let isMounted = true;
+    const mappedServices = serviceMenu?.categories?.length
+      ? serviceMenu.categories
+          .map((category) => ({
+            label: category?.label?.trim() || '',
+            href: category?.href ?? category?.subItems?.[0]?.href,
+          }))
+          .filter((item) => item.label)
+      : [];
 
-    const loadFooterLinks = async () => {
-      try {
-        const [servicesResponse, hireDevelopersResponse] = await Promise.all([
-          fetchWithLoading(apiUrl('/api/service-categories')),
-          fetchWithLoading(apiUrl('/api/hire-categories')),
-        ]);
-
-        if (!servicesResponse.ok || !hireDevelopersResponse.ok) {
-          throw new Error('Failed to fetch footer links');
-        }
-
-        const servicesPayload = await servicesResponse.json();
-        const hireDevelopersPayload = await hireDevelopersResponse.json();
-
-        if (!isMounted) return;
-
-        const serviceCategories = servicesPayload?.categories ?? [];
-        const mappedServices = serviceCategories
-          .filter((category) => category?.name && category?.slug)
-          .map((category) => {
-            const subCategories = Array.isArray(category.subCategories)
-              ? category.subCategories
-              : [];
-            const sortedSubCategories = [...subCategories].sort((a, b) =>
-              (a?.name || '').localeCompare(b?.name || '')
-            );
-            const firstSubSlug = sortedSubCategories[0]?.slug;
-            const href = firstSubSlug
-              ? `/services/${category.slug}/${firstSubSlug}`
-              : `/services/${category.slug}`;
-
-            return {
-              label: category.name.trim(),
-              href,
-            };
-          })
-          .filter((item) => item.label);
-
-        const hireCategories = hireDevelopersPayload?.categories ?? [];
-        const mappedHireDevelopers = hireCategories
+    const mappedHireDevelopers = hireMenu?.categories?.length
+      ? hireMenu.categories
           .flatMap((category) => {
-            const roles = Array.isArray(category.roles) ? category.roles : [];
-            const sortedRoles = [...roles].sort((a, b) =>
-              (a?.title || '').localeCompare(b?.title || '')
-            );
-            return sortedRoles.map((role) => ({
-              label: role.title?.trim() || '',
-              href: role.slug ? `/hire-developers/${category.slug}/${role.slug}` : undefined,
-            }));
+            const subItems = Array.isArray(category?.subItems) ? category.subItems : [];
+            return subItems.map((subItem) => {
+              const isObject = typeof subItem === 'object' && subItem !== null;
+              return {
+                label: (isObject ? subItem.label : subItem)?.trim() || '',
+                href: isObject ? subItem.href : undefined,
+              };
+            });
           })
-          .filter((item) => item.label);
+          .filter((item) => item.label)
+      : [];
 
-        setServiceLinks(mappedServices);
-        setHireDeveloperLinks(mappedHireDevelopers);
-      } catch (error) {
-        console.error('Failed to load footer links', error);
-      }
-    };
-
-    loadFooterLinks();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [fetchWithLoading]);
+    setServiceLinks(mappedServices);
+    setHireDeveloperLinks(mappedHireDevelopers);
+  }, [hireMenu, serviceMenu]);
 
   const footerColumns = useMemo(() => {
     const [servicesColumn, hireDevelopersColumn, ...restColumns] = footerContent.columns;
