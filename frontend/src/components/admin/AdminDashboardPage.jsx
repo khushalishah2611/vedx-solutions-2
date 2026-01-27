@@ -199,6 +199,11 @@ const AdminDashboardPage = () => {
   /* --------------------------
    * WHY VEDX SOLUTIONS
    * -------------------------- */
+  const [whyVedxConfig, setWhyVedxConfig] = useState({
+    title: "",
+    description: "",
+  });
+  const [whyVedxConfigSaved, setWhyVedxConfigSaved] = useState(false);
   const [whyVedxReasons, setWhyVedxReasons] = useState([]);
   const [whyVedxReasonForm, setWhyVedxReasonForm] = useState({
     title: "",
@@ -301,6 +306,7 @@ const AdminDashboardPage = () => {
           loadProcessSteps(),
           loadOurServices(),
           loadIndustries(),
+          loadWhyVedxConfig(),
           loadWhyVedxReasons(),
           loadTechSolutions(),
           loadExpertise(),
@@ -381,6 +387,20 @@ const AdminDashboardPage = () => {
       setIndustriesItems(items);
     } catch (err) {
       console.error("loadIndustries error", err);
+    }
+  };
+
+  const loadWhyVedxConfig = async () => {
+    try {
+      const response = await fetch(apiUrl("/api/homes/why-vedx-config"));
+      if (!response.ok) throw new Error("Failed to fetch why VEDX config");
+      const data = await response.json();
+      setWhyVedxConfig({
+        title: data?.title ?? "",
+        description: data?.description ?? "",
+      });
+    } catch (err) {
+      console.error("loadWhyVedxConfig error", err);
     }
   };
 
@@ -1052,6 +1072,33 @@ const AdminDashboardPage = () => {
       }
     } catch (err) {
       console.error("handleDeleteIndustry error", err);
+    }
+  };
+
+  /* -----------------------------------
+   * Why VEDX config handlers
+   * ----------------------------------- */
+  const handleWhyVedxConfigSave = async () => {
+    try {
+      const headers = getAdminAuthHeaders();
+      const res = await fetch(apiUrl("/api/homes/why-vedx-config"), {
+        method: "PUT",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: whyVedxConfig.title,
+          description: whyVedxConfig.description,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save why VEDX config");
+      const updated = await res.json();
+      setWhyVedxConfig({
+        title: updated.title ?? "",
+        description: updated.description ?? "",
+      });
+      setWhyVedxConfigSaved(true);
+      setTimeout(() => setWhyVedxConfigSaved(false), 2000);
+    } catch (err) {
+      console.error("handleWhyVedxConfigSave error", err);
     }
   };
 
@@ -2300,6 +2347,47 @@ const AdminDashboardPage = () => {
             />
             <Divider />
             <CardContent>
+              <Stack
+                spacing={2}
+                mb={3}
+                direction={{ xs: "column", md: "row" }}
+                alignItems={{ xs: "stretch", md: "flex-end" }}
+              >
+                <AppTextField
+                  label="Title"
+                  value={whyVedxConfig.title}
+                  onChange={(event) =>
+                    setWhyVedxConfig((prev) => ({
+                      ...prev,
+                      title: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+                <AppTextField
+                  label="Description"
+                  value={whyVedxConfig.description}
+                  onChange={(event) =>
+                    setWhyVedxConfig((prev) => ({
+                      ...prev,
+                      description: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <AppButton variant="contained" onClick={handleWhyVedxConfigSave}>
+                    Save header
+                  </AppButton>
+
+                  {whyVedxConfigSaved && (
+                    <Typography variant="body2" color="success.main">
+                      Saved
+                    </Typography>
+                  )}
+                </Stack>
+              </Stack>
+
               <Stack direction="row" justifyContent="flex-end" mb={1}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <AppButton
