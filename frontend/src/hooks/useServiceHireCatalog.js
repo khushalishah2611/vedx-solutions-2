@@ -17,10 +17,7 @@ const buildServiceMenu = (categories, subCategories) => {
   const menuCategories = categories.map((category) => {
     const items = grouped.get(category.id) ?? category.subCategories ?? [];
     const sortedItems = [...items].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    const firstSlug = sortedItems[0]?.slug;
-    const categoryHref = firstSlug
-      ? `/services/${category.slug}/${firstSlug}`
-      : `/services/${category.slug}`;
+    const categoryHref = `/services/${category.slug}`;
 
     return {
       label: category.name,
@@ -52,10 +49,7 @@ const buildHireMenu = (categories, roles) => {
   const menuCategories = categories.map((category) => {
     const items = grouped.get(category.id) ?? category.roles ?? [];
     const sortedItems = [...items].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-    const firstSlug = sortedItems[0]?.slug;
-    const categoryHref = firstSlug
-      ? `/hire-developers/${category.slug}/${firstSlug}`
-      : `/hire-developers/${category.slug}`;
+    const categoryHref = `/hire-developers/${category.slug}`;
 
     return {
       label: category.title,
