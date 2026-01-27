@@ -57,7 +57,7 @@ const FooterSection = () => {
       ? serviceMenu.categories
           .map((category) => ({
             label: category?.label?.trim() || '',
-            href: category?.href ?? category?.subItems?.[0]?.href,
+            href: category?.slug ? `/services/${category.slug}` : undefined,
           }))
           .filter((item) => item.label)
       : [];
