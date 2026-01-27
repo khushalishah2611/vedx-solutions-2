@@ -18,7 +18,6 @@ import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
-import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import ServiceHero from '../sections/servicepage/ServiceHero.jsx';
 import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 import { apiUrl } from '../../utils/const.js';
@@ -27,8 +26,9 @@ const ServiceDetailPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { categorySlug, serviceSlug } = useParams();
-  const { openDialog } = useContactDialog();
+
   const { serviceCategories, serviceSubCategories, isLoading } = useServiceHireCatalog();
+
   const [serviceMenu, setServiceMenu] = useState(null);
   const [benefits, setBenefits] = useState([]);
   const [benefitConfig, setBenefitConfig] = useState(null);
@@ -46,6 +46,7 @@ const ServiceDetailPage = () => {
     () => serviceSubCategories.find((item) => item.slug === serviceSlug),
     [serviceSlug, serviceSubCategories]
   );
+
   const categoryName = apiCategory?.name;
   const subcategoryName = apiSubCategory?.name;
 
@@ -114,6 +115,7 @@ const ServiceDetailPage = () => {
         const data = await response.json();
         if (!response.ok) throw new Error(data?.error || 'Unable to load why choose');
         if (!isMounted) return;
+
         const config = Array.isArray(data) ? data[0] : data;
         setWhyChooseConfig(config || null);
 
@@ -122,9 +124,7 @@ const ServiceDetailPage = () => {
           serviceParams.append('whyChooseId', String(config.id));
           const servicesResponse = await fetch(apiUrl(`/api/why-services?${serviceParams.toString()}`));
           const servicesData = await servicesResponse.json();
-          if (!servicesResponse.ok) {
-            throw new Error(servicesData?.error || 'Unable to load why services');
-          }
+          if (!servicesResponse.ok) throw new Error(servicesData?.error || 'Unable to load why services');
           if (!isMounted) return;
           setWhyServices(Array.isArray(servicesData) ? servicesData : []);
         } else {
@@ -140,6 +140,7 @@ const ServiceDetailPage = () => {
         const response = await fetch(apiUrl('/api/why-vedx'));
         const data = await response.json();
         if (!response.ok) throw new Error(data?.error || 'Unable to load why VEDX');
+
         const list = Array.isArray(data) ? data : [];
         const matched =
           list.find(
@@ -147,19 +148,16 @@ const ServiceDetailPage = () => {
               (apiSubCategory?.id && item.subcategoryId === apiSubCategory.id) ||
               (!apiSubCategory?.id && apiCategory?.id && item.categoryId === apiCategory.id)
           ) || list[0];
+
         if (!isMounted) return;
         setWhyVedxConfig(matched || null);
 
         if (matched?.id) {
           const reasonParams = new URLSearchParams(params);
           reasonParams.append('whyVedxId', String(matched.id));
-          const reasonsResponse = await fetch(
-            apiUrl(`/api/why-vedx-reasons?${reasonParams.toString()}`)
-          );
+          const reasonsResponse = await fetch(apiUrl(`/api/why-vedx-reasons?${reasonParams.toString()}`));
           const reasonsData = await reasonsResponse.json();
-          if (!reasonsResponse.ok) {
-            throw new Error(reasonsData?.error || 'Unable to load why VEDX reasons');
-          }
+          if (!reasonsResponse.ok) throw new Error(reasonsData?.error || 'Unable to load why VEDX reasons');
           if (!isMounted) return;
           setWhyVedxReasons(Array.isArray(reasonsData) ? reasonsData : []);
         } else {
@@ -191,12 +189,18 @@ const ServiceDetailPage = () => {
     }
   }, [apiCategory, apiSubCategory, isLoading, navigate]);
 
+  // ✅ Dialog remove -> Contact page redirect + smooth scroll top
   const handleOpenContact = useCallback(() => {
-    openDialog();
-  }, [openDialog]);
+    navigate('/contact');
+    // route change પછી top પર smooth scroll
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  }, [navigate]);
 
   const isDark = theme.palette.mode === 'dark';
-
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
 
   const categoryTitle = apiCategory?.name ?? 'Services';
@@ -205,6 +209,7 @@ const ServiceDetailPage = () => {
   const heroDescription =
     serviceMenu?.bannerSubtitle || apiSubCategory?.description || apiCategory?.description;
   const categoryHref = categorySlug ? `/services/${categorySlug}` : '/services';
+
   const heroStats = useMemo(() => {
     if (!serviceMenu) return [];
     return [
@@ -213,6 +218,7 @@ const ServiceDetailPage = () => {
       serviceMenu.totalClients ? { label: 'Total clients', value: `${serviceMenu.totalClients}+` } : null,
     ].filter(Boolean);
   }, [serviceMenu]);
+
   const whyHighlights = useMemo(() => {
     if (whyServices.length > 0) {
       return whyServices.map((item) => ({
@@ -231,7 +237,6 @@ const ServiceDetailPage = () => {
     return null;
   }
 
-
   return (
     <Box sx={{ bgcolor: 'background.default', overflowX: 'hidden' }}>
       <ServiceHero
@@ -245,7 +250,6 @@ const ServiceDetailPage = () => {
         stats={heroStats}
       />
 
-
       <Container
         maxWidth={false}
         sx={{
@@ -253,7 +257,6 @@ const ServiceDetailPage = () => {
           py: { xs: 6, md: 10 },
         }}
       >
-
         <Box my={5}>
           <ServicesHighlights
             onContactClick={handleOpenContact}
@@ -261,7 +264,7 @@ const ServiceDetailPage = () => {
             description={serviceMenu?.description}
             image={serviceMenu?.bannerImage}
           />
-        </Box> 
+        </Box>
 
         <Box my={10}><Divider sx={{ borderColor: dividerColor }} /></Box>
 
@@ -273,7 +276,9 @@ const ServiceDetailPage = () => {
             benefits={benefits}
           />
         </Box>
+
         <Divider sx={{ borderColor: dividerColor }} />
+
         <Box my={10}>
           <FullStackDeveloper
             onContactClick={handleOpenContact}
@@ -281,8 +286,11 @@ const ServiceDetailPage = () => {
             subcategory={subcategoryName}
           />
         </Box>
+
         <Box my={10}><ServicesTechnologies technologyGroups={technologies} /></Box>
+
         <Divider sx={{ borderColor: dividerColor }} />
+
         <Box my={10}>
           <ServicesWhyChoose
             onContactClick={handleOpenContact}
@@ -291,15 +299,17 @@ const ServiceDetailPage = () => {
             highlights={whyHighlights}
           />
         </Box>
+
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}><ServicesProcess /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}><ServicesIndustries /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}> <ServicesTestimonials /></Box>
+        <Box my={10}><ServicesTestimonials /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}> <FAQAccordion faqs={serviceMenu?.faqs} /></Box>
+        <Box my={10}><FAQAccordion faqs={serviceMenu?.faqs} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
+
         <Box my={10}>
           <ServicesCTA
             onContactClick={handleOpenContact}
@@ -307,8 +317,9 @@ const ServiceDetailPage = () => {
             subcategory={subcategoryName}
           />
         </Box>
+
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}> <ServicesBlog /></Box>
+        <Box my={10}><ServicesBlog /></Box>
       </Container>
     </Box>
   );
