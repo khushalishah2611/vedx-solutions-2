@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import { fullStackDeveloperHighlights } from '../../../data/servicesPage.js';
+import { apiUrl } from '../../../utils/const.js';
 
 // Simple hook to detect when an element enters the viewport
 const useInView = (options = {}) => {
@@ -32,12 +33,61 @@ const useInView = (options = {}) => {
   return [ref, inView];
 };
 
-function FullStackDeveloper({ onContactClick }) {
+function FullStackDeveloper({ onContactClick, category, subcategory, highlights, image }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const [apiHighlights, setApiHighlights] = useState([]);
+  const [apiImage, setApiImage] = useState('');
 
   const [leftRef, leftInView] = useInView();
   const [rightRef, rightInView] = useInView();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHireServices = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+
+        const response = await fetch(
+          apiUrl(`/api/hire-services${params.toString() ? `?${params.toString()}` : ''}`)
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Unable to load hire services');
+        }
+        if (!isMounted) return;
+        const list = Array.isArray(data) ? data : [];
+        setApiHighlights(
+          list
+            .map((item) => item?.title || item?.description)
+            .filter(Boolean)
+        );
+        setApiImage(list.find((item) => item?.image)?.image || '');
+      } catch (error) {
+        console.error('Failed to load hire services', error);
+      }
+    };
+
+    loadHireServices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [category, subcategory]);
+
+  const resolvedHighlights = useMemo(() => {
+    if (highlights?.length) return highlights;
+    if (apiHighlights.length > 0) return apiHighlights;
+    return fullStackDeveloperHighlights;
+  }, [apiHighlights, highlights]);
+
+  const resolvedImage =
+    image ||
+    apiImage ||
+    'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80';
 
   return (
     <Box component="section">
@@ -102,7 +152,7 @@ function FullStackDeveloper({ onContactClick }) {
               </Typography>
 
               <Stack spacing={1.5} sx={{ width: '100%', maxWidth: 520 }}>
-                {fullStackDeveloperHighlights.map((highlight) => (
+                {resolvedHighlights.map((highlight) => (
                   <Stack
                     key={highlight}
                     direction="row"
@@ -175,7 +225,7 @@ function FullStackDeveloper({ onContactClick }) {
                 borderRadius: 0.5,
                 overflow: 'hidden',
                 height: { xs: 260, md: 360 },
-                backgroundImage: 'url(https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80)',
+                backgroundImage: `url(${resolvedImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 boxShadow: isDark

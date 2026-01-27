@@ -1,22 +1,63 @@
 import { Box, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppButton } from '../../shared/FormControls.jsx';
+import { apiUrl } from '../../../utils/const.js';
 
 
-const ServicesCTA = ({ onContactClick }) => {
+const ServicesCTA = ({ onContactClick, category, subcategory }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const navigate = useNavigate();
+  const [ctaConfig, setCtaConfig] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCtaConfig = async () => {
+      try {
+        const response = await fetch(apiUrl('/api/contact-buttons'));
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || 'Unable to load contact CTA');
+        if (!isMounted) return;
+        const list = Array.isArray(data) ? data : [];
+        const matched = list.find(
+          (item) =>
+            (category && item.category === category && (!subcategory || item.subcategory === subcategory)) ||
+            (!category && !subcategory)
+        );
+        setCtaConfig(matched || list[0] || null);
+      } catch (error) {
+        console.error('Failed to load contact CTA', error);
+      }
+    };
+
+    loadCtaConfig();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [category, subcategory]);
+
+  const backgroundImage = useMemo(() => ctaConfig?.image, [ctaConfig]);
+  const handleContactClick = () => {
+    onContactClick?.();
+    navigate('/contact');
+  };
 
   return (
-    <Box component="section" sx={{ mt: { xs: 6, md: 8 } }}>
+    <Box component="section" id="contact-section" sx={{ mt: { xs: 6, md: 8 } }}>
       <Paper
         elevation={0}
         sx={{
           borderRadius: 0.5,
           px: { xs: 3, md: 6 },
           py: { xs: 4, md: 6 },
-          background: isDark
-            ? 'linear-gradient(135deg, rgba(30,41,59,0.95), rgba(59,130,246,0.75))'
-            : 'linear-gradient(135deg, rgba(236,72,153,0.12), rgba(14,165,233,0.12))',
+          backgroundColor: 'transparent',
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           border: `1px solid ${alpha('#ffffff', isDark ? 0.1 : 0.35)}`,
         }}
       >
@@ -41,7 +82,7 @@ const ServicesCTA = ({ onContactClick }) => {
                 fontSize: { xs: 22, md: 26 },
               }}
             >
-              Let&apos;s Build Your Next Big Product, Together.
+              {ctaConfig?.title || "Let's Build Your Next Big Product, Together."}
             </Typography>
             <Typography
               variant="body1"
@@ -50,8 +91,9 @@ const ServicesCTA = ({ onContactClick }) => {
                 maxWidth: 620,
               }}
             >
-              Let Vedx Solution be your tech growth partner for full stack app
-              development tailored to your needs.
+              {ctaConfig?.description ||
+                `Let Vedx Solution be your tech growth partner for full stack app
+              development tailored to your needs.`}
             </Typography>
           </Stack>
 
@@ -67,7 +109,7 @@ const ServicesCTA = ({ onContactClick }) => {
             <AppButton
               variant="contained"
               size="large"
-              onClick={onContactClick}
+              onClick={handleContactClick}
               sx={{
                 background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
                 color: '#fff',

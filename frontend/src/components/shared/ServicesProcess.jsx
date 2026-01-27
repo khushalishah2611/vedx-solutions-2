@@ -91,9 +91,9 @@ const ServicesProcess = () => {
 
     const loadSteps = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl("/api/process-steps"));
+        const response = await fetchWithLoading(apiUrl("/api/service-processes"));
         if (!response.ok) {
-          throw new Error("Failed to fetch process steps");
+          throw new Error("Failed to fetch service processes");
         }
         const data = await response.json();
         if (!isMounted) return;

@@ -274,7 +274,13 @@ const ServiceDetailPage = () => {
           />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}><FullStackDeveloper onContactClick={handleOpenContact} /></Box>
+        <Box my={10}>
+          <FullStackDeveloper
+            onContactClick={handleOpenContact}
+            category={categoryName}
+            subcategory={subcategoryName}
+          />
+        </Box>
         <Box my={10}><ServicesTechnologies technologyGroups={technologies} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}>
@@ -294,7 +300,13 @@ const ServiceDetailPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}> <FAQAccordion faqs={serviceMenu?.faqs} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} /></Box>
+        <Box my={10}>
+          <ServicesCTA
+            onContactClick={handleOpenContact}
+            category={categoryName}
+            subcategory={subcategoryName}
+          />
+        </Box>
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}> <ServicesBlog /></Box>
       </Container>
