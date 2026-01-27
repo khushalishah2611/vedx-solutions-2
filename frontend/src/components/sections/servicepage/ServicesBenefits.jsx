@@ -50,7 +50,7 @@ const ServicesBenefits = ({
             lineHeight: 1.2,
           }}
         >
-          {title || 'Benefits of a Full Stack Development Company'}
+          {title }
         </Typography>
         <Typography
           variant="body1"
@@ -60,9 +60,7 @@ const ServicesBenefits = ({
             lineHeight: 1.7,
           }}
         >
-          {description ||
-            `From strategy to support, VedX Solutions unifies design, engineering,
-          DevOps, and analytics to deliver outcome-driven digital products.`}
+          {description}
         </Typography>
       </Stack>
 
@@ -116,12 +114,11 @@ const ServicesBenefits = ({
                   sx={{
                     width: 52,
                     height: 52,
-                    borderRadius: 2,
+                 
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: alpha(accentColor, 0.16),
-                    color: accentColor,
+           
                     mb: 2,
                   }}
                 >
