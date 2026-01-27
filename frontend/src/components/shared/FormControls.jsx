@@ -16,9 +16,21 @@ const AppTextField = forwardRef(({ variant = 'outlined', size = 'medium', ...pro
 
 AppTextField.displayName = 'AppTextField';
 
-const AppSelectField = forwardRef(({ variant = 'outlined', size = 'medium', ...props }, ref) => (
-  <TextField ref={ref} select variant={variant} size={size} {...props} />
-));
+const AppSelectField = forwardRef(
+  (
+    { variant = 'outlined', size = 'medium', displayEmpty, renderValue, SelectProps, ...props },
+    ref
+  ) => (
+    <TextField
+      ref={ref}
+      select
+      variant={variant}
+      size={size}
+      SelectProps={{ displayEmpty, renderValue, ...SelectProps }}
+      {...props}
+    />
+  )
+);
 
 AppSelectField.displayName = 'AppSelectField';
 

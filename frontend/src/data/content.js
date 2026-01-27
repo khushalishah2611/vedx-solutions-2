@@ -61,6 +61,14 @@ export const navigationLinks = [
 ];
 
 export const megaMenuContent = {
+  services: {
+    heading: 'Discover the solutions and growth accelerators we build for modern teams.',
+    categories: []
+  },
+  hireDevelopers: {
+    heading: 'Scale your delivery teams with vetted engineering and design talent.',
+    categories: []
+  },
   about: {
     heading: 'Get to know the people and principles behind VedX',
     categories: [
