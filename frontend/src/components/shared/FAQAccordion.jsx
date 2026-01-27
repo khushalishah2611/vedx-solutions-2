@@ -10,9 +10,10 @@ import {
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import { faqEntries } from '../../data/content.js';
 
-const FAQAccordion = () => {
+const FAQAccordion = ({ faqs }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const resolvedFaqs = faqs?.length ? faqs : faqEntries;
 
   return (
     <Stack spacing={3}>
@@ -24,7 +25,7 @@ const FAQAccordion = () => {
       </Typography>
 
       <Stack spacing={2}>
-        {faqEntries.map((faq, index) => (
+        {resolvedFaqs.map((faq, index) => (
           <Accordion
             key={faq.question}
             defaultExpanded={index === 0}

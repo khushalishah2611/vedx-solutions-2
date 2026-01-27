@@ -41,13 +41,14 @@ const useInView = (options = {}) => {
   return [ref, inView];
 };
 
-const ServicesHighlights = () => {
+const ServicesHighlights = ({ title, description, image }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 
   const imageUrl =
+    image ||
     'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80';
 
   // Animation hooks
@@ -85,13 +86,13 @@ const ServicesHighlights = () => {
               mb: { xs: 4, md: 5 },
             }}
           >
-            Full Stack Development Service
+            {title || 'Full Stack Development Service'}
           </Typography>
 
           <Box
             component="img"
             src={imageUrl}
-            alt="Full Stack Development"
+            alt={title || 'Full Stack Development'}
             sx={{
               width: '100%',
               borderRadius: 0.5,
@@ -135,13 +136,18 @@ const ServicesHighlights = () => {
                 lineHeight: 1.7,
               }}
             >
-              From concept to deployment, we craft scalable, high-performance
-              web applications with clean, maintainable architecture across
-              front-end and back-end.
-              <br /><br />
-              Our full stack team takes care of everything – APIs, databases,
-              cloud deployment, and pixel-perfect UI – so you can focus on
-              growing your business, not managing tech complexity.
+              {description || (
+                <>
+                  From concept to deployment, we craft scalable, high-performance
+                  web applications with clean, maintainable architecture across
+                  front-end and back-end.
+                  <br />
+                  <br />
+                  Our full stack team takes care of everything – APIs, databases,
+                  cloud deployment, and pixel-perfect UI – so you can focus on
+                  growing your business, not managing tech complexity.
+                </>
+              )}
             </Typography>
 
 

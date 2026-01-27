@@ -20,6 +20,9 @@ const ServicesWhyChoose = ({
   onContactClick,
   onRequestContact,
   contactAnchorId = 'contact-section',
+  title,
+  description,
+  highlights: highlightsProp,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -38,6 +41,7 @@ const ServicesWhyChoose = ({
 
 
   useEffect(() => {
+    if (highlightsProp) return;
     let isMounted = true;
 
     const loadHighlights = async () => {
@@ -65,12 +69,14 @@ const ServicesWhyChoose = ({
     return () => {
       isMounted = false;
     };
-  }, [fetchWithLoading]);
+  }, [fetchWithLoading, highlightsProp]);
 
   const highlights = useMemo(() => {
-    const resolved = apiHighlights.length > 0 ? apiHighlights : whyChooseVedx;
+    const resolved =
+      highlightsProp ||
+      (apiHighlights.length > 0 ? apiHighlights : whyChooseVedx);
     return resolved.filter((item) => item?.title);
-  }, [apiHighlights]);
+  }, [apiHighlights, highlightsProp]);
 
   return (
     <Box component="section">
@@ -87,13 +93,14 @@ const ServicesWhyChoose = ({
           variant="h3"
           sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}
         >
-          Why choose Vedx Solutions
+          {title || 'Why choose Vedx Solutions'}
         </Typography>
         <Typography
           variant="body1"
           sx={{ color: subtleText, maxWidth: 720 }}
         >
-         Vedx Solutions is recognized for its innovative approach to digital transformation. We combine technology with strategic insight to turn your ideas into impactful and scalable realities. By developing custom software and AI solutions, we help unlock the future of your business. We are also known for
+          {description ||
+            `Vedx Solutions is recognized for its innovative approach to digital transformation. We combine technology with strategic insight to turn your ideas into impactful and scalable realities. By developing custom software and AI solutions, we help unlock the future of your business. We are also known for`}
         </Typography>
       </Stack>
 
