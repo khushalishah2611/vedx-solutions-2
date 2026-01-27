@@ -32,7 +32,7 @@ const FooterSection = () => {
   const isDark = theme.palette.mode === 'dark';
   const [serviceLinks, setServiceLinks] = useState([]);
   const [hireDeveloperLinks, setHireDeveloperLinks] = useState([]);
-  const { serviceMenu, hireMenu } = useServiceHireCatalog();
+  const { serviceMenu, hireMenu, hireCategories } = useServiceHireCatalog();
   const overlayGradient = isDark
     ? 'linear-gradient(180deg, rgba(5,9,18,0.94) 0%, rgba(5,9,18,0.96) 65%, rgba(1,1,3,0.98) 100%)'
     : `linear-gradient(180deg, ${alpha(theme.palette.background.default, 0.9)} 0%, ${alpha(
@@ -62,24 +62,18 @@ const FooterSection = () => {
           .filter((item) => item.label)
       : [];
 
-    const mappedHireDevelopers = hireMenu?.categories?.length
-      ? hireMenu.categories
-          .flatMap((category) => {
-            const subItems = Array.isArray(category?.subItems) ? category.subItems : [];
-            return subItems.map((subItem) => {
-              const isObject = typeof subItem === 'object' && subItem !== null;
-              return {
-                label: (isObject ? subItem.label : subItem)?.trim() || '',
-                href: isObject ? subItem.href : undefined,
-              };
-            });
-          })
+    const mappedHireDevelopers = hireCategories?.length
+      ? hireCategories
+          .map((category) => ({
+            label: category?.title?.trim() || '',
+            href: category?.slug ? `/hire-developers/${category.slug}` : undefined,
+          }))
           .filter((item) => item.label)
       : [];
 
     setServiceLinks(mappedServices);
     setHireDeveloperLinks(mappedHireDevelopers);
-  }, [hireMenu, serviceMenu]);
+  }, [hireCategories, hireMenu, serviceMenu]);
 
   const footerColumns = useMemo(() => {
     const [servicesColumn, hireDevelopersColumn, ...restColumns] = footerContent.columns;
