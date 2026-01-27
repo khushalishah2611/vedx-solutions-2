@@ -195,10 +195,6 @@ const ServiceDetailPage = () => {
     openDialog();
   }, [openDialog]);
 
-  if (!apiCategory && !apiSubCategory && isLoading) {
-    return null;
-  }
-
   const isDark = theme.palette.mode === 'dark';
 
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
@@ -230,6 +226,10 @@ const ServiceDetailPage = () => {
       image: item.image,
     }));
   }, [whyServices, whyVedxReasons]);
+
+  if (!apiCategory && !apiSubCategory && isLoading) {
+    return null;
+  }
 
 
   return (
