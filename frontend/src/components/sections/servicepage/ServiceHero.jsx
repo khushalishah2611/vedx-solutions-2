@@ -9,6 +9,7 @@ const ServiceHero = ({
   serviceName,
   heroTitle,
   heroDescription,
+  backgroundImage,
   categoryHref = '/services',
   onContactClick,
   onRequestContact,
@@ -34,7 +35,7 @@ const ServiceHero = ({
       sx={{
         backgroundImage: `
           linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
-          url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80")
+          url("${backgroundImage || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80'}")
         `,
         backgroundSize: 'cover',
         backgroundPosition: 'center',

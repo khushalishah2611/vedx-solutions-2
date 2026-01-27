@@ -18,6 +18,9 @@ const ServicesBenefits = ({
   onContactClick,
   onRequestContact,
   contactAnchorId = 'contact-section',
+  title,
+  description,
+  benefits,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -47,7 +50,7 @@ const ServicesBenefits = ({
             lineHeight: 1.2,
           }}
         >
-          Benefits of a Full Stack Development Company
+          {title || 'Benefits of a Full Stack Development Company'}
         </Typography>
         <Typography
           variant="body1"
@@ -57,8 +60,9 @@ const ServicesBenefits = ({
             lineHeight: 1.7,
           }}
         >
-          From strategy to support, VedX Solutions unifies design, engineering,
-          DevOps, and analytics to deliver outcome-driven digital products.
+          {description ||
+            `From strategy to support, VedX Solutions unifies design, engineering,
+          DevOps, and analytics to deliver outcome-driven digital products.`}
         </Typography>
       </Stack>
 
@@ -71,7 +75,7 @@ const ServicesBenefits = ({
           alignItems: "stretch",
         }}
       >
-        {fullStackServiceFeatures.map((feature, index) => {
+        {(benefits?.length ? benefits : fullStackServiceFeatures).map((feature, index) => {
           const Icon =
             feature.icon || highlightIcons[index % highlightIcons.length];
 
@@ -121,7 +125,16 @@ const ServicesBenefits = ({
                     mb: 2,
                   }}
                 >
-                  {Icon && <Icon fontSize="medium" />}
+                  {feature.image ? (
+                    <Box
+                      component="img"
+                      src={feature.image}
+                      alt={feature.title}
+                      sx={{ width: 40, height: 40, objectFit: 'contain' }}
+                    />
+                  ) : (
+                    Icon && <Icon fontSize="medium" />
+                  )}
                 </Box>
 
                 {/* Text */}

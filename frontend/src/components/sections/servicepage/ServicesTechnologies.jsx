@@ -10,19 +10,37 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { technologyTabs } from '../../../data/servicesPage.js';
 
-const ServicesTechnologies = () => {
+const ServicesTechnologies = ({ technologyGroups }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const [activeTab, setActiveTab] = useState(0);
 
+  const tabs = useMemo(() => {
+    if (!technologyGroups?.length) return technologyTabs;
+    return technologyGroups.map((group) => ({
+      category: group.title,
+      image: group.image,
+      technologies: (group.items || []).map((item) => ({
+        name: item,
+        icon: group.image || '',
+      })),
+    }));
+  }, [technologyGroups]);
+
   const technologies = useMemo(
-    () => technologyTabs[activeTab]?.technologies ?? [],
-    [activeTab]
+    () => tabs[activeTab]?.technologies ?? [],
+    [activeTab, tabs]
   );
+
+  useEffect(() => {
+    if (activeTab >= tabs.length) {
+      setActiveTab(0);
+    }
+  }, [activeTab, tabs.length]);
 
   return (
     <Box component="section" sx={{ mt: { xs: 6, md: 8 } }}>
@@ -81,7 +99,7 @@ const ServicesTechnologies = () => {
             },
           }}
         >
-          {technologyTabs.map((tab, index) => (
+          {tabs.map((tab, index) => (
             <Tab
               key={tab.category}
               label={tab.category}
@@ -162,8 +180,11 @@ const ServicesTechnologies = () => {
                   width: 56,
                   height: 56,
                   bgcolor: alpha(theme.palette.primary.main, 0.08),
+                  fontWeight: 700,
                 }}
-              />
+              >
+                {tech.icon ? null : tech.name?.[0]}
+              </Avatar>
               <Typography
                 variant="body2"
                 sx={{
