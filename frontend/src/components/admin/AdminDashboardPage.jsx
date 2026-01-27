@@ -2154,10 +2154,49 @@ const AdminDashboardPage = () => {
             />
             <Divider />
             <CardContent>
-           
+              <Stack
+                spacing={2}
+                mb={3}
+                direction={{ xs: "column", md: "row" }}
+                alignItems={{ xs: "stretch", md: "flex-end" }}
+              >
+                <AppTextField
+                  label="Title"
+                  value={industriesConfig.title}
+                  onChange={(event) =>
+                    setIndustriesConfig((prev) => ({
+                      ...prev,
+                      title: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+                <AppTextField
+                  label="Description"
+                  value={industriesConfig.description}
+                  onChange={(event) =>
+                    setIndustriesConfig((prev) => ({
+                      ...prev,
+                      description: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <AppButton variant="contained" onClick={handleIndustrySave}>
+                    Save header
+                  </AppButton>
+
+                  {industrySaved && (
+                    <Typography variant="body2" color="success.main">
+                      Saved
+                    </Typography>
+                  )}
+                </Stack>
+              </Stack>
+
               <Stack direction="row" justifyContent="flex-end" mb={1}>
                 <Stack direction="row" spacing={2} alignItems="center">
-              
                   <AppButton
                     variant="contained"
                     startIcon={<AddCircleOutlineIcon />}
@@ -2261,53 +2300,13 @@ const AdminDashboardPage = () => {
             />
             <Divider />
             <CardContent>
-               <Stack
-                spacing={2}
-                mb={3}
-                direction={{ xs: "column", md: "row" }}
-                alignItems={{ xs: "stretch", md: "flex-end" }}
-              >
-                <AppTextField
-                  label="Title"
-                  value={industriesConfig.title}
-                  onChange={(event) =>
-                    setIndustriesConfig((prev) => ({
-                      ...prev,
-                      title: event.target.value,
-                    }))
-                  }
-                  fullWidth
-                />
-                <AppTextField
-                  label="Description"
-                  value={industriesConfig.description}
-                  onChange={(event) =>
-                    setIndustriesConfig((prev) => ({
-                      ...prev,
-                      description: event.target.value,
-                    }))
-                  }
-                  fullWidth
-                />
-              </Stack>
-
               <Stack direction="row" justifyContent="flex-end" mb={1}>
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <AppButton variant="contained" onClick={handleIndustrySave}>
-                    Save header
-                  </AppButton>
-
-                  {industrySaved && (
-                    <Typography variant="body2" color="success.main">
-                      Saved
-                    </Typography>
-                  )}
-
                   <AppButton
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => openWhyVedxReasonDialog()}
-                >
+                    variant="contained"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={() => openWhyVedxReasonDialog()}
+                  >
                   Add reason
                 </AppButton>
                 </Stack>
