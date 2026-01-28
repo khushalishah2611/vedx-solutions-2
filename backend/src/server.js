@@ -7858,7 +7858,17 @@ const resolveWhyVedxId = async (providedId) => {
 app.get('/api/why-vedx', async (req, res) => {
   try {
     const includeReasons = req.query.includeReasons === 'true';
+    const categoryName = normalizeText(req.query?.category);
+    const subcategoryName = normalizeText(req.query?.subcategory);
     const whyVedx = await prisma.whyVedx.findMany({
+      where: {
+        ...(categoryName
+          ? { category: { name: { equals: categoryName, mode: 'insensitive' } } }
+          : {}),
+        ...(subcategoryName
+          ? { subcategory: { name: { equals: subcategoryName, mode: 'insensitive' } } }
+          : {}),
+      },
       include: {
         ...(includeReasons
           ? { reasons: { include: { category: true, subcategory: true }, orderBy: { createdAt: 'desc' } } }

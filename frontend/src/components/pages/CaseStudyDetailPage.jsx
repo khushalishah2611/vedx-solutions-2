@@ -14,6 +14,7 @@ import CaseStudyRelatedSection from '../sections/caseStudies/CaseStudyRelatedSec
 import CaseStudyConclusionBlock from '../sections/caseStudies/CaseStudyConclusionBlock.jsx';
 import CaseStudyImpactBlock from '../sections/caseStudies/CaseStudyImpactBlock.jsx';
 import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const mapCaseStudyFromApi = (caseStudy) => ({
   id: caseStudy.id,
@@ -88,6 +89,7 @@ const mapCaseStudyDetailFromApi = (caseStudy) => {
 const CaseStudyDetailPage = () => {
   const { slug } = useParams();
   const theme = useTheme();
+  const { fetchWithLoading } = useLoadingFetch();
   const [caseStudy, setCaseStudy] = useState(null);
   const [caseStudies, setCaseStudies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -113,8 +115,8 @@ const CaseStudyDetailPage = () => {
 
       try {
         const [detailResponse, listResponse] = await Promise.all([
-          fetch(apiUrl(`/api/case-studies/${slug}`)),
-          fetch(apiUrl('/api/case-studies')),
+          fetchWithLoading(apiUrl(`/api/case-studies/${slug}`)),
+          fetchWithLoading(apiUrl('/api/case-studies')),
         ]);
 
         const detailPayload = await detailResponse.json();
@@ -150,7 +152,7 @@ const CaseStudyDetailPage = () => {
     return () => {
       isActive = false;
     };
-  }, [slug]);
+  }, [fetchWithLoading, slug]);
 
   const dividerColor = alpha(theme.palette.divider, 0.6);
 

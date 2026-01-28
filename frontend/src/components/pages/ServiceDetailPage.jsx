@@ -21,11 +21,13 @@ import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 import ServiceHero from '../sections/servicepage/ServiceHero.jsx';
 import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const ServiceDetailPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { categorySlug, serviceSlug } = useParams();
+  const { fetchWithLoading } = useLoadingFetch();
 
   const { serviceCategories, serviceSubCategories, isLoading } = useServiceHireCatalog();
 
@@ -56,7 +58,7 @@ const ServiceDetailPage = () => {
 
     const loadServiceMenu = async () => {
       try {
-        const response = await fetch(apiUrl(`/api/service-menus?${params.toString()}`));
+        const response = await fetchWithLoading(apiUrl(`/api/service-menus?${params.toString()}`));
         const data = await response.json();
         if (!response.ok) throw new Error(data?.error || 'Unable to load service menu');
         if (!isMounted) return;
@@ -73,7 +75,9 @@ const ServiceDetailPage = () => {
           const configParams = new URLSearchParams();
           if (apiCategory?.id) configParams.append('categoryId', String(apiCategory.id));
           if (apiSubCategory?.id) configParams.append('subcategoryId', String(apiSubCategory.id));
-          const configResponse = await fetch(apiUrl(`/api/benefit-configs?${configParams.toString()}`));
+          const configResponse = await fetchWithLoading(
+            apiUrl(`/api/benefit-configs?${configParams.toString()}`)
+          );
           const configData = await configResponse.json();
           if (configResponse.ok && Array.isArray(configData) && configData.length > 0) {
             config = configData[0];
@@ -82,7 +86,7 @@ const ServiceDetailPage = () => {
 
         const benefitParams = new URLSearchParams(params);
         if (config?.id) benefitParams.append('benefitConfigId', String(config.id));
-        const response = await fetch(apiUrl(`/api/benefits?${benefitParams.toString()}`));
+        const response = await fetchWithLoading(apiUrl(`/api/benefits?${benefitParams.toString()}`));
         const data = await response.json();
         if (!response.ok) throw new Error(data?.error || 'Unable to load benefits');
         if (!isMounted) return;
@@ -95,7 +99,7 @@ const ServiceDetailPage = () => {
 
     const loadTechnologies = async () => {
       try {
-        const response = await fetch(apiUrl('/api/technologies'));
+        const response = await fetchWithLoading(apiUrl('/api/technologies'));
         const data = await response.json();
         if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
         if (!isMounted) return;
@@ -112,7 +116,7 @@ const ServiceDetailPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [apiCategory, apiSubCategory, categoryName, subcategoryName]);
+  }, [apiCategory, apiSubCategory, categoryName, fetchWithLoading, subcategoryName]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

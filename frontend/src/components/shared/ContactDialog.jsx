@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box, IconButton, InputAdornment, MenuItem, FormHelperText, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from './FormControls.jsx';
 
 import CloseIcon from '@mui/icons-material/Close';
-import { contactProjectTypes } from '../../data/servicesPage.js';
 import { apiUrl } from '../../utils/const.js';
 import { fileToDataUrl } from '../../utils/files.js';
 
@@ -18,7 +17,7 @@ const ContactDialog = ({ open, onClose }) => {
     name: '',
     email: '',
     phone: '',
-    projectType: contactProjectTypes[0],
+    jobId: '',
     experience: '',
     employmentType: employmentTypes[0],
     notes: '',
@@ -27,13 +26,15 @@ const ContactDialog = ({ open, onClose }) => {
   const [resumeError, setResumeError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [jobOptions, setJobOptions] = useState([]);
+  const [jobLoading, setJobLoading] = useState(false);
 
   const resetForm = () => {
     setFormState({
       name: '',
       email: '',
       phone: '',
-      projectType: contactProjectTypes[0],
+      jobId: '',
       experience: '',
       employmentType: employmentTypes[0],
       notes: '',
@@ -65,6 +66,46 @@ const ContactDialog = ({ open, onClose }) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
+  useEffect(() => {
+    if (!open) return;
+    let isMounted = true;
+
+    const loadJobs = async () => {
+      setJobLoading(true);
+      try {
+        const token = localStorage.getItem('adminToken');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const response = await fetch(apiUrl('/api/admin/careers/jobs'), { headers });
+        if (!response.ok) {
+          throw new Error('Admin jobs unavailable');
+        }
+        const payload = await response.json();
+        if (!isMounted) return;
+        setJobOptions(payload.jobs ?? []);
+      } catch (error) {
+        try {
+          const response = await fetch(apiUrl('/api/careers/jobs'));
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload?.message || 'Unable to load job openings.');
+          if (!isMounted) return;
+          setJobOptions(payload.jobs ?? []);
+        } catch (fallbackError) {
+          console.error('Failed to load job openings', fallbackError);
+          if (!isMounted) return;
+          setJobOptions([]);
+        }
+      } finally {
+        if (isMounted) setJobLoading(false);
+      }
+    };
+
+    loadJobs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
+
   const handleApplicationSubmit = async (event) => {
     event.preventDefault();
     setSubmitError('');
@@ -84,10 +125,13 @@ const ContactDialog = ({ open, onClose }) => {
 
     try {
       const resumeUrl = formState.resume?.file ? await fileToDataUrl(formState.resume.file) : '';
+      const token = localStorage.getItem('adminToken');
+      const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+      const jobId = formState.jobId ? Number(formState.jobId) : null;
 
-      const response = await fetch(apiUrl('/api/careers/applications'), {
+      const response = await fetch(apiUrl('/api/admin/careers/applications'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
@@ -96,7 +140,8 @@ const ContactDialog = ({ open, onClose }) => {
           employmentType: formState.employmentType,
           appliedOn: new Date().toISOString().split('T')[0],
           resumeUrl,
-          notes: trimmedNotes || `Project type: ${formState.projectType}`,
+          notes: trimmedNotes,
+          jobId,
         }),
       });
 
@@ -180,15 +225,22 @@ const ContactDialog = ({ open, onClose }) => {
             }}
           />
           <AppSelectField
-           
-            label="Project Type"
-            value={formState.projectType}
-            onChange={(event) => handleFieldChange('projectType', event.target.value)}
+            label="Job Type"
+            value={formState.jobId}
+            onChange={(event) => handleFieldChange('jobId', event.target.value)}
+            displayEmpty
+            renderValue={(selected) => {
+              if (!selected) return '';
+              const match = jobOptions.find((job) => String(job.id) === String(selected));
+              return match?.title || '';
+            }}
+            disabled={jobLoading}
             fullWidth
           >
-            {contactProjectTypes.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
+            <MenuItem value="">Select job type</MenuItem>
+            {jobOptions.map((job) => (
+              <MenuItem key={job.id} value={job.id}>
+                {job.title}
               </MenuItem>
             ))}
           </AppSelectField>
