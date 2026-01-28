@@ -11,7 +11,6 @@ import {
   useTheme,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import { technologyTabs } from "../../../data/servicesPage.js";
 
 /* ---------------- helpers ---------------- */
 const slug = (v) =>
@@ -171,7 +170,7 @@ const ServicesTechnologies = ({ technologyGroups }) => {
   const [activeTab, setActiveTab] = useState(0);
 
   const tabs = useMemo(() => {
-    return normalizeTechnologyGroupsToTabs(technologyGroups, technologyTabs);
+    return normalizeTechnologyGroupsToTabs(technologyGroups, []);
   }, [technologyGroups]);
 
   const technologies = useMemo(() => {
