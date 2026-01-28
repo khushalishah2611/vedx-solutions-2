@@ -272,8 +272,8 @@ export const footerContent = {
     { label: 'Instagram', href: 'https://www.instagram.com/vedx.solutions', icon: 'instagram' }
   ],
   bottomLinks: [
-    { label: 'Privacy Policy', href: '#' },
-    { label: 'Terms and Condition', href: '#' },
+    { label: 'Privacy Policy', href: '/privacy-policy' },
+    { label: 'Terms and Condition', href: '/terms-and-condition' },
     { label: 'Contact Us', href: '/contact' }
   ],
   copyright: 'Copyright © 2025 VedX Solutions.'
