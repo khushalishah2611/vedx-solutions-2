@@ -237,11 +237,8 @@ const ServiceDetailPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
-          <ServicesCTA
-            onContactClick={handleOpenContact}
-            category={categoryName}
-            subcategory={subcategoryName}
-          />
+          <ServicesCTA category={category} subcategory={subcategory} apiPath="/api/contact-buttons"  onContactClick={handleOpenContact} />
+
         </Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
