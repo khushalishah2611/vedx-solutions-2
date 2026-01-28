@@ -5,7 +5,12 @@ import { AppButton } from '../../shared/FormControls.jsx';
 import { apiUrl } from '../../../utils/const.js';
 
 
-const ServicesCTA = ({ onContactClick, category, subcategory }) => {
+const ServicesCTA = ({
+  onContactClick,
+  category,
+  subcategory,
+  apiPath = '/api/contact-buttons',
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
@@ -16,17 +21,27 @@ const ServicesCTA = ({ onContactClick, category, subcategory }) => {
 
     const loadCtaConfig = async () => {
       try {
-        const response = await fetch(apiUrl('/api/contact-buttons'));
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        const requestPath = params.toString()
+          ? `${apiPath}?${params.toString()}`
+          : apiPath;
+        const response = await fetch(apiUrl(requestPath));
         const data = await response.json();
         if (!response.ok) throw new Error(data?.error || 'Unable to load contact CTA');
         if (!isMounted) return;
         const list = Array.isArray(data) ? data : [];
-        const matched = list.find(
-          (item) =>
-            (category && item.category === category && (!subcategory || item.subcategory === subcategory)) ||
-            (!category && !subcategory)
-        );
-        setCtaConfig(matched || list[0] || null);
+        if (params.toString()) {
+          setCtaConfig(list[0] || null);
+        } else {
+          const matched = list.find(
+            (item) =>
+              (category && item.category === category && (!subcategory || item.subcategory === subcategory)) ||
+              (!category && !subcategory)
+          );
+          setCtaConfig(matched || list[0] || null);
+        }
       } catch (error) {
         console.error('Failed to load contact CTA', error);
       }
@@ -37,7 +52,7 @@ const ServicesCTA = ({ onContactClick, category, subcategory }) => {
     return () => {
       isMounted = false;
     };
-  }, [category, subcategory]);
+  }, [apiPath, category, subcategory]);
 
   const backgroundImage = useMemo(() => ctaConfig?.image, [ctaConfig]);
   const handleContactClick = () => {

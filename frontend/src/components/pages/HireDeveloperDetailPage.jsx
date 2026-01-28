@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
@@ -6,6 +6,7 @@ import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
 import FullStackDeveloper from '../sections/servicepage/FullStackDeveloper.jsx';
+import ServicesTechnologies from '../sections/servicepage/ServicesTechnologies.jsx';
 import HireDeveloperHero from '../sections/servicepage/HireDeveloperHero.jsx';
 import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
@@ -19,6 +20,7 @@ import ServicesBlog from '../shared/ServicesBlog.jsx';
 import { hireDeveloperDetailContent } from '../../data/hireDevelopers.js';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
+import { apiUrl } from '../../utils/const.js';
 
 const HireDeveloperDetailPage = () => {
   const theme = useTheme();
@@ -26,6 +28,9 @@ const HireDeveloperDetailPage = () => {
   const navigate = useNavigate();
   const { openDialog } = useContactDialog();
   const { hireCategories, hireRoles, isLoading } = useServiceHireCatalog();
+  const [benefits, setBenefits] = useState([]);
+  const [benefitConfig, setBenefitConfig] = useState(null);
+  const [technologies, setTechnologies] = useState([]);
 
   const category = hireDeveloperDetailContent[categorySlug ?? ''];
   const role = category?.roles?.[roleSlug ?? ''];
@@ -56,13 +61,68 @@ const HireDeveloperDetailPage = () => {
 
   const resolvedCategory = apiCategory ?? category;
   const resolvedRole = apiRole ?? role;
+  const categoryName = resolvedCategory?.title ?? resolvedCategory?.name;
+  const roleName = resolvedRole?.title ?? resolvedRole?.name;
 
-  const relatedRoles = useMemo(() => {
-    if (!category?.roles) return [];
-    return Object.entries(category.roles)
-      .filter(([slug]) => slug !== roleSlug)
-      .map(([slug, item]) => ({ slug, ...item }));
-  }, [category, roleSlug]);
+  useEffect(() => {
+    if (!categoryName && !roleName) return;
+    let isMounted = true;
+
+    const params = new URLSearchParams();
+    if (categoryName) params.append('category', categoryName);
+    if (roleName) params.append('subcategory', roleName);
+
+    const loadBenefits = async () => {
+      try {
+        const configResponse = await fetch(
+          apiUrl(`/api/hire-developer/benefit-configs?${params.toString()}`)
+        );
+        const configData = await configResponse.json();
+        if (!configResponse.ok) {
+          throw new Error(configData?.error || 'Unable to load hire benefit configs');
+        }
+
+        const config = Array.isArray(configData) ? configData[0] : configData;
+        const benefitParams = new URLSearchParams(params);
+        if (config?.id) benefitParams.append('benefitConfigId', String(config.id));
+
+        const response = await fetch(
+          apiUrl(`/api/hire-developer/benefits?${benefitParams.toString()}`)
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Unable to load hire benefits');
+        }
+
+        if (!isMounted) return;
+        setBenefitConfig(config || null);
+        setBenefits(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to load hire benefits', error);
+      }
+    };
+
+    const loadTechnologies = async () => {
+      try {
+        const response = await fetch(apiUrl('/api/hire-developer/technologies'));
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Unable to load hire technologies');
+        }
+        if (!isMounted) return;
+        setTechnologies(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to load hire technologies', error);
+      }
+    };
+
+    loadBenefits();
+    loadTechnologies();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [categoryName, roleName]);
 
   // If redirecting, avoid rendering
   if (!category && !role && !apiCategory && !apiRole && isLoading) {
@@ -114,7 +174,12 @@ const HireDeveloperDetailPage = () => {
         </Box>
 
         <Box my={10}>
-          <ServicesBenefits onContactClick={handleOpenContact} />
+          <ServicesBenefits
+            onContactClick={handleOpenContact}
+            title={benefitConfig?.title}
+            description={benefitConfig?.description}
+            benefits={benefits}
+          />
         </Box>
 
         <Box my={10}>
@@ -123,6 +188,14 @@ const HireDeveloperDetailPage = () => {
 
         <Box my={10}>
           <FullStackDeveloper onContactClick={handleOpenContact} />
+        </Box>
+
+        <Box my={10}>
+          <ServicesTechnologies technologyGroups={technologies} />
+        </Box>
+
+        <Box my={10}>
+          <Divider sx={{ borderColor: dividerColor }} />
         </Box>
 
         <Box my={10}>
@@ -136,8 +209,8 @@ const HireDeveloperDetailPage = () => {
         <Box my={10}>
           <ServicesProcess
             apiPath="/api/hire-developer/processes"
-            category={categorySlug}
-            subcategory={roleSlug}
+            category={categoryName}
+            subcategory={roleName}
           />
         </Box>
 
@@ -178,7 +251,12 @@ const HireDeveloperDetailPage = () => {
         </Box>
 
         <Box my={10}>
-          <ServicesCTA onContactClick={handleOpenContact} />
+          <ServicesCTA
+            onContactClick={handleOpenContact}
+            category={categoryName}
+            subcategory={roleName}
+            apiPath="/api/hire-developer/contact-buttons"
+          />
         </Box>
 
         <Box my={10}>

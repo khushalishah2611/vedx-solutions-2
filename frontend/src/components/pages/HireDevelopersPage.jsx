@@ -1,5 +1,5 @@
 import { Box, Divider, alpha, useTheme, Container } from '@mui/material';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import ServicesHighlights from '../sections/servicepage/ServicesHighlights.jsx';
 import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
@@ -12,11 +12,69 @@ import FAQAccordion from '../shared/FAQAccordion.jsx';
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import HireDevelopersHero from '../sections/hiredeveloperspage/HireDevelopersHero.jsx';
+import ServicesTechnologies from '../sections/servicepage/ServicesTechnologies.jsx';
+import { apiUrl } from '../../utils/const.js';
 
 const HireDevelopersPage = () => {
   const { openDialog } = useContactDialog();
   const theme = useTheme();
   const dividerColor = alpha(theme.palette.divider, 0.6);
+  const [benefits, setBenefits] = useState([]);
+  const [benefitConfig, setBenefitConfig] = useState(null);
+  const [technologies, setTechnologies] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBenefits = async () => {
+      try {
+        const configResponse = await fetch(apiUrl('/api/hire-developer/benefit-configs'));
+        const configData = await configResponse.json();
+        if (!configResponse.ok) {
+          throw new Error(configData?.error || 'Unable to load hire benefit configs');
+        }
+
+        const config = Array.isArray(configData) ? configData[0] : configData;
+        const params = new URLSearchParams();
+        if (config?.id) params.append('benefitConfigId', String(config.id));
+
+        const response = await fetch(
+          apiUrl(`/api/hire-developer/benefits${params.toString() ? `?${params.toString()}` : ''}`)
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Unable to load hire benefits');
+        }
+
+        if (!isMounted) return;
+        setBenefitConfig(config || null);
+        setBenefits(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to load hire benefits', error);
+      }
+    };
+
+    const loadTechnologies = async () => {
+      try {
+        const response = await fetch(apiUrl('/api/hire-developer/technologies'));
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Unable to load hire technologies');
+        }
+        if (!isMounted) return;
+        setTechnologies(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to load hire technologies', error);
+      }
+    };
+
+    loadBenefits();
+    loadTechnologies();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleOpenContact = useCallback(() => {
     openDialog();
@@ -40,13 +98,20 @@ const HireDevelopersPage = () => {
         <Box my={10}><Divider sx={{ borderColor: dividerColor }} /></Box>
 
         <Box my={10}>
-          <ServicesBenefits onContactClick={handleOpenContact} />
+          <ServicesBenefits
+            onContactClick={handleOpenContact}
+            title={benefitConfig?.title}
+            description={benefitConfig?.description}
+            benefits={benefits}
+          />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
           <FullStackDeveloper onContactClick={handleOpenContact} />
         </Box>
+
+        <Box my={10}><ServicesTechnologies technologyGroups={technologies} /></Box>
 
         <Box my={10}>
           <ServicesWhyChoose onContactClick={handleOpenContact} />
@@ -74,7 +139,10 @@ const HireDevelopersPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
-          <ServicesCTA onContactClick={handleOpenContact} />
+          <ServicesCTA
+            onContactClick={handleOpenContact}
+            apiPath="/api/hire-developer/contact-buttons"
+          />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
