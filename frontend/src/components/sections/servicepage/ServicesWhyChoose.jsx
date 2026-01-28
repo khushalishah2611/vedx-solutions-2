@@ -25,6 +25,8 @@ const ServicesWhyChoose = ({
   title,
   description,
   highlights: highlightsProp,
+  category,
+  subcategory,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -54,29 +56,34 @@ const ServicesWhyChoose = ({
 
     const loadData = async () => {
       try {
-        const configRes = await fetchWithLoading(
-          apiUrl('/api/homes/why-vedx-config')
-        );
+        const configRes = await fetchWithLoading(apiUrl('/api/why-vedx'));
         const configData = await configRes.json();
 
         if (!configRes.ok) {
           throw new Error(configData?.error || 'Failed to load config');
         }
 
-        const config = Array.isArray(configData)
-          ? configData[0]
-          : configData;
+        const configs = Array.isArray(configData) ? configData : [];
+        const matchedConfig =
+          configs.find(
+            (item) =>
+              (subcategory && item?.subcategoryName === subcategory) ||
+              (!subcategory && category && item?.categoryName === category)
+          ) || configs[0];
 
         if (isMounted) {
-          setApiConfig(config || null);
+          setApiConfig(matchedConfig || null);
         }
 
-        const reasonsQuery = config?.id
-          ? `?whyVedxId=${config.id}`
-          : '';
+        const reasonParams = new URLSearchParams();
+        if (category) reasonParams.append('category', category);
+        if (subcategory) reasonParams.append('subcategory', subcategory);
+        if (matchedConfig?.id) {
+          reasonParams.append('whyVedxId', String(matchedConfig.id));
+        }
 
         const reasonsRes = await fetchWithLoading(
-          apiUrl(`/api/homes/why-vedx-reasons${reasonsQuery}`)
+          apiUrl(`/api/why-vedx-reasons?${reasonParams.toString()}`)
         );
         const reasonsData = await reasonsRes.json();
 
@@ -107,7 +114,14 @@ const ServicesWhyChoose = ({
     return () => {
       isMounted = false;
     };
-  }, [description, fetchWithLoading, highlightsProp, title]);
+  }, [
+    category,
+    description,
+    fetchWithLoading,
+    highlightsProp,
+    subcategory,
+    title,
+  ]);
 
   const highlights = useMemo(() => {
     const resolved =
@@ -122,10 +136,10 @@ const ServicesWhyChoose = ({
       {/* Header */}
       <Stack spacing={3} sx={{ mb: 4, textAlign: 'center', alignItems: 'center' }}>
         <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
-          {title || apiConfig?.title}
+          {title || apiConfig?.heroTitle}
         </Typography>
         <Typography variant="body1" sx={{ color: subtleText, maxWidth: 720 }}>
-          {description || apiConfig?.description}
+          {description || apiConfig?.heroDescription}
         </Typography>
       </Stack>
 
