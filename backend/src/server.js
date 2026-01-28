@@ -4799,14 +4799,25 @@ app.post('/api/careers/applications', async (req, res) => {
 });
 
 app.get('/api/admin/careers/jobs', async (req, res) => {
-  const { admin, status, message } = await getAuthenticatedAdmin(req);
-
-  if (!admin) {
-    const code = status || 401;
-    return res.status(code).json({ message: message || 'Session token missing.' });
-  }
-
   try {
+    const token = parseBearerToken(req.headers.authorization);
+
+    if (!token) {
+      const jobs = await prisma.careerOpening.findMany({
+        where: { isOpen: true },
+        orderBy: [{ postedOn: 'desc' }, { createdAt: 'desc' }],
+      });
+
+      return res.json({ jobs: jobs.map(formatCareerOpeningResponse) });
+    }
+
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+
+    if (!admin) {
+      const code = status || 401;
+      return res.status(code).json({ message: message || 'Session token missing.' });
+    }
+
     const jobs = await prisma.careerOpening.findMany({
       orderBy: [{ postedOn: 'desc' }, { createdAt: 'desc' }],
     });
@@ -4949,12 +4960,6 @@ app.get('/api/admin/careers/applications', async (req, res) => {
 
 app.post('/api/admin/careers/applications', async (req, res) => {
   try {
-    const { admin, status, message } = await getAuthenticatedAdmin(req);
-
-    if (!admin) {
-      return res.status(status).json({ message });
-    }
-
     const validation = validateCareerApplicationInput(req.body || {});
     if (validation.error) return res.status(400).json({ message: validation.error });
 
@@ -5057,6 +5062,110 @@ app.delete('/api/admin/careers/applications/:id', async (req, res) => {
   }
 });
 
+// ---------- Privacy Policy & Terms ----------
+
+const normalizeHtmlText = (value) => (typeof value === 'string' ? value.trim() : '');
+
+const mapPrivacyPolicyResponse = (policy) => ({
+  id: policy.id,
+  description: policy.description || '',
+  createdAt: policy.createdAt,
+  updatedAt: policy.updatedAt,
+});
+
+const mapTermsConditionResponse = (terms) => ({
+  id: terms.id,
+  description: terms.description || '',
+  createdAt: terms.createdAt,
+  updatedAt: terms.updatedAt,
+});
+
+app.get('/api/privacy-policy', async (_req, res) => {
+  try {
+    const policy = await prisma.privacyPolicy.findFirst({ orderBy: { createdAt: 'desc' } });
+    return res.json({ policy: policy ? mapPrivacyPolicyResponse(policy) : null });
+  } catch (error) {
+    console.error('Public privacy policy fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load privacy policy right now.' });
+  }
+});
+
+app.get('/api/terms-conditions', async (_req, res) => {
+  try {
+    const terms = await prisma.termsCondition.findFirst({ orderBy: { createdAt: 'desc' } });
+    return res.json({ terms: terms ? mapTermsConditionResponse(terms) : null });
+  } catch (error) {
+    console.error('Public terms fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load terms and conditions right now.' });
+  }
+});
+
+app.get('/api/admin/privacy-policy', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const policy = await prisma.privacyPolicy.findFirst({ orderBy: { createdAt: 'desc' } });
+    return res.json({ policy: policy ? mapPrivacyPolicyResponse(policy) : null });
+  } catch (error) {
+    console.error('Admin privacy policy fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load privacy policy right now.' });
+  }
+});
+
+app.get('/api/admin/terms-conditions', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const terms = await prisma.termsCondition.findFirst({ orderBy: { createdAt: 'desc' } });
+    return res.json({ terms: terms ? mapTermsConditionResponse(terms) : null });
+  } catch (error) {
+    console.error('Admin terms fetch failed', error);
+    return res.status(500).json({ message: 'Unable to load terms and conditions right now.' });
+  }
+});
+
+app.post('/api/admin/privacy-policy', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const description = normalizeHtmlText(req.body?.description);
+    if (!description) return res.status(400).json({ message: 'Privacy policy description is required.' });
+
+    const id = parseIntegerId(req.body?.id);
+    const saved = id
+      ? await prisma.privacyPolicy.update({ where: { id }, data: { description } })
+      : await prisma.privacyPolicy.create({ data: { description } });
+
+    return res.status(201).json({ policy: mapPrivacyPolicyResponse(saved), message: 'Privacy policy saved.' });
+  } catch (error) {
+    console.error('Privacy policy save failed', error);
+    return res.status(500).json({ message: 'Unable to save privacy policy right now.' });
+  }
+});
+
+app.post('/api/admin/terms-conditions', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const description = normalizeHtmlText(req.body?.description);
+    if (!description) return res.status(400).json({ message: 'Terms description is required.' });
+
+    const id = parseIntegerId(req.body?.id);
+    const saved = id
+      ? await prisma.termsCondition.update({ where: { id }, data: { description } })
+      : await prisma.termsCondition.create({ data: { description } });
+
+    return res.status(201).json({ terms: mapTermsConditionResponse(saved), message: 'Terms saved.' });
+  } catch (error) {
+    console.error('Terms save failed', error);
+    return res.status(500).json({ message: 'Unable to save terms and conditions right now.' });
+  }
+});
+
 function serializeImages(images) {
   if (!images) return null;
   if (Array.isArray(images)) return JSON.stringify(images);
@@ -5074,7 +5183,17 @@ function parseImages(imagesField) {
 }
 
 /// Banner enums (Prisma enum BannerType)
-const BANNER_TYPES = ['HOME', 'DASHBOARD', 'ABOUT', 'BLOGS', 'CONTACT', 'CAREER', 'CASESTUDY'];
+const BANNER_TYPES = [
+  'HOME',
+  'DASHBOARD',
+  'ABOUT',
+  'BLOGS',
+  'CONTACT',
+  'CAREER',
+  'CASESTUDY',
+  'PRIVACY_POLICY',
+  'TERMS_CONDITION',
+];
 
 const normalizeBannerTypeInput = (value) => {
   const raw = String(value || '')
@@ -5083,16 +5202,18 @@ const normalizeBannerTypeInput = (value) => {
     .replace(/[^A-Z0-9]/g, '');
 
   if (raw === 'CASESTUDY' || raw === 'CASESTUDIES') return 'CASESTUDY';
+  if (raw === 'PRIVACYPOLICY') return 'PRIVACY_POLICY';
+  if (raw === 'TERMSCONDITION' || raw === 'TERMSANDCONDITION') return 'TERMS_CONDITION';
 
   return BANNER_TYPES.includes(raw) ? raw : 'HOME';
 };
 
-const toUiBannerType = (enumValue) =>
-  enumValue === 'CASESTUDY'
-    ? 'case-study'
-    : typeof enumValue === 'string'
-      ? enumValue.toLowerCase()
-      : 'home';
+const toUiBannerType = (enumValue) => {
+  if (enumValue === 'CASESTUDY') return 'case-study';
+  if (enumValue === 'PRIVACY_POLICY') return 'privacy-policy';
+  if (enumValue === 'TERMS_CONDITION') return 'terms-and-condition';
+  return typeof enumValue === 'string' ? enumValue.toLowerCase() : 'home';
+};
 
 const validateImageUrl = (url) => {
   if (!url) return null;
@@ -7858,7 +7979,17 @@ const resolveWhyVedxId = async (providedId) => {
 app.get('/api/why-vedx', async (req, res) => {
   try {
     const includeReasons = req.query.includeReasons === 'true';
+    const categoryName = normalizeText(req.query?.category);
+    const subcategoryName = normalizeText(req.query?.subcategory);
     const whyVedx = await prisma.whyVedx.findMany({
+      where: {
+        ...(categoryName
+          ? { category: { name: { equals: categoryName, mode: 'insensitive' } } }
+          : {}),
+        ...(subcategoryName
+          ? { subcategory: { name: { equals: subcategoryName, mode: 'insensitive' } } }
+          : {}),
+      },
       include: {
         ...(includeReasons
           ? { reasons: { include: { category: true, subcategory: true }, orderBy: { createdAt: 'desc' } } }
@@ -7989,14 +8120,18 @@ const mapWhyVedxReasonToResponse = (reason) => ({
 app.get('/api/why-vedx-reasons', async (req, res) => {
   try {
     const parsedWhyVedxId = parseIntegerId(req.query?.whyVedxId);
-    const categoryName = req.query?.category;
-    const subcategoryName = req.query?.subcategory;
+    const categoryName = normalizeText(req.query?.category);
+    const subcategoryName = normalizeText(req.query?.subcategory);
 
     const reasons = await prisma.whyVedxReason.findMany({
       where: {
         ...(parsedWhyVedxId ? { whyVedxId: parsedWhyVedxId } : {}),
-        ...(categoryName ? { category: { name: categoryName } } : {}),
-        ...(subcategoryName ? { subcategory: { name: subcategoryName } } : {}),
+        ...(categoryName
+          ? { category: { name: { equals: categoryName, mode: 'insensitive' } } }
+          : {}),
+        ...(subcategoryName
+          ? { subcategory: { name: { equals: subcategoryName, mode: 'insensitive' } } }
+          : {}),
       },
       include: { category: true, subcategory: true },
       orderBy: { createdAt: 'desc' },
@@ -8936,11 +9071,17 @@ app.delete('/api/hire-developer/pricing/:id', async (req, res) => {
 app.get('/api/hire-developer/processes', async (req, res) => {
   try {
     const { category, subcategory } = req.query;
+    const normalizedCategory = normalizeText(category);
+    const normalizedSubcategory = normalizeText(subcategory);
 
     const processes = await prisma.hireDeveloperProcess.findMany({
       where: {
-        ...(category && { category: String(category) }),
-        ...(subcategory && { subcategory: String(subcategory) }),
+        ...(normalizedCategory
+          ? { category: { equals: normalizedCategory, mode: 'insensitive' } }
+          : {}),
+        ...(normalizedSubcategory
+          ? { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }
+          : {}),
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -9061,11 +9202,17 @@ app.get('/api/hire-developer/why-vedx', async (req, res) => {
   try {
     const { category, subcategory } = req.query;
     const includeReasons = req.query.includeReasons === 'true';
+    const normalizedCategory = normalizeText(category);
+    const normalizedSubcategory = normalizeText(subcategory);
 
     const configs = await prisma.hireDeveloperWhyVedxConfig.findMany({
       where: {
-        ...(category && { category: String(category) }),
-        ...(subcategory && { subcategory: String(subcategory) }),
+        ...(normalizedCategory
+          ? { category: { equals: normalizedCategory, mode: 'insensitive' } }
+          : {}),
+        ...(normalizedSubcategory
+          ? { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }
+          : {}),
       },
       include: includeReasons ? { reasons: { orderBy: { createdAt: 'desc' } } } : {},
       orderBy: { createdAt: 'desc' },
@@ -9114,12 +9261,18 @@ app.get('/api/hire-developer/why-vedx-reasons', async (req, res) => {
   try {
     const { whyVedxConfigId, category, subcategory } = req.query;
     const parsedConfigId = parseIntegerId(whyVedxConfigId);
+    const normalizedCategory = normalizeText(category);
+    const normalizedSubcategory = normalizeText(subcategory);
 
     const reasons = await prisma.hireDeveloperWhyVedx.findMany({
       where: {
         ...(parsedConfigId && { whyVedxConfigId: parsedConfigId }),
-        ...(category && { category: String(category) }),
-        ...(subcategory && { subcategory: String(subcategory) }),
+        ...(normalizedCategory
+          ? { category: { equals: normalizedCategory, mode: 'insensitive' } }
+          : {}),
+        ...(normalizedSubcategory
+          ? { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }
+          : {}),
       },
       orderBy: { createdAt: 'desc' },
     });

@@ -18,6 +18,8 @@ enum BannerType {
   CONTACT
   CAREER
   CASESTUDY
+  PRIVACY_POLICY
+  TERMS_CONDITION
 }
 
 enum AdminRole {
@@ -643,6 +645,22 @@ model ContactMessage {
   subject     String?
   message     String?
   status      String   @default("New")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PrivacyPolicy {
+  id          Int      @id @default(autoincrement())
+  description String   @db.LongText
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TermsCondition {
+  id          Int      @id @default(autoincrement())
+  description String   @db.LongText
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

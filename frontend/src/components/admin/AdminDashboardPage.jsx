@@ -17,6 +17,8 @@ const BANNER_TYPE_ORDER = [
   "case-study",
   "contact",
   "career",
+  "privacy-policy",
+  "terms-and-condition",
 ];
 
 const BANNER_TYPE_LABELS = {
@@ -27,6 +29,8 @@ const BANNER_TYPE_LABELS = {
   "case-study": "Case study",
   contact: "Contact",
   career: "Career",
+  "privacy-policy": "Privacy policy",
+  "terms-and-condition": "Terms and condition",
 };
 
 /* =======================
@@ -1705,6 +1709,8 @@ const AdminDashboardPage = () => {
                     <MenuItem value="case-study">Case study</MenuItem>
                     <MenuItem value="contact">Contact</MenuItem>
                     <MenuItem value="career">Career</MenuItem>
+                    <MenuItem value="privacy-policy">Privacy policy</MenuItem>
+                    <MenuItem value="terms-and-condition">Terms and condition</MenuItem>
                   </AppSelectField>
 
                   <input

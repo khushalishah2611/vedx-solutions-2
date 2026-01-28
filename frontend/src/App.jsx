@@ -18,6 +18,7 @@ import AdminNavigationPage from './components/admin/AdminNavigationPage.jsx';
 import AdminFeedbacksPage from './components/admin/AdminFeedbacksPage.jsx';
 import AdminCaseStudiesPage from './components/admin/AdminCaseStudiesPage.jsx';
 import AdminCaseStudyDetailsPage from './components/admin/AdminCaseStudyDetailsPage.jsx';
+import AdminLegalPages from './components/admin/AdminLegalPages.jsx';
 import HomePage from './components/pages/HomePage.jsx';
 import ServicesPage from './components/pages/ServicesPage.jsx';
 import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
@@ -32,6 +33,8 @@ import CareersPage from './components/pages/CareersPage.jsx';
 import ContactPage from './components/pages/ContactPage.jsx';
 import CaseStudiesPage from './components/pages/CaseStudiesPage.jsx';
 import CaseStudyDetailPage from './components/pages/CaseStudyDetailPage.jsx';
+import PrivacyPolicyPage from './components/pages/PrivacyPolicyPage.jsx';
+import TermsConditionPage from './components/pages/TermsConditionPage.jsx';
 
 const App = () => {
   return (
@@ -50,6 +53,7 @@ const App = () => {
               <Route path="services" element={<AdminServicesPage />} />
               <Route path="hiredeveloper" element={<AdminHiredeveloperPage />} />
               <Route path="feedbacks" element={<AdminFeedbacksPage />} />
+              <Route path="legal-pages" element={<AdminLegalPages />} />
               <Route path="navigation" element={<AdminNavigationPage />} />
               <Route path="blogs" element={<AdminBlogsPage />} />
               <Route path="case-studies" element={<AdminCaseStudiesPage />} />
@@ -91,6 +95,8 @@ const App = () => {
               <Route path=":slug" element={<BlogDetailPage />} />
             </Route>
             <Route path="contact" element={<ContactPage />} />
+            <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="terms-and-condition" element={<TermsConditionPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

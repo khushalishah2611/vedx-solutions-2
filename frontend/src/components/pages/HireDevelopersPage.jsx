@@ -14,10 +14,12 @@ import ServicesBlog from '../shared/ServicesBlog.jsx';
 import HireDevelopersHero from '../sections/hiredeveloperspage/HireDevelopersHero.jsx';
 import ServicesTechnologies from '../sections/servicepage/ServicesTechnologies.jsx';
 import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const HireDevelopersPage = () => {
   const { openDialog } = useContactDialog();
   const theme = useTheme();
+  const { fetchWithLoading } = useLoadingFetch();
   const dividerColor = alpha(theme.palette.divider, 0.6);
   const [benefits, setBenefits] = useState([]);
   const [benefitConfig, setBenefitConfig] = useState(null);
@@ -29,7 +31,7 @@ const HireDevelopersPage = () => {
 
     const loadBenefits = async () => {
       try {
-        const configResponse = await fetch(apiUrl('/api/hire-developer/benefit-configs'));
+        const configResponse = await fetchWithLoading(apiUrl('/api/hire-developer/benefit-configs'));
         const configData = await configResponse.json();
         if (!configResponse.ok) {
           throw new Error(configData?.error || 'Unable to load hire benefit configs');
@@ -39,7 +41,7 @@ const HireDevelopersPage = () => {
         const params = new URLSearchParams();
         if (config?.id) params.append('benefitConfigId', String(config.id));
 
-        const response = await fetch(
+        const response = await fetchWithLoading(
           apiUrl(`/api/hire-developer/benefits${params.toString() ? `?${params.toString()}` : ''}`)
         );
         const data = await response.json();
@@ -57,7 +59,7 @@ const HireDevelopersPage = () => {
 
     const loadTechnologies = async () => {
       try {
-        const response = await fetch(apiUrl('/api/hire-developer/technologies'));
+        const response = await fetchWithLoading(apiUrl('/api/hire-developer/technologies'));
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || 'Unable to load hire technologies');
@@ -75,14 +77,14 @@ const HireDevelopersPage = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [fetchWithLoading]);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadHeroConfig = async () => {
       try {
-        const response = await fetch(apiUrl('/api/hire-developer/services'));
+        const response = await fetchWithLoading(apiUrl('/api/hire-developer/services'));
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || 'Unable to load hire developer services');
@@ -100,7 +102,7 @@ const HireDevelopersPage = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [fetchWithLoading]);
 
   const handleOpenContact = useCallback(() => {
     openDialog();

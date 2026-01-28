@@ -266,14 +266,14 @@ export const footerContent = {
     }
   ],
   stayWithUs: [
-    { label: 'LinkedIn', href: '#', icon: 'linkedin' },
-    { label: 'X', href: '#', icon: 'x-twitter' },
-    { label: 'Twitter', href: '#', icon: 'twitter' },
-    { label: 'Instagram', href: '#', icon: 'instagram' }
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/company/vedx-solutions/', icon: 'linkedin' },
+    { label: 'X', href: 'https://x.com/vedxsolutions', icon: 'x' },
+    { label: 'Facebook', href: 'https://www.facebook.com/vedxsolutionsagency', icon: 'facebook' },
+    { label: 'Instagram', href: 'https://www.instagram.com/vedx.solutions', icon: 'instagram' }
   ],
   bottomLinks: [
-    { label: 'Privacy Policy', href: '#' },
-    { label: 'Terms and Condition', href: '#' },
+    { label: 'Privacy Policy', href: '/privacy-policy' },
+    { label: 'Terms and Condition', href: '/terms-and-condition' },
     { label: 'Contact Us', href: '/contact' }
   ],
   copyright: 'Copyright © 2025 VedX Solutions.'

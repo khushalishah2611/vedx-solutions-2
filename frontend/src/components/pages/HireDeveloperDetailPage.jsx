@@ -21,12 +21,14 @@ import { hireDeveloperDetailContent } from '../../data/hireDevelopers.js';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const HireDeveloperDetailPage = () => {
   const theme = useTheme();
   const { categorySlug, roleSlug } = useParams();
   const navigate = useNavigate();
   const { openDialog } = useContactDialog();
+  const { fetchWithLoading } = useLoadingFetch();
   const { hireCategories, hireRoles, isLoading } = useServiceHireCatalog();
   const [benefits, setBenefits] = useState([]);
   const [benefitConfig, setBenefitConfig] = useState(null);
@@ -74,7 +76,7 @@ const HireDeveloperDetailPage = () => {
 
     const loadBenefits = async () => {
       try {
-        const configResponse = await fetch(
+        const configResponse = await fetchWithLoading(
           apiUrl(`/api/hire-developer/benefit-configs?${params.toString()}`)
         );
         const configData = await configResponse.json();
@@ -86,7 +88,7 @@ const HireDeveloperDetailPage = () => {
         const benefitParams = new URLSearchParams(params);
         if (config?.id) benefitParams.append('benefitConfigId', String(config.id));
 
-        const response = await fetch(
+        const response = await fetchWithLoading(
           apiUrl(`/api/hire-developer/benefits?${benefitParams.toString()}`)
         );
         const data = await response.json();
@@ -104,7 +106,7 @@ const HireDeveloperDetailPage = () => {
 
     const loadTechnologies = async () => {
       try {
-        const response = await fetch(apiUrl('/api/hire-developer/technologies'));
+        const response = await fetchWithLoading(apiUrl('/api/hire-developer/technologies'));
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || 'Unable to load hire technologies');
@@ -122,7 +124,7 @@ const HireDeveloperDetailPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [categoryName, roleName]);
+  }, [categoryName, fetchWithLoading, roleName]);
 
   // If redirecting, avoid rendering
   if (!category && !role && !apiCategory && !apiRole && isLoading) {

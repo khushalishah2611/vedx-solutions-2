@@ -11,7 +11,8 @@ import {
 } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import TwitterIcon from '@mui/icons-material/Twitter';
+import XIcon from '@mui/icons-material/X';
+import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import { footerContent } from '../../data/content.js';
 import { createAnchorHref, createSlug } from '../../utils/formatters.js';
@@ -20,7 +21,8 @@ import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 
 const socialIcons = {
   linkedin: LinkedInIcon,
-  twitter: TwitterIcon,
+  x: XIcon,
+  facebook: FacebookIcon,
   instagram: InstagramIcon
 };
 
@@ -104,6 +106,13 @@ const FooterSection = () => {
     }
 
     return createAnchorHref(linkData.label);
+  };
+
+  const handleFooterNavigation = (href) => {
+    if (!href || (!href.startsWith('/') && !href.startsWith('#'))) return;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   };
 
   return (
@@ -206,6 +215,7 @@ const FooterSection = () => {
                   const linkData = typeof link === 'string' ? { label: link } : link;
                   const resolvedHref = resolveFooterHref(column.title, linkData);
                   const isRouteLink = resolvedHref.startsWith('/');
+                  const isAnchorLink = resolvedHref.startsWith('#');
                   const linkProps = isRouteLink
                     ? { component: RouterLink, to: resolvedHref }
                     : { href: resolvedHref };
@@ -216,6 +226,11 @@ const FooterSection = () => {
                       underline="none"
                       color="text.secondary"
                       {...linkProps}
+                      onClick={
+                        isRouteLink || isAnchorLink
+                          ? () => handleFooterNavigation(resolvedHref)
+                          : undefined
+                      }
                       sx={{
                         fontWeight: 900,
                         display: 'inline-block',
@@ -265,6 +280,8 @@ const FooterSection = () => {
                     key={social.label}
                     component="a"
                     href={social.href}
+                    target="_blank"
+                    rel="noreferrer"
                     color="inherit"
                     sx={{
                       borderRadius: 2,
@@ -301,6 +318,7 @@ const FooterSection = () => {
           <Stack direction="row" spacing={2.5} flexWrap="wrap" alignItems="center">
             {footerContent.bottomLinks.map((link) => {
               const isRouteLink = link.href.startsWith('/');
+              const isAnchorLink = link.href.startsWith('#');
               const linkProps = isRouteLink
                 ? { component: RouterLink, to: link.href }
                 : { href: link.href };
@@ -310,6 +328,11 @@ const FooterSection = () => {
                   underline="none"
                   color="text.secondary"
                   {...linkProps}
+                  onClick={
+                    isRouteLink || isAnchorLink
+                      ? () => handleFooterNavigation(link.href)
+                      : undefined
+                  }
                   sx={{
                     fontWeight: 900,
                     display: 'inline-block',

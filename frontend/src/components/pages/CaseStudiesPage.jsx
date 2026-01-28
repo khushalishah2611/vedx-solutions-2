@@ -4,6 +4,7 @@ import CaseStudiesHero from '../sections/caseStudies/CaseStudiesHero.jsx';
 import CaseStudyCard from '../sections/caseStudies/CaseStudyCard.jsx';
 
 import { useBannerByType } from '../../hooks/useBannerByType.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 import { apiUrl } from '../../utils/const.js';
 
 const mapCaseStudyFromApi = (caseStudy) => ({
@@ -17,6 +18,7 @@ const mapCaseStudyFromApi = (caseStudy) => ({
 
 const CaseStudiesPage = () => {
   const { banner } = useBannerByType('case-study');
+  const { fetchWithLoading } = useLoadingFetch();
   const [caseStudies, setCaseStudies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -29,7 +31,7 @@ const CaseStudiesPage = () => {
       setError('');
 
       try {
-        const response = await fetch(apiUrl('/api/case-studies'));
+        const response = await fetchWithLoading(apiUrl('/api/case-studies'));
         const payload = await response.json();
         if (!response.ok) throw new Error(payload?.message || 'Unable to load case studies right now.');
 
@@ -52,7 +54,7 @@ const CaseStudiesPage = () => {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [fetchWithLoading]);
 
   return (
     <Box sx={{ bgcolor: 'background.default', overflow: 'hidden' }}>
