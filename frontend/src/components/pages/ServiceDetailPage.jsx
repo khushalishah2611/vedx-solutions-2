@@ -260,8 +260,8 @@ const ServiceDetailPage = () => {
         <Box my={5}>
           <ServicesHighlights
             onContactClick={handleOpenContact}
-            category="Mobile App Development"
-            subcategory="Android App"
+            category={categoryName}
+            subcategory={subcategoryName}
           />
         </Box>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Grid,
@@ -9,6 +9,7 @@ import {
   useTheme,
   CircularProgress,
 } from '@mui/material';
+import { apiUrl } from '../../../utils/const.js';
 
 export default function ServicePage({
   category = 'Mobile App Development',
@@ -25,36 +26,93 @@ export default function ServicePage({
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
+    let isMounted = true;
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (subcategory) params.append('subcategory', subcategory);
 
-    fetch(
-      `/api/why-choose?category=${encodeURIComponent(
-        category
-      )}&subcategory=${encodeURIComponent(subcategory)}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('API DATA 👉', data);
+    const loadHighlights = async () => {
+      try {
+        setLoading(true);
+        setError(false);
+
+        const response = await fetch(
+          apiUrl(`/api/why-choose?${params.toString()}`)
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Failed to load why choose config');
+        }
+
+        const config = Array.isArray(data) ? data[0] : data;
+
+        if (!isMounted) return;
 
         setHero({
-          title: data.heroTitle,
-          description: data.heroDescription,
-          image: data.heroImage || '/placeholder.jpg',
+          title: config?.heroTitle,
+          description: config?.heroDescription,
+          image: config?.heroImage || '/placeholder.jpg',
         });
+
+        let services = config?.services || [];
+        if (config?.id) {
+          const serviceParams = new URLSearchParams(params);
+          serviceParams.append('whyChooseId', String(config.id));
+          const servicesResponse = await fetch(
+            apiUrl(`/api/why-services?${serviceParams.toString()}`)
+          );
+          const servicesData = await servicesResponse.json();
+          if (!servicesResponse.ok) {
+            throw new Error(
+              servicesData?.error || 'Failed to load why services'
+            );
+          }
+          services = Array.isArray(servicesData) ? servicesData : [];
+        }
+
+        if (!isMounted) return;
 
         setTable({
-          title: data.tableTitle,
-          description: data.tableDescription,
-          services: data.services || [],
+          title: config?.tableTitle,
+          description: config?.tableDescription,
+          services,
         });
+      } catch (err) {
+        console.error('Why choose load error:', err);
+        if (isMounted) {
+          setError(true);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
 
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
+    loadHighlights();
+
+    return () => {
+      isMounted = false;
+    };
   }, [category, subcategory]);
+
+  const resolvedHero = useMemo(
+    () => ({
+      title: hero?.title || '',
+      description: hero?.description || '',
+      image: hero?.image || '/placeholder.jpg',
+    }),
+    [hero]
+  );
+
+  const resolvedTable = useMemo(
+    () => ({
+      title: table?.title || '',
+      description: table?.description || '',
+      services: table?.services || [],
+    }),
+    [table]
+  );
 
   if (loading) {
     return (
@@ -78,13 +136,13 @@ export default function ServicePage({
       <Grid container spacing={6} alignItems="center">
         <Grid item xs={12} md={6}>
           <Typography variant="h3" fontWeight={700} mb={4}>
-            {hero.title}
+            {resolvedHero.title}
           </Typography>
 
           <Box
             component="img"
-            src={hero.image}
-            alt={hero.title}
+            src={resolvedHero.image}
+            alt={resolvedHero.title}
             sx={{
               width: '100%',
               borderRadius: 0.5,
@@ -97,7 +155,7 @@ export default function ServicePage({
 
         <Grid item xs={12} md={6}>
           <Typography sx={{ color: subtleText, lineHeight: 1.7 }}>
-            {hero.description}
+            {resolvedHero.description}
           </Typography>
         </Grid>
       </Grid>
@@ -106,15 +164,15 @@ export default function ServicePage({
       <Box sx={{ mt: 10 }}>
         <Stack alignItems="center" spacing={2} mb={6}>
           <Typography variant="h3" fontWeight={700}>
-            {table.title}
+            {resolvedTable.title}
           </Typography>
           <Typography sx={{ color: subtleText, maxWidth: 720 }}>
-            {table.description}
+            {resolvedTable.description}
           </Typography>
         </Stack>
 
         <Grid container spacing={2}>
-          {table.services.map((service) => (
+          {resolvedTable.services.map((service) => (
             <Grid item xs={12} sm={6} md={4} key={service.id}>
               <Paper
                 sx={{
