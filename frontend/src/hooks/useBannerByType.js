@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { apiUrl } from '../utils/const.js';
+import { useLoadingFetch } from './useLoadingFetch.js';
 
 const normalizeType = (type) => (typeof type === 'string' ? type.trim().toLowerCase() : '');
 
@@ -18,13 +19,14 @@ const selectLatestBanner = (banners, type) => {
 
 export const useBannerByType = (type) => {
   const [banner, setBanner] = useState(null);
+  const { fetchWithLoading } = useLoadingFetch();
 
   useEffect(() => {
     let isMounted = true;
 
     const loadBanner = async () => {
       try {
-        const response = await fetch(apiUrl('/api/banners'));
+        const response = await fetchWithLoading(apiUrl('/api/banners'));
         if (!response.ok) {
           throw new Error('Failed to fetch banners');
         }
@@ -42,7 +44,7 @@ export const useBannerByType = (type) => {
     return () => {
       isMounted = false;
     };
-  }, [type]);
+  }, [fetchWithLoading, type]);
 
   return { banner };
 };

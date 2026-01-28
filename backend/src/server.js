@@ -7984,10 +7984,10 @@ app.get('/api/why-vedx', async (req, res) => {
     const whyVedx = await prisma.whyVedx.findMany({
       where: {
         ...(categoryName
-          ? { category: { name: { equals: categoryName, mode: 'insensitive' } } }
+          ? { category: { name: { equals: categoryName } } }
           : {}),
         ...(subcategoryName
-          ? { subcategory: { name: { equals: subcategoryName, mode: 'insensitive' } } }
+          ? { subcategory: { name: { equals: subcategoryName } } }
           : {}),
       },
       include: {

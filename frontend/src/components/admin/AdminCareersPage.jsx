@@ -38,6 +38,8 @@ const mapApplicationFromApi = (application) => ({
   resumeUrl: application.resumeUrl || '',
   resumeFile: null,
   notes: application.notes || '',
+  jobId: application.jobId || '',
+  job: application.job || null,
 });
 
 const dateFilterOptions = [
@@ -125,6 +127,7 @@ const emptyApplicationForm = {
   resumeUrl: '',
   resumeFile: null,
   notes: '',
+  jobId: '',
 };
 
 const AdminCareersPage = () => {
@@ -167,6 +170,14 @@ const AdminCareersPage = () => {
   const [applicationPage, setApplicationPage] = useState(1);
 
   const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
+  const resolveJobTitle = (application) => {
+    if (application?.job?.title) return application.job.title;
+    if (application?.jobId) {
+      const matched = jobPosts.find((job) => job.id === application.jobId);
+      return matched?.title || `Job #${application.jobId}`;
+    }
+    return 'General';
+  };
 
   const loadJobPosts = async () => {
     setLoadingJobs(true);
@@ -500,6 +511,7 @@ const AdminCareersPage = () => {
       ...emptyApplicationForm,
       employmentType: employmentTypes[0],
       appliedOn: new Date().toISOString().split('T')[0],
+      jobId: jobPosts[0]?.id || '',
     });
     setApplicationDialogOpen(true);
   };
@@ -555,6 +567,7 @@ const AdminCareersPage = () => {
         appliedOn: applicationForm.appliedOn,
         resumeUrl: applicationForm.resumeUrl || applicationForm.resumeFile?.url || '',
         notes: trimmedNotes,
+        jobId: applicationForm.jobId || null,
       };
 
       const response = await fetch(
@@ -1001,6 +1014,7 @@ const AdminCareersPage = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Name</TableCell>
+                    <TableCell>Job</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Contact</TableCell>
                     <TableCell>Applied</TableCell>
@@ -1013,6 +1027,11 @@ const AdminCareersPage = () => {
                   {pagedApplications.map((application) => (
                     <TableRow key={application.id} hover>
                       <TableCell sx={{ fontWeight: 600 }}>{application.name}</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {resolveJobTitle(application)}
+                        </Typography>
+                      </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="text.secondary">
                           {application.email}
@@ -1070,7 +1089,7 @@ const AdminCareersPage = () => {
                   ))}
                   {loadingApplications && (
                     <TableRow>
-                      <TableCell colSpan={7}>
+                      <TableCell colSpan={8}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           Loading applications...
                         </Typography>
@@ -1079,7 +1098,7 @@ const AdminCareersPage = () => {
                   )}
                   {!loadingApplications && filteredApplications.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7}>
+                      <TableCell colSpan={8}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No applications received yet. Add applicants manually or import them later.
                         </Typography>
@@ -1314,6 +1333,21 @@ const AdminCareersPage = () => {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <AppSelectField
+                    label="Job type"
+                    value={applicationForm.jobId}
+                    onChange={(event) => handleApplicationFormChange('jobId', event.target.value)}
+                    fullWidth
+                  >
+                    <MenuItem value="">General / Not linked</MenuItem>
+                    {jobPosts.map((job) => (
+                      <MenuItem key={job.id} value={job.id}>
+                        {job.title}
+                      </MenuItem>
+                    ))}
+                  </AppSelectField>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <AppSelectField
                    
                     label="Employment type"
                     value={applicationForm.employmentType}
@@ -1417,6 +1451,9 @@ const AdminCareersPage = () => {
               <Stack spacing={0.5}>
                 <Typography variant="body2" color="text.secondary">
                   Email: {viewApplication.email}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Job type: {resolveJobTitle(viewApplication)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Contact: {viewApplication.contact || 'Not provided'}
