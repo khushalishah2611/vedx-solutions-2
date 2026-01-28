@@ -260,9 +260,8 @@ const ServiceDetailPage = () => {
         <Box my={5}>
           <ServicesHighlights
             onContactClick={handleOpenContact}
-            title={serviceMenu?.bannerTitle || heroTitle}
-            description={serviceMenu?.description}
-            image={serviceMenu?.bannerImage}
+            category="Mobile App Development"
+            subcategory="Android App"
           />
         </Box>
 

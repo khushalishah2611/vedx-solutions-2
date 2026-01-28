@@ -282,27 +282,35 @@ const ServicesContact = ({
                 />
 
                 <AppSelectField
-                  label="Project Type"
+                  label={formValues.projectType ? "Project Type" : ""}
                   fullWidth
                   required
                   value={formValues.projectType}
                   variant="outlined"
                   size="medium"
                   onChange={handleChange("projectType")}
-                  // IMPORTANT: show placeholder when value is ""
                   displayEmpty
                   renderValue={(selected) => {
                     if (!selected) {
                       return (
-                        <span style={{ color: alpha(theme.palette.text.secondary, isDark ? 0.7 : 0.85) }}>
+                        <span
+                          style={{
+                            color: alpha(
+                              theme.palette.text.secondary,
+                              isDark ? 0.7 : 0.85
+                            ),
+                          }}
+                        >
                           Select Project Type
                         </span>
                       );
                     }
                     return selected;
                   }}
+                  InputLabelProps={{
+                    shrink: Boolean(formValues.projectType),
+                  }}
                 >
-                  {/* Placeholder item */}
                   <MenuItem value="" disabled>
                     Select Project Type
                   </MenuItem>

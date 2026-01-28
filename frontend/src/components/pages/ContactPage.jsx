@@ -8,7 +8,7 @@ import {
   Container,
   Grid,
   MenuItem,
-  Rating, 
+  Rating,
   Stack,
   Typography,
   alpha,
@@ -395,7 +395,7 @@ const ContactPage = () => {
                       />
 
                       <AppSelectField
-                        label="Project Type"
+                        label={formValues.projectType ? "Project Type" : ""}
                         fullWidth
                         required
                         value={formValues.projectType}
@@ -408,7 +408,10 @@ const ContactPage = () => {
                             return (
                               <span
                                 style={{
-                                  color: alpha(theme.palette.text.secondary, isDark ? 0.7 : 0.85),
+                                  color: alpha(
+                                    theme.palette.text.secondary,
+                                    isDark ? 0.7 : 0.85
+                                  ),
                                 }}
                               >
                                 Select Project Type
