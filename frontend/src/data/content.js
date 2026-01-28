@@ -56,7 +56,7 @@ export const navigationLinks = [
   // { label: 'Our Projects', path: '/ourprojects' },
   { label: 'Case Study', path: '/casestudy' },
   { label: 'Blog', path: '/blog' },
-    { label: 'About', path: '/about', menu: 'about' },
+  { label: 'About', path: '/about', menu: 'about' },
   { label: 'Contact', path: '/contact' }
 ];
 
@@ -216,7 +216,7 @@ export const faqEntries = [
 ];
 
 export const testimonials = [
-  
+
 ];
 
 export const footerContent = {
@@ -259,14 +259,15 @@ export const footerContent = {
       title: 'Quick Links',
       links: [
         { label: 'Blog', href: '/blog' },
-        'Case Study',
+        { label: 'Case Study', href: '/casestudy' },
         { label: 'Careers', href: '/careers' },
-        'Support'
+
       ]
     }
   ],
   stayWithUs: [
     { label: 'LinkedIn', href: '#', icon: 'linkedin' },
+    { label: 'X', href: '#', icon: 'x-twitter' },
     { label: 'Twitter', href: '#', icon: 'twitter' },
     { label: 'Instagram', href: '#', icon: 'instagram' }
   ],
