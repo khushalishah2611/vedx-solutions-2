@@ -296,6 +296,8 @@ const ServiceDetailPage = () => {
             title={whyChooseConfig?.heroTitle || whyVedxConfig?.heroTitle}
             description={whyChooseConfig?.heroDescription || whyVedxConfig?.heroDescription}
             highlights={whyHighlights}
+            category={categoryName}
+            subcategory={subcategoryName}
           />
         </Box>
 

@@ -11,10 +11,7 @@ import {
 } from '@mui/material';
 import { apiUrl } from '../../../utils/const.js';
 
-export default function ServicePage({
-  category = 'Mobile App Development',
-  subcategory = 'Android App',
-}) {
+export default function ServicePage({ category, subcategory }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
@@ -54,20 +51,24 @@ export default function ServicePage({
           image: config?.heroImage || '/placeholder.jpg',
         });
 
-        let services = config?.services || [];
+        let services = [];
+        const serviceParams = new URLSearchParams(params);
         if (config?.id) {
-          const serviceParams = new URLSearchParams(params);
           serviceParams.append('whyChooseId', String(config.id));
-          const servicesResponse = await fetch(
-            apiUrl(`/api/why-services?${serviceParams.toString()}`)
+        }
+
+        const servicesResponse = await fetch(
+          apiUrl(`/api/why-services?${serviceParams.toString()}`)
+        );
+        const servicesData = await servicesResponse.json();
+        if (!servicesResponse.ok) {
+          throw new Error(
+            servicesData?.error || 'Failed to load why services'
           );
-          const servicesData = await servicesResponse.json();
-          if (!servicesResponse.ok) {
-            throw new Error(
-              servicesData?.error || 'Failed to load why services'
-            );
-          }
-          services = Array.isArray(servicesData) ? servicesData : [];
+        }
+        services = Array.isArray(servicesData) ? servicesData : [];
+        if (!services.length && Array.isArray(config?.services)) {
+          services = config.services;
         }
 
         if (!isMounted) return;
@@ -138,7 +139,9 @@ export default function ServicePage({
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Typography sx={{ color: subtleText, lineHeight: 1.7, whiteSpace: "pre-line", }}>
+          <Typography
+            sx={{ color: subtleText, lineHeight: 1.7, whiteSpace: 'pre-line' }}
+          >
             {resolvedHero.description}
           </Typography>
         </Grid>
@@ -150,7 +153,7 @@ export default function ServicePage({
           <Typography variant="h3" fontWeight={700}>
             {resolvedTable.title}
           </Typography>
-          <Typography sx={{ color: subtleText, }}>
+          <Typography sx={{ color: subtleText }}>
             {resolvedTable.description}
           </Typography>
         </Stack>
@@ -186,21 +189,23 @@ export default function ServicePage({
                   },
                 }}
               >
-                <Typography variant="h6" sx={{
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                  transition:
-                    'color 0.3s ease, background-image 0.3s ease',
-                  '&:hover': {
-                    color: 'transparent',
-                    backgroundImage:
-                      'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  },
-                }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'color 0.3s ease, background-image 0.3s ease',
+                    '&:hover': {
+                      color: 'transparent',
+                      backgroundImage:
+                        'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    },
+                  }}
+                >
                   {service.title}
                 </Typography>
                 <Typography
