@@ -197,7 +197,7 @@ const ServicesTechnologies = ({ technologyGroups }) => {
         >
           Technologies We Support
         </Typography>
-        <Typography variant="body1" sx={{ color: subtleText, maxWidth: 760 }}>
+        <Typography variant="body1" sx={{ color: subtleText, }}>
           Choose from a comprehensive library of frontend, backend, and DevOps
           expertise to ship resilient platforms.
         </Typography>

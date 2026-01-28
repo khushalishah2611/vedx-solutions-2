@@ -165,9 +165,8 @@ const ServicesWhyChoose = ({
         spacing={3}
         sx={{
           maxWidth: 520,
-          mx: 'auto',            // ✅ always center container
-          textAlign: 'center',   // ✅ center text
-          alignItems: 'center',  // ✅ center children
+          mx: 'auto',           
+          alignItems: 'center', 
         }}
       >
         {/* Label - centered */}

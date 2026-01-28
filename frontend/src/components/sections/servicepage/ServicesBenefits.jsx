@@ -56,7 +56,7 @@ const ServicesBenefits = ({
           variant="body1"
           sx={{
             color: subtleText,
-            maxWidth: 760,
+         
             lineHeight: 1.7,
           }}
         >
