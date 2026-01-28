@@ -56,10 +56,9 @@ const ServicesIndustries = () => {
 
   const resolvedIndustries =
     apiIndustries.length > 0 ? apiIndustries : industriesServed;
-  const headerTitle = apiConfig?.title || 'Industry we serve';
+  const headerTitle = apiConfig?.title ;
   const headerDescription =
-    apiConfig?.description ||
-    'Deep domain partnerships let us tailor solutions that match regulatory, customer, and market realities across sectors.';
+    apiConfig?.description ;
 
   return (
     <Box component="section">
@@ -85,7 +84,7 @@ const ServicesIndustries = () => {
           variant="body1"
           sx={{
             color: subtleText,
-            maxWidth: 720,
+           
           }}
         >
           {headerDescription}

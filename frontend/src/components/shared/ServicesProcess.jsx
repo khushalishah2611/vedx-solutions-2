@@ -133,12 +133,10 @@ const ServicesProcess = ({ apiPath = "/api/service-processes", category, subcate
         <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
           Process
         </Typography>
-        <Typography variant="body1" sx={{ color: subtleText, maxWidth: 780 }}>
+        <Typography variant="body1" sx={{ color: subtleText, }}>
           We choreograph every step with cinematic animations—auto-playing slides, hover pauses, and directional controls—so you
           can explore our delivery rhythm without missing a beat.
         </Typography>
-
-       
       </Stack>
 
       {/* Process Steps */}
