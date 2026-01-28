@@ -225,25 +225,42 @@ const ContactDialog = ({ open, onClose }) => {
             }}
           />
           <AppSelectField
-            label="Job Type"
+            label={formState.jobId ? "Job Type" : ""}
             value={formState.jobId}
-            onChange={(event) => handleFieldChange('jobId', event.target.value)}
+            onChange={(event) =>
+              handleFieldChange("jobId", event.target.value)
+            }
             displayEmpty
             renderValue={(selected) => {
-              if (!selected) return '';
-              const match = jobOptions.find((job) => String(job.id) === String(selected));
-              return match?.title || '';
+              if (!selected) {
+                return (
+                  <span style={{ color: "#9e9e9e" }}>
+                    Select job type
+                  </span>
+                );
+              }
+              const match = jobOptions.find(
+                (job) => String(job.id) === String(selected)
+              );
+              return match?.title || "";
+            }}
+            InputLabelProps={{
+              shrink: Boolean(formState.jobId),
             }}
             disabled={jobLoading}
             fullWidth
           >
-            <MenuItem value="">Select job type</MenuItem>
+            <MenuItem value="" disabled>
+              Select job type
+            </MenuItem>
+
             {jobOptions.map((job) => (
               <MenuItem key={job.id} value={job.id}>
                 {job.title}
               </MenuItem>
             ))}
           </AppSelectField>
+
           <AppTextField
             label="Experience"
             placeholder="e.g. 3 years"
@@ -252,7 +269,7 @@ const ContactDialog = ({ open, onClose }) => {
             fullWidth
           />
           <AppSelectField
-           
+
             label="Employment type"
             value={formState.employmentType}
             onChange={(event) => handleFieldChange('employmentType', event.target.value)}
@@ -307,7 +324,7 @@ const ContactDialog = ({ open, onClose }) => {
               fontWeight: 600,
               px: { xs: 5, md: 6 },
               py: { xs: 1.5, md: 1.75 },
-            
+
             }}
           >
             Submit Now

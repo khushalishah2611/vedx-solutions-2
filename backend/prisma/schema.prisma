@@ -618,7 +618,7 @@ model CareerApplication {
   experience     String?
   employmentType EmploymentType  @default(FULL_TIME)
   appliedOn      DateTime?       @default(now())
-  resumeUrl      String?
+  resumeUrl      String?         @db.LongText
   notes          String?
 
   jobId          Int?

@@ -8,8 +8,8 @@ export default defineConfig({
     proxy: {
       '/api': {
         //  target: "http://72.60.96.241:5000/",
-        target: "  http://www.vedx.cloud:5000/",
-        // target: "http://localhost:5000/",
+        // target: "  http://www.vedx.cloud:5000/",
+        target: "http://localhost:5000/",
         changeOrigin: true
       }
     }
