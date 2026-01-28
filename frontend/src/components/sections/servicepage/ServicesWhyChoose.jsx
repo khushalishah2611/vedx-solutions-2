@@ -1,4 +1,3 @@
-
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { AppButton } from '../../shared/FormControls.jsx';
@@ -7,7 +6,6 @@ import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRou
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
-
 import { whyChooseVedx } from '../../../data/servicesPage.js';
 import { apiUrl } from '../../../utils/const.js';
 import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
@@ -15,7 +13,7 @@ import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 const highlightIcons = [
   WorkspacePremiumRoundedIcon,
   VerifiedRoundedIcon,
-  AutoAwesomeRoundedIcon,
+  AutoAwesomeRoundedIcon
 ];
 
 const ServicesWhyChoose = ({
@@ -25,131 +23,98 @@ const ServicesWhyChoose = ({
   title,
   description,
   highlights: highlightsProp,
-  category,
-  subcategory,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
-
-  const { fetchWithLoading } = useLoadingFetch();
-
-  const [apiConfig, setApiConfig] = useState(null);
-  const [apiHighlights, setApiHighlights] = useState([]);
-
   const handleRequestQuote = () => {
     onRequestContact?.('');
     onContactClick?.();
-
     const anchor = document.getElementById(contactAnchorId);
     if (anchor) {
       anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiHighlights, setApiHighlights] = useState([]);
+
 
   useEffect(() => {
-    if (highlightsProp && title && description) return;
-
+    if (highlightsProp) return;
     let isMounted = true;
 
-    const loadData = async () => {
+    const loadHighlights = async () => {
       try {
-        const configRes = await fetchWithLoading(apiUrl('/api/why-vedx'));
-        const configData = await configRes.json();
-
-        if (!configRes.ok) {
-          throw new Error(configData?.error || 'Failed to load config');
+        const response = await fetchWithLoading(apiUrl('/api/homes/why-vedx-reasons'));
+        if (!response.ok) {
+          throw new Error('Failed to fetch why VEDX reasons');
         }
-
-        const configs = Array.isArray(configData) ? configData : [];
-        const matchedConfig =
-          configs.find(
-            (item) =>
-              (subcategory && item?.subcategoryName === subcategory) ||
-              (!subcategory && category && item?.categoryName === category)
-          ) || configs[0];
-
-        if (isMounted) {
-          setApiConfig(matchedConfig || null);
-        }
-
-        const reasonParams = new URLSearchParams();
-        if (category) reasonParams.append('category', category);
-        if (subcategory) reasonParams.append('subcategory', subcategory);
-        if (matchedConfig?.id) {
-          reasonParams.append('whyVedxId', String(matchedConfig.id));
-        }
-
-        const reasonsRes = await fetchWithLoading(
-          apiUrl(`/api/why-vedx-reasons?${reasonParams.toString()}`)
-        );
-        const reasonsData = await reasonsRes.json();
-
-        if (!reasonsRes.ok) {
-          throw new Error(reasonsData?.error || 'Failed to load reasons');
-        }
-
+        const payload = await response.json();
+        const reasons = Array.isArray(payload) ? payload : payload?.reasons;
         if (!isMounted) return;
-
-        const reasons = Array.isArray(reasonsData)
-          ? reasonsData
-          : reasonsData?.reasons;
-
-        setApiHighlights(
-          (reasons || []).map((item) => ({
-            title: item?.title || '',
-            description: item?.description || '',
-            image: item?.image || '',
-          }))
-        );
-      } catch (err) {
-        console.error('Why Vedx load error:', err);
+        const mapped = (reasons || []).map((item) => ({
+          title: item.title || '',
+          description: item.description || '',
+          image: item.image || '',
+        }));
+        setApiHighlights(mapped);
+      } catch (error) {
+        console.error('Failed to load why VEDX reasons', error);
       }
     };
 
-    loadData();
+    loadHighlights();
 
     return () => {
       isMounted = false;
     };
-  }, [
-    category,
-    description,
-    fetchWithLoading,
-    highlightsProp,
-    subcategory,
-    title,
-  ]);
+  }, [fetchWithLoading, highlightsProp]);
 
   const highlights = useMemo(() => {
     const resolved =
       highlightsProp ||
-      (apiHighlights.length ? apiHighlights : whyChooseVedx);
-
+      (apiHighlights.length > 0 ? apiHighlights : whyChooseVedx);
     return resolved.filter((item) => item?.title);
   }, [apiHighlights, highlightsProp]);
 
   return (
     <Box component="section">
-      {/* Header */}
-      <Stack spacing={3} sx={{ mb: 4, textAlign: 'center', alignItems: 'center' }}>
-        <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
-          {title || apiConfig?.heroTitle}
+      {/* Section Header */}
+      <Stack
+        spacing={3}
+        sx={{
+          mb: 4,
+          textAlign: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Typography
+          variant="h3"
+          sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}
+        >
+          {title || 'Why choose Vedx Solutions'}
         </Typography>
-        <Typography variant="body1" sx={{ color: subtleText, maxWidth: 720 }}>
-          {description || apiConfig?.heroDescription}
+        <Typography
+          variant="body1"
+          sx={{ color: subtleText, maxWidth: 720 }}
+        >
+          {description ||
+            `Vedx Solutions is recognized for its innovative approach to digital transformation. We combine technology with strategic insight to turn your ideas into impactful and scalable realities. By developing custom software and AI solutions, we help unlock the future of your business. We are also known for`}
         </Typography>
       </Stack>
 
-      {/* Cards */}
-      <Grid container spacing={3} alignItems="stretch">
+      {/* Highlights Grid */}
+      <Grid
+        container
+        spacing={3}
+        sx={{
+          textAlign: 'center',
+          alignItems: 'stretch',
+        }}
+      >
         {highlights.map((highlight, index) => {
-          const Icon =
-            highlight.icon ||
-            highlightIcons[index % highlightIcons.length];
-
+          const Icon = highlight.icon ?? highlightIcons[index % highlightIcons.length];
           return (
             <Grid item xs={12} sm={6} md={4} key={highlight.title}>
               <Paper
@@ -173,22 +138,27 @@ const ServicesWhyChoose = ({
                   boxShadow: isDark
                     ? '0 4px 30px rgba(2,6,23,0.35)'
                     : '0 4px 30px rgba(15,23,42,0.15)',
-                  transition: 'all 0.4s ease',
+                  transition:
+                    'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
+
                   '&:hover': {
-                    transform: 'translateY(-8px)',
-                    borderColor: alpha(accentColor, 0.9),
+                    transform: 'translateY(-8px) scale(1.02)',
+
+                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
                   },
                 }}
               >
-                {/* Icon / Image */}
+                {/* Icon */}
                 <Box
                   sx={{
                     width: 70,
                     height: 70,
-                    mb: 2,
+                    borderRadius: 0.5,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                  
+                    mb: 2,
                   }}
                 >
                   {highlight.image ? (
@@ -199,31 +169,25 @@ const ServicesWhyChoose = ({
                       sx={{ width: 70, height: 70, objectFit: 'contain' }}
                     />
                   ) : (
-                    Icon && (
-                      <Icon
-                        sx={{ fontSize: 40, color: accentColor }}
-                      />
-                    )
+                    Icon && <Icon />
                   )}
                 </Box>
 
                 {/* Text */}
                 <Stack spacing={1}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        color: 'transparent',
-                        backgroundImage:
-                          'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      },
-                    }}
-                  >
+                  <Typography variant="h6" sx={{
+                    fontWeight: 700, textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'color 0.3s ease, background-image 0.3s ease',
+                    '&:hover': {
+                      color: 'transparent',
+                      backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    },
+
+                  }}>
                     {highlight.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: subtleText }}>
@@ -235,9 +199,7 @@ const ServicesWhyChoose = ({
           );
         })}
       </Grid>
-
-      {/* CTA */}
-      <Stack alignItems="center" sx={{ mt: 6 }}>
+      <Stack alignItems="center" sx={{ width: '100%', mt: 6 }}>
         <AppButton
           variant="contained"
           size="large"
