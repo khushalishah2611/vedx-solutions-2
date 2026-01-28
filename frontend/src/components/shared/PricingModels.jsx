@@ -1,12 +1,84 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Container, Grid, List, ListItem, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { AppButton } from './FormControls.jsx';
 
 import { pricingPlans } from '../../data/pricing.js';
+import { apiUrl } from '../../utils/const.js';
+import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
 const PricingModels = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const { fetchWithLoading } = useLoadingFetch();
+  const [apiPlans, setApiPlans] = useState([]);
+  const [heroContent, setHeroContent] = useState({
+    title: '',
+    description: '',
+    image: '',
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPricing = async () => {
+      try {
+        const response = await fetchWithLoading(apiUrl('/api/hire-developer/pricing'));
+        if (!response.ok) {
+          throw new Error('Failed to fetch hire developer pricing');
+        }
+        const data = await response.json();
+        if (!isMounted) return;
+
+        const popularIndex = data.length ? Math.min(1, data.length - 1) : -1;
+        const mapped = (data || []).map((plan, index) => ({
+          id: plan.id,
+          title: plan.title || '',
+          cadence: plan.subtitle || '',
+          emphasis: plan.description || '',
+          price: plan.price || '',
+          features: Array.isArray(plan.services) ? plan.services : [],
+          isPopular: index === popularIndex,
+          heroTitle: plan.heroTitle || '',
+          heroDescription: plan.heroDescription || '',
+          heroImage: plan.heroImage || '',
+        }));
+
+        setApiPlans(mapped);
+
+        const heroSource = mapped[0];
+        if (heroSource) {
+          setHeroContent({
+            title: heroSource.heroTitle || '',
+            description: heroSource.heroDescription || '',
+            image: heroSource.heroImage || '',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load hire pricing', error);
+      }
+    };
+
+    loadPricing();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchWithLoading]);
+
+  const resolvedPlans = useMemo(
+    () => (apiPlans.length ? apiPlans : pricingPlans),
+    [apiPlans]
+  );
+  const highlightedIndex = useMemo(() => {
+    const popularIndex = resolvedPlans.findIndex((plan) => plan.isPopular);
+    if (popularIndex >= 0) return popularIndex;
+    return resolvedPlans.length ? Math.min(1, resolvedPlans.length - 1) : -1;
+  }, [resolvedPlans]);
+  const resolvedHeroTitle = heroContent.title || 'Our Pricing Models';
+  const resolvedHeroDescription =
+    heroContent.description ||
+    'Choose the contract structure that aligns with your roadmap. Each plan includes vetted VedX talent, collaborative delivery, and proactive communication tailored to your operating hours.';
 
   return (
     <Box
@@ -64,7 +136,7 @@ const PricingModels = () => {
               fontWeight: 800,
             }}
           >
-            Our Pricing Models
+            {resolvedHeroTitle}
           </Typography>
 
           <Typography
@@ -75,14 +147,13 @@ const PricingModels = () => {
               lineHeight: 1.7,
             }}
           >
-            Choose the contract structure that aligns with your roadmap. Each plan includes vetted VedX talent, collaborative
-            delivery, and proactive communication tailored to your operating hours.
+            {resolvedHeroDescription}
           </Typography>
         </Stack>
 
         <Grid container spacing={{ xs: 4, md: 5 }}>
-          {pricingPlans.map((plan) => {
-            const isHighlighted = plan.isPopular;
+          {resolvedPlans.map((plan, index) => {
+            const isHighlighted = index === highlightedIndex;
             return (
               <Grid item xs={12} md={4} key={plan.title}>
                 <Box

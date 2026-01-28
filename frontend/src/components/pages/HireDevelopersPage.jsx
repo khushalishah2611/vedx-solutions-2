@@ -54,7 +54,7 @@ const HireDevelopersPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
-          <ServicesProcess />
+          <ServicesProcess apiPath="/api/hire-developer/processes" />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 

@@ -19,7 +19,7 @@ import { processSteps } from "../../data/servicesPage.js";
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
-const ServicesProcess = () => {
+const ServicesProcess = ({ apiPath = "/api/service-processes", category, subcategory }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const { fetchWithLoading } = useLoadingFetch();
@@ -91,7 +91,13 @@ const ServicesProcess = () => {
 
     const loadSteps = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl("/api/service-processes"));
+        const params = new URLSearchParams();
+        if (category) params.append("category", category);
+        if (subcategory) params.append("subcategory", subcategory);
+        const requestPath = params.toString()
+          ? `${apiPath}?${params.toString()}`
+          : apiPath;
+        const response = await fetchWithLoading(apiUrl(requestPath));
         if (!response.ok) {
           throw new Error("Failed to fetch service processes");
         }
@@ -116,7 +122,7 @@ const ServicesProcess = () => {
     return () => {
       isMounted = false;
     };
-  }, [fetchWithLoading]);
+  }, [apiPath, category, subcategory, fetchWithLoading]);
 
   return (
     <Box

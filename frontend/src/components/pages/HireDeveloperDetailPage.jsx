@@ -54,6 +54,9 @@ const HireDeveloperDetailPage = () => {
     openDialog();
   }, [openDialog]);
 
+  const resolvedCategory = apiCategory ?? category;
+  const resolvedRole = apiRole ?? role;
+
   const relatedRoles = useMemo(() => {
     if (!category?.roles) return [];
     return Object.entries(category.roles)
@@ -86,8 +89,8 @@ const HireDeveloperDetailPage = () => {
     >
       {/* === HERO SECTION === */}
       <HireDeveloperHero
-        category={category ?? apiCategory}
-        role={role ?? apiRole}
+        category={resolvedCategory}
+        role={resolvedRole}
         stats={servicesHeroStats}
         onContactClick={handleOpenContact}
         dividerColor={dividerColor}
@@ -131,7 +134,11 @@ const HireDeveloperDetailPage = () => {
         </Box>
 
         <Box my={10}>
-          <ServicesProcess />
+          <ServicesProcess
+            apiPath="/api/hire-developer/processes"
+            category={categorySlug}
+            subcategory={roleSlug}
+          />
         </Box>
 
         <Box my={10}>
