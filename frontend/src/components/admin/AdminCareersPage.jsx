@@ -170,11 +170,16 @@ const AdminCareersPage = () => {
   const [applicationPage, setApplicationPage] = useState(1);
 
   const matchesQuery = (value, query) => value.toLowerCase().includes(query.trim().toLowerCase());
+  const formatJobLabel = (job) => {
+    if (!job) return 'General';
+    const idLabel = job.id ? `#${job.id}` : 'New';
+    return job.title ? `${idLabel} · ${job.title}` : `Job ${idLabel}`;
+  };
   const resolveJobTitle = (application) => {
-    if (application?.job?.title) return application.job.title;
+    if (application?.job) return formatJobLabel(application.job);
     if (application?.jobId) {
       const matched = jobPosts.find((job) => job.id === application.jobId);
-      return matched?.title || `Job #${application.jobId}`;
+      return matched ? formatJobLabel(matched) : `Job #${application.jobId}`;
     }
     return 'General';
   };
@@ -1341,7 +1346,7 @@ const AdminCareersPage = () => {
                     <MenuItem value="">General / Not linked</MenuItem>
                     {jobPosts.map((job) => (
                       <MenuItem key={job.id} value={job.id}>
-                        {job.title}
+                        {formatJobLabel(job)}
                       </MenuItem>
                     ))}
                   </AppSelectField>
