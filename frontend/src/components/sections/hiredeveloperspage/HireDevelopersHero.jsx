@@ -2,9 +2,13 @@ import { Box, Container, Grid, Stack, Typography, alpha, useTheme } from '@mui/m
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import PropTypes from 'prop-types';
-import { servicesHeroStats } from '../../../data/servicesPage.js';
-
-const HireDevelopersHero = ({ onContactClick }) => {
+const HireDevelopersHero = ({
+  onContactClick,
+  title,
+  description,
+  backgroundImage,
+  stats = [],
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
@@ -16,7 +20,7 @@ const HireDevelopersHero = ({ onContactClick }) => {
       sx={{
         backgroundImage: `
             linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)),
-            url("https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1600&q=80")
+            url("${backgroundImage || ''}")
           `,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -65,22 +69,20 @@ const HireDevelopersHero = ({ onContactClick }) => {
                   lineHeight: 1.1,
                 }}
               >
-                Hire Dedicated Remote Developers
+                {title || ''}
               </Typography>
 
               <Typography
                 variant="body1"
                 sx={{ color: subtleText, maxWidth: 540, lineHeight: 1.7 }}
               >
-                Scale your engineering capacity with vetted VedX developers who embed with
-                your workflows from day one. Spin up agile pods or individual experts to
-                accelerate delivery without compromising on quality.
+                {description || ''}
               </Typography>
 
               <AppButton
                 variant="contained"
                 size="large"
-                href="#contact"
+                onClick={onContactClick}
                 sx={{
                   background:
                     "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
@@ -114,7 +116,7 @@ const HireDevelopersHero = ({ onContactClick }) => {
                     pb: { xs: 1, sm: 0 },
                   }}
                 >
-                  {servicesHeroStats.map((stat) => (
+                  {stats.map((stat) => (
                     <Stack
                       key={stat.label}
                       spacing={0.5}
@@ -154,11 +156,24 @@ const HireDevelopersHero = ({ onContactClick }) => {
 };
 
 HireDevelopersHero.propTypes = {
-  onContactClick: PropTypes.func
+  onContactClick: PropTypes.func,
+  title: PropTypes.string,
+  description: PropTypes.string,
+  backgroundImage: PropTypes.string,
+  stats: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    })
+  ),
 };
 
 HireDevelopersHero.defaultProps = {
-  onContactClick: () => { }
+  onContactClick: () => { },
+  title: '',
+  description: '',
+  backgroundImage: '',
+  stats: [],
 };
 
 export default HireDevelopersHero;

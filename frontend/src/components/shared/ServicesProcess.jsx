@@ -15,7 +15,6 @@ import {
 import { keyframes } from "@mui/system";
 import KeyboardArrowLeftRoundedIcon from "@mui/icons-material/KeyboardArrowLeftRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
-import { processSteps } from "../../data/servicesPage.js";
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
@@ -41,7 +40,7 @@ const ServicesProcess = ({ apiPath = "/api/service-processes", category, subcate
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [animationDirection, setAnimationDirection] = useState("right");
-  const resolvedSteps = apiSteps.length > 0 ? apiSteps : processSteps;
+  const resolvedSteps = apiSteps;
   const total = Array.isArray(resolvedSteps) ? resolvedSteps.length : 0;
   const maxIndex = Math.max(0, total - stepsPerView);
 

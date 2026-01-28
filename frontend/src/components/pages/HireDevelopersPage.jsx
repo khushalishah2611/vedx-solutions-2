@@ -22,6 +22,7 @@ const HireDevelopersPage = () => {
   const [benefits, setBenefits] = useState([]);
   const [benefitConfig, setBenefitConfig] = useState(null);
   const [technologies, setTechnologies] = useState([]);
+  const [heroConfig, setHeroConfig] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -76,13 +77,48 @@ const HireDevelopersPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHeroConfig = async () => {
+      try {
+        const response = await fetch(apiUrl('/api/hire-developer/services'));
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Unable to load hire developer services');
+        }
+        if (!isMounted) return;
+        const list = Array.isArray(data) ? data : [];
+        setHeroConfig(list[0] || null);
+      } catch (error) {
+        console.error('Failed to load hire developer hero data', error);
+      }
+    };
+
+    loadHeroConfig();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleOpenContact = useCallback(() => {
     openDialog();
   }, [openDialog]);
 
   return (
     <Box sx={{ bgcolor: 'background.default', overflowX: 'hidden' }}>
-      <HireDevelopersHero onContactClick={handleOpenContact} />
+      <HireDevelopersHero
+        onContactClick={handleOpenContact}
+        title={heroConfig?.bannerTitle}
+        description={heroConfig?.bannerSubtitle || heroConfig?.description}
+        backgroundImage={heroConfig?.bannerImage}
+        stats={[
+          heroConfig?.totalServices ? { label: 'Total services', value: `${heroConfig.totalServices}+` } : null,
+          heroConfig?.totalProjects ? { label: 'Total projects', value: `${heroConfig.totalProjects}+` } : null,
+          heroConfig?.totalClients ? { label: 'Total clients', value: `${heroConfig.totalClients}+` } : null,
+        ].filter(Boolean)}
+      />
 
 
       <Container
@@ -93,7 +129,14 @@ const HireDevelopersPage = () => {
         }}
       >
 
-        <Box my={5}><ServicesHighlights onContactClick={handleOpenContact} /></Box>
+        <Box my={5}>
+          <ServicesHighlights
+            onContactClick={handleOpenContact}
+            configPath="/api/hire-developer/why-choose"
+            servicesPath="/api/hire-developer/why-choose-services"
+            configIdParam="whyChooseConfigId"
+          />
+        </Box>
 
         <Box my={10}><Divider sx={{ borderColor: dividerColor }} /></Box>
 
@@ -114,7 +157,7 @@ const HireDevelopersPage = () => {
         <Box my={10}><ServicesTechnologies technologyGroups={technologies} /></Box>
 
         <Box my={10}>
-          <ServicesWhyChoose onContactClick={handleOpenContact} />
+          <ServicesWhyChoose onContactClick={handleOpenContact} mode="hire" />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
@@ -134,7 +177,7 @@ const HireDevelopersPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
-          <FAQAccordion />
+          <FAQAccordion faqs={heroConfig?.faqs} />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 

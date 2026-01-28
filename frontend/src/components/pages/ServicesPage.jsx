@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -22,12 +22,36 @@ import FAQAccordion from '../shared/FAQAccordion.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
+import { apiUrl } from '../../utils/const.js';
 
 
 const ServicesPage = ({ showHero = true }) => {
   const { openDialog } = useContactDialog();
   const theme = useTheme();
   const dividerColor = alpha(theme.palette.divider, 0.6);
+  const [technologies, setTechnologies] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTechnologies = async () => {
+      try {
+        const response = await fetch(apiUrl('/api/technologies'));
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
+        if (!isMounted) return;
+        setTechnologies(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to load technologies', error);
+      }
+    };
+
+    loadTechnologies();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleOpenContact = useCallback(() => {
     openDialog();
@@ -59,12 +83,12 @@ const ServicesPage = ({ showHero = true }) => {
         </Box>
 
         <Box my={10}>
-          <ServicesTechnologies />
+          <ServicesTechnologies technologyGroups={technologies} />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
-          <ServicesWhyChoose onContactClick={handleOpenContact} />
+          <ServicesWhyChoose onContactClick={handleOpenContact} mode="service" />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 

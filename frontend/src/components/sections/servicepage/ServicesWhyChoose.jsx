@@ -16,7 +16,6 @@ import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
 
-import { whyChooseVedx } from '../../../data/servicesPage.js';
 import { apiUrl } from '../../../utils/const.js';
 import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 
@@ -35,6 +34,9 @@ const ServicesWhyChoose = ({
   title: titleProp,
   description: descriptionProp,
   highlights: highlightsProp,
+  mode = 'home',
+  category,
+  subcategory,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -68,59 +70,101 @@ const ServicesWhyChoose = ({
 
         const tasks = [];
 
-        // ---- config (title/description) ----
-        if (shouldFetchConfig) {
-          tasks.push(
-            fetchWithLoading(apiUrl('/api/homes/why-vedx-config'))
-              .then(async (res) => {
-                if (!res.ok) throw new Error('Failed to fetch why-vedx-config');
-                const payload = await res.json();
-                const cfg = payload?.config ?? payload;
+        if (mode === 'home') {
+          // ---- config (title/description) ----
+          if (shouldFetchConfig) {
+            tasks.push(
+              fetchWithLoading(apiUrl('/api/homes/why-vedx-config'))
+                .then(async (res) => {
+                  if (!res.ok) throw new Error('Failed to fetch why-vedx-config');
+                  const payload = await res.json();
+                  const cfg = payload?.config ?? payload;
 
-                return {
-                  title: cfg?.title ?? '',
-                  description: cfg?.description ?? '',
-                };
-              })
-              .catch((err) => {
-                console.error('why-vedx-config error:', err);
-                return null;
-              })
-          );
-        } else {
-          tasks.push(Promise.resolve(null));
+                  return {
+                    title: cfg?.title ?? '',
+                    description: cfg?.description ?? '',
+                  };
+                })
+                .catch((err) => {
+                  console.error('why-vedx-config error:', err);
+                  return null;
+                })
+            );
+          } else {
+            tasks.push(Promise.resolve(null));
+          }
+
+          // ---- highlights (reasons/cards) ----
+          if (shouldFetchHighlights) {
+            tasks.push(
+              fetchWithLoading(apiUrl('/api/homes/why-vedx-reasons'))
+                .then(async (res) => {
+                  if (!res.ok) throw new Error('Failed to fetch why-vedx-reasons');
+                  const payload = await res.json();
+                  const reasons = Array.isArray(payload) ? payload : payload?.reasons;
+
+                  return (reasons || []).map((item) => ({
+                    title: item?.title || '',
+                    description: item?.description || '',
+                    image: item?.image || '',
+                    icon: item?.icon,
+                  }));
+                })
+                .catch((err) => {
+                  console.error('why-vedx-reasons error:', err);
+                  return [];
+                })
+            );
+          } else {
+            tasks.push(Promise.resolve([]));
+          }
+
+          const [cfg, highs] = await Promise.all(tasks);
+          if (!isMounted) return;
+
+          if (cfg) setApiConfig(cfg);
+          if (Array.isArray(highs)) setApiHighlights(highs);
+          return;
         }
 
-        // ---- highlights (reasons/cards) ----
-        if (shouldFetchHighlights) {
-          tasks.push(
-            fetchWithLoading(apiUrl('/api/homes/why-vedx-reasons'))
-              .then(async (res) => {
-                if (!res.ok) throw new Error('Failed to fetch why-vedx-reasons');
-                const payload = await res.json();
-                const reasons = Array.isArray(payload) ? payload : payload?.reasons;
+        const shouldFetchWhyVedx = shouldFetchConfig || shouldFetchHighlights;
+        if (!shouldFetchWhyVedx) return;
 
-                return (reasons || []).map((item) => ({
-                  title: item?.title || '',
-                  description: item?.description || '',
-                  image: item?.image || '',
-                  icon: item?.icon,
-                }));
-              })
-              .catch((err) => {
-                console.error('why-vedx-reasons error:', err);
-                return [];
-              })
-          );
-        } else {
-          tasks.push(Promise.resolve([]));
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (subcategory) params.append('subcategory', subcategory);
+        params.append('includeReasons', 'true');
+
+        const requestPath =
+          mode === 'hire' ? `/api/hire-developer/why-vedx?${params.toString()}` : `/api/why-vedx?${params.toString()}`;
+
+        const response = await fetchWithLoading(apiUrl(requestPath));
+        if (!response.ok) {
+          throw new Error('Failed to fetch why-vedx data');
         }
-
-        const [cfg, highs] = await Promise.all(tasks);
+        const payload = await response.json();
+        const list = Array.isArray(payload) ? payload : payload ? [payload] : [];
+        const active = list[0] || null;
         if (!isMounted) return;
 
-        if (cfg) setApiConfig(cfg);
-        if (Array.isArray(highs)) setApiHighlights(highs);
+        if (shouldFetchConfig) {
+          setApiConfig({
+            title: active?.heroTitle || '',
+            description: active?.heroDescription || '',
+          });
+        }
+
+        if (shouldFetchHighlights) {
+          const reasons = active?.reasons || [];
+          setApiHighlights(
+            (reasons || []).map((item) => ({
+              title: item?.title || '',
+              description: item?.description || '',
+              image: item?.image || '',
+              icon: item?.icon,
+            }))
+          );
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -131,7 +175,7 @@ const ServicesWhyChoose = ({
     return () => {
       isMounted = false;
     };
-  }, [fetchWithLoading, titleProp, descriptionProp, highlightsProp]);
+  }, [fetchWithLoading, titleProp, descriptionProp, highlightsProp, mode, category, subcategory]);
 
   // ✅ NO FALLBACK (only props/API else blank)
   const finalTitle = useMemo(() => {
@@ -151,9 +195,7 @@ const ServicesWhyChoose = ({
   }, [descriptionProp, apiConfig]);
 
   const highlights = useMemo(() => {
-    const resolved =
-      highlightsProp ||
-      (apiHighlights.length > 0 ? apiHighlights : whyChooseVedx);
+    const resolved = highlightsProp || apiHighlights;
 
     return (resolved || []).filter((item) => item?.title);
   }, [apiHighlights, highlightsProp]);
@@ -235,94 +277,102 @@ const ServicesWhyChoose = ({
 
       {/* Highlights Grid */}
       <Grid container spacing={3} sx={{ textAlign: 'center', alignItems: 'stretch' }}>
-        {highlights.map((highlight, index) => {
-          const Icon =
-            highlight.icon ?? highlightIcons[index % highlightIcons.length];
+        {loading ? (
+          <Grid item xs={12}>
+            <Stack alignItems="center" sx={{ py: 4 }}>
+              <CircularProgress />
+            </Stack>
+          </Grid>
+        ) : (
+          highlights.map((highlight, index) => {
+            const Icon =
+              highlight.icon ?? highlightIcons[index % highlightIcons.length];
 
-          return (
-            <Grid item xs={12} sm={6} md={4} key={`${highlight.title}-${index}`}>
-              <Paper
-                elevation={0}
-                sx={{
-                  height: '100%',
-                  borderRadius: 0.5,
-                  p: 3,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  backgroundColor: alpha(
-                    theme.palette.background.paper,
-                    isDark ? 0.75 : 0.97
-                  ),
-                  border: `1px solid ${alpha(
-                    theme.palette.divider,
-                    isDark ? 0.4 : 0.6
-                  )}`,
-                  boxShadow: isDark
-                    ? '0 4px 30px rgba(2,6,23,0.35)'
-                    : '0 4px 30px rgba(15,23,42,0.15)',
-                  transition:
-                    'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
-                  '&:hover': {
-                    transform: 'translateY(-8px) scale(1.02)',
-                    borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
-                  },
-                }}
-              >
-                {/* Icon / Image */}
-                <Box
+            return (
+              <Grid item xs={12} sm={6} md={4} key={`${highlight.title}-${index}`}>
+                <Paper
+                  elevation={0}
                   sx={{
-                    width: 70,
-                    height: 70,
+                    height: '100%',
                     borderRadius: 0.5,
+                    p: 3,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2,
+                    textAlign: 'center',
+                    backgroundColor: alpha(
+                      theme.palette.background.paper,
+                      isDark ? 0.75 : 0.97
+                    ),
+                    border: `1px solid ${alpha(
+                      theme.palette.divider,
+                      isDark ? 0.4 : 0.6
+                    )}`,
+                    boxShadow: isDark
+                      ? '0 4px 30px rgba(2,6,23,0.35)'
+                      : '0 4px 30px rgba(15,23,42,0.15)',
+                    transition:
+                      'transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
+                    '&:hover': {
+                      transform: 'translateY(-8px) scale(1.02)',
+                      borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
+                    },
                   }}
                 >
-                  {highlight.image ? (
-                    <Box
-                      component="img"
-                      src={highlight.image}
-                      alt={highlight.title}
-                      sx={{ width: 70, height: 70, objectFit: 'contain' }}
-                    />
-                  ) : (
-                    Icon && <Icon />
-                  )}
-                </Box>
-
-                {/* Text */}
-                <Stack spacing={1}>
-                  <Typography
-                    variant="h6"
+                  {/* Icon / Image */}
+                  <Box
                     sx={{
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'color 0.3s ease, background-image 0.3s ease',
-                      '&:hover': {
-                        color: 'transparent',
-                        backgroundImage:
-                          'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                        WebkitBackgroundClip: 'text',
-                        backgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      },
+                      width: 70,
+                      height: 70,
+                      borderRadius: 0.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 2,
                     }}
                   >
-                    {highlight.title}
-                  </Typography>
+                    {highlight.image ? (
+                      <Box
+                        component="img"
+                        src={highlight.image}
+                        alt={highlight.title}
+                        sx={{ width: 70, height: 70, objectFit: 'contain' }}
+                      />
+                    ) : (
+                      Icon && <Icon />
+                    )}
+                  </Box>
 
-                  <Typography variant="body2" sx={{ color: subtleText }}>
-                    {highlight.description}
-                  </Typography>
-                </Stack>
-              </Paper>
-            </Grid>
-          );
-        })}
+                  {/* Text */}
+                  <Stack spacing={1}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'color 0.3s ease, background-image 0.3s ease',
+                        '&:hover': {
+                          color: 'transparent',
+                          backgroundImage:
+                            'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                          WebkitBackgroundClip: 'text',
+                          backgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        },
+                      }}
+                    >
+                      {highlight.title}
+                    </Typography>
+
+                    <Typography variant="body2" sx={{ color: subtleText }}>
+                      {highlight.description}
+                    </Typography>
+                  </Stack>
+                </Paper>
+              </Grid>
+            );
+          })
+        )}
       </Grid>
 
       <Stack alignItems="center" sx={{ width: '100%', mt: 6 }}>

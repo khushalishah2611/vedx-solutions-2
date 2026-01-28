@@ -11,7 +11,13 @@ import {
 } from '@mui/material';
 import { apiUrl } from '../../../utils/const.js';
 
-export default function ServicePage({ category, subcategory }) {
+export default function ServicePage({
+  category,
+  subcategory,
+  configPath = '/api/why-choose',
+  servicesPath = '/api/why-services',
+  configIdParam = 'whyChooseId',
+}) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
@@ -33,8 +39,9 @@ export default function ServicePage({ category, subcategory }) {
         setLoading(true);
         setError(false);
 
+        const configQuery = params.toString();
         const response = await fetch(
-          apiUrl(`/api/why-choose?${params.toString()}`)
+          apiUrl(`${configPath}${configQuery ? `?${configQuery}` : ''}`)
         );
         const data = await response.json();
         if (!response.ok) {
@@ -54,11 +61,11 @@ export default function ServicePage({ category, subcategory }) {
         let services = [];
         const serviceParams = new URLSearchParams(params);
         if (config?.id) {
-          serviceParams.append('whyChooseId', String(config.id));
+          serviceParams.append(configIdParam, String(config.id));
         }
-
+        const serviceQuery = serviceParams.toString();
         const servicesResponse = await fetch(
-          apiUrl(`/api/why-services?${serviceParams.toString()}`)
+          apiUrl(`${servicesPath}${serviceQuery ? `?${serviceQuery}` : ''}`)
         );
         const servicesData = await servicesResponse.json();
         if (!servicesResponse.ok) {
@@ -95,7 +102,7 @@ export default function ServicePage({ category, subcategory }) {
     return () => {
       isMounted = false;
     };
-  }, [category, subcategory]);
+  }, [category, subcategory, configIdParam, configPath, servicesPath]);
 
   const resolvedHero = useMemo(
     () => ({
@@ -114,6 +121,18 @@ export default function ServicePage({ category, subcategory }) {
     }),
     [table]
   );
+
+  if (loading) {
+    return (
+      <Stack alignItems="center" sx={{ py: 6 }}>
+        <CircularProgress />
+      </Stack>
+    );
+  }
+
+  if (error) {
+    return null;
+  }
 
   return (
     <>
@@ -222,4 +241,3 @@ export default function ServicePage({ category, subcategory }) {
     </>
   );
 }
-

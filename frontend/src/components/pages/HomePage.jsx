@@ -51,7 +51,7 @@ const HomePage = () => {
 
         <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}> <ServicesProcess /></Box>
+        <Box my={10}> <ServicesProcess apiPath="/api/process-steps" /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}><ServicesIndustries /></Box>

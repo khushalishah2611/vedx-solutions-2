@@ -97,7 +97,7 @@ const ServicesCTA = ({
                 fontSize: { xs: 22, md: 26 },
               }}
             >
-              {ctaConfig?.title || "Let's Build Your Next Big Product, Together."}
+              {ctaConfig?.title || ''}
             </Typography>
             <Typography
               variant="body1"
@@ -106,9 +106,7 @@ const ServicesCTA = ({
                 maxWidth: 620,
               }}
             >
-              {ctaConfig?.description ||
-                `Let Vedx Solution be your tech growth partner for full stack app
-              development tailored to your needs.`}
+              {ctaConfig?.description || ''}
             </Typography>
           </Stack>
 

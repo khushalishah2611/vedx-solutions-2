@@ -33,10 +33,6 @@ const ServiceDetailPage = () => {
   const [benefits, setBenefits] = useState([]);
   const [benefitConfig, setBenefitConfig] = useState(null);
   const [technologies, setTechnologies] = useState([]);
-  const [whyChooseConfig, setWhyChooseConfig] = useState(null);
-  const [whyServices, setWhyServices] = useState([]);
-  const [whyVedxConfig, setWhyVedxConfig] = useState(null);
-  const [whyVedxReasons, setWhyVedxReasons] = useState([]);
 
   const apiCategory = useMemo(
     () => serviceCategories.find((item) => item.slug === categorySlug),
@@ -109,70 +105,9 @@ const ServiceDetailPage = () => {
       }
     };
 
-    const loadWhyChoose = async () => {
-      try {
-        const response = await fetch(apiUrl(`/api/why-choose?${params.toString()}`));
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || 'Unable to load why choose');
-        if (!isMounted) return;
-
-        const config = Array.isArray(data) ? data[0] : data;
-        setWhyChooseConfig(config || null);
-
-        if (config?.id) {
-          const serviceParams = new URLSearchParams(params);
-          serviceParams.append('whyChooseId', String(config.id));
-          const servicesResponse = await fetch(apiUrl(`/api/why-services?${serviceParams.toString()}`));
-          const servicesData = await servicesResponse.json();
-          if (!servicesResponse.ok) throw new Error(servicesData?.error || 'Unable to load why services');
-          if (!isMounted) return;
-          setWhyServices(Array.isArray(servicesData) ? servicesData : []);
-        } else {
-          setWhyServices([]);
-        }
-      } catch (error) {
-        console.error('Failed to load why choose services', error);
-      }
-    };
-
-    const loadWhyVedx = async () => {
-      try {
-        const response = await fetch(apiUrl('/api/why-vedx'));
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || 'Unable to load why VEDX');
-
-        const list = Array.isArray(data) ? data : [];
-        const matched =
-          list.find(
-            (item) =>
-              (apiSubCategory?.id && item.subcategoryId === apiSubCategory.id) ||
-              (!apiSubCategory?.id && apiCategory?.id && item.categoryId === apiCategory.id)
-          ) || list[0];
-
-        if (!isMounted) return;
-        setWhyVedxConfig(matched || null);
-
-        if (matched?.id) {
-          const reasonParams = new URLSearchParams(params);
-          reasonParams.append('whyVedxId', String(matched.id));
-          const reasonsResponse = await fetch(apiUrl(`/api/why-vedx-reasons?${reasonParams.toString()}`));
-          const reasonsData = await reasonsResponse.json();
-          if (!reasonsResponse.ok) throw new Error(reasonsData?.error || 'Unable to load why VEDX reasons');
-          if (!isMounted) return;
-          setWhyVedxReasons(Array.isArray(reasonsData) ? reasonsData : []);
-        } else {
-          setWhyVedxReasons([]);
-        }
-      } catch (error) {
-        console.error('Failed to load why VEDX data', error);
-      }
-    };
-
     loadServiceMenu();
     loadBenefits();
     loadTechnologies();
-    loadWhyChoose();
-    loadWhyVedx();
 
     return () => {
       isMounted = false;
@@ -218,20 +153,6 @@ const ServiceDetailPage = () => {
       serviceMenu.totalClients ? { label: 'Total clients', value: `${serviceMenu.totalClients}+` } : null,
     ].filter(Boolean);
   }, [serviceMenu]);
-
-  const whyHighlights = useMemo(() => {
-    if (whyServices.length > 0) {
-      return whyServices.map((item) => ({
-        title: item.title,
-        description: item.description,
-      }));
-    }
-    return whyVedxReasons.map((item) => ({
-      title: item.title,
-      description: item.description,
-      image: item.image,
-    }));
-  }, [whyServices, whyVedxReasons]);
 
   if (!apiCategory && !apiSubCategory && isLoading) {
     return null;
@@ -293,16 +214,16 @@ const ServiceDetailPage = () => {
         <Box my={10}>
           <ServicesWhyChoose
             onContactClick={handleOpenContact}
-            title={whyChooseConfig?.heroTitle || whyVedxConfig?.heroTitle}
-            description={whyChooseConfig?.heroDescription || whyVedxConfig?.heroDescription}
-            highlights={whyHighlights}
+            mode="service"
             category={categoryName}
             subcategory={subcategoryName}
           />
         </Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
-        <Box my={10}><ServicesProcess /></Box>
+        <Box my={10}>
+          <ServicesProcess category={categoryName} subcategory={subcategoryName} />
+        </Box>
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}><ServicesIndustries /></Box>
         <Divider sx={{ borderColor: dividerColor }} />

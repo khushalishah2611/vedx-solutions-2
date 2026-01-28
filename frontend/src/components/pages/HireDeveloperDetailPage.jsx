@@ -166,7 +166,14 @@ const HireDeveloperDetailPage = () => {
         }}
       >
         <Box my={5}>
-          <ServicesHighlights onContactClick={handleOpenContact} />
+          <ServicesHighlights
+            onContactClick={handleOpenContact}
+            category={categoryName}
+            subcategory={roleName}
+            configPath="/api/hire-developer/why-choose"
+            servicesPath="/api/hire-developer/why-choose-services"
+            configIdParam="whyChooseConfigId"
+          />
         </Box>
 
         <Box my={10}>
@@ -199,7 +206,12 @@ const HireDeveloperDetailPage = () => {
         </Box>
 
         <Box my={10}>
-          <ServicesWhyChoose onContactClick={handleOpenContact} />
+          <ServicesWhyChoose
+            onContactClick={handleOpenContact}
+            mode="hire"
+            category={categoryName}
+            subcategory={roleName}
+          />
         </Box>
 
         <Box my={10}>
