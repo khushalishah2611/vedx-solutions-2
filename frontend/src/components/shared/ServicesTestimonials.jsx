@@ -94,7 +94,7 @@ const ServicesTestimonials = () => {
         <Typography variant="h3" sx={{ fontWeight: 700 }}>
           What People Are Saying.
         </Typography>
-        <Typography sx={{ color: subtleText, maxWidth: 720 }}>
+        <Typography sx={{ color: subtleText,  }}>
           Discover why clients trust us for quality and results.
         </Typography>
       </Stack>

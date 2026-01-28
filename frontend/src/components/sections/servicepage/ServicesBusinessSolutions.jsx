@@ -69,10 +69,9 @@ const ServicesBusinessSolutions = ({ onRequestContact, contactAnchorId = 'contac
   }, [fetchWithLoading]);
 
   const resolvedSolutions = apiSolutions.length > 0 ? apiSolutions : businessSolutions;
-  const headerTitle = apiConfig?.title || 'Tech solutions for all business types';
+  const headerTitle = apiConfig?.title ;
   const headerDescription =
-    apiConfig?.description ||
-    'Whether you are validating an idea or optimising global operations, our playbooks adapt to your stage and ambition.';
+    apiConfig?.description;
 
   const activeSolution = resolvedSolutions[activeIndex] ?? resolvedSolutions[0];
 
@@ -110,7 +109,7 @@ const ServicesBusinessSolutions = ({ onRequestContact, contactAnchorId = 'contac
           variant="body1"
           sx={{
             color: subtleText,
-            maxWidth: 720,
+           
             opacity: animate ? 1 : 0,
             transform: animate ? 'translateY(0)' : 'translateY(10px)',
             transition: 'opacity 0.45s ease, transform 0.45s ease',

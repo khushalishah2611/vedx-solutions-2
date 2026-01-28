@@ -54,10 +54,9 @@ const ServicesEngagementModels = () => {
   }, [fetchWithLoading]);
 
   const resolvedModels = apiModels.length > 0 ? apiModels : engagementModels;
-  const headerTitle = apiConfig?.title || 'Ways to Choose Our Expertise for VedX Solutions';
+  const headerTitle = apiConfig?.title ;
   const headerDescription =
-    apiConfig?.description ||
-    'Select the engagement model that aligns with your budget, project goals, and delivery rhythm — from flexible collaborations to dedicated teams tailored for your business success.';
+    apiConfig?.description;
 
   return (
     <Box component="section" >
@@ -116,7 +115,7 @@ const ServicesEngagementModels = () => {
           variant="body1"
           sx={{
             color: alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78),
-            maxWidth: 720,
+         
           }}
         >
           {headerDescription}

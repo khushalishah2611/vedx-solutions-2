@@ -173,7 +173,7 @@ const ServicesContact = ({
           variant="body1"
           sx={{
             color: subtleText,
-            maxWidth: 600,
+         
             textAlign: "center",
           }}
         >
