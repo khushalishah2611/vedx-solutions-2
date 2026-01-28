@@ -17,8 +17,8 @@ export default function ServicePage({
 }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const accentColor = theme.palette.primary.main;
-  const subtleText = theme.palette.text.secondary;
+  const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
 
   const [hero, setHero] = useState(null);
   const [table, setTable] = useState(null);
@@ -100,7 +100,7 @@ export default function ServicePage({
     () => ({
       title: hero?.title || '',
       description: hero?.description || '',
-      image: hero?.image || '/placeholder.jpg',
+      image: hero?.image || "",
     }),
     [hero]
   );
@@ -113,22 +113,6 @@ export default function ServicePage({
     }),
     [table]
   );
-
-  if (loading) {
-    return (
-      <Box sx={{ py: 10, textAlign: 'center' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Typography color="error" textAlign="center">
-        Failed to load data
-      </Typography>
-    );
-  }
 
   return (
     <>
@@ -154,7 +138,7 @@ export default function ServicePage({
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Typography sx={{ color: subtleText, lineHeight: 1.7 }}>
+          <Typography sx={{ color: subtleText, lineHeight: 1.7, whiteSpace: "pre-line", }}>
             {resolvedHero.description}
           </Typography>
         </Grid>
@@ -166,7 +150,7 @@ export default function ServicePage({
           <Typography variant="h3" fontWeight={700}>
             {resolvedTable.title}
           </Typography>
-          <Typography sx={{ color: subtleText, maxWidth: 720 }}>
+          <Typography sx={{ color: subtleText, }}>
             {resolvedTable.description}
           </Typography>
         </Stack>
@@ -175,24 +159,54 @@ export default function ServicePage({
           {resolvedTable.services.map((service) => (
             <Grid item xs={12} sm={6} md={4} key={service.id}>
               <Paper
+                elevation={0}
                 sx={{
-                  p: 2.5,
                   height: '100%',
+                  borderRadius: 0.5,
+                  p: 2.5,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5,
+                  backgroundColor: alpha(
+                    theme.palette.background.paper,
+                    isDark ? 0.85 : 0.98
+                  ),
                   border: `1px solid ${alpha(
                     theme.palette.divider,
                     isDark ? 0.5 : 0.6
                   )}`,
-                  transition: '0.3s',
+                  transition:
+                    'transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease',
                   '&:hover': {
                     transform: 'translateY(-6px)',
                     borderColor: alpha(accentColor, 0.7),
+                    boxShadow: isDark
+                      ? '0 20px 40px rgba(15,23,42,0.8)'
+                      : '0 20px 40px rgba(15,23,42,0.18)',
                   },
                 }}
               >
-                <Typography variant="h6" fontWeight={700}>
+                <Typography variant="h6" sx={{
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition:
+                    'color 0.3s ease, background-image 0.3s ease',
+                  '&:hover': {
+                    color: 'transparent',
+                    backgroundImage:
+                      'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  },
+                }}>
                   {service.title}
                 </Typography>
-                <Typography sx={{ color: subtleText, mt: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: subtleText, lineHeight: 1.7 }}
+                >
                   {service.description}
                 </Typography>
               </Paper>
@@ -203,3 +217,4 @@ export default function ServicePage({
     </>
   );
 }
+
