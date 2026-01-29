@@ -4,6 +4,8 @@ import CreativeAgencySection from '../sections/homepage/CreativeAgencySection.js
 import HeroSection from '../sections/homepage/HeroSection.jsx';
 import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
 import ServicesContact from '../sections/servicepage/ServicesContact.jsx';
+import ServicesBusinessSolutions from '../sections/servicepage/ServicesBusinessSolutions.jsx';
+import ServicesEngagementModels from '../sections/servicepage/ServicesEngagementModels.jsx';
 import ServicesShowcase from '../sections/servicepage/ServicesShowcase.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
