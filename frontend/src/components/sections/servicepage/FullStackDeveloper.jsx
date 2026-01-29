@@ -16,38 +16,34 @@ import { apiUrl } from "../../../utils/const.js";
 
 /* ---------------- helpers ---------------- */
 const norm = (v) => String(v || "").trim().toLowerCase();
+const safeStr = (v) => String(v ?? "").trim();
 
-// ✅ Always return clean highlight lines (NO * / - / •), UI will render dot (•)
+// ✅ Always return clean highlight lines (NO * / - / •)
 const splitHighlightsFromDescription = (text) => {
   const raw = String(text || "").trim();
   if (!raw) return [];
 
-  // split by new lines
   const lines = raw
     .replace(/\r/g, "")
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean);
 
-  // pick bullet-like lines first (*, -, •)
   const bulletLines = lines
     .map((l) => l.replace(/^(\*|-|•)\s+/, "").trim())
-    .filter((l, i) => /^(\*|-|•)\s+/.test(lines[i]));
+    .filter((_, i) => /^(\*|-|•)\s+/.test(lines[i]));
 
-  // if bullets found, use them
   if (bulletLines.length) return bulletLines;
 
-  // else: try splitting by "•" or "*"
-  const chunks = raw
+  return raw
     .split(/(?:\n{2,}|•|\*)/g)
     .map((s) => s.trim())
-    .filter(Boolean);
-
-  return chunks.slice(0, 10);
+    .filter(Boolean)
+    .slice(0, 10);
 };
 
-// Simple hook to detect when an element enters the viewport (animate once)
-const useInViewOnce = (options = {}) => {
+// Viewport animation hook
+const useInViewOnce = () => {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
 
@@ -56,26 +52,29 @@ const useInViewOnce = (options = {}) => {
     if (!el) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setInView(true);
-            observer.unobserve(entry.target);
-          }
-        });
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.unobserve(entry.target);
+        }
       },
-      { threshold: 0.2, ...options }
+      { threshold: 0.2 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ✅ don't depend on options object
+  }, []);
 
   return [ref, inView];
 };
 
-function FullStackDeveloper({ onContactClick, category, subcategory, highlights, image }) {
+function FullStackDeveloper({
+  onContactClick,
+  category,
+  subcategory,
+  highlights,
+  image,
+}) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
@@ -98,21 +97,22 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
         if (category) params.append("category", category);
         if (subcategory) params.append("subcategory", subcategory);
 
-        const response = await fetch(
-          apiUrl(`/api/hire-services${params.toString() ? `?${params.toString()}` : ""}`)
+        const res = await fetch(
+          apiUrl(`/api/hire-services${params.toString() ? `?${params}` : ""}`)
         );
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error);
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || "Unable to load hire services");
         if (!isMounted) return;
 
         const list = Array.isArray(data) ? data : [];
 
-        // ✅ bind exact item by category/subcategory (fallback first item)
         const match =
           list.find((it) => {
             const cOk = category ? norm(it?.category) === norm(category) : true;
-            const sOk = subcategory ? norm(it?.subcategory) === norm(subcategory) : true;
+            const sOk = subcategory
+              ? norm(it?.subcategory) === norm(subcategory)
+              : true;
             return cOk && sOk;
           }) || list[0];
 
@@ -122,9 +122,6 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
         setApiDesc(match?.description || "");
         setApiImage(match?.image || "");
 
-        // ✅ highlights priority:
-        // 1) item.highlights array
-        // 2) description bullets (* / - / • / new lines)
         const fromArr = Array.isArray(match?.highlights)
           ? match.highlights
               .map((x) => (typeof x === "string" ? x : x?.title || x?.text))
@@ -133,13 +130,9 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
 
         const fromDesc = splitHighlightsFromDescription(match?.description);
 
-        const finalHighlights = (fromArr.length ? fromArr : fromDesc)
-          .map((s) => String(s).trim())
-          .filter(Boolean);
-
-        setApiHighlights(finalHighlights);
-      } catch (error) {
-        console.error("Failed to load hire services", error);
+        setApiHighlights(fromArr.length ? fromArr : fromDesc);
+      } catch (e) {
+        console.error("Hire services load failed:", e);
       }
     };
 
@@ -149,10 +142,9 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
     };
   }, [category, subcategory]);
 
-  const resolvedTitle = apiTitle || "FULL STACK DEVELOPMENT SERVICE";
-  const resolvedDesc =
-    apiDesc ||
-    "From product discovery to secure deployments, our cross-functional engineers, designers, and architects unite every layer of the stack so your product ships faster and performs flawlessly.";
+  /* ❌ STATIC REMOVED */
+  const resolvedTitle = apiTitle;
+  const resolvedDesc = apiDesc;
 
   const resolvedHighlights = useMemo(() => {
     if (Array.isArray(highlights) && highlights.length) return highlights;
@@ -162,13 +154,16 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
 
   const resolvedImage = image || apiImage || "";
 
-  // ✅ normalize highlight strings (remove any leading bullets just in case)
-  const cleanHighlights = useMemo(() => {
-    return (resolvedHighlights || [])
-      .map((h) => (typeof h === "string" ? h : h?.title || h?.text || ""))
-      .map((s) => String(s).replace(/^(\*|-|•)\s+/, "").trim())
-      .filter(Boolean);
-  }, [resolvedHighlights]);
+  const hireButtonText = useMemo(() => {
+    const c = safeStr(category);
+    const s = safeStr(subcategory);
+    if (c && s) return `Hire ${s} Expert`;
+    if (c) return `Hire ${c} Expert`;
+    return "Hire Expert";
+  }, [category, subcategory]);
+
+  // ⛔ if API sends nothing, don't render block
+  if (!resolvedTitle && !resolvedDesc && !resolvedImage) return null;
 
   return (
     <Box component="section">
@@ -186,7 +181,7 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
         }}
       >
         <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
-          {/* LEFT SIDE – TEXT */}
+          {/* LEFT */}
           <Grid
             item
             xs={12}
@@ -194,39 +189,30 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
             ref={leftRef}
             sx={{
               opacity: leftInView ? 1 : 0,
-              transform: leftInView ? "translateX(0)" : "translateX(-40px)",
-              transition: "opacity 0.7s ease, transform 0.7s ease",
+              transform: leftInView ? "none" : "translateX(-40px)",
+              transition: "all .7s ease",
             }}
           >
-            <Stack spacing={2.5} alignItems={{ xs: "center", md: "flex-start" }}>
-              <Typography
-                variant="h3"
-                sx={{
-                  fontSize: { xs: 26, md: 36 },
-                  fontWeight: 700,
-                  color: isDark ? "#fff" : "#0f172a",
-                  textAlign: { xs: "center", md: "left" },
-                  textTransform: "uppercase",
-                }}
-              >
-                {resolvedTitle}
-              </Typography>
+            <Stack spacing={2.5}>
+              {!!resolvedTitle && (
+                <Typography variant="h3" fontWeight={700}>
+                  {resolvedTitle}
+                </Typography>
+              )}
 
-              <Divider sx={{ borderColor: dividerColor, width: { xs: "70%", md: "55%" } }} />
+              <Divider sx={{ borderColor: dividerColor, width: "55%" }} />
 
-              <Typography
-                variant="body1"
-                sx={{
-                  color: alpha(isDark ? "#fff" : "#0f172a", 0.85),
-                  maxWidth: 520,
-                  textAlign: { xs: "center", md: "left" },
-                  lineHeight: 1.7,
-                  whiteSpace: "pre-line",
-                }}
-              >
-                {resolvedDesc}
-              </Typography>
-
+              {!!resolvedDesc && (
+                <Typography
+                  sx={{
+                    color: alpha(isDark ? "#fff" : "#0f172a", 0.85),
+                    lineHeight: 1.7,
+                    whiteSpace: "pre-line",
+                  }}
+                >
+                  {resolvedDesc}
+                </Typography>
+              )}
 
               <AppButton
                 variant="contained"
@@ -245,12 +231,14 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
                  
                 }}
               >
-                Hire Full Stack Expert
+                {hireButtonText}
               </AppButton>
+
+              
             </Stack>
           </Grid>
 
-          {/* RIGHT SIDE – IMAGE */}
+          {/* RIGHT */}
           <Grid
             item
             xs={12}
@@ -258,31 +246,17 @@ function FullStackDeveloper({ onContactClick, category, subcategory, highlights,
             ref={rightRef}
             sx={{
               opacity: rightInView ? 1 : 0,
-              transform: rightInView ? "translateX(0)" : "translateX(40px)",
-              transition: "opacity 0.7s ease, transform 0.7s ease",
+              transform: rightInView ? "none" : "translateX(40px)",
+              transition: "all .7s ease",
             }}
           >
             <Box
               sx={{
-                position: "relative",
-                borderRadius: 0.5,
-                overflow: "hidden",
                 height: { xs: 260, md: 360 },
+                borderRadius: 0.5,
                 background: resolvedImage
-                  ? `url(${resolvedImage}) center / cover no-repeat`
-                  : isDark
-                  ? "linear-gradient(135deg, rgba(255,94,94,0.25), rgba(168,77,255,0.25))"
-                  : "linear-gradient(135deg, rgba(255,94,94,0.18), rgba(33,150,243,0.18))",
-                boxShadow: isDark
-                  ? "0 30px 60px rgba(15,23,42,0.55)"
-                  : "0 30px 60px rgba(15,23,42,0.18)",
-                transition: "transform 0.4s ease, box-shadow 0.4s ease",
-                "&:hover": {
-                  transform: "scale(1.02)",
-                  boxShadow: isDark
-                    ? "0 36px 72px rgba(15,23,42,0.7)"
-                    : "0 36px 72px rgba(15,23,42,0.24)",
-                },
+                  ? `url(${resolvedImage}) center/cover`
+                  : "transparent",
               }}
             />
           </Grid>
