@@ -1,6 +1,25 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Box, Grid, MenuItem, Stack, Typography, alpha, useTheme } from "@mui/material";
-import { AppButton, AppSelectField, AppTextField } from "../../shared/FormControls.jsx";
+// ServicesContact.jsx ✅ (SINGLE FILE)
+// ✅ Contact image API code REMOVED (as you asked)
+// ✅ Fix: servicesContactImage undefined (no variable used now)
+// ✅ Left image section removed completely (API-only image removed)
+// ✅ Project types API remains
+
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  Box,
+  Grid,
+  MenuItem,
+  Stack,
+  Typography,
+  alpha,
+  useTheme,
+} from "@mui/material";
+import {
+  AppButton,
+  AppSelectField,
+  AppTextField,
+} from "../../shared/FormControls.jsx";
 import { apiUrl } from "../../../utils/const.js";
 import { useLoadingFetch } from "../../../hooks/useLoadingFetch.js";
 
@@ -31,6 +50,8 @@ const useInView = (options = {}) => {
   return [ref, inView];
 };
 
+const safeStr = (v) => String(v ?? "").trim();
+
 const ServicesContact = ({
   contactType = "Home",
   prefillProjectType = "",
@@ -41,18 +62,18 @@ const ServicesContact = ({
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const { fetchWithLoading } = useLoadingFetch();
 
-  const [leftRef, leftInView] = useInView();
+  // ✅ only right side animation needed now
   const [rightRef, rightInView] = useInView();
 
-  // Project types list (from fallback + API)
-  const [projectTypes, setProjectTypes] = useState(contactProjectTypes || []);
+  // ✅ API-only project types
+  const [projectTypes, setProjectTypes] = useState([]);
 
   // Keep projectType empty initially so placeholder shows
   const [formValues, setFormValues] = useState({
     name: "",
     email: "",
     phone: "",
-    projectType: prefillProjectType || "", // if prefilled then select it, else show placeholder
+    projectType: prefillProjectType || "",
     description: "",
   });
 
@@ -60,6 +81,7 @@ const ServicesContact = ({
   const [statusSeverity, setStatusSeverity] = useState("success");
   const [submitting, setSubmitting] = useState(false);
 
+  // ✅ Load Project Types (API)
   useEffect(() => {
     let isMounted = true;
 
@@ -71,31 +93,29 @@ const ServicesContact = ({
         const payload = await response.json();
         if (!isMounted) return;
 
-        const types = (payload.projectTypes || [])
-          .map((item) => item?.name)
+        const types = (payload?.projectTypes || [])
+          .map((item) => safeStr(item?.name))
           .filter(Boolean);
 
-        if (types.length > 0) setProjectTypes(types);
+        setProjectTypes(types);
       } catch (error) {
         console.error("Failed to load project types", error);
       }
     };
 
     loadProjectTypes();
-
     return () => {
       isMounted = false;
     };
   }, [fetchWithLoading]);
 
-  // Default selection rule:
-  // - if prefillProjectType exists => set it
-  // - else keep empty ("") so placeholder stays until user selects
-  // (No auto-select first option.)
+  // If prefillProjectType changes, keep it selected
   useEffect(() => {
     if (!prefillProjectType) return;
     setFormValues((prev) =>
-      prefillProjectType !== prev.projectType ? { ...prev, projectType: prefillProjectType } : prev
+      prefillProjectType !== prev.projectType
+        ? { ...prev, projectType: prefillProjectType }
+        : prev
     );
   }, [prefillProjectType]);
 
@@ -109,7 +129,10 @@ const ServicesContact = ({
     setStatusMessage("");
 
     const token = localStorage.getItem("adminToken");
-    const endpoint = token ? "/api/admin/contacts" : "/api/admin/contacts?public=true";
+    const endpoint = token
+      ? "/api/admin/contacts"
+      : "/api/admin/contacts?public=true";
+
     const headers = {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -130,14 +153,14 @@ const ServicesContact = ({
       });
 
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.message || "Unable to submit request.");
+      if (!response.ok)
+        throw new Error(payload?.message || "Unable to submit request.");
 
       setStatusSeverity("success");
-      setStatusMessage(payload?.message || "Thanks! Your enquiry has been received.");
+      setStatusMessage(
+        payload?.message || "Thanks! Your enquiry has been received."
+      );
 
-      // Reset after submit:
-      // - keep prefillProjectType if provided
-      // - else back to empty so placeholder shows again
       setFormValues({
         name: "",
         email: "",
@@ -147,7 +170,9 @@ const ServicesContact = ({
       });
     } catch (error) {
       setStatusSeverity("error");
-      setStatusMessage(error?.message || "Unable to submit your enquiry right now.");
+      setStatusMessage(
+        error?.message || "Unable to submit your enquiry right now."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -167,49 +192,33 @@ const ServicesContact = ({
         >
           Contact Us
         </Typography>
+
         <Typography
           variant="body1"
           sx={{
             color: subtleText,
-         
             textAlign: "center",
           }}
         >
-          Share your idea, challenge, or growth plan — we’ll help you turn it into a solid product roadmap.
+          Share your idea, challenge, or growth plan — we’ll help you turn it
+          into a solid product roadmap.
         </Typography>
       </Stack>
 
-      {/* Main Content */}
+      {/* Main Content (FORM ONLY) */}
       <Grid
         container
         sx={{
           borderRadius: 0.5,
           overflow: "hidden",
-          boxShadow: isDark ? "0 24px 48px rgba(15,23,42,0.7)" : "0 24px 48px rgba(15,23,42,0.14)",
+          boxShadow: isDark
+            ? "0 24px 48px rgba(15,23,42,0.7)"
+            : "0 24px 48px rgba(15,23,42,0.14)",
         }}
       >
-        {/* Left: Image */}
         <Grid
           item
           xs={12}
-          md={5}
-          ref={leftRef}
-          sx={{
-            minHeight: { xs: 260, md: "70vh" },
-            backgroundImage: `url(${servicesContactImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            opacity: leftInView ? 1 : 0,
-            transform: leftInView ? "translateX(0)" : "translateX(-40px)",
-            transition: "opacity 0.7s ease, transform 0.7s ease",
-          }}
-        />
-
-        {/* Right: Form */}
-        <Grid
-          item
-          xs={12}
-          md={7}
           ref={rightRef}
           sx={{
             backgroundColor: isDark ? alpha("#020617", 0.96) : "#ffffff",
@@ -230,6 +239,7 @@ const ServicesContact = ({
               >
                 Ready to build something remarkable?
               </Typography>
+
               <Typography
                 variant="body1"
                 sx={{
@@ -237,13 +247,16 @@ const ServicesContact = ({
                   textAlign: { xs: "center", md: "left" },
                 }}
               >
-                Tell us about your next project and we’ll assemble the right team within 48 hours.
+                Tell us about your next project and we’ll assemble the right
+                team within 48 hours.
               </Typography>
             </Stack>
 
             {/* Form */}
             <Stack component="form" spacing={2.5} onSubmit={handleSubmit}>
-              {statusMessage ? <Alert severity={statusSeverity}>{statusMessage}</Alert> : null}
+              {statusMessage ? (
+                <Alert severity={statusSeverity}>{statusMessage}</Alert>
+              ) : null}
 
               {/* Name + Email */}
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5}>
@@ -346,7 +359,8 @@ const ServicesContact = ({
                   type="submit"
                   disabled={submitting}
                   sx={{
-                    background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                    background:
+                      "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
                     color: "#fff",
                     borderRadius: "12px",
                     textTransform: "none",
@@ -354,7 +368,8 @@ const ServicesContact = ({
                     px: { xs: 4, md: 6 },
                     py: { xs: 1.5, md: 1.75 },
                     "&:hover": {
-                      background: "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
+                      background:
+                        "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
                     },
                   }}
                 >

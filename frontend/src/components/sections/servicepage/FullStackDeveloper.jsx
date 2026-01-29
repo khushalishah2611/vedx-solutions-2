@@ -163,7 +163,7 @@ function FullStackDeveloper({
   const resolvedHighlights = useMemo(() => {
     if (Array.isArray(highlights) && highlights.length) return highlights;
     if (apiHighlights.length) return apiHighlights;
-    return fullStackDeveloperHighlights;
+    return [];
   }, [apiHighlights, highlights]);
 
   const resolvedImage = image || apiImage || "";

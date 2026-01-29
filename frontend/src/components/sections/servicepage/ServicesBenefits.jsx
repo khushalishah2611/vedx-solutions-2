@@ -72,7 +72,7 @@ const ServicesBenefits = ({
           alignItems: "stretch",
         }}
       >
-        {(benefits?.length ? benefits : fullStackServiceFeatures).map((feature, index) => {
+        {( benefits).map((feature, index) => {
           const Icon =
             feature.icon || highlightIcons[index % highlightIcons.length];
 

@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -12,17 +13,30 @@ import {
   alpha,
   useTheme,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
-import { AppButton, AppSelectField, AppTextField } from "../shared/FormControls.jsx";
+import {
+  AppButton,
+  AppSelectField,
+  AppTextField,
+} from "../shared/FormControls.jsx";
 
 import PhoneInTalkRoundedIcon from "@mui/icons-material/PhoneInTalkRounded";
 import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 
-
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
+/* ✅ FALLBACK PROJECT TYPES (fix for contactProjectTypes not defined) */
+const contactProjectTypes = [
+  "Website Development",
+  "Mobile App Development",
+  "UI/UX Design",
+  "E-Commerce Development",
+  "Digital Marketing",
+  "SEO",
+  "Custom Software",
+  "Other",
+];
 
 const contactLocation = {
   address: "Vedx Solution Pvt Ltd, Vadodara, Gujarat, India",
@@ -62,9 +76,12 @@ const ContactPage = () => {
   const isDark = theme.palette.mode === "dark";
   const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
+
   const { fetchWithLoading } = useLoadingFetch();
 
-  const [projectTypes, setProjectTypes] = useState(contactProjectTypes || []);
+  // ✅ now safe
+  const [projectTypes, setProjectTypes] = useState(contactProjectTypes);
+
   const [formValues, setFormValues] = useState({
     name: "",
     email: "",
@@ -85,6 +102,7 @@ const ContactPage = () => {
         const response = await fetchWithLoading(apiUrl("/api/project-types"));
         if (!response?.ok) throw new Error("Failed to fetch project types");
         const payload = await response.json();
+
         if (!isMounted) return;
 
         const types = (payload?.projectTypes || [])
@@ -94,7 +112,7 @@ const ContactPage = () => {
         if (types.length > 0) setProjectTypes(types);
       } catch (error) {
         console.error("Failed to load project types", error);
-        // keep fallback list (contactProjectTypes)
+        // ✅ keep fallback list
       }
     };
 
@@ -104,8 +122,10 @@ const ContactPage = () => {
     };
   }, [fetchWithLoading]);
 
-  // keep for reset use, not auto-select (still useful if you want later)
-  const resolvedProjectType = useMemo(() => projectTypes?.[0] || "", [projectTypes]);
+  const resolvedProjectType = useMemo(
+    () => (Array.isArray(projectTypes) ? projectTypes?.[0] : "") || "",
+    [projectTypes]
+  );
 
   const handleChange = (field) => (event) => {
     setFormValues((prev) => ({ ...prev, [field]: event.target.value }));
@@ -117,9 +137,6 @@ const ContactPage = () => {
     setStatusMessage("");
 
     const token = localStorage.getItem("adminToken");
-
-    // ✅ Keep your logic as-is, but make endpoint a bit safer:
-    // If you truly have a public route, prefer "/api/contacts" etc.
     const endpoint = token ? "/api/admin/contacts" : "/api/admin/contacts?public=true";
 
     const headers = {
@@ -148,9 +165,7 @@ const ContactPage = () => {
         payload = {};
       }
 
-      if (!response?.ok) {
-        throw new Error(payload?.message || "Unable to submit request.");
-      }
+      if (!response?.ok) throw new Error(payload?.message || "Unable to submit request.");
 
       setStatusSeverity("success");
       setStatusMessage(payload?.message || "Thanks! Your enquiry has been received.");
@@ -163,8 +178,6 @@ const ContactPage = () => {
         description: "",
       });
 
-      // Optional: you can auto-reset projectType to first option if you want:
-      // setFormValues((p) => ({ ...p, projectType: resolvedProjectType }));
       void resolvedProjectType;
     } catch (error) {
       setStatusSeverity("error");
@@ -216,14 +229,19 @@ const ContactPage = () => {
                 textAlign: { xs: "center", md: "left" },
               }}
             >
-              We are here to discuss your ideas, understand your challenges, and build the next big thing together.
+              We are here to discuss your ideas, understand your challenges, and build
+              the next big thing together.
             </Typography>
           </Stack>
         </Container>
       </Box>
 
       {/* Contact Section */}
-      <Container id="contact" maxWidth={false} sx={{ px: { xs: 3, md: 20 }, py: { xs: 6, md: 10 } }}>
+      <Container
+        id="contact"
+        maxWidth={false}
+        sx={{ px: { xs: 3, md: 20 }, py: { xs: 6, md: 10 } }}
+      >
         <Box my={5}>
           <Stack spacing={{ xs: 6, md: 10 }}>
             {/* Section Title */}
@@ -236,7 +254,9 @@ const ContactPage = () => {
                   py: 1,
                   borderRadius: 0.5,
                   border: `1px solid ${alpha("#ffffff", 0.1)}`,
-                  background: !isDark ? alpha("#ddddddff", 0.9) : alpha("#0000007c", 0.9),
+                  background: !isDark
+                    ? alpha("#ddddddff", 0.9)
+                    : alpha("#0000007c", 0.9),
                   color: alpha(accentColor, 0.9),
                   fontWeight: 600,
                   letterSpacing: 1,
@@ -282,8 +302,13 @@ const ContactPage = () => {
                       background: isDark
                         ? "linear-gradient(160deg, #0f172a 0%, #111827 100%)"
                         : "linear-gradient(160deg, #ffffff 0%, #f7f8ff 100%)",
-                      border: `1px solid ${alpha(isDark ? accentColor : theme.palette.primary.main, 0.3)}`,
-                      boxShadow: isDark ? "0 18px 45px rgba(3, 7, 18, 0.65)" : "0 18px 45px rgba(14, 18, 68, 0.15)",
+                      border: `1px solid ${alpha(
+                        isDark ? accentColor : theme.palette.primary.main,
+                        0.3
+                      )}`,
+                      boxShadow: isDark
+                        ? "0 18px 45px rgba(3, 7, 18, 0.65)"
+                        : "0 18px 45px rgba(14, 18, 68, 0.15)",
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "center",
@@ -298,7 +323,8 @@ const ContactPage = () => {
                             borderRadius: "50%",
                             display: "grid",
                             placeItems: "center",
-                            background: "linear-gradient(135deg, #FF5E5E 0%, #A84DFF 100%)",
+                            background:
+                              "linear-gradient(135deg, #FF5E5E 0%, #A84DFF 100%)",
                             color: "common.white",
                           }}
                         >
@@ -345,7 +371,9 @@ const ContactPage = () => {
                     background: isDark
                       ? "linear-gradient(145deg, rgba(15,23,42,0.96), rgba(30,41,59,0.92))"
                       : "linear-gradient(145deg, rgba(248,250,252,0.98), rgba(219,234,254,0.9))",
-                    boxShadow: isDark ? "0 24px 48px rgba(3,7,18,0.85)" : "0 24px 48px rgba(15,23,42,0.15)",
+                    boxShadow: isDark
+                      ? "0 24px 48px rgba(3,7,18,0.85)"
+                      : "0 24px 48px rgba(15,23,42,0.15)",
                   }}
                 >
                   <Stack spacing={1.5}>
@@ -353,12 +381,15 @@ const ContactPage = () => {
                       Share Your Project Brief
                     </Typography>
                     <Typography variant="body1" sx={{ color: subtleText }}>
-                      Fill out the form and we will reach out within 24 hours with a tailored plan for your requirements.
+                      Fill out the form and we will reach out within 24 hours with a
+                      tailored plan for your requirements.
                     </Typography>
                   </Stack>
 
                   <Stack component="form" spacing={2} noValidate onSubmit={handleSubmit}>
-                    {statusMessage ? <Alert severity={statusSeverity}>{statusMessage}</Alert> : null}
+                    {statusMessage ? (
+                      <Alert severity={statusSeverity}>{statusMessage}</Alert>
+                    ) : null}
 
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5}>
                       <AppTextField
@@ -406,10 +437,7 @@ const ContactPage = () => {
                             return (
                               <span
                                 style={{
-                                  color: alpha(
-                                    theme.palette.text.secondary,
-                                    isDark ? 0.7 : 0.85
-                                  ),
+                                  color: alpha(theme.palette.text.secondary, isDark ? 0.7 : 0.85),
                                 }}
                               >
                                 Select Project Type
@@ -423,7 +451,7 @@ const ContactPage = () => {
                           Select Project Type
                         </MenuItem>
 
-                        {(projectTypes || []).map((type) => (
+                        {(Array.isArray(projectTypes) ? projectTypes : []).map((type) => (
                           <MenuItem key={type} value={type}>
                             {type}
                           </MenuItem>
@@ -475,14 +503,18 @@ const ContactPage = () => {
                       position: "relative",
                       borderRadius: 0.5,
                       overflow: "hidden",
-                      boxShadow: isDark ? "0 30px 60px rgba(3, 7, 18, 0.75)" : "0 30px 45px rgba(15, 23, 42, 0.18)",
+                      boxShadow: isDark
+                        ? "0 30px 60px rgba(3, 7, 18, 0.75)"
+                        : "0 30px 45px rgba(15, 23, 42, 0.18)",
                       height: { xs: 260, sm: 340, md: 520 },
                       width: "100%",
                       maxWidth: "100%",
-                      border: `1px solid ${alpha(isDark ? accentColor : theme.palette.primary.main, 0.22)}`,
+                      border: `1px solid ${alpha(
+                        isDark ? accentColor : theme.palette.primary.main,
+                        0.22
+                      )}`,
                     }}
                   >
-                    {/* ✅ MAP IFRAME */}
                     <Box
                       component="iframe"
                       title="Vedx Solution Pvt Ltd map"
@@ -498,7 +530,6 @@ const ContactPage = () => {
                       }}
                     />
 
-                    {/* ✅ OVERLAY INFO CARD */}
                     <Box
                       sx={{
                         position: "absolute",
@@ -512,7 +543,12 @@ const ContactPage = () => {
                       }}
                     >
                       <Stack spacing={0.8}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2}>
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          gap={2}
+                        >
                           <Box>
                             <Typography sx={{ fontWeight: 800, fontSize: 16, color: "#111827" }}>
                               Vedx solution Pvt ltd
@@ -544,27 +580,19 @@ const ContactPage = () => {
                         </Stack>
 
                         <Stack direction="row" alignItems="center" spacing={1}>
-                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: "#111827" }}>5.0</Typography>
+                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: "#111827" }}>
+                            5.0
+                          </Typography>
                           <Rating value={5} precision={0.5} readOnly size="small" />
-                          <Typography sx={{ fontSize: 12, color: "#2563eb", fontWeight: 700 }}>2 reviews</Typography>
+                          <Typography sx={{ fontSize: 12, color: "#2563eb", fontWeight: 700 }}>
+                            2 reviews
+                          </Typography>
                         </Stack>
 
-                        <Box
-                          component="a"
-                          href={contactLocation.mapUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ textDecoration: "none" }}
-                        >
-                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: "#2563eb" }}>
-                            View larger map
-                          </Typography>
-                        </Box>
+                       
                       </Stack>
                     </Box>
                   </Box>
-
-
                 </Stack>
               </Grid>
             </Grid>
