@@ -72,6 +72,56 @@ const HireDeveloperDetailPage = () => {
     () => (roleName || '').trim().toLowerCase(),
     [roleName]
   );
+  const normalizedRoleSlug = useMemo(
+    () => (roleSlug || '').trim().toLowerCase(),
+    [roleSlug]
+  );
+
+  const normalizeToken = useCallback((value) => {
+    if (!value) return '';
+    return String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }, []);
+
+  const buildRoleTokens = useCallback(
+    () =>
+      [normalizedRoleName, normalizedRoleSlug, roleName, roleSlug]
+        .map((value) => normalizeToken(value))
+        .filter(Boolean),
+    [normalizeToken, normalizedRoleName, normalizedRoleSlug, roleName, roleSlug]
+  );
+
+  const doesSubcategoryMatchRole = useCallback(
+    (subcategory, roleTokens) => {
+      if (!roleTokens.length) return false;
+
+      const candidates = [];
+
+      if (typeof subcategory === 'string') {
+        candidates.push(subcategory);
+      } else if (subcategory && typeof subcategory === 'object') {
+        candidates.push(subcategory.name, subcategory.title, subcategory.slug);
+      }
+
+      const normalizedCandidates = candidates
+        .map((candidate) => normalizeToken(candidate))
+        .filter(Boolean);
+
+      if (!normalizedCandidates.length) return false;
+
+      return normalizedCandidates.some((candidate) =>
+        roleTokens.some(
+          (token) =>
+            candidate === token ||
+            candidate.includes(token) ||
+            token.includes(candidate)
+        )
+      );
+    },
+    [normalizeToken]
+  );
 
   useEffect(() => {
     if (!categoryName && !roleName) return;
@@ -152,15 +202,21 @@ const HireDeveloperDetailPage = () => {
         }
 
         const list = Array.isArray(data) ? data : [];
-        let selected = list[0] || null;
+        const roleTokens = buildRoleTokens();
 
-        if (normalizedRoleName) {
-          const matched = list.find((service) =>
-            (service?.subcategories ?? []).some(
-              (sub) => String(sub || '').trim().toLowerCase() === normalizedRoleName
-            )
-          );
-          selected = matched || selected;
+        let selected = null;
+
+        if (roleTokens.length) {
+          selected =
+            list.find((service) =>
+              (service?.subcategories ?? []).some((sub) =>
+                doesSubcategoryMatchRole(sub, roleTokens)
+              )
+            ) || null;
+        }
+
+        if (!selected && list.length) {
+          selected = list[0];
         }
 
         if (!isMounted) return;
@@ -175,7 +231,13 @@ const HireDeveloperDetailPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [categoryName, fetchWithLoading, normalizedRoleName, roleName]);
+  }, [
+    buildRoleTokens,
+    categoryName,
+    doesSubcategoryMatchRole,
+    fetchWithLoading,
+    roleName,
+  ]);
 
   const isDark = theme.palette.mode === 'dark';
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
