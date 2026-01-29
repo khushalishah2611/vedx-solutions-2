@@ -1,5 +1,8 @@
-// ServicesCTA.jsx ✅ (SINGLE FILE) — Category/Subcategory wise CTA (with bullet formatting like your image)
-// ✅ Removed CircularProgress loading block
+// ServicesCTA.jsx ✅ (SINGLE FILE)
+// ✅ Category/Subcategory wise CTA (bullets like your image)
+// ✅ Fixed banner height to match screenshot (not too tall)
+// ✅ Nice vignette overlay like image
+// ✅ No CircularProgress block
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Box, Paper, Stack, Typography, alpha, useTheme } from "@mui/material";
@@ -108,7 +111,6 @@ const ServicesCTA = ({
 
       const list = normalizeApiDataToList(json);
       const best = pickBestMatch(list, category, subcategory);
-
       setCtaConfig(best);
     } catch (e) {
       console.error("Failed to load contact CTA", e);
@@ -136,7 +138,6 @@ const ServicesCTA = ({
 
   const title = ctaConfig?.title || "";
   const description = ctaConfig?.description || "";
-
   const buttonText = ctaConfig?.buttonText || ctaConfig?.ctaText || "Contact Us";
   const buttonLink = ctaConfig?.buttonLink || ctaConfig?.ctaLink || "";
 
@@ -151,11 +152,8 @@ const ServicesCTA = ({
     if (buttonLink) {
       const link = String(buttonLink);
       const isExternal = /^https?:\/\//i.test(link);
-      if (isExternal) {
-        window.open(link, "_blank", "noopener,noreferrer");
-      } else {
-        navigate(link);
-      }
+      if (isExternal) window.open(link, "_blank", "noopener,noreferrer");
+      else navigate(link);
       return;
     }
 
@@ -163,6 +161,8 @@ const ServicesCTA = ({
   };
 
   const hasContent = Boolean(title || description);
+
+  const bannerMinHeight = { xs: 200, sm: 220, md: 250, lg: 270 };
 
   return (
     <Box component="section" id="contact-section" sx={{ mt: { xs: 6, md: 8 } }}>
@@ -172,38 +172,55 @@ const ServicesCTA = ({
           position: "relative",
           overflow: "hidden",
           borderRadius: 0.5,
-          px: { xs: 3, md: 6 },
-          py: { xs: 4, md: 6 },
-          backgroundColor: "transparent",
+          minHeight: bannerMinHeight,
+          display: "flex",
+          alignItems: "center",
+
+          // keep content breathing but don't increase height too much
+          px: { xs: 2.5, sm: 3, md: 6 },
+          py: { xs: 3, md: 4 },
+
+          backgroundColor: alpha(theme.palette.background.paper, isDark ? 0.18 : 0.6),
           backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          border: `1px solid ${alpha("#ffffff", isDark ? 0.1 : 0.35)}`,
+
+          border: `1px solid ${alpha("#ffffff", isDark ? 0.12 : 0.28)}`,
         }}
       >
-        {/* overlay */}
+        {/* ✅ overlay/vignette like screenshot */}
         {backgroundImage ? (
           <Box
             sx={{
               position: "absolute",
               inset: 0,
-              bgcolor: alpha(isDark ? "#000" : "#fff", isDark ? 0.35 : 0.6),
               pointerEvents: "none",
+              background: isDark
+                ? `linear-gradient(90deg,
+                    rgba(0,0,0,0.78) 0%,
+                    rgba(0,0,0,0.38) 35%,
+                    rgba(0,0,0,0.38) 65%,
+                    rgba(0,0,0,0.78) 100%)`
+                : `linear-gradient(90deg,
+                    rgba(255,255,255,0.75) 0%,
+                    rgba(255,255,255,0.45) 35%,
+                    rgba(255,255,255,0.45) 65%,
+                    rgba(255,255,255,0.75) 100%)`,
             }}
           />
         ) : null}
 
         <Stack
           direction={{ xs: "column", md: "row" }}
-          spacing={3}
+          spacing={{ xs: 2.25, md: 3 }}
           alignItems={{ xs: "flex-start", md: "center" }}
           justifyContent="space-between"
-          sx={{ position: "relative", zIndex: 1 }}
+          sx={{ position: "relative", zIndex: 1, width: "100%" }}
         >
           {/* Text block */}
           <Stack
-            spacing={1.5}
+            spacing={1.2}
             sx={{
               textAlign: "left",
               maxWidth: { xs: "100%", md: "72%" },
@@ -212,22 +229,23 @@ const ServicesCTA = ({
             <Typography
               variant="h4"
               sx={{
-                fontWeight: 700,
-                fontSize: { xs: 22, md: 26 },
-                minHeight: 32, // keeps layout stable even while loading
+                fontWeight: 800,
+                fontSize: { xs: 20, sm: 22, md: 28 },
+                lineHeight: 1.2,
+                color: isDark ? "#fff" : theme.palette.text.primary,
+                minHeight: 30, // stable while loading
               }}
             >
               {loading ? " " : title}
             </Typography>
 
-            {/* ✅ Removed CircularProgress block */}
             {!loading ? (
               <Box>
                 {looksLikeHtml(description) ? (
                   <Box
                     sx={{
-                      color: alpha(theme.palette.text.primary, 0.78),
-                      "& p": { m: 0, mb: 1.25 },
+                      color: alpha(isDark ? "#fff" : theme.palette.text.primary, 0.82),
+                      "& p": { m: 0, mb: 1.1 },
                       "& ul, & ol": { m: 0, pl: 2.5 },
                       "& li": { mb: 0.5 },
                     }}
@@ -239,10 +257,10 @@ const ServicesCTA = ({
                       <Typography
                         variant="body1"
                         sx={{
-                          color: alpha(theme.palette.text.primary, 0.78),
-                          maxWidth: 760,
+                          color: alpha(isDark ? "#fff" : theme.palette.text.primary, 0.82),
+                          maxWidth: 820,
                           whiteSpace: "pre-line",
-                          lineHeight: 1.6,
+                          lineHeight: 1.65,
                         }}
                       >
                         {paragraphs}
@@ -250,13 +268,13 @@ const ServicesCTA = ({
                     ) : null}
 
                     {bullets?.length ? (
-                      <Stack sx={{ mt: paragraphs ? 2 : 0.5 }} spacing={0.6}>
+                      <Stack sx={{ mt: paragraphs ? 1.5 : 0.5 }} spacing={0.5}>
                         {bullets.map((b, idx) => (
                           <Typography
                             key={`${idx}-${b}`}
                             variant="body1"
                             sx={{
-                              color: alpha(theme.palette.text.primary, 0.85),
+                              color: alpha(isDark ? "#fff" : theme.palette.text.primary, 0.9),
                               lineHeight: 1.55,
                             }}
                           >
@@ -270,7 +288,7 @@ const ServicesCTA = ({
                 )}
               </Box>
             ) : (
-              // optional: keep height stable without showing loader text
+              // keep height stable while loading (no spinner)
               <Box sx={{ minHeight: 44 }} />
             )}
           </Stack>
@@ -278,7 +296,7 @@ const ServicesCTA = ({
           {/* Button block */}
           <Box
             sx={{
-              mt: { xs: 1, md: 0 },
+              mt: { xs: 0.5, md: 0 },
               width: { xs: "100%", md: "auto" },
               display: "flex",
               justifyContent: { xs: "flex-start", md: "flex-end" },
@@ -294,10 +312,10 @@ const ServicesCTA = ({
                 color: "#fff",
                 borderRadius: "12px",
                 textTransform: "none",
-                fontWeight: 600,
+                fontWeight: 700,
                 px: { xs: 4, md: 6 },
-                py: { xs: 1.5, md: 1.75 },
-                width: { xs: "auto", md: "auto" },
+                py: { xs: 1.35, md: 1.6 },
+                boxShadow: "0 14px 30px rgba(0,0,0,0.25)",
               }}
             >
               {buttonText}
