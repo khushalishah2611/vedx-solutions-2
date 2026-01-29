@@ -1,6 +1,5 @@
 import { Box, Grid, Paper, Stack, Typography, Divider, alpha, useTheme } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { industriesServed } from '../../data/servicesPage.js';
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
@@ -54,8 +53,7 @@ const ServicesIndustries = () => {
     };
   }, [fetchWithLoading]);
 
-  const resolvedIndustries =
-    apiIndustries.length > 0 ? apiIndustries : industriesServed;
+  const resolvedIndustries =apiIndustries  ;
   const headerTitle = apiConfig?.title ;
   const headerDescription =
     apiConfig?.description ;

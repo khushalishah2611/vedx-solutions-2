@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
 import { Box, ButtonBase, Divider, Grid, Paper, Stack, Typography, alpha, useMediaQuery, useTheme } from '@mui/material';
 import { AppButton } from '../../shared/FormControls.jsx';
-
-import { businessSolutions } from '../../../data/servicesPage.js';
 import { apiUrl } from '../../../utils/const.js';
 import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 
@@ -68,7 +66,7 @@ const ServicesBusinessSolutions = ({ onRequestContact, contactAnchorId = 'contac
     };
   }, [fetchWithLoading]);
 
-  const resolvedSolutions = apiSolutions.length > 0 ? apiSolutions : businessSolutions;
+  const resolvedSolutions = apiSolutions ;
   const headerTitle = apiConfig?.title ;
   const headerDescription =
     apiConfig?.description;

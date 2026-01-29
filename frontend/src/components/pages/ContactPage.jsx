@@ -1,5 +1,3 @@
-// ContactPage.jsx (SINGLE FILE) ✅ FULL + CORRECTED
-
 import {
   Alert,
   Box,
@@ -21,7 +19,7 @@ import PhoneInTalkRoundedIcon from "@mui/icons-material/PhoneInTalkRounded";
 import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 
-import { contactProjectTypes } from "../../data/servicesPage.js";
+
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 

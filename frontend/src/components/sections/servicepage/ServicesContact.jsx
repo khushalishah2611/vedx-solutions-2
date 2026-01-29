@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Box, Grid, MenuItem, Stack, Typography, alpha, useTheme } from "@mui/material";
 import { AppButton, AppSelectField, AppTextField } from "../../shared/FormControls.jsx";
-
-import { contactProjectTypes, servicesContactImage } from "../../../data/servicesPage.js";
 import { apiUrl } from "../../../utils/const.js";
 import { useLoadingFetch } from "../../../hooks/useLoadingFetch.js";
 

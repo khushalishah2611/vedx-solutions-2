@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import { AppButton } from "../../shared/FormControls.jsx";
 
-import { fullStackDeveloperHighlights } from "../../../data/servicesPage.js";
 import { apiUrl } from "../../../utils/const.js";
 
 

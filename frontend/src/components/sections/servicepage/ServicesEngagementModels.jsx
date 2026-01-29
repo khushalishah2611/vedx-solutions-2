@@ -1,6 +1,5 @@
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { engagementModels } from '../../../data/servicesPage.js';
 import { apiUrl } from '../../../utils/const.js';
 import { useLoadingFetch } from '../../../hooks/useLoadingFetch.js';
 
@@ -53,7 +52,7 @@ const ServicesEngagementModels = () => {
     };
   }, [fetchWithLoading]);
 
-  const resolvedModels = apiModels.length > 0 ? apiModels : engagementModels;
+  const resolvedModels =  apiModels ;
   const headerTitle = apiConfig?.title ;
   const headerDescription =
     apiConfig?.description;
