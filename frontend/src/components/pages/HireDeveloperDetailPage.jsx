@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
 
@@ -15,8 +15,8 @@ import FAQAccordion from '../shared/FAQAccordion.jsx';
 import PricingModels from '../shared/PricingModels.jsx';
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
+import NotFoundPage from '../shared/NotFoundPage.jsx';
 
-import { hireDeveloperDetailContent } from '../../data/hireDevelopers.js';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 import { apiUrl } from '../../utils/const.js';
@@ -25,7 +25,6 @@ import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 const HireDeveloperDetailPage = () => {
   const theme = useTheme();
   const { categorySlug, roleSlug } = useParams();
-  const navigate = useNavigate();
   const { openDialog } = useContactDialog();
   const { fetchWithLoading } = useLoadingFetch();
   const { hireCategories, hireRoles, isLoading } = useServiceHireCatalog();
@@ -34,8 +33,6 @@ const HireDeveloperDetailPage = () => {
   const [technologies, setTechnologies] = useState([]);
   const [serviceConfig, setServiceConfig] = useState(null);
 
-  const category = hireDeveloperDetailContent[categorySlug ?? ''];
-  const role = category?.roles?.[roleSlug ?? ''];
   const apiCategory = useMemo(
     () => hireCategories.find((item) => item.slug === categorySlug),
     [categorySlug, hireCategories]
@@ -44,25 +41,31 @@ const HireDeveloperDetailPage = () => {
     () => hireRoles.find((item) => item.slug === roleSlug),
     [hireRoles, roleSlug]
   );
+  const isValidRoute = useMemo(() => {
+    if (!categorySlug) return false;
+    if (!apiCategory) return false;
+    if (roleSlug) {
+      if (!apiRole) return false;
+      if (apiRole?.hireCategoryId && apiCategory?.id) {
+        return apiRole.hireCategoryId === apiCategory.id;
+      }
+    }
+    return true;
+  }, [apiCategory, apiRole, categorySlug, roleSlug]);
+  const category = isValidRoute ? apiCategory ?? null : null;
+  const role = isValidRoute ? apiRole ?? null : null;
 
   // Scroll to top on slug change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [categorySlug, roleSlug]);
 
-  // Redirect if invalid category / role
-  useEffect(() => {
-    if (!category && !role && !apiCategory && !apiRole && !isLoading) {
-      navigate('/hire-developers', { replace: true });
-    }
-  }, [apiCategory, apiRole, category, isLoading, navigate, role]);
-
   const handleOpenContact = useCallback(() => {
     openDialog();
   }, [openDialog]);
 
-  const resolvedCategory = apiCategory ?? category;
-  const resolvedRole = apiRole ?? role;
+  const resolvedCategory = category;
+  const resolvedRole = role;
   const categoryName = resolvedCategory?.title ?? resolvedCategory?.name;
   const roleName = resolvedRole?.title ?? resolvedRole?.name;
   const normalizedRoleName = useMemo(
@@ -136,6 +139,7 @@ const HireDeveloperDetailPage = () => {
 
     const params = new URLSearchParams();
     if (categoryName) params.append('category', categoryName);
+    if (roleName) params.append('subcategory', roleName);
 
     const loadServiceConfig = async () => {
       try {
@@ -171,7 +175,7 @@ const HireDeveloperDetailPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [categoryName, fetchWithLoading, normalizedRoleName]);
+  }, [categoryName, fetchWithLoading, normalizedRoleName, roleName]);
 
   const isDark = theme.palette.mode === 'dark';
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
@@ -190,16 +194,16 @@ const HireDeveloperDetailPage = () => {
       ].filter(Boolean);
     }
 
-    return [
-      { label: 'Projects Delivered', value: '120+' },
-      { label: 'Senior Engineers', value: '60+' },
-      { label: 'Client Countries', value: '10+' },
-    ];
+    return [];
   }, [serviceConfig?.totalClients, serviceConfig?.totalProjects, serviceConfig?.totalServices]);
 
   // If redirecting, avoid rendering
-  if (!category && !role && !apiCategory && !apiRole && isLoading) {
+  if (!isValidRoute && isLoading) {
     return null;
+  }
+
+  if (!isValidRoute && !isLoading) {
+    return <NotFoundPage />;
   }
 
   return (

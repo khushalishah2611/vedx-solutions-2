@@ -19,6 +19,7 @@ import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
 import ServiceHero from '../sections/servicepage/ServiceHero.jsx';
+import NotFoundPage from '../shared/NotFoundPage.jsx';
 import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
@@ -122,11 +123,15 @@ const ServiceDetailPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [categorySlug, serviceSlug]);
 
-  useEffect(() => {
-    if (!apiCategory && !apiSubCategory && !isLoading) {
-      navigate('/services', { replace: true });
+  const isValidRoute = useMemo(() => {
+    if (!apiCategory) return false;
+    if (!serviceSlug) return true;
+    if (!apiSubCategory) return false;
+    if (apiSubCategory?.categoryId && apiCategory?.id) {
+      return apiSubCategory.categoryId === apiCategory.id;
     }
-  }, [apiCategory, apiSubCategory, isLoading, navigate]);
+    return true;
+  }, [apiCategory, apiSubCategory, serviceSlug]);
 
   // ✅ Dialog remove -> Contact page redirect + smooth scroll top
   const handleOpenContact = useCallback(() => {
@@ -158,8 +163,12 @@ const ServiceDetailPage = () => {
     ].filter(Boolean);
   }, [serviceMenu]);
 
-  if (!apiCategory && !apiSubCategory && isLoading) {
+  if (!isValidRoute && isLoading) {
     return null;
+  }
+
+  if (!isValidRoute && !isLoading) {
+    return <NotFoundPage />;
   }
 
   return (

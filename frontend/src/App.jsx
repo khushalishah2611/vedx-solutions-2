@@ -20,9 +20,7 @@ import AdminCaseStudiesPage from './components/admin/AdminCaseStudiesPage.jsx';
 import AdminCaseStudyDetailsPage from './components/admin/AdminCaseStudyDetailsPage.jsx';
 import AdminLegalPages from './components/admin/AdminLegalPages.jsx';
 import HomePage from './components/pages/HomePage.jsx';
-import ServicesPage from './components/pages/ServicesPage.jsx';
 import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
-import HireDevelopersPage from './components/pages/HireDevelopersPage.jsx';
 import HireDeveloperDetailPage from './components/pages/HireDeveloperDetailPage.jsx';
 import ComingSoonPage from './components/shared/ComingSoonPage.jsx';
 import NotFoundPage from './components/shared/NotFoundPage.jsx';
@@ -65,12 +63,12 @@ const App = () => {
           <Route path="/" element={<SiteLayout />}>
             <Route index element={<HomePage />} />
             <Route path="services">
-              <Route index element={<ServicesPage />} />
+              <Route index element={<NotFoundPage />} />
               <Route path=":categorySlug" element={<ServiceDetailPage />} />
               <Route path=":categorySlug/:serviceSlug" element={<ServiceDetailPage />} />
             </Route>
             <Route path="hire-developers">
-              <Route index element={<HireDevelopersPage />} />
+              <Route index element={<NotFoundPage />} />
               <Route path=":categorySlug" element={<HireDeveloperDetailPage />} />
               <Route path=":categorySlug/:roleSlug" element={<HireDeveloperDetailPage />} />
           
