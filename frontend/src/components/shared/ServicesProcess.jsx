@@ -1,6 +1,3 @@
-// ServicesProcess.jsx ✅ (SINGLE FILE) - API only (no category/subcategory, no static/fallback steps)
-// Usage: <ServicesProcess apiPath="/api/hire-developer/processes" />
-
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
@@ -13,7 +10,6 @@ import {
   alpha,
   useMediaQuery,
   useTheme,
-  CircularProgress,
 } from "@mui/material";
 import { keyframes } from "@mui/system";
 import KeyboardArrowLeftRoundedIcon from "@mui/icons-material/KeyboardArrowLeftRounded";
@@ -28,7 +24,6 @@ const safeStr = (v) => String(v ?? "").trim();
 const resolveImg = (val) => {
   if (!val) return "";
   if (typeof val === "string") return val.trim();
-
   if (typeof val === "object") {
     const direct =
       val.url ||
@@ -50,10 +45,11 @@ const ServicesProcess = ({
   title = "Process",
   subtitle = "Slide through the journey or let it autoplay—hover to pause and take a closer look.",
   description = "We choreograph every step with cinematic animations—auto-playing slides, hover pauses, and directional controls—so you can explore our delivery rhythm without missing a beat.",
+  autoplayMs = 6500,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const { fetchWithLoading, loading } = useLoadingFetch();
+  const { fetchWithLoading } = useLoadingFetch();
 
   const [apiSteps, setApiSteps] = useState([]);
   const [error, setError] = useState("");
@@ -71,13 +67,48 @@ const ServicesProcess = ({
     return 1;
   }, [isLgUp, isMdUp]);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // ✅ Page-based carousel (fixes the 5 items / 3-per-view bug)
+  const [page, setPage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [animationDirection, setAnimationDirection] = useState("right");
 
   const resolvedSteps = useMemo(() => apiSteps ?? [], [apiSteps]);
   const total = resolvedSteps.length;
-  const maxIndex = Math.max(0, total - stepsPerView);
+
+  const totalPages = useMemo(() => {
+    if (!total) return 0;
+    return Math.ceil(total / stepsPerView);
+  }, [total, stepsPerView]);
+
+  const startIndex = useMemo(() => page * stepsPerView, [page, stepsPerView]);
+
+  const visibleSteps = useMemo(() => {
+    if (!total) return [];
+    return resolvedSteps.slice(startIndex, startIndex + stepsPerView);
+  }, [resolvedSteps, startIndex, stepsPerView, total]);
+
+  const showNavigation = totalPages > 1;
+
+  // If screen size changes (stepsPerView changes), ensure page is valid
+  useEffect(() => {
+    if (!totalPages) {
+      setPage(0);
+      return;
+    }
+    setPage((p) => Math.min(p, totalPages - 1));
+  }, [totalPages, stepsPerView]);
+
+  const handlePrev = useCallback(() => {
+    if (!showNavigation) return;
+    setAnimationDirection("left");
+    setPage((p) => (p - 1 < 0 ? totalPages - 1 : p - 1));
+  }, [showNavigation, totalPages]);
+
+  const handleNext = useCallback(() => {
+    if (!showNavigation) return;
+    setAnimationDirection("right");
+    setPage((p) => (p + 1 >= totalPages ? 0 : p + 1));
+  }, [showNavigation, totalPages]);
 
   const pulseBorder = keyframes`
     0% { box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.35); }
@@ -85,37 +116,16 @@ const ServicesProcess = ({
     100% { box-shadow: 0 0 0 0 rgba(103, 232, 249, 0); }
   `;
 
-  useEffect(() => {
-    setCurrentIndex((prev) => Math.min(prev, maxIndex));
-  }, [maxIndex, stepsPerView]);
-
-  const handlePrev = useCallback(() => {
-    setAnimationDirection("left");
-    setCurrentIndex((prev) => Math.max(prev - stepsPerView, 0));
-  }, [stepsPerView]);
-
-  const handleNext = useCallback(() => {
-    setAnimationDirection("right");
-    setCurrentIndex((prev) => (prev + stepsPerView > maxIndex ? 0 : prev + stepsPerView));
-  }, [maxIndex, stepsPerView]);
-
-  const visibleSteps = useMemo(
-    () => resolvedSteps.slice(currentIndex, currentIndex + stepsPerView),
-    [resolvedSteps, currentIndex, stepsPerView]
-  );
-
-  const showNavigation = total > stepsPerView;
-
   // 🌀 Auto-scroll with pause support
   useEffect(() => {
     if (!showNavigation || isPaused) return undefined;
 
-    const autoScroll = setInterval(() => {
+    const t = setInterval(() => {
       handleNext();
-    }, 6500);
+    }, autoplayMs);
 
-    return () => clearInterval(autoScroll);
-  }, [handleNext, isPaused, showNavigation]);
+    return () => clearInterval(t);
+  }, [handleNext, isPaused, showNavigation, autoplayMs]);
 
   // ✅ Load from API (NO category/subcategory, NO static fallback)
   useEffect(() => {
@@ -135,6 +145,7 @@ const ServicesProcess = ({
         const list = Array.isArray(data) ? data : data?.data || data?.processes || [];
 
         const mapped = (Array.isArray(list) ? list : [])
+          // NOTE: if your API uses "status" or something else, adjust here
           .filter((item) => item?.isActive ?? true)
           .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
           .map((item) => ({
@@ -145,11 +156,13 @@ const ServicesProcess = ({
           .filter((x) => x.title);
 
         setApiSteps(mapped);
+        setPage(0); // reset to first page on reload
       } catch (e) {
         console.error("Failed to load process steps", e);
         if (!isMounted) return;
         setApiSteps([]);
         setError("Process steps not available right now.");
+        setPage(0);
       }
     };
 
@@ -176,9 +189,15 @@ const ServicesProcess = ({
         <Typography variant="body1" sx={{ color: subtleText, maxWidth: 980 }}>
           {description}
         </Typography>
+
+        {!!error && (
+          <Typography variant="body2" sx={{ color: theme.palette.error.main }}>
+            {error}
+          </Typography>
+        )}
       </Stack>
 
-      {/* Loading / Empty */}
+      {/* Empty */}
       {total === 0 ? (
         <Stack alignItems="center" sx={{ py: 2 }}>
           <Typography variant="body2" sx={{ color: subtleText }}>
@@ -189,7 +208,7 @@ const ServicesProcess = ({
         <Stack sx={{ position: "relative" }}>
           <Grid container spacing={2}>
             {visibleSteps.map((step, index) => (
-              <Grid item xs={12} md={6} lg={4} key={`${step.title}-${index}`}>
+              <Grid item xs={12} md={6} lg={4} key={`${step.title}-${startIndex + index}`}>
                 <Paper
                   elevation={0}
                   sx={{
@@ -240,7 +259,7 @@ const ServicesProcess = ({
                         animation: `${pulseBorder} 4s ease-in-out infinite`,
                       }}
                     >
-                      {currentIndex + index + 1}
+                      {startIndex + index + 1}
                     </Box>
                   </Box>
 
@@ -281,13 +300,16 @@ const ServicesProcess = ({
               alignItems={{ xs: "flex-start", md: "center" }}
               sx={{ px: { xs: 1, md: 2 }, pt: 1 }}
             >
-              <Typography variant="body2" sx={{ color: subtleText }}>
-                {subtitle}
-              </Typography>
+              <Stack spacing={0.25}>
+                <Typography variant="body2" sx={{ color: subtleText }}>
+                  {subtitle}
+                </Typography>
+               
+              </Stack>
 
               <Stack direction="row" spacing={1}>
                 <IconButton
-                  aria-label="Previous step"
+                  aria-label="Previous steps"
                   onClick={handlePrev}
                   sx={{
                     border: `1px solid ${alpha(accentColor, 0.4)}`,
@@ -304,7 +326,7 @@ const ServicesProcess = ({
                 </IconButton>
 
                 <IconButton
-                  aria-label="Next step"
+                  aria-label="Next steps"
                   onClick={handleNext}
                   sx={{
                     border: `1px solid ${alpha("#a855f7", 0.45)}`,

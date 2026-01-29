@@ -218,10 +218,14 @@ const CaseStudyDetailPage = () => {
               <CaseStudyConclusionBlock conclusion={conclusion} accentColor={accentColor} />
             </Box>
 
-            <Divider sx={{ borderColor: dividerColor }} />
-            <Box sx={{ my: sectionSpacing }}>
-              <CaseStudyRelatedSection relatedCaseStudies={relatedCaseStudies} />
-            </Box>
+            {Array.isArray(relatedCaseStudies) && relatedCaseStudies.length > 0 && (
+              <>
+                <Divider sx={{ borderColor: dividerColor }} />
+                <Box sx={{ my: sectionSpacing }}>
+                  <CaseStudyRelatedSection relatedCaseStudies={relatedCaseStudies} />
+                </Box>
+              </>
+            )}
           </Container>
         </>
       ) : null}
