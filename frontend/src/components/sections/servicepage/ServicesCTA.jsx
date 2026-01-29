@@ -1,6 +1,8 @@
-// ServicesCTA.jsx ✅ (SINGLE FILE) — Category/Subcategory wise CTA
+// ServicesCTA.jsx ✅ (SINGLE FILE) — Category/Subcategory wise CTA (with bullet formatting like your image)
+// ✅ Removed CircularProgress loading block
+
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Box, Paper, Stack, Typography, alpha, useTheme, CircularProgress } from "@mui/material";
+import { Box, Paper, Stack, Typography, alpha, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../shared/FormControls.jsx";
 import { apiUrl } from "../../../utils/const.js";
@@ -24,19 +26,20 @@ const pickBestMatch = (list, category, subcategory) => {
 
   // category only
   if (c) {
-    const catOnly = list.find((it) => norm(it?.category) === c && !norm(it?.subcategory));
+    const catOnly = list.find(
+      (it) => norm(it?.category) === c && !norm(it?.subcategory)
+    );
     if (catOnly) return catOnly;
 
-    // if API stores subcategory but you only passed category, still allow any of that category
+    // allow any within category
     const anyInCategory = list.find((it) => norm(it?.category) === c);
     if (anyInCategory) return anyInCategory;
   }
 
-  // default item (no category & no subcategory)
+  // default item
   const def = list.find((it) => !norm(it?.category) && !norm(it?.subcategory));
   if (def) return def;
 
-  // fallback
   return list[0];
 };
 
@@ -47,14 +50,38 @@ const normalizeApiDataToList = (data) => {
   return [];
 };
 
+const looksLikeHtml = (s) =>
+  typeof s === "string" && /<\/?[a-z][\s\S]*>/i.test(s);
+
+const parseDescription = (text) => {
+  const raw = String(text || "");
+  if (!raw.trim()) return { paragraphs: "", bullets: [] };
+
+  const lines = raw.replace(/\r/g, "").split("\n");
+  const isBullet = (line) => /^(\s*)(\*|-|•)\s+/.test(line);
+
+  const bulletLines = [];
+  const paraLines = [];
+
+  for (const ln of lines) {
+    if (isBullet(ln)) {
+      bulletLines.push(ln.replace(/^(\s*)(\*|-|•)\s+/, "").trim());
+    } else {
+      paraLines.push(ln);
+    }
+  }
+
+  const paragraphs = paraLines.join("\n").trim();
+  const bullets = bulletLines.filter(Boolean);
+
+  return { paragraphs, bullets };
+};
+
 /* ---------------- component ---------------- */
 const ServicesCTA = ({
   onContactClick,
   category,
   subcategory,
-  // ✅ you can pass:
-  // apiPath="/api/contact-buttons"
-  // apiPath="/api/hire-developer/contact-buttons"
   apiPath = "/api/contact-buttons",
 }) => {
   const theme = useTheme();
@@ -80,8 +107,6 @@ const ServicesCTA = ({
       if (!res.ok) throw new Error(json?.error || "Unable to load contact CTA");
 
       const list = normalizeApiDataToList(json);
-
-      // ✅ if API returns filtered list when query is passed, still safe:
       const best = pickBestMatch(list, category, subcategory);
 
       setCtaConfig(best);
@@ -112,15 +137,17 @@ const ServicesCTA = ({
   const title = ctaConfig?.title || "";
   const description = ctaConfig?.description || "";
 
-  // Optional API fields (if available)
   const buttonText = ctaConfig?.buttonText || ctaConfig?.ctaText || "Contact Us";
-  const buttonLink = ctaConfig?.buttonLink || ctaConfig?.ctaLink || ""; 
+  const buttonLink = ctaConfig?.buttonLink || ctaConfig?.ctaLink || "";
+
+  const { paragraphs, bullets } = useMemo(() => {
+    if (looksLikeHtml(description)) return { paragraphs: "", bullets: [] };
+    return parseDescription(description);
+  }, [description]);
 
   const handleContactClick = () => {
-    // if you have dialog open behavior
     onContactClick?.();
 
-    // ✅ if API gives a link, use it
     if (buttonLink) {
       const link = String(buttonLink);
       const isExternal = /^https?:\/\//i.test(link);
@@ -132,9 +159,10 @@ const ServicesCTA = ({
       return;
     }
 
-    // default fallback
     navigate("/contact");
   };
+
+  const hasContent = Boolean(title || description);
 
   return (
     <Box component="section" id="contact-section" sx={{ mt: { xs: 6, md: 8 } }}>
@@ -154,7 +182,7 @@ const ServicesCTA = ({
           border: `1px solid ${alpha("#ffffff", isDark ? 0.1 : 0.35)}`,
         }}
       >
-   
+        {/* overlay */}
         {backgroundImage ? (
           <Box
             sx={{
@@ -178,7 +206,7 @@ const ServicesCTA = ({
             spacing={1.5}
             sx={{
               textAlign: "left",
-              maxWidth: { xs: "100%", md: "70%" },
+              maxWidth: { xs: "100%", md: "72%" },
             }}
           >
             <Typography
@@ -186,28 +214,64 @@ const ServicesCTA = ({
               sx={{
                 fontWeight: 700,
                 fontSize: { xs: 22, md: 26 },
+                minHeight: 32, // keeps layout stable even while loading
               }}
             >
               {loading ? " " : title}
             </Typography>
 
-            {loading ? (
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <CircularProgress size={18} />
-                <Typography variant="body2" sx={{ color: alpha(theme.palette.text.primary, 0.75) }}>
-                  Loading...
-                </Typography>
-              </Stack>
+            {/* ✅ Removed CircularProgress block */}
+            {!loading ? (
+              <Box>
+                {looksLikeHtml(description) ? (
+                  <Box
+                    sx={{
+                      color: alpha(theme.palette.text.primary, 0.78),
+                      "& p": { m: 0, mb: 1.25 },
+                      "& ul, & ol": { m: 0, pl: 2.5 },
+                      "& li": { mb: 0.5 },
+                    }}
+                    dangerouslySetInnerHTML={{ __html: description }}
+                  />
+                ) : (
+                  <>
+                    {paragraphs ? (
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: alpha(theme.palette.text.primary, 0.78),
+                          maxWidth: 760,
+                          whiteSpace: "pre-line",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {paragraphs}
+                      </Typography>
+                    ) : null}
+
+                    {bullets?.length ? (
+                      <Stack sx={{ mt: paragraphs ? 2 : 0.5 }} spacing={0.6}>
+                        {bullets.map((b, idx) => (
+                          <Typography
+                            key={`${idx}-${b}`}
+                            variant="body1"
+                            sx={{
+                              color: alpha(theme.palette.text.primary, 0.85),
+                              lineHeight: 1.55,
+                            }}
+                          >
+                            {"* "}
+                            {b}
+                          </Typography>
+                        ))}
+                      </Stack>
+                    ) : null}
+                  </>
+                )}
+              </Box>
             ) : (
-              <Typography
-                variant="body1"
-                sx={{
-                  color: alpha(theme.palette.text.primary, 0.78),
-                  maxWidth: 620,
-                }}
-              >
-                {description}
-              </Typography>
+              // optional: keep height stable without showing loader text
+              <Box sx={{ minHeight: 44 }} />
             )}
           </Stack>
 
@@ -223,7 +287,7 @@ const ServicesCTA = ({
             <AppButton
               variant="contained"
               size="large"
-              disabled={loading || (!title && !description)}
+              disabled={loading || !hasContent}
               onClick={handleContactClick}
               sx={{
                 background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
