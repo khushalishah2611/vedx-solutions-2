@@ -14,11 +14,10 @@ import { AppButton } from "../../shared/FormControls.jsx";
 import { fullStackDeveloperHighlights } from "../../../data/servicesPage.js";
 import { apiUrl } from "../../../utils/const.js";
 
-/* ---------------- helpers ---------------- */
+
 const norm = (v) => String(v || "").trim().toLowerCase();
 const safeStr = (v) => String(v ?? "").trim();
 
-// ✅ Always return clean highlight lines (NO * / - / •)
 const splitHighlightsFromDescription = (text) => {
   const raw = String(text || "").trim();
   if (!raw) return [];
@@ -42,7 +41,6 @@ const splitHighlightsFromDescription = (text) => {
     .slice(0, 10);
 };
 
-// Viewport animation hook
 const useInViewOnce = () => {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -68,12 +66,33 @@ const useInViewOnce = () => {
   return [ref, inView];
 };
 
+/** ✅ normalize any backend shape into an array */
+const normalizeHireServicesResponse = (data) => {
+  if (Array.isArray(data)) return data;
+
+  // common wrappers
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.hireServices)) return data.hireServices;
+  if (Array.isArray(data?.services)) return data.services;
+
+  // single object
+  if (data?.hireService && typeof data.hireService === "object")
+    return [data.hireService];
+  if (data && typeof data === "object") return [data];
+
+  return [];
+};
+
 function FullStackDeveloper({
   onContactClick,
   category,
   subcategory,
   highlights,
   image,
+  title,
+  description,
 }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -89,7 +108,7 @@ function FullStackDeveloper({
   const [rightRef, rightInView] = useInViewOnce();
 
   useEffect(() => {
-    let isMounted = true;
+    const controller = new AbortController();
 
     const loadHireServices = async () => {
       try {
@@ -97,22 +116,19 @@ function FullStackDeveloper({
         if (category) params.append("category", category);
         if (subcategory) params.append("subcategory", subcategory);
 
-        const res = await fetch(
-          apiUrl(`/api/hire-services${params.toString() ? `?${params}` : ""}`)
-        );
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error);
+        const url = `/api/hire-services${params.toString() ? `?${params.toString()}` : ""}`;
 
-        if (!isMounted) return;
+        const res = await fetch(apiUrl(url), { signal: controller.signal });
+        const data = await res.json().catch(() => null);
 
-        const list = Array.isArray(data) ? data : [];
+        if (!res.ok) throw new Error(data?.error || "Failed to load hire-services");
+
+        const list = normalizeHireServicesResponse(data);
 
         const match =
           list.find((it) => {
             const cOk = category ? norm(it?.category) === norm(category) : true;
-            const sOk = subcategory
-              ? norm(it?.subcategory) === norm(subcategory)
-              : true;
+            const sOk = subcategory ? norm(it?.subcategory) === norm(subcategory) : true;
             return cOk && sOk;
           }) || list[0];
 
@@ -125,6 +141,7 @@ function FullStackDeveloper({
         const fromArr = Array.isArray(match?.highlights)
           ? match.highlights
               .map((x) => (typeof x === "string" ? x : x?.title || x?.text))
+              .map((x) => String(x || "").trim())
               .filter(Boolean)
           : [];
 
@@ -132,19 +149,17 @@ function FullStackDeveloper({
 
         setApiHighlights(fromArr.length ? fromArr : fromDesc);
       } catch (e) {
+        if (e?.name === "AbortError") return;
         console.error("Hire services load failed:", e);
       }
     };
 
     loadHireServices();
-    return () => {
-      isMounted = false;
-    };
+    return () => controller.abort();
   }, [category, subcategory]);
 
-  /* ❌ STATIC REMOVED */
-  const resolvedTitle = apiTitle;
-  const resolvedDesc = apiDesc;
+  const resolvedTitle = safeStr(apiTitle) || safeStr(title);
+  const resolvedDesc = safeStr(apiDesc) || safeStr(description);
 
   const resolvedHighlights = useMemo(() => {
     if (Array.isArray(highlights) && highlights.length) return highlights;
@@ -162,8 +177,9 @@ function FullStackDeveloper({
     return "Hire Expert";
   }, [category, subcategory]);
 
-  // ⛔ if API sends nothing, don't render block
-  if (!resolvedTitle && !resolvedDesc && !resolvedImage) return null;
+  const hasAnyContent =
+    !!resolvedTitle || !!resolvedDesc || !!resolvedImage || resolvedHighlights.length > 0;
+  if (!hasAnyContent) return null;
 
   return (
     <Box component="section">
@@ -214,6 +230,8 @@ function FullStackDeveloper({
                 </Typography>
               )}
 
+           
+
               <AppButton
                 variant="contained"
                 size="large"
@@ -228,13 +246,10 @@ function FullStackDeveloper({
                   px: { xs: 4, md: 6 },
                   py: { xs: 1.5, md: 1.75 },
                   boxShadow: "0 18px 35px rgba(15,23,42,0.35)",
-                 
                 }}
               >
                 {hireButtonText}
               </AppButton>
-
-              
             </Stack>
           </Grid>
 
@@ -256,7 +271,8 @@ function FullStackDeveloper({
                 borderRadius: 0.5,
                 background: resolvedImage
                   ? `url(${resolvedImage}) center/cover`
-                  : "transparent",
+                  : alpha(theme.palette.background.paper, isDark ? 0.15 : 0.7),
+                border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.3 : 0.35)}`,
               }}
             />
           </Grid>
