@@ -8,12 +8,12 @@ import {
   useTheme
 } from '@mui/material';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import { faqEntries } from '../../data/content.js';
+
 
 const FAQAccordion = ({ faqs }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const resolvedFaqs = faqs?.length ? faqs : faqEntries;
+  const resolvedFaqs =  faqs ;
 
   return (
     <Stack spacing={3}>
