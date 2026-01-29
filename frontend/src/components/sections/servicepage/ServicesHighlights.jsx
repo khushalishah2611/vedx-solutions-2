@@ -1,10 +1,13 @@
-// ServicePage.jsx ✅ (SINGLE FILE)
-// ✅ API-driven hero + services cards (category/subcategory wise)
-// ✅ No spinner UI (returns null while loading / on error)
-// ✅ Handles config array/object response + services fallback from config.services
-
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, Grid, Typography, Stack, Paper, alpha, useTheme } from "@mui/material";
+import {
+  Box,
+  Grid,
+  Typography,
+  Stack,
+  Paper,
+  alpha,
+  useTheme,
+} from "@mui/material";
 import { apiUrl } from "../../../utils/const.js";
 
 export default function ServicePage({
@@ -42,13 +45,9 @@ export default function ServicePage({
           apiUrl(`${configPath}${configQuery ? `?${configQuery}` : ""}`)
         );
         const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(data?.error || "Failed to load why choose config");
-        }
+        if (!response.ok) throw new Error(data?.error || "Failed to load config");
 
         const config = Array.isArray(data) ? data[0] : data;
-
         if (!isMounted) return;
 
         setHero({
@@ -70,10 +69,8 @@ export default function ServicePage({
           apiUrl(`${servicesPath}${serviceQuery ? `?${serviceQuery}` : ""}`)
         );
         const servicesData = await servicesResponse.json().catch(() => []);
-
-        if (!servicesResponse.ok) {
-          throw new Error(servicesData?.error || "Failed to load why services");
-        }
+        if (!servicesResponse.ok)
+          throw new Error(servicesData?.error || "Failed to load services");
 
         services = Array.isArray(servicesData) ? servicesData : [];
 
@@ -122,7 +119,7 @@ export default function ServicePage({
     [table]
   );
 
-  // ✅ NO spinner; if loading keep layout clean (render nothing)
+  // ✅ NO spinner; keep layout clean
   if (loading) return null;
   if (error) return null;
 
@@ -138,58 +135,116 @@ export default function ServicePage({
     <>
       {/* HERO */}
       {showHero && (
-        <Grid container spacing={6} alignItems="center">
-          <Grid item xs={12} md={6}>
-            {!!resolvedHero.title && (
-              <Typography variant="h3" fontWeight={700} mb={4}>
-                {resolvedHero.title}
-              </Typography>
-            )}
+        <Box>
+          {/* ✅ Title ABOVE both columns */}
+          {!!resolvedHero.title && (
+            <Typography
+              variant="h3"
+              fontWeight={800}
+              mb={{ xs: 2.5, sm: 3.5, md: 4 }}
+              sx={{
+                letterSpacing: "-0.02em",
+                lineHeight: 1.15,
+                fontSize: { xs: 24, sm: 30, md: 40 },
+              }}
+            >
+              {resolvedHero.title}
+            </Typography>
+          )}
 
-            {!!resolvedHero.image && (
-              <Box
-                component="img"
-                src={resolvedHero.image}
-                alt={resolvedHero.title || "Why choose"}
-                sx={{
-                  width: "100%",
-                  borderRadius: 0.5,
-                  boxShadow: isDark
-                    ? "0 24px 45px rgba(15,23,42,0.5)"
-                    : "0 24px 45px rgba(15,23,42,0.18)",
-                }}
-              />
-            )}
-          </Grid>
+          {/* ✅ Two columns start together */}
+          <Grid container spacing={{ xs: 3, md: 6 }} alignItems="stretch">
+            {/* LEFT: IMAGE */}
+            <Grid item xs={12} md={6}>
+              {!!resolvedHero.image && (
+                <Box
+                  sx={{
+                    width: "100%",
+                    borderRadius: 0.5,
+                    overflow: "hidden",
+                    boxShadow: isDark
+                      ? "0 24px 45px rgba(15,23,42,0.55)"
+                      : "0 24px 45px rgba(15,23,42,0.18)",
+                    border: `1px solid ${alpha(
+                      theme.palette.divider,
+                      isDark ? 0.35 : 0.2
+                    )}`,
+                  }}
+                >
+                  {/* ✅ Mobile responsive image widget */}
+                  <Box
+                    component="img"
+                    src={resolvedHero.image}
+                    alt={resolvedHero.title || "Why choose"}
+                    loading="lazy"
+                    sx={{
+                      width: "100%",
+                      height: { xs: 280, sm: 350, md: 500 }, // ✅ responsive height
+                      display: "block",
+                      objectFit: "cover",
+                    }}
+                  />
+                </Box>
+              )}
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            {!!resolvedHero.description && (
-              <Typography
-                sx={{
-                  color: subtleText,
-                  lineHeight: 1.7,
-                  whiteSpace: "pre-line",
-                }}
-              >
-                {resolvedHero.description}
-              </Typography>
-            )}
+            {/* RIGHT: TEXT */}
+            <Grid item xs={12} md={6}>
+              {!!resolvedHero.description && (
+                <Typography
+                  sx={{
+                    color: subtleText,
+                    lineHeight: 1.8,
+                    whiteSpace: "pre-line",
+                    fontSize: { xs: 14.5, sm: 15.5, md: 16 },
+                  }}
+                >
+                  {resolvedHero.description}
+                </Typography>
+              )}
+            </Grid>
           </Grid>
-        </Grid>
+        </Box>
       )}
 
       {/* SERVICES */}
       {showServices && (
-        <Box sx={{ mt: showHero ? 10 : 0 }}>
+        <Box sx={{ mt: showHero ? { xs: 6, md: 10 } : 0 }}>
           {(!!resolvedTable.title || !!resolvedTable.description) && (
-            <Stack alignItems="center" spacing={2} mb={6}>
+            // ✅ Center always + mobile padding control
+            <Stack
+              alignItems="center"
+              textAlign="center"
+              spacing={{ xs: 1.25, sm: 1.6, md: 2 }}
+              mb={{ xs: 3.5, sm: 4.5, md: 6 }}
+              sx={{
+                px: { xs: 1, sm: 2, md: 0 }, // ✅ prevents edge touching on mobile
+                mx: "auto",
+               
+              }}
+            >
               {!!resolvedTable.title && (
-                <Typography variant="h3" fontWeight={700}>
+                <Typography
+                  variant="h3"
+                  fontWeight={700}
+                  sx={{
+                    fontSize: { xs: 22, sm: 28, md: 40 },
+                    lineHeight: 1.15,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
                   {resolvedTable.title}
                 </Typography>
               )}
+
               {!!resolvedTable.description && (
-                <Typography sx={{ color: subtleText }}>
+                <Typography
+                  sx={{
+                    color: subtleText,
+                    fontSize: { xs: 14.5, sm: 15.5, md: 16 },
+                    lineHeight: 1.8,
+                  }}
+                >
                   {resolvedTable.description}
                 </Typography>
               )}
@@ -197,7 +252,7 @@ export default function ServicePage({
           )}
 
           {resolvedTable.services.length > 0 && (
-            <Grid container spacing={2}>
+            <Grid container spacing={{ xs: 2, md: 2 }}>
               {resolvedTable.services.map((service, idx) => (
                 <Grid
                   item
@@ -211,7 +266,7 @@ export default function ServicePage({
                     sx={{
                       height: "100%",
                       borderRadius: 0.5,
-                      p: 2.5,
+                      p: { xs: 2, sm: 2.5 }, // ✅ better mobile padding
                       display: "flex",
                       flexDirection: "column",
                       gap: 1.5,
@@ -238,8 +293,7 @@ export default function ServicePage({
                       <Typography
                         variant="h6"
                         sx={{
-                          fontWeight: 700,
-                          textDecoration: "none",
+                          fontWeight: 800,
                           cursor: "pointer",
                           transition:
                             "color 0.3s ease, background-image 0.3s ease",
@@ -260,7 +314,7 @@ export default function ServicePage({
                     {!!service?.description && (
                       <Typography
                         variant="body2"
-                        sx={{ color: subtleText, lineHeight: 1.7 }}
+                        sx={{ color: subtleText, lineHeight: 1.75 }}
                       >
                         {service.description}
                       </Typography>
