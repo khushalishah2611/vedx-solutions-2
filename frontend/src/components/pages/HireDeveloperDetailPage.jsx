@@ -173,11 +173,6 @@ const HireDeveloperDetailPage = () => {
     };
   }, [categoryName, fetchWithLoading, normalizedRoleName]);
 
-  // If redirecting, avoid rendering
-  if (!category && !role && !apiCategory && !apiRole && isLoading) {
-    return null;
-  }
-
   const isDark = theme.palette.mode === 'dark';
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
   const categoryHref = categorySlug ? `/hire-developers/${categorySlug}` : '/hire-developers';
@@ -201,6 +196,11 @@ const HireDeveloperDetailPage = () => {
       { label: 'Client Countries', value: '10+' },
     ];
   }, [serviceConfig?.totalClients, serviceConfig?.totalProjects, serviceConfig?.totalServices]);
+
+  // If redirecting, avoid rendering
+  if (!category && !role && !apiCategory && !apiRole && isLoading) {
+    return null;
+  }
 
   return (
     <Box
