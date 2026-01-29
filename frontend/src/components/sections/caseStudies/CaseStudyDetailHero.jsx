@@ -1,9 +1,3 @@
-// CaseStudyDetailHero.jsx (SINGLE FILE) ✅
-// ✅ Breadcrumbs like screenshot
-// ✅ "Case Studies" -> /case-studies
-// ✅ Current Case Study link can be /case-studies/:slug (if you want clickable) OR keep as text
-// ✅ CTA always redirects to /contact
-
 import PropTypes from "prop-types";
 import {
   alpha,
@@ -21,14 +15,8 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Link as RouterLink } from "react-router-dom";
 import { AppButton } from "../../shared/FormControls.jsx";
 
-const DEFAULT_OVERLAY =
-  "linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.82) 45%, rgba(15, 23, 42, 0.96) 100%)";
-
-const DEFAULT_DESCRIPTION =
-  "VedX Solutions delivers tailored solutions that help you achieve your business objectives with resilient, scalable digital products.";
-
 const CONTACT_ROUTE = "/contact";
-const CASE_STUDIES_ROUTE = "/casestudy";
+const CASE_STUDIES_ROUTE = "/case-studies";
 
 const BreadcrumbLink = ({ to, children }) => (
   <MuiLink
@@ -54,37 +42,29 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
-  const accentColor = caseStudy?.accentColor || theme.palette.secondary.main;
+  // ✅ only bind from API/data (no fallback strings)
+  const heroTitle = caseStudy?.heroTitle || caseStudy?.title || "";
+  const heroDescription = caseStudy?.heroDescription || caseStudy?.excerpt || "";
 
-  const heroTitle = caseStudy?.heroTitle || caseStudy?.title || "Case Study";
-  const heroDescription =
-    caseStudy?.heroDescription || caseStudy?.excerpt || DEFAULT_DESCRIPTION;
+  const heroImage = (caseStudy?.heroImage || "").trim();
+  const heroHasImage = Boolean(heroImage);
 
-  const heroImage = caseStudy?.heroImage;
-  const hasImage = Boolean(heroImage);
-
-  // ✅ if you have slug or id, create details route
-  const slugOrId = caseStudy?.slug || caseStudy?.id; // prefer slug
+  // optional details route (kept for future use)
+  const slugOrId = caseStudy?.slug || caseStudy?.id;
   const detailsRoute = slugOrId ? `${CASE_STUDIES_ROUTE}/${slugOrId}` : null;
 
-  // ✅ Breadcrumbs:
-  // - Home -> /
-  // - Case Studies -> /case-studies
-  // - Current Case title -> (OPTIONAL) details link OR just text
-  // NOTE: last breadcrumb usually text (like screenshot). If you want it clickable, set href: detailsRoute.
   const resolvedBreadcrumbs = [
     { label: "Home", href: "/" },
     { label: "Case Studies", href: CASE_STUDIES_ROUTE },
     {
       label: caseStudy?.title || "Details",
-      // ✅ if you want the CURRENT PAGE clickable (not common, but you asked):
-      // href: detailsRoute,
-      // ✅ screenshot-style (recommended): keep as text only
       href: null,
+      // if you want clickable current page later:
+      // href: detailsRoute,
     },
   ];
 
-  // ✅ CTA: Always go to /contact
+  // ✅ CTA label from API else minimal fallback
   const ctaLabel = caseStudy?.cta?.label || "Contact Us";
 
   return (
@@ -93,33 +73,38 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
       sx={{
         position: "relative",
         overflow: "hidden",
-        minHeight: { xs: "56vh", md: "70vh" },
+        minHeight: { xs: "60vh", md: "70vh" },
         display: "flex",
         alignItems: "center",
-        pt: { xs: 12, md: 16 },
-        pb: { xs: 10, md: 12 },
+        pb: { xs: 12, md: 14 },
+        pt: { xs: 14, md: 18 },
 
-        backgroundImage: hasImage
-          ? `${DEFAULT_OVERLAY}, url(${heroImage})`
-          : DEFAULT_OVERLAY,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        filter: isDark ? "brightness(0.92)" : "brightness(0.86)",
       }}
     >
-      {/* ✅ Optional glow */}
+      {/* ✅ Background Image (absolute) - only if exists */}
+      {heroHasImage && (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `url(${heroImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            transform: "scale(1.05)",
+            filter: isDark ? "brightness(0.85)" : "brightness(0.7)",
+          }}
+        />
+      )}
+
+      {/* ✅ Overlay (absolute) */}
       <Box
-        aria-hidden
         sx={{
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
-          background: `radial-gradient(circle at 20% 25%, ${alpha(
-            accentColor,
-            0.22
-          )}, transparent 55%)`,
-          zIndex: 0,
+          background: isDark
+            ? `linear-gradient(90deg, rgba(5,9,18,0.85) 0%, rgba(5,9,18,0.65) 40%, rgba(5,9,18,0.2) 70%, rgba(5,9,18,0) 100%)`
+            : `linear-gradient(90deg, rgba(241,245,249,0.9) 0%, rgba(241,245,249,0.7) 40%, rgba(241,245,249,0.3) 70%, rgba(241,245,249,0) 100%)`,
         }}
       />
 
@@ -172,7 +157,6 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
               const isLast = idx === resolvedBreadcrumbs.length - 1;
               const label = crumb?.label ?? "";
 
-              // clickable breadcrumbs (Home, Case Studies)
               if (!isLast && crumb?.href) {
                 return (
                   <Box
@@ -200,46 +184,45 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 );
               }
 
-              // last breadcrumb (current page) -> text (screenshot style)
-              // If you WANT clickable current page, set crumb.href above and remove isLast check.
-              if (crumb?.href) {
+              // last crumb -> text
+              if (!crumb?.href) {
                 return (
-                  <BreadcrumbLink key={`${label}-${idx}`} to={crumb.href}>
-                    <Typography
-                      component="span"
-                      sx={{
-                        color: alpha("#fff", 0.78),
-                        fontSize: { xs: 12, sm: 18 },
-                        lineHeight: 1.35,
-                        maxWidth: { xs: 240, sm: 380, md: 620 },
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                      title={label}
-                    >
-                      {label}
-                    </Typography>
-                  </BreadcrumbLink>
+                  <Typography
+                    key={`${label}-${idx}`}
+                    sx={{
+                      color: alpha("#fff", 0.78),
+                      fontSize: { xs: 12, sm: 18 },
+                      lineHeight: 1.35,
+                      maxWidth: { xs: 240, sm: 380, md: 620 },
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                    title={label}
+                  >
+                    {label}
+                  </Typography>
                 );
               }
 
               return (
-                <Typography
-                  key={`${label}-${idx}`}
-                  sx={{
-                    color: alpha("#fff", 0.78),
-                    fontSize: { xs: 12, sm: 18 },
-                    lineHeight: 1.35,
-                    maxWidth: { xs: 240, sm: 380, md: 620 },
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                  title={label}
-                >
-                  {label}
-                </Typography>
+                <BreadcrumbLink key={`${label}-${idx}`} to={crumb.href}>
+                  <Typography
+                    component="span"
+                    sx={{
+                      color: alpha("#fff", 0.78),
+                      fontSize: { xs: 12, sm: 18 },
+                      lineHeight: 1.35,
+                      maxWidth: { xs: 240, sm: 380, md: 620 },
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                    title={label}
+                  >
+                    {label}
+                  </Typography>
+                </BreadcrumbLink>
               );
             })}
           </Breadcrumbs>
@@ -259,7 +242,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 alignItems: { xs: "center", md: "flex-start" },
               }}
             >
-              {caseStudy?.category && (
+              {!!caseStudy?.category && (
                 <Box
                   sx={{
                     display: "inline-flex",
@@ -290,29 +273,35 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 </Box>
               )}
 
-              <Typography
-                variant="h1"
-                sx={{
-                  fontSize: { xs: 28, sm: 38, md: 54 },
-                  fontWeight: 900,
-                  lineHeight: 1.08,
-                  color: "#fff",
-                }}
-              >
-                {heroTitle}
-              </Typography>
+              {/* ✅ only show title if available */}
+              {!!heroTitle && (
+                <Typography
+                  variant="h1"
+                  sx={{
+                    fontSize: { xs: 28, sm: 38, md: 54 },
+                    fontWeight: 900,
+                    lineHeight: 1.08,
+                    color: "#fff",
+                  }}
+                >
+                  {heroTitle}
+                </Typography>
+              )}
 
-              <Typography
-                variant="body1"
-                sx={{
-                  color: alpha("#fff", 0.82),
-                  maxWidth: 620,
-                  lineHeight: 1.75,
-                  fontSize: { xs: 14.5, sm: 16, md: 16.5 },
-                }}
-              >
-                {heroDescription}
-              </Typography>
+              {/* ✅ only show description if available */}
+              {!!heroDescription && (
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: alpha("#fff", 0.82),
+                    maxWidth: 620,
+                    lineHeight: 1.75,
+                    fontSize: { xs: 14.5, sm: 16, md: 16.5 },
+                  }}
+                >
+                  {heroDescription}
+                </Typography>
+              )}
 
               {/* ✅ CTA always -> /contact */}
               <AppButton
@@ -338,8 +327,6 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
               >
                 {ctaLabel}
               </AppButton>
-
-             
             </Stack>
           </Grid>
 
@@ -352,8 +339,8 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
 
 CaseStudyDetailHero.propTypes = {
   caseStudy: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    slug: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), // ✅ add slug if available
+    title: PropTypes.string,
+    slug: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     heroTitle: PropTypes.string,
     heroDescription: PropTypes.string,
@@ -361,17 +348,11 @@ CaseStudyDetailHero.propTypes = {
     excerpt: PropTypes.string,
     heroImage: PropTypes.string,
     accentColor: PropTypes.string,
-    breadcrumbs: PropTypes.arrayOf(
-      PropTypes.shape({
-        label: PropTypes.string.isRequired,
-        href: PropTypes.string,
-      })
-    ),
     cta: PropTypes.shape({
       label: PropTypes.string,
       href: PropTypes.string,
     }),
-  }).isRequired,
+  }),
 };
 
 export default CaseStudyDetailHero;

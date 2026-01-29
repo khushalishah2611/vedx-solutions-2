@@ -154,7 +154,7 @@ const ServicesCTA = ({
           border: `1px solid ${alpha("#ffffff", isDark ? 0.1 : 0.35)}`,
         }}
       >
-        {/* ✅ subtle overlay for readability on image */}
+   
         {backgroundImage ? (
           <Box
             sx={{
