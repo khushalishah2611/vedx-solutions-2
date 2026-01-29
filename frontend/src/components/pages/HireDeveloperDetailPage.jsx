@@ -32,6 +32,7 @@ const HireDeveloperDetailPage = () => {
   const [benefits, setBenefits] = useState([]);
   const [benefitConfig, setBenefitConfig] = useState(null);
   const [technologies, setTechnologies] = useState([]);
+  const [serviceConfig, setServiceConfig] = useState(null);
 
   const category = hireDeveloperDetailContent[categorySlug ?? ''];
   const role = category?.roles?.[roleSlug ?? ''];
@@ -64,6 +65,10 @@ const HireDeveloperDetailPage = () => {
   const resolvedRole = apiRole ?? role;
   const categoryName = resolvedCategory?.title ?? resolvedCategory?.name;
   const roleName = resolvedRole?.title ?? resolvedRole?.name;
+  const normalizedRoleName = useMemo(
+    () => (roleName || '').trim().toLowerCase(),
+    [roleName]
+  );
 
   useEffect(() => {
     if (!categoryName && !roleName) return;
@@ -125,20 +130,77 @@ const HireDeveloperDetailPage = () => {
     };
   }, [categoryName, fetchWithLoading, roleName]);
 
-  // If redirecting, avoid rendering
-  if (!category && !role && !apiCategory && !apiRole && isLoading) {
-    return null;
-  }
+  useEffect(() => {
+    if (!categoryName && !roleName) return;
+    let isMounted = true;
+
+    const params = new URLSearchParams();
+    if (categoryName) params.append('category', categoryName);
+
+    const loadServiceConfig = async () => {
+      try {
+        const response = await fetchWithLoading(
+          apiUrl(`/api/hire-developer/services${params.toString() ? `?${params.toString()}` : ''}`)
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || 'Unable to load hire developer services');
+        }
+
+        const list = Array.isArray(data) ? data : [];
+        let selected = list[0] || null;
+
+        if (normalizedRoleName) {
+          const matched = list.find((service) =>
+            (service?.subcategories ?? []).some(
+              (sub) => String(sub || '').trim().toLowerCase() === normalizedRoleName
+            )
+          );
+          selected = matched || selected;
+        }
+
+        if (!isMounted) return;
+        setServiceConfig(selected);
+      } catch (error) {
+        console.error('Failed to load hire developer services', error);
+      }
+    };
+
+    loadServiceConfig();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [categoryName, fetchWithLoading, normalizedRoleName]);
 
   const isDark = theme.palette.mode === 'dark';
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
   const categoryHref = categorySlug ? `/hire-developers/${categorySlug}` : '/hire-developers';
 
-  const servicesHeroStats = [
-    { label: 'Projects Delivered', value: '120+' },
-    { label: 'Senior Engineers', value: '60+' },
-    { label: 'Client Countries', value: '10+' }
-  ];
+  const servicesHeroStats = useMemo(() => {
+    const totalServices = serviceConfig?.totalServices;
+    const totalProjects = serviceConfig?.totalProjects;
+    const totalClients = serviceConfig?.totalClients;
+
+    if (totalServices || totalProjects || totalClients) {
+      return [
+        totalServices ? { label: 'Total services', value: `${totalServices}+` } : null,
+        totalProjects ? { label: 'Total projects', value: `${totalProjects}+` } : null,
+        totalClients ? { label: 'Total clients', value: `${totalClients}+` } : null,
+      ].filter(Boolean);
+    }
+
+    return [
+      { label: 'Projects Delivered', value: '120+' },
+      { label: 'Senior Engineers', value: '60+' },
+      { label: 'Client Countries', value: '10+' },
+    ];
+  }, [serviceConfig?.totalClients, serviceConfig?.totalProjects, serviceConfig?.totalServices]);
+
+  // If redirecting, avoid rendering
+  if (!category && !role && !apiCategory && !apiRole && isLoading) {
+    return null;
+  }
 
   return (
     <Box
@@ -156,6 +218,9 @@ const HireDeveloperDetailPage = () => {
         onContactClick={handleOpenContact}
         dividerColor={dividerColor}
         categoryHref={categoryHref}
+        heroTitle={serviceConfig?.bannerTitle}
+        heroDescription={serviceConfig?.bannerSubtitle || serviceConfig?.description}
+        heroImage={serviceConfig?.bannerImage}
       />
 
       {/* === MAIN CONTENT === */}
@@ -243,7 +308,7 @@ const HireDeveloperDetailPage = () => {
         </Box>
 
         <Box my={10}>
-          <FAQAccordion />
+          <FAQAccordion faqs={serviceConfig?.faqs} />
         </Box>
 
         <Box my={10}>
