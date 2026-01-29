@@ -9076,12 +9076,8 @@ app.get('/api/hire-developer/processes', async (req, res) => {
 
     const processes = await prisma.hireDeveloperProcess.findMany({
       where: {
-        ...(normalizedCategory
-          ? { category: { equals: normalizedCategory, mode: 'insensitive' } }
-          : {}),
-        ...(normalizedSubcategory
-          ? { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }
-          : {}),
+        ...(normalizedCategory ? { category: normalizedCategory } : {}),
+        ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -9207,12 +9203,8 @@ app.get('/api/hire-developer/why-vedx', async (req, res) => {
 
     const configs = await prisma.hireDeveloperWhyVedxConfig.findMany({
       where: {
-        ...(normalizedCategory
-          ? { category: { equals: normalizedCategory, mode: 'insensitive' } }
-          : {}),
-        ...(normalizedSubcategory
-          ? { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }
-          : {}),
+        ...(normalizedCategory ? { category: normalizedCategory } : {}),
+        ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
       },
       include: includeReasons ? { reasons: { orderBy: { createdAt: 'desc' } } } : {},
       orderBy: { createdAt: 'desc' },
@@ -9267,12 +9259,8 @@ app.get('/api/hire-developer/why-vedx-reasons', async (req, res) => {
     const reasons = await prisma.hireDeveloperWhyVedx.findMany({
       where: {
         ...(parsedConfigId && { whyVedxConfigId: parsedConfigId }),
-        ...(normalizedCategory
-          ? { category: { equals: normalizedCategory, mode: 'insensitive' } }
-          : {}),
-        ...(normalizedSubcategory
-          ? { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }
-          : {}),
+        ...(normalizedCategory ? { category: normalizedCategory } : {}),
+        ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
       },
       orderBy: { createdAt: 'desc' },
     });
