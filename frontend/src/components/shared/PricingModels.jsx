@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Box, Container, Grid, List, ListItem, Stack, Typography, alpha, useTheme } from '@mui/material';
 import { AppButton } from './FormControls.jsx';
 
-import { pricingPlans } from '../../data/pricing.js';
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
@@ -67,7 +66,7 @@ const PricingModels = () => {
   }, [fetchWithLoading]);
 
   const resolvedPlans = useMemo(
-    () => (apiPlans.length ? apiPlans : pricingPlans),
+    () => (apiPlans),
     [apiPlans]
   );
   const highlightedIndex = useMemo(() => {

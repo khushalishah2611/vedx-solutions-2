@@ -6,7 +6,6 @@ import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRou
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 
-import { fullStackServiceFeatures } from "../../../data/servicesPage.js";
 
 const highlightIcons = [
   WorkspacePremiumRoundedIcon,
