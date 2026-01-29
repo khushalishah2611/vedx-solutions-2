@@ -55,7 +55,7 @@ export default function ServicePage({
         setHero({
           title: config?.heroTitle,
           description: config?.heroDescription,
-          image: config?.heroImage || '/placeholder.jpg',
+          image: config?.heroImage,
         });
 
         let services = [];

@@ -96,8 +96,7 @@ const ServicesPage = ({ showHero = true }) => {
 
         <Box my={10}>
           <ServicesProcess apiPath="/api/service-processes"
-            category={categoryName}
-            subcategory={roleName} />
+          />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
