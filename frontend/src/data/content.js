@@ -81,49 +81,15 @@ export const footerContent = {
 
 export const megaMenuContent = {
   services: {
-    heading: 'Our Services',
+    heading: '',
     categories: [
-      {
-        label: 'Mobile App Development',
-        href: '/services/mobile-app-development',
-        description: 'Build scalable iOS and Android apps tailored to your business.',
-        subItems: [
-          { label: 'iOS Development', href: '/services/mobile-app-development/ios' },
-          { label: 'Android Development', href: '/services/mobile-app-development/android' }
-        ]
-      },
-      {
-        label: 'Web & CMS Development',
-        href: '/services/web-cms-development',
-        description: 'Modern web experiences with flexible CMS integrations.',
-        subItems: [
-          { label: 'Website Development', href: '/services/web-cms-development/website' },
-          { label: 'CMS Solutions', href: '/services/web-cms-development/cms' }
-        ]
-      }
+     
     ]
   },
   hireDevelopers: {
-    heading: 'Hire Developers',
+    heading: '',
     categories: [
-      {
-        label: 'Hire App Developer',
-        href: '/hire-developers/hire-app-developer',
-        description: 'Dedicated app experts to accelerate delivery.',
-        subItems: [
-          { label: 'Flutter Developers', href: '/hire-developers/hire-app-developer/flutter' },
-          { label: 'React Native Developers', href: '/hire-developers/hire-app-developer/react-native' }
-        ]
-      },
-      {
-        label: 'Hire Frontend Developer',
-        href: '/hire-developers/hire-frontend-developer',
-        description: 'UI-focused specialists for responsive experiences.',
-        subItems: [
-          { label: 'React Developers', href: '/hire-developers/hire-frontend-developer/react' },
-          { label: 'Vue Developers', href: '/hire-developers/hire-frontend-developer/vue' }
-        ]
-      }
+     
     ]
   }
 };
