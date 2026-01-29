@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, CircularProgress, Container, Grid, Stack, Typography } from '@mui/material';
+import { Alert, Box, Container, Grid, Stack, Typography } from '@mui/material';
 import CaseStudiesHero from '../sections/caseStudies/CaseStudiesHero.jsx';
 import CaseStudyCard from '../sections/caseStudies/CaseStudyCard.jsx';
 

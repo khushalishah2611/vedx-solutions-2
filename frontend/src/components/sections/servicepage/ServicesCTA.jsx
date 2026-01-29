@@ -1,9 +1,3 @@
-// ServicesCTA.jsx ✅ (SINGLE FILE)
-// ✅ Category/Subcategory wise CTA (bullets like your image)
-// ✅ Fixed banner height to match screenshot (not too tall)
-// ✅ Nice vignette overlay like image
-// ✅ No CircularProgress block
-
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Box, Paper, Stack, Typography, alpha, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";

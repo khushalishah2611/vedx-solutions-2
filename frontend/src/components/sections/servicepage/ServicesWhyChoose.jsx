@@ -6,9 +6,8 @@ import {
   Typography,
   alpha,
   useTheme,
-  CircularProgress,
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { AppButton } from '../../shared/FormControls.jsx';
 
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
@@ -34,6 +33,8 @@ const ServicesWhyChoose = ({
   title: titleProp,
   description: descriptionProp,
   highlights: highlightsProp,
+
+  // 'home' | 'service' | 'hire'
   mode = 'home',
   category,
   subcategory,
@@ -47,14 +48,15 @@ const ServicesWhyChoose = ({
 
   const [apiConfig, setApiConfig] = useState(null); // { title, description }
   const [apiHighlights, setApiHighlights] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // fetch control only (NO UI spinner)
 
-  const handleRequestQuote = () => {
+  const handleRequestQuote = useCallback(() => {
     onRequestContact?.('');
     onContactClick?.();
+
     const anchor = document.getElementById(contactAnchorId);
     if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  }, [onRequestContact, onContactClick, contactAnchorId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,10 +70,11 @@ const ServicesWhyChoose = ({
       try {
         setLoading(true);
 
-        const tasks = [];
-
+        // ---------------- HOME MODE ----------------
         if (mode === 'home') {
-          // ---- config (title/description) ----
+          const tasks = [];
+
+          // config (title/description)
           if (shouldFetchConfig) {
             tasks.push(
               fetchWithLoading(apiUrl('/api/homes/why-vedx-config'))
@@ -94,7 +97,7 @@ const ServicesWhyChoose = ({
             tasks.push(Promise.resolve(null));
           }
 
-          // ---- highlights (reasons/cards) ----
+          // highlights (reasons/cards)
           if (shouldFetchHighlights) {
             tasks.push(
               fetchWithLoading(apiUrl('/api/homes/why-vedx-reasons'))
@@ -127,24 +130,24 @@ const ServicesWhyChoose = ({
           return;
         }
 
-        const shouldFetchWhyVedx = shouldFetchConfig || shouldFetchHighlights;
-        if (!shouldFetchWhyVedx) return;
-
+        // ---------------- SERVICE / HIRE MODE ----------------
         const params = new URLSearchParams();
         if (category) params.append('category', category);
         if (subcategory) params.append('subcategory', subcategory);
         params.append('includeReasons', 'true');
 
         const requestPath =
-          mode === 'hire' ? `/api/hire-developer/why-vedx?${params.toString()}` : `/api/why-vedx?${params.toString()}`;
+          mode === 'hire'
+            ? `/api/hire-developer/why-vedx?${params.toString()}`
+            : `/api/why-vedx?${params.toString()}`;
 
         const response = await fetchWithLoading(apiUrl(requestPath));
-        if (!response.ok) {
-          throw new Error('Failed to fetch why-vedx data');
-        }
+        if (!response.ok) throw new Error('Failed to fetch why-vedx data');
+
         const payload = await response.json();
         const list = Array.isArray(payload) ? payload : payload ? [payload] : [];
         const active = list[0] || null;
+
         if (!isMounted) return;
 
         if (shouldFetchConfig) {
@@ -165,6 +168,8 @@ const ServicesWhyChoose = ({
             }))
           );
         }
+      } catch (err) {
+        console.error('ServicesWhyChoose load error:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -196,9 +201,10 @@ const ServicesWhyChoose = ({
 
   const highlights = useMemo(() => {
     const resolved = highlightsProp || apiHighlights;
-
     return (resolved || []).filter((item) => item?.title);
   }, [apiHighlights, highlightsProp]);
+
+  const showGrid = highlights.length > 0;
 
   return (
     <Box component="section">
@@ -207,8 +213,8 @@ const ServicesWhyChoose = ({
         spacing={3}
         sx={{
           maxWidth: 520,
-          mx: 'auto',           
-          alignItems: 'center', 
+          mx: 'auto',
+          alignItems: 'center',
         }}
       >
         {/* Label - centered */}
@@ -231,8 +237,8 @@ const ServicesWhyChoose = ({
             fontSize: 11,
             lineHeight: 1.3,
             width: 'fit-content',
-            mx: 'auto',           // ✅ center label itself
-            textAlign: 'center',  // ✅ center inside text
+            mx: 'auto',
+            textAlign: 'center',
           }}
         >
           <Box
@@ -251,17 +257,14 @@ const ServicesWhyChoose = ({
       <Stack
         spacing={3}
         sx={{
-          mb: 4,
+          mb: showGrid ? 4 : 0,
           textAlign: 'center',
           alignItems: 'center',
           mt: 3,
         }}
       >
         {!!finalTitle && (
-          <Typography
-            variant="h3"
-            sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}
-          >
+          <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
             {finalTitle}
           </Typography>
         )}
@@ -271,22 +274,13 @@ const ServicesWhyChoose = ({
             {finalDescription}
           </Typography>
         )}
-
-       
       </Stack>
 
-      {/* Highlights Grid */}
-      <Grid container spacing={3} sx={{ textAlign: 'center', alignItems: 'stretch' }}>
-        {loading ? (
-          <Grid item xs={12}>
-            <Stack alignItems="center" sx={{ py: 4 }}>
-              <CircularProgress />
-            </Stack>
-          </Grid>
-        ) : (
-          highlights.map((highlight, index) => {
-            const Icon =
-              highlight.icon ?? highlightIcons[index % highlightIcons.length];
+      {/* Highlights Grid (NO spinner; render only when data exists) */}
+      {showGrid && (
+        <Grid container spacing={3} sx={{ textAlign: 'center', alignItems: 'stretch' }}>
+          {highlights.map((highlight, index) => {
+            const Icon = highlight.icon ?? highlightIcons[index % highlightIcons.length];
 
             return (
               <Grid item xs={12} sm={6} md={4} key={`${highlight.title}-${index}`}>
@@ -304,10 +298,7 @@ const ServicesWhyChoose = ({
                       theme.palette.background.paper,
                       isDark ? 0.75 : 0.97
                     ),
-                    border: `1px solid ${alpha(
-                      theme.palette.divider,
-                      isDark ? 0.4 : 0.6
-                    )}`,
+                    border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`,
                     boxShadow: isDark
                       ? '0 4px 30px rgba(2,6,23,0.35)'
                       : '0 4px 30px rgba(15,23,42,0.15)',
@@ -371,16 +362,18 @@ const ServicesWhyChoose = ({
                 </Paper>
               </Grid>
             );
-          })
-        )}
-      </Grid>
+          })}
+        </Grid>
+      )}
 
+      {/* CTA Button (keep visible even if loading / no highlights) */}
       <Stack alignItems="center" sx={{ width: '100%', mt: 6 }}>
         <AppButton
           variant="contained"
           size="large"
           endIcon={<ArrowOutwardRoundedIcon />}
           onClick={handleRequestQuote}
+          disabled={loading} // optional: prevent double click while fetching
           sx={{
             background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
             color: '#fff',
@@ -392,6 +385,9 @@ const ServicesWhyChoose = ({
             py: { xs: 1.5, md: 2 },
             '&:hover': {
               background: 'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+            },
+            '&.Mui-disabled': {
+              opacity: 0.6,
             },
           }}
         >
