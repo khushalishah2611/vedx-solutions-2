@@ -8,6 +8,7 @@ import ServicesBenefits from '../sections/servicepage/ServicesBenefits.jsx';
 import FullStackDeveloper from '../sections/servicepage/FullStackDeveloper.jsx';
 import ServicesTechnologies from '../sections/servicepage/ServicesTechnologies.jsx';
 import HireDeveloperHero from '../sections/servicepage/HireDeveloperHero.jsx';
+import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
@@ -204,6 +205,15 @@ const HireDeveloperDetailPage = () => {
 
         <Box my={10}>
           <Divider sx={{ borderColor: dividerColor }} />
+        </Box>
+
+        <Box my={10}>
+          <ServicesWhyChoose
+            onContactClick={handleOpenContact}
+            mode="hire"
+            category={categoryName}
+            subcategory={roleName}
+          />
         </Box>
 
         <Box my={10}>
