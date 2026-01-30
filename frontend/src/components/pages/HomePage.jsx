@@ -69,7 +69,7 @@ const HomePage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
-          <ServicesContact contactType="Home" prefillProjectType={contactPrefill} />
+          <ServicesContact contactType="contact" prefillProjectType={contactPrefill} />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
 

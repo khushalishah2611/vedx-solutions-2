@@ -27,16 +27,9 @@ import { apiUrl } from "../../utils/const.js";
 import { useBannerByType } from "../../hooks/useBannerByType.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
-/* ✅ FALLBACK PROJECT TYPES (fix for contactProjectTypes not defined) */
+
 const contactProjectTypes = [
-  "Website Development",
-  "Mobile App Development",
-  "UI/UX Design",
-  "E-Commerce Development",
-  "Digital Marketing",
-  "SEO",
-  "Custom Software",
-  "Other",
+
 ];
 
 const contactLocation = {
@@ -80,11 +73,14 @@ const ContactPage = () => {
 
   const { fetchWithLoading } = useLoadingFetch();
   const { banner } = useBannerByType("contact");
-  const heroImage =
-    banner?.image ||
-    "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80";
 
-  // ✅ now safe
+  const heroImage = String(
+    banner?.image 
+  ).trim();
+
+  // ✅ hero image check (for your snippet)
+  const heroHasImage = Boolean(heroImage);
+
   const [projectTypes, setProjectTypes] = useState(contactProjectTypes);
 
   const [formValues, setFormValues] = useState({
@@ -117,7 +113,7 @@ const ContactPage = () => {
         if (types.length > 0) setProjectTypes(types);
       } catch (error) {
         console.error("Failed to load project types", error);
-        // ✅ keep fallback list
+        // keep fallback list
       }
     };
 
@@ -142,7 +138,9 @@ const ContactPage = () => {
     setStatusMessage("");
 
     const token = localStorage.getItem("adminToken");
-    const endpoint = token ? "/api/admin/contacts" : "/api/admin/contacts?public=true";
+    const endpoint = token
+      ? "/api/admin/contacts"
+      : "/api/admin/contacts?public=true";
 
     const headers = {
       "Content-Type": "application/json",
@@ -170,7 +168,8 @@ const ContactPage = () => {
         payload = {};
       }
 
-      if (!response?.ok) throw new Error(payload?.message || "Unable to submit request.");
+      if (!response?.ok)
+        throw new Error(payload?.message || "Unable to submit request.");
 
       setStatusSeverity("success");
       setStatusMessage(payload?.message || "Thanks! Your enquiry has been received.");
@@ -183,6 +182,7 @@ const ContactPage = () => {
         description: "",
       });
 
+      // keeps linter happy (you were using void earlier)
       void resolvedProjectType;
     } catch (error) {
       setStatusSeverity("error");
@@ -194,24 +194,54 @@ const ContactPage = () => {
 
   return (
     <Box component="main" sx={{ bgcolor: "background.default", overflowX: "hidden" }}>
-      {/* Hero Section */}
+      {/* ✅ HERO Section (your new design) */}
       <Box
         sx={{
-          backgroundImage:
-            `linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(${heroImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          filter: isDark ? "brightness(0.9)" : "brightness(0.85)",
+          position: "relative",
+          overflow: "hidden",
           minHeight: { xs: "60vh", md: "70vh" },
           display: "flex",
           alignItems: "center",
-          pb: { xs: 10, md: 14 },
-          pt: { xs: 12, md: 18 },
-          color: "common.white",
+          pb: { xs: 12, md: 14 },
+          pt: { xs: 14, md: 18 },
         }}
       >
-        <Container maxWidth={false} sx={{ zIndex: 1, px: { xs: 3, md: 20 } }}>
+        {/* Background Image */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: heroHasImage
+              ? `url(${heroImage})`
+              : "linear-gradient(135deg, rgba(2,6,23,1) 0%, rgba(15,23,42,1) 50%, rgba(2,6,23,1) 100%)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            transform: "scale(1.05)",
+            filter: isDark ? "brightness(0.85)" : "brightness(0.7)",
+          }}
+        />
+
+        {/* Overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background: isDark
+              ? "linear-gradient(90deg, rgba(5,9,18,0.85) 0%, rgba(5,9,18,0.65) 40%, rgba(5,9,18,0.2) 70%, rgba(5,9,18,0) 100%)"
+              : "linear-gradient(90deg, rgba(241,245,249,0.9) 0%, rgba(241,245,249,0.7) 40%, rgba(241,245,249,0.3) 70%, rgba(241,245,249,0) 100%)",
+          }}
+        />
+
+        {/* Content */}
+        <Container
+          maxWidth={false}
+          sx={{
+            position: "relative",
+            zIndex: 1,
+            px: { xs: 3, md: 20 },
+          }}
+        >
           <Stack spacing={2.5} alignItems={{ xs: "center", md: "flex-start" }}>
             <Typography
               variant="h1"
@@ -220,6 +250,7 @@ const ContactPage = () => {
                 fontWeight: 800,
                 lineHeight: 1.1,
                 textAlign: { xs: "center", md: "left" },
+                color: isDark ? "#fff" : "#0f172a",
               }}
             >
               Contact Us
@@ -228,7 +259,7 @@ const ContactPage = () => {
             <Typography
               variant="h6"
               sx={{
-                color: alpha("#ffffff", 0.85),
+                color: isDark ? alpha("#ffffff", 0.85) : alpha("#0f172a", 0.78),
                 maxWidth: 640,
                 fontSize: { xs: 14, md: 16 },
                 textAlign: { xs: "center", md: "left" },
@@ -442,7 +473,10 @@ const ContactPage = () => {
                             return (
                               <span
                                 style={{
-                                  color: alpha(theme.palette.text.secondary, isDark ? 0.7 : 0.85),
+                                  color: alpha(
+                                    theme.palette.text.secondary,
+                                    isDark ? 0.7 : 0.85
+                                  ),
                                 }}
                               >
                                 Select Project Type
@@ -490,7 +524,8 @@ const ContactPage = () => {
                         px: { xs: 4, sm: 6 },
                         py: 1.25,
                         "&:hover": {
-                          background: "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
+                          background:
+                            "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
                         },
                       }}
                     >
@@ -555,11 +590,19 @@ const ContactPage = () => {
                           gap={2}
                         >
                           <Box>
-                            <Typography sx={{ fontWeight: 800, fontSize: 16, color: "#111827" }}>
+                            <Typography
+                              sx={{ fontWeight: 800, fontSize: 16, color: "#111827" }}
+                            >
                               Vedx solution Pvt ltd
                             </Typography>
 
-                            <Typography sx={{ fontSize: 12.5, color: "#374151", lineHeight: 1.4 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 12.5,
+                                color: "#374151",
+                                lineHeight: 1.4,
+                              }}
+                            >
                               {contactLocation.address}
                             </Typography>
                           </Box>
@@ -585,16 +628,18 @@ const ContactPage = () => {
                         </Stack>
 
                         <Stack direction="row" alignItems="center" spacing={1}>
-                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: "#111827" }}>
+                          <Typography
+                            sx={{ fontSize: 12.5, fontWeight: 700, color: "#111827" }}
+                          >
                             5.0
                           </Typography>
                           <Rating value={5} precision={0.5} readOnly size="small" />
-                          <Typography sx={{ fontSize: 12, color: "#2563eb", fontWeight: 700 }}>
+                          <Typography
+                            sx={{ fontSize: 12, color: "#2563eb", fontWeight: 700 }}
+                          >
                             2 reviews
                           </Typography>
                         </Stack>
-
-                       
                       </Stack>
                     </Box>
                   </Box>
