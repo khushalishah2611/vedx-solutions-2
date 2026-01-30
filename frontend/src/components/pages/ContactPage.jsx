@@ -123,6 +123,10 @@ const ContactPage = () => {
     };
   }, [fetchWithLoading]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   const resolvedProjectType = useMemo(
     () => (Array.isArray(projectTypes) ? projectTypes?.[0] : "") || "",
     [projectTypes]

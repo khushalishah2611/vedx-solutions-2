@@ -5,6 +5,8 @@ import { AppButton } from './FormControls.jsx';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PhoneInTalkRoundedIcon from '@mui/icons-material/PhoneInTalkRounded';
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
+import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
@@ -24,7 +26,7 @@ const aboutMenuItems = [
 const NavigationBar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { mode } = useContext(ColorModeContext);
+  const { mode, toggleColorMode } = useContext(ColorModeContext);
   const { openDialog: openContactDialog } = useContactDialog();
   const { serviceMenu, hireMenu } = useServiceHireCatalog();
 
@@ -626,6 +628,18 @@ const NavigationBar = () => {
               sx={{ borderColor: theme.palette.divider }}
             />
 
+            <IconButton
+              color="inherit"
+              onClick={toggleColorMode}
+              aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+              sx={{
+                border: `1px solid ${alpha(theme.palette.text.primary, 0.18)}`,
+                borderRadius: 2
+              }}
+            >
+              {mode === 'dark' ? <WbSunnyRoundedIcon /> : <DarkModeRoundedIcon />}
+            </IconButton>
+
             <AppButton
               variant="contained"
               size="large"
@@ -697,6 +711,13 @@ const NavigationBar = () => {
             </Box>
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ pr: 1 }}>
+              <IconButton
+                onClick={toggleColorMode}
+                color="inherit"
+                aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {mode === 'dark' ? <WbSunnyRoundedIcon /> : <DarkModeRoundedIcon />}
+              </IconButton>
               <IconButton
                 onClick={handleDrawerClose}
                 color="inherit"
