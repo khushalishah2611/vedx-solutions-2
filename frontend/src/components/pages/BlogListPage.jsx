@@ -269,14 +269,15 @@ const BlogListPage = () => {
             px: { xs: 3, md: 20 },
           }}
         >
-          <Stack spacing={2.5} alignItems={{ xs: 'center', md: 'flex-start' }}>
+          <Stack spacing={2.5} alignItems={{ xs: "center", md: "flex-start" }}>
             <Typography
               variant="h1"
               sx={{
                 fontSize: { xs: 34, sm: 42, md: 56 },
                 fontWeight: 800,
                 lineHeight: 1.1,
-                textAlign: { xs: 'center', md: 'left' },
+                textAlign: { xs: "center", md: "left" },
+                color: isDark ? "#fff" : "#0f172a",
               }}
             >
               {heroTitle}
@@ -285,14 +286,15 @@ const BlogListPage = () => {
             <Typography
               variant="h6"
               sx={{
-                color: alpha('#ffffff', 0.85),
+                color: isDark ? alpha("#ffffff", 0.85) : alpha("#0f172a", 0.78),
                 maxWidth: 640,
                 fontSize: { xs: 14, md: 16 },
-                textAlign: { xs: 'center', md: 'left' },
+                textAlign: { xs: "center", md: "left" },
               }}
             >
-              Browse our latest thinking across engineering, UX, data, and growth. Filter by category or search for a topic to
-              discover practical guidance from the VedX Solutions team.
+              Browse our latest thinking across engineering, UX, data, and growth. Filter
+              by category or search for a topic to discover practical guidance from the
+              VedX Solutions team.
             </Typography>
           </Stack>
         </Container>

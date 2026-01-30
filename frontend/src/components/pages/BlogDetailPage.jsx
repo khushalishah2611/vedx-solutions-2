@@ -187,12 +187,12 @@ const BlogDetailPage = () => {
     );
     const ctaImage = resolveImg(
       apiPost.ctaImage ||
-        apiPost.ctaImageUrl ||
-        apiPost.ctaBlobImage ||
-        apiPost.blobImage ||
-        apiPost.blogImage ||
-        apiPost.coverImage ||
-        ""
+      apiPost.ctaImageUrl ||
+      apiPost.ctaBlobImage ||
+      apiPost.blobImage ||
+      apiPost.blogImage ||
+      apiPost.coverImage ||
+      ""
     );
 
     const ctaHref =
@@ -211,8 +211,8 @@ const BlogDetailPage = () => {
     // normalize tags to array of strings
     const tags = Array.isArray(apiPost.tags)
       ? apiPost.tags
-          .map((t) => (typeof t === "string" ? t : t?.name))
-          .filter(Boolean)
+        .map((t) => (typeof t === "string" ? t : t?.name))
+        .filter(Boolean)
       : [];
 
     return {
@@ -269,8 +269,8 @@ const BlogDetailPage = () => {
           category: p.category?.name || p.category || "Uncategorized",
           tags: Array.isArray(p.tags)
             ? p.tags
-                .map((t) => (typeof t === "string" ? t : t?.name))
-                .filter(Boolean)
+              .map((t) => (typeof t === "string" ? t : t?.name))
+              .filter(Boolean)
             : [],
           image: resolveImg(p.coverImage || p.blogImage || p.heroImage || ""),
         }))
@@ -379,11 +379,18 @@ const BlogDetailPage = () => {
             inset: 0,
             backgroundImage: heroHasImage
               ? `url(${heroImage})`
-              : "linear-gradient(135deg, rgba(2,6,23,1) 0%, rgba(15,23,42,1) 50%, rgba(2,6,23,1) 100%)",
+              : isDark
+                ? "linear-gradient(135deg, rgba(2,6,23,1) 0%, rgba(15,23,42,1) 50%, rgba(2,6,23,1) 100%)"
+                : "linear-gradient(135deg, rgba(241,245,249,1) 0%, rgba(226,232,240,1) 50%, rgba(241,245,249,1) 100%)",
             backgroundSize: "cover",
             backgroundPosition: "center",
             transform: "scale(1.05)",
-            filter: isDark ? "brightness(0.85)" : "brightness(0.7)",
+            // ✅ light mode: keep image brighter so black text is readable
+            filter: heroHasImage
+              ? isDark
+                ? "brightness(0.85)"
+                : "brightness(0.95)"
+              : "none",
           }}
         />
 
@@ -393,9 +400,22 @@ const BlogDetailPage = () => {
             position: "absolute",
             inset: 0,
             pointerEvents: "none",
+            // ✅ dark = dark overlay, light = white overlay
             background: isDark
-              ? `linear-gradient(90deg, rgba(5,9,18,0.85) 0%, rgba(5,9,18,0.65) 40%, rgba(5,9,18,0.2) 70%, rgba(5,9,18,0) 100%)`
-              : `linear-gradient(90deg, rgba(241,245,249,0.9) 0%, rgba(241,245,249,0.7) 40%, rgba(241,245,249,0.3) 70%, rgba(241,245,249,0) 100%)`,
+              ? `linear-gradient(
+            90deg,
+            rgba(5,9,18,0.85) 0%,
+            rgba(5,9,18,0.65) 40%,
+            rgba(5,9,18,0.2) 70%,
+            rgba(5,9,18,0) 100%
+          )`
+              : `linear-gradient(
+            90deg,
+            rgba(255,255,255,0.92) 0%,
+            rgba(255,255,255,0.75) 40%,
+            rgba(255,255,255,0.35) 70%,
+            rgba(255,255,255,0) 100%
+          )`,
           }}
         />
 
@@ -408,17 +428,19 @@ const BlogDetailPage = () => {
           }}
         >
           <Stack spacing={2.2}>
-            {/* Breadcrumbs */}
+            {/* ✅ Breadcrumbs (theme based) */}
             <Breadcrumbs
               separator={
                 <NavigateNextIcon
                   fontSize="small"
-                  sx={{ color: alpha("#e2e8f0", 0.9) }}
+                  sx={{
+                    color: isDark ? alpha("#ffffff", 0.9) : alpha("#0f172a", 0.65),
+                  }}
                 />
               }
               aria-label="breadcrumb"
               sx={{
-                color: alpha("#fff", 0.85),
+                color: isDark ? alpha("#ffffff", 0.85) : alpha("#0f172a", 0.85),
                 fontSize: { xs: 12, sm: 18 },
                 "& .MuiBreadcrumbs-ol": {
                   flexWrap: "wrap",
@@ -432,22 +454,30 @@ const BlogDetailPage = () => {
                   fontSize: { xs: 12, sm: 18 },
                   textAlign: { xs: "center", md: "left" },
                 },
+                "& a": {
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  "&:hover": {
+                    textDecoration: "underline",
+                    textDecorationColor: isDark
+                      ? alpha("#ffffff", 0.35)
+                      : alpha("#0f172a", 0.35),
+                  },
+                },
               }}
             >
               <MuiLink component={RouterLink} underline="hover" color="inherit" to="/">
                 Home
               </MuiLink>
-              <MuiLink
-                component={RouterLink}
-                underline="hover"
-                color="inherit"
-                to="/blog"
-              >
+              <MuiLink component={RouterLink} underline="hover" color="inherit" to="/blog">
                 Blog
               </MuiLink>
-              <Typography color="inherit">{post.title}</Typography>
+              <Typography color="inherit" sx={{ fontWeight: 700 }}>
+                {post.title}
+              </Typography>
             </Breadcrumbs>
 
+            {/* Category pill */}
             <Box
               sx={{
                 display: "inline-flex",
@@ -455,12 +485,13 @@ const BlogDetailPage = () => {
                 px: 2,
                 py: 1,
                 borderRadius: 0.5,
-                border: `1px solid ${alpha("#ffffff", 0.1)}`,
+                border: `1px solid ${isDark ? alpha("#ffffff", 0.12) : alpha("#0f172a", 0.12)
+                  }`,
                 background: !isDark
-                  ? alpha("#ddddddff", 0.9)
-                  : alpha("#0000007c", 0.9),
+                    ? alpha('#ddddddff', 0.9)
+                    : alpha('#0000007c', 0.9),
                 color: alpha(accentColor, 0.9),
-                fontWeight: 600,
+                fontWeight: 700,
                 letterSpacing: 1,
                 textTransform: "uppercase",
                 fontSize: 11,
@@ -480,32 +511,38 @@ const BlogDetailPage = () => {
               </Box>
             </Box>
 
-            {/* Big Title */}
+            {/* ✅ Big Title (theme based as you asked) */}
             <Typography
               variant="h1"
               sx={{
-                color: "#fff",
+                color: isDark ? "#fff" : "#0f172a",
                 fontWeight: 800,
                 lineHeight: 1.08,
                 letterSpacing: -0.5,
                 fontSize: { xs: 30, sm: 38, md: 56 },
                 maxWidth: { xs: "100%", md: 980 },
+                textAlign: { xs: "center", md: "left" },
               }}
             >
               {heroTitle}
             </Typography>
 
-            {/* ✅ Published date format */}
+          
+
+            {/* Published date */}
             {post.publishedOn ? (
               <Typography
                 variant="body1"
-                sx={{ color: alpha("#f8fafc", 0.85), fontWeight: 500 }}
+                sx={{
+                  color: isDark ? alpha("#f8fafc", 0.85) : alpha("#0f172a", 0.7),
+                  fontWeight: 600,
+                }}
               >
                 {formatDate(post.publishedOn)}
               </Typography>
             ) : null}
 
-            {/* Contact button -> /contact + scroll top */}
+            {/* Contact button */}
             <Box>
               <AppButton
                 variant="contained"
@@ -530,7 +567,6 @@ const BlogDetailPage = () => {
           </Stack>
         </Container>
       </Box>
-
       {/* =========================
           MAIN CONTENT
       ========================= */}
@@ -692,7 +728,7 @@ const BlogDetailPage = () => {
               }}
             >
               <Stack spacing={2}>
-              
+
 
                 {/* ✅ Recent Articles (API) */}
                 <Box
