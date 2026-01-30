@@ -2915,7 +2915,7 @@ const AdminServicesPage = () => {
               options={contactButtonSubcategoryOptions}
               value={contactButtonForm.subcategory}
               onInputChange={(e, v) => handleContactButtonFormChange('subcategory', v || '')}
-              renderInput={(params) => <AppTextField {...params} label="Subcategory" placeholder="Select or type subcategory" fullWidth  required/>}
+              renderInput={(params) => <AppTextField {...params} label="Subcategory" placeholder="Select or type subcategory" fullWidth  />}
               disabled={!contactButtonForm.category && contactButtonSubcategoryOptions.length === 0}
             />
 

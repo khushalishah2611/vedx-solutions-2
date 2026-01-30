@@ -4306,7 +4306,7 @@ const rowsPerPage = 20;
               value={contactButtonForm.subcategory}
               onInputChange={(event, newValue) => handleContactButtonFormChange('subcategory', newValue || '')}
               renderInput={(params) => (
-                <AppTextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth    required/>
+                <AppTextField {...params} label="Sub-category" placeholder="Select or type sub-category" fullWidth  />
               )}
               
             
