@@ -1,10 +1,4 @@
-// ServicesContact.jsx ✅ (SINGLE FILE)
-// ✅ LEFT: Banner Image (API by contactType)
-// ✅ RIGHT: Contact Form
-// ✅ If banner image missing => left section hidden and form full width
-// ✅ Project types API remains (API-only)
-
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -24,50 +18,7 @@ import { apiUrl } from "../../../utils/const.js";
 import { useBannerByType } from "../../../hooks/useBannerByType.js";
 import { useLoadingFetch } from "../../../hooks/useLoadingFetch.js";
 
-/* ---------------- helpers ---------------- */
-const safeStr = (v) => String(v ?? "").trim();
-const isAbsUrl = (s) => /^https?:\/\//i.test(String(s || ""));
-
-const normalizeImg = (raw) => {
-  let val = raw;
-
-  if (val && typeof val === "object") {
-    val =
-      val.url ||
-      val.src ||
-      val.path ||
-      val.image ||
-      val.imageUrl ||
-      val.location ||
-      "";
-  }
-
-  const s = safeStr(val);
-  if (!s) return "";
-  if (isAbsUrl(s)) return s;
-
-  const withSlash = s.startsWith("/") ? s : `/${s}`;
-  return apiUrl(withSlash);
-};
-
-const pickBannerImage = (banner) => {
-  const candidate =
-    banner?.image ||
-    banner?.bannerImage ||
-    banner?.imageUrl ||
-    banner?.imagePath ||
-    (Array.isArray(banner?.images) ? banner?.images?.[0] : "") ||
-    banner?.data?.image ||
-    banner?.data?.bannerImage ||
-    banner?.data?.imageUrl ||
-    banner?.data?.imagePath ||
-    (Array.isArray(banner?.data?.images) ? banner?.data?.images?.[0] : "") ||
-    "";
-
-  return normalizeImg(candidate);
-};
-
-// Simple hook to detect when an element enters the viewport
+/* ---------------- viewport hook ---------------- */
 const useInView = (options = {}) => {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -94,8 +45,10 @@ const useInView = (options = {}) => {
   return [ref, inView];
 };
 
+const safeStr = (v) => String(v ?? "").trim();
+
 const ServicesContact = ({
-  contactType = "contact",
+  contactType = "Home",
   prefillProjectType = "",
   sectionId = "contact-section",
 }) => {
@@ -106,8 +59,8 @@ const ServicesContact = ({
   const { fetchWithLoading } = useLoadingFetch();
   const { banner } = useBannerByType(contactType);
 
-  const [leftRef, leftInView] = useInView();
-  const [rightRef, rightInView] = useInView();
+  const [leftRef, leftInView] = useInView();   // ✅ now for IMAGE
+  const [rightRef, rightInView] = useInView(); // ✅ now for FORM
 
   const [projectTypes, setProjectTypes] = useState([]);
 
@@ -123,11 +76,15 @@ const ServicesContact = ({
   const [statusSeverity, setStatusSeverity] = useState("success");
   const [submitting, setSubmitting] = useState(false);
 
-  // ✅ Banner image (API only)
-  const resolvedBannerImage = useMemo(() => pickBannerImage(banner), [banner]);
-  const hasBannerImage = Boolean(resolvedBannerImage);
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80";
 
-  // ✅ Load Project Types (API)
+  const resolvedBannerImage =
+    safeStr(banner?.image) ||
+    (Array.isArray(banner?.images) ? safeStr(banner?.images?.[0]) : "") ||
+    fallbackImage;
+
+  /* ---------------- Load Project Types (API) ---------------- */
   useEffect(() => {
     let isMounted = true;
 
@@ -139,14 +96,8 @@ const ServicesContact = ({
         const payload = await response.json();
         if (!isMounted) return;
 
-        const list =
-          payload?.projectTypes ||
-          payload?.data?.projectTypes ||
-          payload?.items ||
-          [];
-
-        const types = (Array.isArray(list) ? list : [])
-          .map((item) => safeStr(item?.name ?? item))
+        const types = (payload?.projectTypes || [])
+          .map((item) => safeStr(item?.name))
           .filter(Boolean);
 
         setProjectTypes(types);
@@ -194,16 +145,16 @@ const ServicesContact = ({
         method: "POST",
         headers,
         body: JSON.stringify({
-          name: safeStr(formValues.name),
-          email: safeStr(formValues.email),
-          phone: safeStr(formValues.phone),
-          projectType: safeStr(formValues.projectType),
-          description: safeStr(formValues.description),
+          name: formValues.name,
+          email: formValues.email,
+          phone: formValues.phone,
+          projectType: formValues.projectType,
+          description: formValues.description,
           contactType,
         }),
       });
 
-      const payload = await response.json().catch(() => ({}));
+      const payload = await response.json();
       if (!response.ok)
         throw new Error(payload?.message || "Unable to submit request.");
 
@@ -246,14 +197,16 @@ const ServicesContact = ({
 
         <Typography
           variant="body1"
-          sx={{ color: subtleText, textAlign: "center", maxWidth: 820 }}
+          sx={{
+            color: subtleText,
+            textAlign: "center",
+          }}
         >
           Share your idea, challenge, or growth plan — we’ll help you turn it
           into a solid product roadmap.
         </Typography>
       </Stack>
 
-      {/* Main Content */}
       <Grid
         container
         sx={{
@@ -264,54 +217,85 @@ const ServicesContact = ({
             : "0 24px 48px rgba(15,23,42,0.14)",
         }}
       >
-        {/* ✅ LEFT: Banner Image */}
-        {hasBannerImage ? (
-          <Grid
-            item
-            xs={12}
-            md={6}
-            ref={leftRef}
-            sx={{
-              position: "relative",
-              minHeight: { xs: 260, md: "100%" },
-              opacity: leftInView ? 1 : 0,
-              transform: leftInView ? "translateX(0)" : "translateX(-40px)",
-              transition: "opacity 0.7s ease, transform 0.7s ease",
-            }}
-          >
-            <Box
-              sx={{
-                height: "100%",
-                minHeight: { xs: 260, md: 520 },
-                width: "100%",
-                backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.6)), url("${resolvedBannerImage}")`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            />
-          </Grid>
-        ) : null}
-
-        {/* ✅ RIGHT: Form */}
+        {/* ✅ LEFT = IMAGE */}
         <Grid
           item
           xs={12}
-          md={hasBannerImage ? 6 : 12}
+          md={6}
+          ref={leftRef}
+          sx={{
+            position: "relative",
+            minHeight: { xs: 260, md: "100%" },
+            opacity: leftInView ? 1 : 0,
+            transform: leftInView ? "translateX(0)" : "translateX(-40px)",
+            transition: "opacity 0.7s ease, transform 0.7s ease",
+          }}
+        >
+          <Box
+            sx={{
+              height: "100%",
+              minHeight: { xs: 280, md: 520 },
+              width: "100%",
+              backgroundImage: `linear-gradient(135deg, rgba(2,6,23,0.55), rgba(2,6,23,0.75)), url(${resolvedBannerImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              borderRight: {
+                xs: "none",
+                md: `1px solid ${alpha(
+                  theme.palette.divider,
+                  isDark ? 0.3 : 0.2
+                )}`,
+              },
+            }}
+          />
+
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              px: { xs: 2.5, md: 4 },
+              textAlign: "center",
+              pointerEvents: "none",
+            }}
+          >
+            <Typography
+              sx={{
+                fontWeight: 800,
+                lineHeight: 1.05,
+                fontSize: { xs: 28, sm: 34, md: 44 },
+                letterSpacing: -0.6,
+                textShadow: "0 10px 30px rgba(0,0,0,0.55)",
+                background:
+                  "linear-gradient(90deg, rgba(168,85,247,1), rgba(103,232,249,1))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Hire Expert
+              <br />
+              Developers &amp;
+              <br />
+              Scalable Tech
+              <br />
+              Services
+            </Typography>
+          </Box>
+        </Grid>
+
+        {/* ✅ RIGHT = FORM */}
+        <Grid
+          item
+          xs={12}
+          md={6}
           ref={rightRef}
           sx={{
             backgroundColor: isDark ? alpha("#020617", 0.96) : "#ffffff",
             opacity: rightInView ? 1 : 0,
             transform: rightInView ? "translateX(0)" : "translateX(40px)",
             transition: "opacity 0.7s ease, transform 0.7s ease",
-            borderLeft: hasBannerImage
-              ? {
-                  xs: "none",
-                  md: `1px solid ${alpha(
-                    theme.palette.divider,
-                    isDark ? 0.3 : 0.2
-                  )}`,
-                }
-              : "none",
           }}
         >
           <Stack spacing={3} sx={{ p: { xs: 3, md: 5 } }}>
@@ -348,6 +332,8 @@ const ServicesContact = ({
                   label="Name"
                   fullWidth
                   required
+                  variant="outlined"
+                  size="medium"
                   value={formValues.name}
                   onChange={handleChange("name")}
                 />
@@ -356,6 +342,8 @@ const ServicesContact = ({
                   type="email"
                   fullWidth
                   required
+                  variant="outlined"
+                  size="medium"
                   value={formValues.email}
                   onChange={handleChange("email")}
                 />
@@ -365,6 +353,8 @@ const ServicesContact = ({
                 <AppTextField
                   label="Mobile Number"
                   fullWidth
+                  variant="outlined"
+                  size="medium"
                   value={formValues.phone}
                   onChange={handleChange("phone")}
                 />
@@ -374,6 +364,8 @@ const ServicesContact = ({
                   fullWidth
                   required
                   value={formValues.projectType}
+                  variant="outlined"
+                  size="medium"
                   onChange={handleChange("projectType")}
                   displayEmpty
                   renderValue={(selected) => {
@@ -393,11 +385,14 @@ const ServicesContact = ({
                     }
                     return selected;
                   }}
-                  InputLabelProps={{ shrink: Boolean(formValues.projectType) }}
+                  InputLabelProps={{
+                    shrink: Boolean(formValues.projectType),
+                  }}
                 >
                   <MenuItem value="" disabled>
                     Select Project Type
                   </MenuItem>
+
                   {projectTypes.map((type) => (
                     <MenuItem key={type} value={type}>
                       {type}
@@ -411,6 +406,7 @@ const ServicesContact = ({
                 fullWidth
                 multiline
                 minRows={4}
+                variant="outlined"
                 value={formValues.description}
                 onChange={handleChange("description")}
               />
@@ -430,6 +426,7 @@ const ServicesContact = ({
                   sx={{
                     background:
                       "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                    color: "#fff",
                     borderRadius: "12px",
                     textTransform: "none",
                     fontWeight: 600,
