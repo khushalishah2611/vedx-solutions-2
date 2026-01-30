@@ -94,19 +94,13 @@ export const useServiceHireCatalog = () => {
 
     const loadCatalog = async () => {
       setIsLoading(true);
-      try {
-        const token = localStorage.getItem('adminToken');
-        const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-
+      const loadPublicCatalog = async () => {
         const [serviceCategoryPayload, serviceSubCategoryPayload] = await Promise.all([
-          fetchJson('/api/admin/service-categories', { headers: authHeaders }),
-          fetchJson('/api/admin/service-subcategories', { headers: authHeaders }),
+          fetchJson('/api/service-categories'),
+          fetchJson('/api/service-subcategories'),
         ]);
 
-        const [hireCategoryPayload, hireRolePayload] = await Promise.all([
-          fetchJson('/api/admin/hire-categories', { headers: authHeaders }),
-          fetchJson('/api/admin/hire-roles', { headers: authHeaders }),
-        ]);
+        const hireCategoryPayload = await fetchJson('/api/hire-categories');
 
         if (!isMounted) return;
 
@@ -114,21 +108,24 @@ export const useServiceHireCatalog = () => {
         setServiceSubCategories(serviceSubCategoryPayload.subCategories ?? []);
         setHireCategories(hireCategoryPayload.categories ?? []);
         setHireRoles(
-          hireRolePayload.roles ??
-            hireCategoryPayload.categories?.flatMap((category) => category.roles ?? []) ??
-            []
+          hireCategoryPayload.categories?.flatMap((category) => category.roles ?? []) ?? []
         );
-      } catch (error) {
-        if (!isMounted) return;
-        console.error('Failed to load menu catalog', error);
+      };
 
-        try {
+      try {
+        const token = localStorage.getItem('adminToken');
+
+        if (token) {
+          const authHeaders = { Authorization: `Bearer ${token}` };
           const [serviceCategoryPayload, serviceSubCategoryPayload] = await Promise.all([
-            fetchJson('/api/service-categories'),
-            fetchJson('/api/service-subcategories'),
+            fetchJson('/api/admin/service-categories', { headers: authHeaders }),
+            fetchJson('/api/admin/service-subcategories', { headers: authHeaders }),
           ]);
 
-          const hireCategoryPayload = await fetchJson('/api/hire-categories');
+          const [hireCategoryPayload, hireRolePayload] = await Promise.all([
+            fetchJson('/api/admin/hire-categories', { headers: authHeaders }),
+            fetchJson('/api/admin/hire-roles', { headers: authHeaders }),
+          ]);
 
           if (!isMounted) return;
 
@@ -136,8 +133,22 @@ export const useServiceHireCatalog = () => {
           setServiceSubCategories(serviceSubCategoryPayload.subCategories ?? []);
           setHireCategories(hireCategoryPayload.categories ?? []);
           setHireRoles(
-            hireCategoryPayload.categories?.flatMap((category) => category.roles ?? []) ?? []
+            hireRolePayload.roles ??
+              hireCategoryPayload.categories?.flatMap((category) => category.roles ?? []) ??
+              []
           );
+          return;
+        }
+
+        await loadPublicCatalog();
+      } catch (error) {
+        if (!isMounted) return;
+        if (error?.status !== 401) {
+          console.error('Failed to load menu catalog', error);
+        }
+
+        try {
+          await loadPublicCatalog();
         } catch (fallbackError) {
           console.error('Failed to load public menu catalog', fallbackError);
         }

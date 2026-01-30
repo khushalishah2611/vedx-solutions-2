@@ -24,6 +24,7 @@ import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 
 import { apiUrl } from "../../utils/const.js";
+import { useBannerByType } from "../../hooks/useBannerByType.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
 /* ✅ FALLBACK PROJECT TYPES (fix for contactProjectTypes not defined) */
@@ -78,6 +79,10 @@ const ContactPage = () => {
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
 
   const { fetchWithLoading } = useLoadingFetch();
+  const { banner } = useBannerByType("contact");
+  const heroImage =
+    banner?.image ||
+    "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80";
 
   // ✅ now safe
   const [projectTypes, setProjectTypes] = useState(contactProjectTypes);
@@ -193,7 +198,7 @@ const ContactPage = () => {
       <Box
         sx={{
           backgroundImage:
-            "linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=1600&q=80)",
+            `linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(${heroImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

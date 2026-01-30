@@ -21,6 +21,7 @@ import {
   AppTextField,
 } from "../../shared/FormControls.jsx";
 import { apiUrl } from "../../../utils/const.js";
+import { useBannerByType } from "../../../hooks/useBannerByType.js";
 import { useLoadingFetch } from "../../../hooks/useLoadingFetch.js";
 
 // Simple hook to detect when an element enters the viewport
@@ -61,8 +62,9 @@ const ServicesContact = ({
   const isDark = theme.palette.mode === "dark";
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const { fetchWithLoading } = useLoadingFetch();
+  const { banner } = useBannerByType(contactType);
 
-  // ✅ only right side animation needed now
+  const [leftRef, leftInView] = useInView();
   const [rightRef, rightInView] = useInView();
 
   // ✅ API-only project types
@@ -80,6 +82,10 @@ const ServicesContact = ({
   const [statusMessage, setStatusMessage] = useState("");
   const [statusSeverity, setStatusSeverity] = useState("success");
   const [submitting, setSubmitting] = useState(false);
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80";
+  const resolvedBannerImage =
+    banner?.image || (Array.isArray(banner?.images) ? banner?.images?.[0] : "") || fallbackImage;
 
   // ✅ Load Project Types (API)
   useEffect(() => {
@@ -205,7 +211,7 @@ const ServicesContact = ({
         </Typography>
       </Stack>
 
-      {/* Main Content (FORM ONLY) */}
+      {/* Main Content */}
       <Grid
         container
         sx={{
@@ -219,11 +225,12 @@ const ServicesContact = ({
         <Grid
           item
           xs={12}
-          ref={rightRef}
+          md={6}
+          ref={leftRef}
           sx={{
             backgroundColor: isDark ? alpha("#020617", 0.96) : "#ffffff",
-            opacity: rightInView ? 1 : 0,
-            transform: rightInView ? "translateX(0)" : "translateX(40px)",
+            opacity: leftInView ? 1 : 0,
+            transform: leftInView ? "translateX(0)" : "translateX(-40px)",
             transition: "opacity 0.7s ease, transform 0.7s ease",
           }}
         >
@@ -378,6 +385,35 @@ const ServicesContact = ({
               </Box>
             </Stack>
           </Stack>
+        </Grid>
+
+        <Grid
+          item
+          xs={12}
+          md={6}
+          ref={rightRef}
+          sx={{
+            position: "relative",
+            minHeight: { xs: 260, md: "100%" },
+            opacity: rightInView ? 1 : 0,
+            transform: rightInView ? "translateX(0)" : "translateX(40px)",
+            transition: "opacity 0.7s ease, transform 0.7s ease",
+          }}
+        >
+          <Box
+            sx={{
+              height: "100%",
+              minHeight: { xs: 260, md: 520 },
+              width: "100%",
+              backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.6)), url(${resolvedBannerImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              borderLeft: {
+                xs: "none",
+                md: `1px solid ${alpha(theme.palette.divider, isDark ? 0.3 : 0.2)}`,
+              },
+            }}
+          />
         </Grid>
       </Grid>
     </Box>
