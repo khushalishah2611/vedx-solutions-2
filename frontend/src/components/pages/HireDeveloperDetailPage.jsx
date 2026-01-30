@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
 
@@ -17,7 +17,6 @@ import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 import ServicesBlog from '../shared/ServicesBlog.jsx';
 import NotFoundPage from '../shared/NotFoundPage.jsx';
 
-import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
@@ -25,7 +24,7 @@ import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 const HireDeveloperDetailPage = () => {
   const theme = useTheme();
   const { categorySlug, roleSlug } = useParams();
-  const { openDialog } = useContactDialog();
+  const navigate = useNavigate();
   const { fetchWithLoading } = useLoadingFetch();
   const { hireCategories, hireRoles, isLoading } = useServiceHireCatalog();
   const [benefits, setBenefits] = useState([]);
@@ -61,8 +60,13 @@ const HireDeveloperDetailPage = () => {
   }, [categorySlug, roleSlug]);
 
   const handleOpenContact = useCallback(() => {
-    openDialog();
-  }, [openDialog]);
+    navigate('/contact');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  }, [navigate]);
 
   const resolvedCategory = category;
   const resolvedRole = role;
