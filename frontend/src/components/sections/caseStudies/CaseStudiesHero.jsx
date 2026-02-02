@@ -10,7 +10,7 @@ const DEFAULT_BACKGROUND =
 
 const DEFAULT_TITLE = "Explore Our Case Studies Gallery, Where Ideas Flourish.";
 
-const CaseStudiesHero = ({ banner }) => {
+const CaseStudiesHero = ({ banner = null }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const navigate = useNavigate();
@@ -159,10 +159,6 @@ CaseStudiesHero.propTypes = {
     title: PropTypes.string,
     image: PropTypes.string,
   }),
-};
-
-CaseStudiesHero.defaultProps = {
-  banner: null,
 };
 
 export default CaseStudiesHero;
