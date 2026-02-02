@@ -16,7 +16,7 @@ import { Link as RouterLink } from "react-router-dom";
 import { AppButton } from "../../shared/FormControls.jsx";
 
 const CONTACT_ROUTE = "/contact";
-const CASE_STUDIES_ROUTE = "/case-studies";
+const CASE_STUDIES_ROUTE = "/casestudy";
 
 const safeStr = (v) => String(v ?? "").trim();
 

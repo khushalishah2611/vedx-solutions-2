@@ -67,32 +67,35 @@ const CaseStudyImpactBlock = ({ impactMetrics }) => {
       >
         <Box
           sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
             px: 2,
             py: 1,
             borderRadius: 0.5,
-            border: `1px solid ${alpha("#fff", 0.12)}`,
+            border: `1px solid ${alpha('#ffffff', 0.1)}`,
             background: isDark
-              ? alpha("#000", 0.55)
-              : alpha("#ddd", 0.9),
-            fontSize: 11,
+              ? alpha('#000000', 0.55)
+              : alpha('#dddddd', 0.9),
             fontWeight: 600,
             letterSpacing: 1,
-            textTransform: "uppercase",
+            textTransform: 'uppercase',
+            fontSize: 11,
           }}
         >
           <Box
             component="span"
             sx={{
-              background: accentGradient,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              background:
+                'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
             }}
           >
             Impact
           </Box>
         </Box>
       </Box>
-  <Box mt={10} />
+      <Box mt={10} />
       {/* Cards wrapper → fixes left/right spacing */}
       <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto" }}>
         <Grid container spacing={2.5} justifyContent="center">
