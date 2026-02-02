@@ -469,6 +469,7 @@ const ServicesShowcase = () => {
                               fontWeight: 700,
                               px: 2,
                               pb: 1.5,
+                               color: "#fff",
                               "&:hover": {
                                 color: "transparent",
                                 backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
@@ -525,6 +526,7 @@ const ServicesShowcase = () => {
                             fontWeight: 700,
                             px: 2,
                             pb: 1.5,
+                             color: "#fff",
                             "&:hover": {
                               color: "transparent",
                               backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
