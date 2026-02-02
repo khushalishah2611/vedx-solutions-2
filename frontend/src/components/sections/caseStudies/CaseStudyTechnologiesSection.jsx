@@ -113,7 +113,7 @@ const CaseStudyTechnologiesSection = ({ caseStudy, animate = true }) => {
                         mb: 1.5,
                         borderRadius: 0.5,
                         overflow: "hidden",
-                        border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.45 : 0.25)}`,
+                       
                         transition: "all 0.3s ease",
                       }}
                     >
