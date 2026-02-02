@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { alpha } from "@mui/material/styles";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 
-const CaseStudyConclusionBlock = ({ conclusion, accentColor }) => {
+const CaseStudyConclusionBlock = ({ conclusion, accentColor = "" }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
@@ -72,10 +72,6 @@ const CaseStudyConclusionBlock = ({ conclusion, accentColor }) => {
 CaseStudyConclusionBlock.propTypes = {
   conclusion: PropTypes.string.isRequired,
   accentColor: PropTypes.string, // optional (fallback to theme primary)
-};
-
-CaseStudyConclusionBlock.defaultProps = {
-  accentColor: "",
 };
 
 export default CaseStudyConclusionBlock;
