@@ -1,8 +1,8 @@
+import React from "react";
 import PropTypes from "prop-types";
 import { alpha, Box, Container, Grid, Stack, Typography, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../shared/FormControls.jsx";
-
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const DEFAULT_BACKGROUND =
@@ -22,20 +22,14 @@ const CaseStudiesHero = ({ banner }) => {
 
   const onContact = () => {
     navigate("/contact");
-    // optional: ensure top after navigation
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <Box
       component="section"
+      id="home"
       sx={{
-        backgroundImage: `linear-gradient(to bottom, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.82)), url(${bannerImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        transition: "transform 0.6s ease, filter 0.6s ease",
-        filter: isDark ? "brightness(0.9)" : "brightness(0.8)",
         position: "relative",
         overflow: "hidden",
         minHeight: { xs: "60vh", md: "70vh" },
@@ -45,6 +39,50 @@ const CaseStudiesHero = ({ banner }) => {
         pt: { xs: 14, md: 18 },
       }}
     >
+      {/* ✅ Static Background Image */}
+      <Box sx={{ position: "absolute", inset: 0, zIndex: 0 }}>
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `url(${bannerImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            transform: "scale(1.05)",
+            filter: isDark ? "brightness(0.9)" : "brightness(0.8)",
+          }}
+        />
+
+        {/* ✅ Overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background: isDark
+              ? `
+                linear-gradient(
+                  90deg,
+                  rgba(5,9,18,0.85) 0%,
+                  rgba(5,9,18,0.65) 40%,
+                  rgba(5,9,18,0.2) 70%,
+                  rgba(5,9,18,0) 100%
+                )
+              `
+              : `
+                linear-gradient(
+                  90deg,
+                  rgba(241,245,249,0.9) 0%,
+                  rgba(241,245,249,0.7) 40%,
+                  rgba(241,245,249,0.3) 70%,
+                  rgba(241,245,249,0) 100%
+                )
+              `,
+          }}
+        />
+      </Box>
+
+      {/* ✅ Content */}
       <Container
         maxWidth={false}
         sx={{
@@ -54,7 +92,6 @@ const CaseStudiesHero = ({ banner }) => {
         }}
       >
         <Grid container alignItems="center" justifyContent="space-between">
-          {/* Left Content */}
           <Grid item xs={12} md={6}>
             <Stack
               spacing={4}
