@@ -16,7 +16,7 @@ const FALLBACK_IMAGE =
 
 const safeStr = (v) => String(v ?? "").trim();
 
-const CaseStudyCard = ({ caseStudy }) => {
+const CaseStudyCard = ({ caseStudy = {} }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.9 : 0.75);
@@ -229,10 +229,6 @@ CaseStudyCard.propTypes = {
     accentColor: PropTypes.string,
     tags: PropTypes.arrayOf(PropTypes.string),
   }),
-};
-
-CaseStudyCard.defaultProps = {
-  caseStudy: {},
 };
 
 export default CaseStudyCard;
