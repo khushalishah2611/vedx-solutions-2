@@ -20,7 +20,7 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
     }
 
     return [
-   
+
     ];
   }, [caseStudy]);
 
@@ -38,17 +38,19 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Box
             sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
               px: 2,
               py: 1,
-              borderRadius: 1,
-              border: `1px solid ${alpha('#fff', 0.15)}`,
+              borderRadius: 0.5,
+              border: `1px solid ${alpha('#ffffff', 0.1)}`,
               background: isDark
-                ? alpha('#000', 0.55)
-                : alpha('#fff', 0.8),
-              fontSize: 11,
+                ? alpha('#000000', 0.55)
+                : alpha('#dddddd', 0.9),
               fontWeight: 600,
               letterSpacing: 1,
               textTransform: 'uppercase',
+              fontSize: 11,
             }}
           >
             <Box
@@ -77,7 +79,7 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
               spacing={2}
               alignItems="center"
               direction={{
-                xs: 'column', 
+                xs: 'column',
                 md: imageLeftDesktop ? 'row-reverse' : 'row',
               }}
               textAlign={{ xs: 'center', md: 'left' }}
@@ -101,7 +103,7 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
                     transform: animate ? 'none' : 'translateY(20px)',
                     transition: 'all 600ms ease',
                     borderRadius: 0.5,
-                      position: "relative",
+                    position: "relative",
                     border: `1px solid ${alpha('#ffffff', 0.12)}`,
                   }}
                 >
@@ -109,7 +111,7 @@ const CaseStudyKeyFeaturesSection = ({ caseStudy, animate = true }) => {
                     component="img"
                     src={
                       feature.image
-                  
+
                     }
                     alt={feature.title}
                     loading="lazy"

@@ -18,15 +18,18 @@ import { AppButton } from "../../shared/FormControls.jsx";
 const CONTACT_ROUTE = "/contact";
 const CASE_STUDIES_ROUTE = "/case-studies";
 
-const BreadcrumbLink = ({ to, children }) => (
+const safeStr = (v) => String(v ?? "").trim();
+
+const BreadcrumbLink = ({ to, children, color }) => (
   <MuiLink
     component={RouterLink}
     to={to}
     underline="none"
     sx={{
-      color: alpha("#fff", 0.9),
+      color: color,
       fontWeight: 500,
-      "&:hover": { color: "#fff", textDecoration: "underline" },
+      minWidth: 0,
+      "&:hover": { textDecoration: "underline" },
     }}
   >
     {children}
@@ -36,36 +39,32 @@ const BreadcrumbLink = ({ to, children }) => (
 BreadcrumbLink.propTypes = {
   to: PropTypes.string.isRequired,
   children: PropTypes.node.isRequired,
+  color: PropTypes.string.isRequired,
 };
 
 const CaseStudyDetailHero = ({ caseStudy }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
 
-  // ✅ only bind from API/data (no fallback strings)
-  const heroTitle = caseStudy?.heroTitle || caseStudy?.title || "";
-  const heroDescription = caseStudy?.heroDescription || caseStudy?.excerpt || "";
+  const heroTitle = safeStr(caseStudy?.heroTitle || caseStudy?.title);
+  const heroDescription = safeStr(caseStudy?.heroDescription || caseStudy?.excerpt);
 
-  const heroImage = (caseStudy?.heroImage || "").trim();
+  const heroImage = safeStr(caseStudy?.heroImage);
   const heroHasImage = Boolean(heroImage);
 
-  // optional details route (kept for future use)
-  const slugOrId = caseStudy?.slug || caseStudy?.id;
-  const detailsRoute = slugOrId ? `${CASE_STUDIES_ROUTE}/${slugOrId}` : null;
+  const currentTitle = safeStr(caseStudy?.title) || "Details";
 
   const resolvedBreadcrumbs = [
     { label: "Home", href: "/" },
     { label: "Case Studies", href: CASE_STUDIES_ROUTE },
-    {
-      label: caseStudy?.title || "Details",
-      href: null,
-      // if you want clickable current page later:
-      // href: detailsRoute,
-    },
+    { label: currentTitle, href: null },
   ];
 
-  // ✅ CTA label from API else minimal fallback
-  const ctaLabel = caseStudy?.cta?.label || "Contact Us";
+  const ctaLabel = safeStr(caseStudy?.cta?.label) || "Contact Us";
+
+  // breadcrumb text color
+  const breadText = isDark ? alpha("#fff", 0.9) : alpha("#0b1220", 0.9);
+  const breadTextMuted = isDark ? alpha("#fff", 0.78) : alpha("#0b1220", 0.72);
 
   return (
     <Box
@@ -78,35 +77,55 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
         alignItems: "center",
         pb: { xs: 12, md: 14 },
         pt: { xs: 14, md: 18 },
-
       }}
     >
-      {/* ✅ Background Image (absolute) - only if exists */}
-      {heroHasImage && (
+      {/* ✅ Static Background Wrapper (Image + Overlay) */}
+      <Box sx={{ position: "absolute", inset: 0, zIndex: 0 }}>
+        {/* ✅ Background Image OR fallback gradient */}
         <Box
           sx={{
             position: "absolute",
             inset: 0,
-            backgroundImage: `url(${heroImage})`,
+            backgroundImage: heroHasImage
+              ? `url(${heroImage})`
+              : isDark
+              ? "linear-gradient(135deg, rgba(2,6,23,1) 0%, rgba(15,23,42,1) 55%, rgba(2,6,23,1) 100%)"
+              : "linear-gradient(135deg, rgba(241,245,249,1) 0%, rgba(226,232,240,1) 55%, rgba(241,245,249,1) 100%)",
             backgroundSize: "cover",
             backgroundPosition: "center",
             transform: "scale(1.05)",
-            filter: isDark ? "brightness(0.85)" : "brightness(0.7)",
+            filter: isDark ? "brightness(0.9)" : "brightness(0.85)",
           }}
         />
-      )}
 
-      {/* ✅ Overlay (absolute) */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          background: isDark
-            ? `linear-gradient(90deg, rgba(5,9,18,0.85) 0%, rgba(5,9,18,0.65) 40%, rgba(5,9,18,0.2) 70%, rgba(5,9,18,0) 100%)`
-            : `linear-gradient(90deg, rgba(241,245,249,0.9) 0%, rgba(241,245,249,0.7) 40%, rgba(241,245,249,0.3) 70%, rgba(241,245,249,0) 100%)`,
-        }}
-      />
+        {/* ✅ Overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background: isDark
+              ? `
+                linear-gradient(
+                  90deg,
+                  rgba(5,9,18,0.85) 0%,
+                  rgba(5,9,18,0.65) 40%,
+                  rgba(5,9,18,0.2) 70%,
+                  rgba(5,9,18,0) 100%
+                )
+              `
+              : `
+                linear-gradient(
+                  90deg,
+                  rgba(241,245,249,0.92) 0%,
+                  rgba(241,245,249,0.75) 40%,
+                  rgba(241,245,249,0.35) 70%,
+                  rgba(241,245,249,0) 100%
+                )
+              `,
+          }}
+        />
+      </Box>
 
       <Container
         maxWidth={false}
@@ -131,12 +150,12 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
             separator={
               <NavigateNextIcon
                 fontSize="small"
-                sx={{ color: alpha("#e2e8f0", 0.9) }}
+                sx={{ color: isDark ? alpha("#e2e8f0", 0.9) : alpha("#0b1220", 0.5) }}
               />
             }
             aria-label="breadcrumb"
             sx={{
-              color: alpha("#fff", 0.85),
+              color: breadTextMuted,
               fontSize: { xs: 12, sm: 18 },
               "& .MuiBreadcrumbs-ol": {
                 flexWrap: "wrap",
@@ -155,7 +174,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
           >
             {resolvedBreadcrumbs.map((crumb, idx) => {
               const isLast = idx === resolvedBreadcrumbs.length - 1;
-              const label = crumb?.label ?? "";
+              const label = safeStr(crumb?.label);
 
               if (!isLast && crumb?.href) {
                 return (
@@ -166,7 +185,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                       maxWidth: { xs: 220, sm: 320, md: 520 },
                     }}
                   >
-                    <BreadcrumbLink to={crumb.href}>
+                    <BreadcrumbLink to={crumb.href} color={breadText}>
                       <Typography
                         component="span"
                         sx={{
@@ -176,6 +195,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                         }}
+                        title={label}
                       >
                         {label}
                       </Typography>
@@ -184,56 +204,29 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 );
               }
 
-              // last crumb -> text
-              if (!crumb?.href) {
-                return (
-                  <Typography
-                    key={`${label}-${idx}`}
-                    sx={{
-                      color: alpha("#fff", 0.78),
-                      fontSize: { xs: 12, sm: 18 },
-                      lineHeight: 1.35,
-                      maxWidth: { xs: 240, sm: 380, md: 620 },
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                    title={label}
-                  >
-                    {label}
-                  </Typography>
-                );
-              }
-
+              // last crumb -> text only
               return (
-                <BreadcrumbLink key={`${label}-${idx}`} to={crumb.href}>
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: alpha("#fff", 0.78),
-                      fontSize: { xs: 12, sm: 18 },
-                      lineHeight: 1.35,
-                      maxWidth: { xs: 240, sm: 380, md: 620 },
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                    title={label}
-                  >
-                    {label}
-                  </Typography>
-                </BreadcrumbLink>
+                <Typography
+                  key={`${label}-${idx}`}
+                  sx={{
+                    color: breadTextMuted,
+                    fontSize: { xs: 12, sm: 18 },
+                    lineHeight: 1.35,
+                    maxWidth: { xs: 240, sm: 380, md: 620 },
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                  title={label}
+                >
+                  {label}
+                </Typography>
               );
             })}
           </Breadcrumbs>
         </Box>
 
-        <Grid
-          container
-          alignItems="center"
-          justifyContent="space-between"
-          rowSpacing={4}
-        >
+        <Grid container alignItems="center" justifyContent="space-between" rowSpacing={4}>
           <Grid item xs={12} md={7} lg={6}>
             <Stack
               spacing={3.2}
@@ -242,7 +235,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 alignItems: { xs: "center", md: "flex-start" },
               }}
             >
-              {!!caseStudy?.category && (
+              {!!safeStr(caseStudy?.category) && (
                 <Box
                   sx={{
                     display: "inline-flex",
@@ -250,8 +243,8 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                     px: 2,
                     py: 0.9,
                     borderRadius: 999,
-                    border: `1px solid ${alpha("#ffffff", 0.14)}`,
-                    background: alpha("#0b1220", isDark ? 0.35 : 0.22),
+                    border: `1px solid ${alpha(isDark ? "#ffffff" : "#0b1220", 0.16)}`,
+                    background: isDark ? alpha("#0b1220", 0.35) : alpha("#ffffff", 0.28),
                     backdropFilter: "blur(10px)",
                     WebkitBackdropFilter: "blur(10px)",
                   }}
@@ -262,18 +255,16 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                       fontWeight: 700,
                       letterSpacing: 1,
                       textTransform: "uppercase",
-                      background:
-                        "linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)",
+                      background: "linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                     }}
                   >
-                    {caseStudy.category}
+                    {safeStr(caseStudy?.category)}
                   </Typography>
                 </Box>
               )}
 
-              {/* ✅ only show title if available */}
               {!!heroTitle && (
                 <Typography
                   variant="h1"
@@ -281,19 +272,18 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                     fontSize: { xs: 28, sm: 38, md: 54 },
                     fontWeight: 900,
                     lineHeight: 1.08,
-                    color: "#fff",
+                    color: isDark ? "#fff" : "#0b1220",
                   }}
                 >
                   {heroTitle}
                 </Typography>
               )}
 
-              {/* ✅ only show description if available */}
               {!!heroDescription && (
                 <Typography
                   variant="body1"
                   sx={{
-                    color: alpha("#fff", 0.82),
+                    color: isDark ? alpha("#fff", 0.82) : alpha("#0b1220", 0.78),
                     maxWidth: 620,
                     lineHeight: 1.75,
                     fontSize: { xs: 14.5, sm: 16, md: 16.5 },
@@ -303,7 +293,6 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                 </Typography>
               )}
 
-              {/* ✅ CTA always -> /contact */}
               <AppButton
                 variant="contained"
                 size="large"
@@ -320,8 +309,7 @@ const CaseStudyDetailHero = ({ caseStudy }) => {
                   py: { xs: 1.3, md: 1.6 },
                   boxShadow: `0 14px 40px ${alpha("#000", 0.28)}`,
                   "&:hover": {
-                    background:
-                      "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
+                    background: "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
                   },
                 }}
               >
