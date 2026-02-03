@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
-import { Autocomplete, Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, CardHeader, Chip, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
+import { Autocomplete, Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, CardHeader, Chip, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Tab, Tabs, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
 import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -8,7 +8,6 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import AdminSectionTabs from './tabs/AdminSectionTabs.jsx';
 import ContactButtonsTab from './tabs/ContactButtonsTab.jsx';
 import BenefitsTab from './tabs/BenefitsTab.jsx';
 import WhyChooseTab from './tabs/WhyChooseTab.jsx';
@@ -2553,23 +2552,36 @@ const rowsPerPage = 20;
 
   return (
     <Stack spacing={3}>
-      <AdminSectionTabs
-        value={activeTab}
-        onChange={(event, value) => setActiveTab(value)}
-        tabs={[
-          { value: 'services', label: 'Service menu' },
-          { value: 'process', label: 'Process' },
-          { value: 'why-vedx', label: 'Why choose VedX' },
-          { value: 'why-choose', label: 'Why choose service' },
-          { value: 'technologies', label: 'Technologies we support' },
-          { value: 'benefits', label: 'Benefits' },
-          { value: 'contact-buttons', label: 'Contact buttons' },
-          { value: 'hire-pricing', label: 'Hire pricing' },
-        ]}
+      <Box
         sx={{
-          background: 'linear-gradient(135deg, #0b1120 0%, #111827 100%)',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          bgcolor: 'background.paper',
         }}
-      />
+      >
+        <Tabs
+          value={activeTab}
+          onChange={(_, value) => setActiveTab(value)}
+          variant="scrollable"
+          scrollButtons="auto"
+          indicatorColor="primary"
+          textColor="primary"
+        >
+          {[
+            { value: 'services', label: 'Service menu' },
+            { value: 'process', label: 'Process' },
+            { value: 'why-vedx', label: 'Why choose VedX' },
+            { value: 'why-choose', label: 'Why choose service' },
+            { value: 'technologies', label: 'Technologies we support' },
+            { value: 'benefits', label: 'Benefits' },
+            { value: 'contact-buttons', label: 'Contact buttons' },
+            { value: 'hire-pricing', label: 'Hire pricing' },
+          ].map((tab) => (
+            <Tab key={tab.value} value={tab.value} label={tab.label} />
+          ))}
+        </Tabs>
+      </Box>
 
       {activeTab === 'services' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>

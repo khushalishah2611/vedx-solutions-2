@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Avatar, Box, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, AppBar, Stack } from '@mui/material';
 import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogContentText, AppDialogTitle } from './shared/FormControls.jsx';
 
@@ -18,10 +18,13 @@ import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import CollectionsBookmarkOutlinedIcon from '@mui/icons-material/CollectionsBookmarkOutlined';
 import GavelRoundedIcon from '@mui/icons-material/GavelRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
+import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { getStoredAdminProfile } from '../data/adminProfile.js';
 import { apiUrl } from '../utils/const.js';
+import { ColorModeContext } from '../contexts/ColorModeContext.jsx';
 
 const drawerWidth = 280;
 
@@ -30,6 +33,7 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
+  const { mode, toggleColorMode } = useContext(ColorModeContext);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -256,6 +260,17 @@ const AdminLayout = () => {
 
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
+            <IconButton
+              onClick={toggleColorMode}
+              aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+              }}
+            >
+              {mode === 'dark' ? <WbSunnyRoundedIcon /> : <DarkModeRoundedIcon />}
+            </IconButton>
             <Box textAlign="right">
               <Typography variant="subtitle2" fontWeight={600}>
                 {profile.email}

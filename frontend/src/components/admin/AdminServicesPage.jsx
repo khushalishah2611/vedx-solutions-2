@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiUrl } from '../../utils/const.js';
-import { Autocomplete, Box, Chip, Divider, Grid, IconButton, MenuItem, Stack, Typography } from '@mui/material';
+import { Autocomplete, Box, Chip, Divider, Grid, IconButton, MenuItem, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
-import AdminSectionTabs from './tabs/AdminSectionTabs.jsx';
 import ServicesTab from './tabs/ServicesTab.jsx';
 import ProcessTab from './tabs/ProcessTab.jsx';
 import WhyVedxTab from './tabs/WhyVedxTab.jsx';
@@ -2200,12 +2199,27 @@ const AdminServicesPage = () => {
   // ---------- Render ----------
   return (
     <Stack spacing={3}>
-      <AdminSectionTabs
-        value={activeTab}
-        onChange={(event, value) => setActiveTab(value)}
-        tabs={adminServiceTabs}
-        sx={{ background: 'linear-gradient(135deg, #0b1120 0%, #111827 100%)' }}
-      />
+      <Box
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Tabs
+          value={activeTab}
+          onChange={(_, value) => setActiveTab(value)}
+          variant="scrollable"
+          scrollButtons="auto"
+          indicatorColor="primary"
+          textColor="primary"
+        >
+          {adminServiceTabs.map((tab) => (
+            <Tab key={tab.value} value={tab.value} label={tab.label} />
+          ))}
+        </Tabs>
+      </Box>
 
       {activeTab === 'services' && (
         <ServicesTab
