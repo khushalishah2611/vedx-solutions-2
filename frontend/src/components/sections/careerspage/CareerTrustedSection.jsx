@@ -1,7 +1,7 @@
 import { Box, Grid, Stack, Typography, alpha, useTheme } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const CareerTrustedSection = ({ logos }) => {
+const CareerTrustedSection = ({ logos, title, description }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
@@ -13,13 +13,13 @@ const CareerTrustedSection = ({ logos }) => {
           variant="h3"
           sx={{ fontSize: { xs: 28, md: 38 }, fontWeight: 700 }}
         >
-          Trusted Technology Partners
+          {title}
         </Typography>
         <Typography
           variant="body1"
           sx={{ color: subtleText, maxWidth: 720, lineHeight: 1.7 }}
         >
-          We collaborate with platforms and tools our teams love working with.
+          {description}
         </Typography>
       </Stack>
 
@@ -62,10 +62,14 @@ CareerTrustedSection.propTypes = {
       logo: PropTypes.string,
     })
   ),
+  title: PropTypes.string,
+  description: PropTypes.string,
 };
 
 CareerTrustedSection.defaultProps = {
   logos: [],
+  title: 'Trusted Technology Partners',
+  description: 'We collaborate with platforms and tools our teams love working with.',
 };
 
 export default CareerTrustedSection;

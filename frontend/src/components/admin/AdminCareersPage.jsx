@@ -150,6 +150,58 @@ const AdminCareersPage = () => {
     imageOverlay: '',
   });
   const [storySaved, setStorySaved] = useState(false);
+  const [benefitsConfig, setBenefitsConfig] = useState({ title: '', description: '' });
+  const [benefitsSaved, setBenefitsSaved] = useState(false);
+  const [benefits, setBenefits] = useState([]);
+  const [benefitDialogOpen, setBenefitDialogOpen] = useState(false);
+  const [benefitDialogMode, setBenefitDialogMode] = useState('create');
+  const [activeBenefit, setActiveBenefit] = useState(null);
+  const [benefitForm, setBenefitForm] = useState({
+    title: '',
+    description: '',
+    image: '',
+    sortOrder: 0,
+    isActive: true,
+  });
+  const [benefitToDelete, setBenefitToDelete] = useState(null);
+
+  const [technologyConfig, setTechnologyConfig] = useState({ title: '', description: '' });
+  const [technologySaved, setTechnologySaved] = useState(false);
+  const [technologies, setTechnologies] = useState([]);
+  const [technologyDialogOpen, setTechnologyDialogOpen] = useState(false);
+  const [technologyDialogMode, setTechnologyDialogMode] = useState('create');
+  const [activeTechnology, setActiveTechnology] = useState(null);
+  const [technologyForm, setTechnologyForm] = useState({
+    name: '',
+    image: '',
+    sortOrder: 0,
+    isActive: true,
+  });
+  const [technologyToDelete, setTechnologyToDelete] = useState(null);
+
+  const [hiringConfig, setHiringConfig] = useState({ title: '', description: '' });
+  const [hiringSaved, setHiringSaved] = useState(false);
+  const [hiringSteps, setHiringSteps] = useState([]);
+  const [hiringDialogOpen, setHiringDialogOpen] = useState(false);
+  const [hiringDialogMode, setHiringDialogMode] = useState('create');
+  const [activeHiringStep, setActiveHiringStep] = useState(null);
+  const [hiringForm, setHiringForm] = useState({
+    step: '',
+    title: '',
+    description: '',
+    sortOrder: 0,
+    isActive: true,
+  });
+  const [hiringToDelete, setHiringToDelete] = useState(null);
+
+  const [ctaForm, setCtaForm] = useState({
+    title: '',
+    description: '',
+    buttonText: '',
+    buttonLink: '',
+    image: '',
+  });
+  const [ctaSaved, setCtaSaved] = useState(false);
 
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const [jobDialogMode, setJobDialogMode] = useState('create');
@@ -282,10 +334,416 @@ const AdminCareersPage = () => {
     }
   };
 
+  const loadBenefitsConfig = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/career/benefits/config'));
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load benefits config.');
+      setBenefitsConfig({
+        title: payload?.title || '',
+        description: payload?.description || '',
+      });
+    } catch (error) {
+      console.error('Load benefits config failed', error);
+    }
+  };
+
+  const loadBenefits = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/career/benefits'));
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load benefits.');
+      setBenefits(Array.isArray(payload) ? payload : []);
+    } catch (error) {
+      console.error('Load benefits failed', error);
+    }
+  };
+
+  const handleBenefitsConfigSave = async () => {
+    try {
+      setBenefitsSaved(false);
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl('/api/career/benefits/config'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(benefitsConfig),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to save benefits config.');
+      setBenefitsConfig({
+        title: payload?.title || '',
+        description: payload?.description || '',
+      });
+      setBenefitsSaved(true);
+    } catch (error) {
+      console.error('Save benefits config failed', error);
+    }
+  };
+
+  const openBenefitCreateDialog = () => {
+    setBenefitDialogMode('create');
+    setActiveBenefit(null);
+    setBenefitForm({ title: '', description: '', image: '', sortOrder: 0, isActive: true });
+    setBenefitDialogOpen(true);
+  };
+
+  const openBenefitEditDialog = (benefit) => {
+    setBenefitDialogMode('edit');
+    setActiveBenefit(benefit);
+    setBenefitForm({
+      title: benefit.title || '',
+      description: benefit.description || '',
+      image: benefit.image || '',
+      sortOrder: benefit.sortOrder ?? 0,
+      isActive: benefit.isActive ?? true,
+    });
+    setBenefitDialogOpen(true);
+  };
+
+  const closeBenefitDialog = () => {
+    setBenefitDialogOpen(false);
+    setActiveBenefit(null);
+  };
+
+  const handleBenefitSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const isEdit = benefitDialogMode === 'edit' && activeBenefit;
+      const url = isEdit
+        ? apiUrl(`/api/career/benefits/${activeBenefit.id}`)
+        : apiUrl('/api/career/benefits');
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(benefitForm),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to save benefit.');
+      setBenefits((prev) =>
+        isEdit ? prev.map((item) => (item.id === payload.id ? payload : item)) : [payload, ...prev]
+      );
+      closeBenefitDialog();
+    } catch (error) {
+      console.error('Save benefit failed', error);
+    }
+  };
+
+  const handleBenefitDelete = async () => {
+    if (!benefitToDelete) return;
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/career/benefits/${benefitToDelete.id}`), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to delete benefit.');
+      setBenefits((prev) => prev.filter((item) => item.id !== benefitToDelete.id));
+      setBenefitToDelete(null);
+    } catch (error) {
+      console.error('Delete benefit failed', error);
+    }
+  };
+
+  const loadTechnologyConfig = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/career/technologies/config'));
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load technology config.');
+      setTechnologyConfig({
+        title: payload?.title || '',
+        description: payload?.description || '',
+      });
+    } catch (error) {
+      console.error('Load technology config failed', error);
+    }
+  };
+
+  const loadTechnologies = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/career/technologies'));
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load technologies.');
+      setTechnologies(Array.isArray(payload) ? payload : []);
+    } catch (error) {
+      console.error('Load technologies failed', error);
+    }
+  };
+
+  const handleTechnologyConfigSave = async () => {
+    try {
+      setTechnologySaved(false);
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl('/api/career/technologies/config'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(technologyConfig),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to save technology config.');
+      setTechnologyConfig({
+        title: payload?.title || '',
+        description: payload?.description || '',
+      });
+      setTechnologySaved(true);
+    } catch (error) {
+      console.error('Save technology config failed', error);
+    }
+  };
+
+  const openTechnologyCreateDialog = () => {
+    setTechnologyDialogMode('create');
+    setActiveTechnology(null);
+    setTechnologyForm({ name: '', image: '', sortOrder: 0, isActive: true });
+    setTechnologyDialogOpen(true);
+  };
+
+  const openTechnologyEditDialog = (item) => {
+    setTechnologyDialogMode('edit');
+    setActiveTechnology(item);
+    setTechnologyForm({
+      name: item.name || '',
+      image: item.image || '',
+      sortOrder: item.sortOrder ?? 0,
+      isActive: item.isActive ?? true,
+    });
+    setTechnologyDialogOpen(true);
+  };
+
+  const closeTechnologyDialog = () => {
+    setTechnologyDialogOpen(false);
+    setActiveTechnology(null);
+  };
+
+  const handleTechnologySubmit = async (event) => {
+    event.preventDefault();
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const isEdit = technologyDialogMode === 'edit' && activeTechnology;
+      const url = isEdit
+        ? apiUrl(`/api/career/technologies/${activeTechnology.id}`)
+        : apiUrl('/api/career/technologies');
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(technologyForm),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to save technology.');
+      setTechnologies((prev) =>
+        isEdit ? prev.map((item) => (item.id === payload.id ? payload : item)) : [payload, ...prev]
+      );
+      closeTechnologyDialog();
+    } catch (error) {
+      console.error('Save technology failed', error);
+    }
+  };
+
+  const handleTechnologyDelete = async () => {
+    if (!technologyToDelete) return;
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/career/technologies/${technologyToDelete.id}`), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to delete technology.');
+      setTechnologies((prev) => prev.filter((item) => item.id !== technologyToDelete.id));
+      setTechnologyToDelete(null);
+    } catch (error) {
+      console.error('Delete technology failed', error);
+    }
+  };
+
+  const loadHiringConfig = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/career/hiring/config'));
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load hiring config.');
+      setHiringConfig({
+        title: payload?.title || '',
+        description: payload?.description || '',
+      });
+    } catch (error) {
+      console.error('Load hiring config failed', error);
+    }
+  };
+
+  const loadHiringSteps = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/career/hiring'));
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load hiring steps.');
+      setHiringSteps(Array.isArray(payload) ? payload : []);
+    } catch (error) {
+      console.error('Load hiring steps failed', error);
+    }
+  };
+
+  const handleHiringConfigSave = async () => {
+    try {
+      setHiringSaved(false);
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl('/api/career/hiring/config'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(hiringConfig),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to save hiring config.');
+      setHiringConfig({
+        title: payload?.title || '',
+        description: payload?.description || '',
+      });
+      setHiringSaved(true);
+    } catch (error) {
+      console.error('Save hiring config failed', error);
+    }
+  };
+
+  const openHiringCreateDialog = () => {
+    setHiringDialogMode('create');
+    setActiveHiringStep(null);
+    setHiringForm({ step: '', title: '', description: '', sortOrder: 0, isActive: true });
+    setHiringDialogOpen(true);
+  };
+
+  const openHiringEditDialog = (item) => {
+    setHiringDialogMode('edit');
+    setActiveHiringStep(item);
+    setHiringForm({
+      step: item.step || '',
+      title: item.title || '',
+      description: item.description || '',
+      sortOrder: item.sortOrder ?? 0,
+      isActive: item.isActive ?? true,
+    });
+    setHiringDialogOpen(true);
+  };
+
+  const closeHiringDialog = () => {
+    setHiringDialogOpen(false);
+    setActiveHiringStep(null);
+  };
+
+  const handleHiringSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const isEdit = hiringDialogMode === 'edit' && activeHiringStep;
+      const url = isEdit
+        ? apiUrl(`/api/career/hiring/${activeHiringStep.id}`)
+        : apiUrl('/api/career/hiring');
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(hiringForm),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to save hiring step.');
+      setHiringSteps((prev) =>
+        isEdit ? prev.map((item) => (item.id === payload.id ? payload : item)) : [payload, ...prev]
+      );
+      closeHiringDialog();
+    } catch (error) {
+      console.error('Save hiring step failed', error);
+    }
+  };
+
+  const handleHiringDelete = async () => {
+    if (!hiringToDelete) return;
+    try {
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl(`/api/career/hiring/${hiringToDelete.id}`), {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to delete hiring step.');
+      setHiringSteps((prev) => prev.filter((item) => item.id !== hiringToDelete.id));
+      setHiringToDelete(null);
+    } catch (error) {
+      console.error('Delete hiring step failed', error);
+    }
+  };
+
+  const loadCareerCta = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/career/cta'));
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load career CTA.');
+      if (payload) {
+        setCtaForm({
+          title: payload.title || '',
+          description: payload.description || '',
+          buttonText: payload.buttonText || '',
+          buttonLink: payload.buttonLink || '',
+          image: payload.image || '',
+        });
+      }
+    } catch (error) {
+      console.error('Load career CTA failed', error);
+    }
+  };
+
+  const handleCtaSave = async () => {
+    try {
+      setCtaSaved(false);
+      if (!token) throw new Error('Your session expired. Please log in again.');
+      const response = await fetch(apiUrl('/api/career/cta'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(ctaForm),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to save career CTA.');
+      setCtaForm({
+        title: payload.title || '',
+        description: payload.description || '',
+        buttonText: payload.buttonText || '',
+        buttonLink: payload.buttonLink || '',
+        image: payload.image || '',
+      });
+      setCtaSaved(true);
+    } catch (error) {
+      console.error('Save career CTA failed', error);
+    }
+  };
+
   useEffect(() => {
     loadJobPosts();
     loadApplications();
     loadCareerStory();
+    loadBenefitsConfig();
+    loadBenefits();
+    loadTechnologyConfig();
+    loadTechnologies();
+    loadHiringConfig();
+    loadHiringSteps();
+    loadCareerCta();
   }, []);
 
   const filteredJobPosts = useMemo(
@@ -763,6 +1221,10 @@ const AdminCareersPage = () => {
           <Tab value="job-posts" label="Job posts" icon={<WorkOutlineIcon />} iconPosition="start" />
           <Tab value="applications" label="Applications" icon={<DownloadOutlinedIcon />} iconPosition="start" />
           <Tab value="story" label="Story" icon={<VisibilityOutlinedIcon />} iconPosition="start" />
+          <Tab value="benefits" label="Why choose" icon={<VisibilityOutlinedIcon />} iconPosition="start" />
+          <Tab value="technology" label="Technology" icon={<VisibilityOutlinedIcon />} iconPosition="start" />
+          <Tab value="hiring" label="Hiring process" icon={<VisibilityOutlinedIcon />} iconPosition="start" />
+          <Tab value="cta" label="Contact CTA" icon={<VisibilityOutlinedIcon />} iconPosition="start" />
         </Tabs>
       </Box>
 
@@ -828,6 +1290,364 @@ const AdminCareersPage = () => {
                   Story saved successfully.
                 </Typography>
               ) : null}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeSection === 'benefits' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Why choose (benefits)"
+            subheader="Update the benefits section title, description, and cards."
+            action={
+              <AppButton variant="contained" onClick={handleBenefitsConfigSave}>
+                Save section
+              </AppButton>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <AppTextField
+                label="Title"
+                value={benefitsConfig.title}
+                onChange={(event) => setBenefitsConfig((prev) => ({ ...prev, title: event.target.value }))}
+                fullWidth
+              />
+              <AppTextField
+                label="Description"
+                value={benefitsConfig.description}
+                onChange={(event) => setBenefitsConfig((prev) => ({ ...prev, description: event.target.value }))}
+                multiline
+                rows={3}
+                fullWidth
+              />
+              {benefitsSaved && (
+                <Typography color="success.main" variant="body2">
+                  Benefits section saved successfully.
+                </Typography>
+              )}
+
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6">Benefit cards</Typography>
+                <AppButton variant="outlined" onClick={openBenefitCreateDialog}>
+                  Add benefit
+                </AppButton>
+              </Stack>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell>Active</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {benefits.map((benefit) => (
+                      <TableRow key={benefit.id} hover>
+                        <TableCell sx={{ fontWeight: 600 }}>{benefit.title}</TableCell>
+                        <TableCell sx={{ maxWidth: 320 }}>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {benefit.description || '-'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {benefit.image ? (
+                            <Box
+                              component="img"
+                              src={benefit.image}
+                              alt={benefit.title}
+                              sx={{ width: 48, height: 48, objectFit: 'contain' }}
+                            />
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell>{benefit.isActive ? 'Yes' : 'No'}</TableCell>
+                        <TableCell align="right">
+                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Tooltip title="Edit">
+                              <IconButton size="small" color="primary" onClick={() => openBenefitEditDialog(benefit)}>
+                                <EditOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton size="small" color="error" onClick={() => setBenefitToDelete(benefit)}>
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {benefits.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5}>
+                          <Typography variant="body2" color="text.secondary">
+                            No benefit cards added yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeSection === 'technology' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Technology partners"
+            subheader="Manage the technologies/logos shown on the careers page."
+            action={
+              <AppButton variant="contained" onClick={handleTechnologyConfigSave}>
+                Save section
+              </AppButton>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <AppTextField
+                label="Title"
+                value={technologyConfig.title}
+                onChange={(event) => setTechnologyConfig((prev) => ({ ...prev, title: event.target.value }))}
+                fullWidth
+              />
+              <AppTextField
+                label="Description"
+                value={technologyConfig.description}
+                onChange={(event) => setTechnologyConfig((prev) => ({ ...prev, description: event.target.value }))}
+                multiline
+                rows={3}
+                fullWidth
+              />
+              {technologySaved && (
+                <Typography color="success.main" variant="body2">
+                  Technology section saved successfully.
+                </Typography>
+              )}
+
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6">Technology logos</Typography>
+                <AppButton variant="outlined" onClick={openTechnologyCreateDialog}>
+                  Add technology
+                </AppButton>
+              </Stack>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell>Active</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {technologies.map((item) => (
+                      <TableRow key={item.id} hover>
+                        <TableCell sx={{ fontWeight: 600 }}>{item.name}</TableCell>
+                        <TableCell>
+                          {item.image ? (
+                            <Box
+                              component="img"
+                              src={item.image}
+                              alt={item.name}
+                              sx={{ width: 60, height: 40, objectFit: 'contain' }}
+                            />
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell>{item.isActive ? 'Yes' : 'No'}</TableCell>
+                        <TableCell align="right">
+                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Tooltip title="Edit">
+                              <IconButton size="small" color="primary" onClick={() => openTechnologyEditDialog(item)}>
+                                <EditOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton size="small" color="error" onClick={() => setTechnologyToDelete(item)}>
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {technologies.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <Typography variant="body2" color="text.secondary">
+                            No technology logos added yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeSection === 'hiring' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Hiring process"
+            subheader="Update the hiring journey headline and steps."
+            action={
+              <AppButton variant="contained" onClick={handleHiringConfigSave}>
+                Save section
+              </AppButton>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <AppTextField
+                label="Title"
+                value={hiringConfig.title}
+                onChange={(event) => setHiringConfig((prev) => ({ ...prev, title: event.target.value }))}
+                fullWidth
+              />
+              <AppTextField
+                label="Description"
+                value={hiringConfig.description}
+                onChange={(event) => setHiringConfig((prev) => ({ ...prev, description: event.target.value }))}
+                multiline
+                rows={3}
+                fullWidth
+              />
+              {hiringSaved && (
+                <Typography color="success.main" variant="body2">
+                  Hiring process saved successfully.
+                </Typography>
+              )}
+
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6">Steps</Typography>
+                <AppButton variant="outlined" onClick={openHiringCreateDialog}>
+                  Add step
+                </AppButton>
+              </Stack>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Step</TableCell>
+                      <TableCell>Title</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Active</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {hiringSteps.map((item) => (
+                      <TableRow key={item.id} hover>
+                        <TableCell sx={{ fontWeight: 600 }}>{item.step}</TableCell>
+                        <TableCell>{item.title}</TableCell>
+                        <TableCell sx={{ maxWidth: 320 }}>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {item.description || '-'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{item.isActive ? 'Yes' : 'No'}</TableCell>
+                        <TableCell align="right">
+                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Tooltip title="Edit">
+                              <IconButton size="small" color="primary" onClick={() => openHiringEditDialog(item)}>
+                                <EditOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton size="small" color="error" onClick={() => setHiringToDelete(item)}>
+                                <DeleteOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {hiringSteps.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5}>
+                          <Typography variant="body2" color="text.secondary">
+                            No hiring steps added yet.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeSection === 'cta' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Career contact CTA"
+            subheader="Single CTA banner content used on the careers page."
+            action={
+              <AppButton variant="contained" onClick={handleCtaSave}>
+                Save CTA
+              </AppButton>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <AppTextField
+                label="Title"
+                value={ctaForm.title}
+                onChange={(event) => setCtaForm((prev) => ({ ...prev, title: event.target.value }))}
+                fullWidth
+              />
+              <AppTextField
+                label="Description"
+                value={ctaForm.description}
+                onChange={(event) => setCtaForm((prev) => ({ ...prev, description: event.target.value }))}
+                multiline
+                rows={3}
+                fullWidth
+              />
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                <AppTextField
+                  label="Button text"
+                  value={ctaForm.buttonText}
+                  onChange={(event) => setCtaForm((prev) => ({ ...prev, buttonText: event.target.value }))}
+                  fullWidth
+                />
+                <AppTextField
+                  label="Button link"
+                  value={ctaForm.buttonLink}
+                  onChange={(event) => setCtaForm((prev) => ({ ...prev, buttonLink: event.target.value }))}
+                  fullWidth
+                />
+              </Stack>
+              <ImageUpload
+                label="Background image"
+                value={ctaForm.image}
+                onChange={(value) => setCtaForm((prev) => ({ ...prev, image: value }))}
+              />
+              {ctaSaved && (
+                <Typography color="success.main" variant="body2">
+                  Career CTA saved successfully.
+                </Typography>
+              )}
             </Stack>
           </CardContent>
         </Card>
@@ -1632,6 +2452,225 @@ const AdminCareersPage = () => {
             Cancel
           </AppButton>
           <AppButton onClick={handleConfirmDeleteApplication} color="error" variant="contained" disabled={savingApplication}>
+            Delete
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+
+      <AppDialog open={benefitDialogOpen} onClose={closeBenefitDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{benefitDialogMode === 'edit' ? 'Edit benefit' : 'Add benefit'}</AppDialogTitle>
+        <AppDialogContent dividers>
+          <Stack spacing={2} mt={1} component="form" onSubmit={handleBenefitSubmit}>
+            <AppTextField
+              label="Title"
+              value={benefitForm.title}
+              onChange={(event) => setBenefitForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+              required
+            />
+            <AppTextField
+              label="Description"
+              value={benefitForm.description}
+              onChange={(event) => setBenefitForm((prev) => ({ ...prev, description: event.target.value }))}
+              multiline
+              rows={3}
+              fullWidth
+            />
+            <ImageUpload
+              label="Icon image"
+              value={benefitForm.image}
+              onChange={(value) => setBenefitForm((prev) => ({ ...prev, image: value }))}
+            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <AppTextField
+                label="Sort order"
+                type="number"
+                value={benefitForm.sortOrder}
+                onChange={(event) =>
+                  setBenefitForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))
+                }
+                fullWidth
+              />
+              <AppSelectField
+                label="Active"
+                value={benefitForm.isActive ? 'yes' : 'no'}
+                onChange={(event) =>
+                  setBenefitForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))
+                }
+                fullWidth
+              >
+                <MenuItem value="yes">Yes</MenuItem>
+                <MenuItem value="no">No</MenuItem>
+              </AppSelectField>
+            </Stack>
+          </Stack>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeBenefitDialog} color="inherit">
+            Cancel
+          </AppButton>
+          <AppButton onClick={handleBenefitSubmit} variant="contained">
+            {benefitDialogMode === 'edit' ? 'Save changes' : 'Create benefit'}
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+
+      <AppDialog open={Boolean(benefitToDelete)} onClose={() => setBenefitToDelete(null)} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete benefit</AppDialogTitle>
+        <AppDialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{benefitToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setBenefitToDelete(null)} color="inherit">
+            Cancel
+          </AppButton>
+          <AppButton onClick={handleBenefitDelete} color="error" variant="contained">
+            Delete
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+
+      <AppDialog open={technologyDialogOpen} onClose={closeTechnologyDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{technologyDialogMode === 'edit' ? 'Edit technology' : 'Add technology'}</AppDialogTitle>
+        <AppDialogContent dividers>
+          <Stack spacing={2} mt={1} component="form" onSubmit={handleTechnologySubmit}>
+            <AppTextField
+              label="Name"
+              value={technologyForm.name}
+              onChange={(event) => setTechnologyForm((prev) => ({ ...prev, name: event.target.value }))}
+              fullWidth
+              required
+            />
+            <ImageUpload
+              label="Logo image"
+              value={technologyForm.image}
+              onChange={(value) => setTechnologyForm((prev) => ({ ...prev, image: value }))}
+            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <AppTextField
+                label="Sort order"
+                type="number"
+                value={technologyForm.sortOrder}
+                onChange={(event) =>
+                  setTechnologyForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))
+                }
+                fullWidth
+              />
+              <AppSelectField
+                label="Active"
+                value={technologyForm.isActive ? 'yes' : 'no'}
+                onChange={(event) =>
+                  setTechnologyForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))
+                }
+                fullWidth
+              >
+                <MenuItem value="yes">Yes</MenuItem>
+                <MenuItem value="no">No</MenuItem>
+              </AppSelectField>
+            </Stack>
+          </Stack>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeTechnologyDialog} color="inherit">
+            Cancel
+          </AppButton>
+          <AppButton onClick={handleTechnologySubmit} variant="contained">
+            {technologyDialogMode === 'edit' ? 'Save changes' : 'Create technology'}
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+
+      <AppDialog open={Boolean(technologyToDelete)} onClose={() => setTechnologyToDelete(null)} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete technology</AppDialogTitle>
+        <AppDialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{technologyToDelete?.name}"? This action cannot be undone.
+          </Typography>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setTechnologyToDelete(null)} color="inherit">
+            Cancel
+          </AppButton>
+          <AppButton onClick={handleTechnologyDelete} color="error" variant="contained">
+            Delete
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+
+      <AppDialog open={hiringDialogOpen} onClose={closeHiringDialog} maxWidth="sm" fullWidth>
+        <AppDialogTitle>{hiringDialogMode === 'edit' ? 'Edit step' : 'Add step'}</AppDialogTitle>
+        <AppDialogContent dividers>
+          <Stack spacing={2} mt={1} component="form" onSubmit={handleHiringSubmit}>
+            <AppTextField
+              label="Step label"
+              value={hiringForm.step}
+              onChange={(event) => setHiringForm((prev) => ({ ...prev, step: event.target.value }))}
+              fullWidth
+              required
+            />
+            <AppTextField
+              label="Title"
+              value={hiringForm.title}
+              onChange={(event) => setHiringForm((prev) => ({ ...prev, title: event.target.value }))}
+              fullWidth
+              required
+            />
+            <AppTextField
+              label="Description"
+              value={hiringForm.description}
+              onChange={(event) => setHiringForm((prev) => ({ ...prev, description: event.target.value }))}
+              multiline
+              rows={3}
+              fullWidth
+            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <AppTextField
+                label="Sort order"
+                type="number"
+                value={hiringForm.sortOrder}
+                onChange={(event) =>
+                  setHiringForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))
+                }
+                fullWidth
+              />
+              <AppSelectField
+                label="Active"
+                value={hiringForm.isActive ? 'yes' : 'no'}
+                onChange={(event) =>
+                  setHiringForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))
+                }
+                fullWidth
+              >
+                <MenuItem value="yes">Yes</MenuItem>
+                <MenuItem value="no">No</MenuItem>
+              </AppSelectField>
+            </Stack>
+          </Stack>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={closeHiringDialog} color="inherit">
+            Cancel
+          </AppButton>
+          <AppButton onClick={handleHiringSubmit} variant="contained">
+            {hiringDialogMode === 'edit' ? 'Save changes' : 'Create step'}
+          </AppButton>
+        </AppDialogActions>
+      </AppDialog>
+
+      <AppDialog open={Boolean(hiringToDelete)} onClose={() => setHiringToDelete(null)} maxWidth="xs" fullWidth>
+        <AppDialogTitle>Delete step</AppDialogTitle>
+        <AppDialogContent dividers>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete "{hiringToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </AppDialogContent>
+        <AppDialogActions>
+          <AppButton onClick={() => setHiringToDelete(null)} color="inherit">
+            Cancel
+          </AppButton>
+          <AppButton onClick={handleHiringDelete} color="error" variant="contained">
             Delete
           </AppButton>
         </AppDialogActions>

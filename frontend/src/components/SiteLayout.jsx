@@ -1,18 +1,19 @@
 import { Box } from '@mui/material';
-import { Outlet } from 'react-router-dom';
-import { useCallback, useMemo, useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useCallback, useMemo } from 'react';
 import FooterSection from './shared/FooterSection.jsx';
 import NavigationBar from './shared/NavigationBar.jsx';
-import ContactDialog from './shared/ContactDialog.jsx';
 import ContactDialogContext from '../contexts/ContactDialogContext.jsx';
 import ScrollToTopButton from './shared/ScrollToTopButton.jsx';
 import LoadingOverlay from './shared/LoadingOverlay.jsx';
 
 const SiteLayout = () => {
-  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const openDialog = useCallback(() => setIsContactDialogOpen(true), []);
-  const closeDialog = useCallback(() => setIsContactDialogOpen(false), []);
+  const openDialog = useCallback(() => {
+    navigate('/contact');
+  }, [navigate]);
+  const closeDialog = useCallback(() => {}, []);
 
   const contextValue = useMemo(
     () => ({
@@ -40,7 +41,6 @@ const SiteLayout = () => {
         </Box>
         <ScrollToTopButton />
         <FooterSection />
-        <ContactDialog open={isContactDialogOpen} onClose={closeDialog} />
       </Box>
     </ContactDialogContext.Provider>
   );

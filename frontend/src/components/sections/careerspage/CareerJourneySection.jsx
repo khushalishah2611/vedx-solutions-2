@@ -1,7 +1,7 @@
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const CareerJourneySection = ({ journey }) => {
+const CareerJourneySection = ({ journey, title, description }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
@@ -14,13 +14,13 @@ const CareerJourneySection = ({ journey }) => {
           variant="h3"
           sx={{ fontSize: { xs: 28, md: 38 }, fontWeight: 700 }}
         >
-          Hiring Journey
+          {title}
         </Typography>
         <Typography
           variant="body1"
           sx={{ color: subtleText, maxWidth: 720, lineHeight: 1.7 }}
         >
-          A transparent process designed to help you showcase your strengths.
+          {description}
         </Typography>
       </Stack>
 
@@ -76,10 +76,14 @@ CareerJourneySection.propTypes = {
       description: PropTypes.string,
     })
   ),
+  title: PropTypes.string,
+  description: PropTypes.string,
 };
 
 CareerJourneySection.defaultProps = {
   journey: [],
+  title: 'Hiring Journey',
+  description: 'A transparent process designed to help you showcase your strengths.',
 };
 
 export default CareerJourneySection;

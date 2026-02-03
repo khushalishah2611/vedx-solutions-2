@@ -2,7 +2,7 @@ import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/mater
 import PropTypes from 'prop-types';
 import { AppButton } from '../../shared/FormControls.jsx';
 
-const CareerOpenRolesSection = ({ roles, applyHref }) => {
+const CareerOpenRolesSection = ({ roles, applyHref, title, description }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
@@ -14,13 +14,13 @@ const CareerOpenRolesSection = ({ roles, applyHref }) => {
           variant="h3"
           sx={{ fontSize: { xs: 28, md: 38 }, fontWeight: 700 }}
         >
-          Open Positions
+          {title}
         </Typography>
         <Typography
           variant="body1"
           sx={{ color: subtleText, maxWidth: 720, lineHeight: 1.7 }}
         >
-          Explore current opportunities to join our high-impact teams.
+          {description}
         </Typography>
       </Stack>
 
@@ -98,11 +98,15 @@ CareerOpenRolesSection.propTypes = {
     })
   ),
   applyHref: PropTypes.string,
+  title: PropTypes.string,
+  description: PropTypes.string,
 };
 
 CareerOpenRolesSection.defaultProps = {
   roles: [],
   applyHref: null,
+  title: 'Open Positions',
+  description: 'Explore current opportunities to join our high-impact teams.',
 };
 
 export default CareerOpenRolesSection;

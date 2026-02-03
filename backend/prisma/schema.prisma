@@ -63,6 +63,104 @@ model CareerStory {
   updatedAt           DateTime @updatedAt
 }
 
+model CareerBenefitConfig {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String? @db.LongText
+
+  benefits    CareerBenefit[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CareerBenefit {
+  id          Int      @id @default(autoincrement())
+  configId    Int
+  config      CareerBenefitConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String? @db.LongText
+  imageUrl    String? @db.LongText
+
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([configId])
+}
+
+model CareerTechnologyConfig {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String? @db.LongText
+
+  items       CareerTechnology[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CareerTechnology {
+  id          Int      @id @default(autoincrement())
+  configId    Int
+  config      CareerTechnologyConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  name        String
+  imageUrl    String? @db.LongText
+
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([configId])
+}
+
+model CareerHiringProcessConfig {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String? @db.LongText
+
+  steps       CareerHiringProcessStep[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CareerHiringProcessStep {
+  id          Int      @id @default(autoincrement())
+  configId    Int
+  config      CareerHiringProcessConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  stepLabel   String
+  title       String
+  description String? @db.LongText
+
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([configId])
+}
+
+model CareerContactCta {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String? @db.LongText
+  buttonText  String?
+  buttonLink  String?
+  imageUrl    String? @db.LongText
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 enum AdminRole {
   SUPER_ADMIN
   EDITOR

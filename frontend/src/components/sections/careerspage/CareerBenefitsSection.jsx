@@ -1,7 +1,7 @@
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const CareerBenefitsSection = ({ benefits = [] }) => {
+const CareerBenefitsSection = ({ benefits = [], title, description }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
@@ -13,13 +13,13 @@ const CareerBenefitsSection = ({ benefits = [] }) => {
           variant="h3"
           sx={{ fontSize: { xs: 30, md: 40 }, fontWeight: 700 }}
         >
-          Why You Will Love Working With Us
+          {title}
         </Typography>
         <Typography
           variant="body1"
           sx={{ color: subtleText, maxWidth: 760, lineHeight: 1.7 }}
         >
-          The benefits, culture, and support you need to do your best work.
+          {description}
         </Typography>
       </Stack>
 
@@ -78,6 +78,14 @@ CareerBenefitsSection.propTypes = {
       icon: PropTypes.string,
     })
   ),
+  title: PropTypes.string,
+  description: PropTypes.string,
+};
+
+CareerBenefitsSection.defaultProps = {
+  benefits: [],
+  title: 'Why You Will Love Working With Us',
+  description: 'The benefits, culture, and support you need to do your best work.',
 };
 
 export default CareerBenefitsSection;

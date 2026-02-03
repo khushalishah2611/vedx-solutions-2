@@ -7433,6 +7433,514 @@ app.put('/api/career/story', async (req, res) => {
 });
 
 /* ===============================================
+ * CAREER PAGE CONFIG APIs
+ * =============================================== */
+
+const getOrCreateCareerBenefitConfig = async () => {
+  const existing = await prisma.careerBenefitConfig.findFirst();
+  if (existing) return existing;
+
+  return prisma.careerBenefitConfig.create({
+    data: {
+      title: 'Why You Will Love Working With Us',
+      description: 'The benefits, culture, and support you need to do your best work.',
+    },
+  });
+};
+
+const mapCareerBenefit = (benefit) => ({
+  id: benefit.id,
+  title: benefit.title,
+  description: benefit.description || '',
+  image: benefit.imageUrl || '',
+  sortOrder: benefit.sortOrder,
+  isActive: benefit.isActive,
+});
+
+const getOrCreateCareerTechnologyConfig = async () => {
+  const existing = await prisma.careerTechnologyConfig.findFirst();
+  if (existing) return existing;
+
+  return prisma.careerTechnologyConfig.create({
+    data: {
+      title: 'Trusted Technology Partners',
+      description: 'We collaborate with platforms and tools our teams love working with.',
+    },
+  });
+};
+
+const mapCareerTechnology = (item) => ({
+  id: item.id,
+  name: item.name,
+  image: item.imageUrl || '',
+  sortOrder: item.sortOrder,
+  isActive: item.isActive,
+});
+
+const getOrCreateCareerHiringConfig = async () => {
+  const existing = await prisma.careerHiringProcessConfig.findFirst();
+  if (existing) return existing;
+
+  return prisma.careerHiringProcessConfig.create({
+    data: {
+      title: 'Hiring Journey',
+      description: 'A transparent process designed to help you showcase your strengths.',
+    },
+  });
+};
+
+const mapCareerHiringStep = (step) => ({
+  id: step.id,
+  step: step.stepLabel,
+  title: step.title,
+  description: step.description || '',
+  sortOrder: step.sortOrder,
+  isActive: step.isActive,
+});
+
+const mapCareerCta = (cta) => ({
+  id: cta.id,
+  title: cta.title,
+  description: cta.description || '',
+  buttonText: cta.buttonText || '',
+  buttonLink: cta.buttonLink || '',
+  image: cta.imageUrl || '',
+  createdAt: cta.createdAt,
+  updatedAt: cta.updatedAt,
+});
+
+/* -----------------------------------
+ * CAREER BENEFITS
+ * ----------------------------------- */
+
+app.get('/api/career/benefits/config', async (_req, res) => {
+  try {
+    const config = await getOrCreateCareerBenefitConfig();
+    res.json(config);
+  } catch (err) {
+    console.error('GET /api/career/benefits/config error', err);
+    res.status(500).json({ error: 'Failed to fetch career benefits config' });
+  }
+});
+
+app.put('/api/career/benefits/config', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description } = req.body ?? {};
+    const existing = await prisma.careerBenefitConfig.findFirst();
+
+    const updated = existing
+      ? await prisma.careerBenefitConfig.update({
+        where: { id: existing.id },
+        data: {
+          title: title ?? existing.title,
+          description: description ?? existing.description,
+        },
+      })
+      : await prisma.careerBenefitConfig.create({
+        data: {
+          title: title || 'Why You Will Love Working With Us',
+          description: description || '',
+        },
+      });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/career/benefits/config error', err);
+    res.status(500).json({ error: 'Failed to save career benefits config' });
+  }
+});
+
+app.get('/api/career/benefits', async (_req, res) => {
+  try {
+    const benefits = await prisma.careerBenefit.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    });
+    res.json(benefits.map(mapCareerBenefit));
+  } catch (err) {
+    console.error('GET /api/career/benefits error', err);
+    res.status(500).json({ error: 'Failed to fetch career benefits' });
+  }
+});
+
+app.post('/api/career/benefits', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, image, sortOrder, isActive } = req.body ?? {};
+    if (!title) return res.status(400).json({ error: 'title is required' });
+
+    const config = await getOrCreateCareerBenefitConfig();
+    const created = await prisma.careerBenefit.create({
+      data: {
+        title,
+        description: description || null,
+        imageUrl: image || null,
+        sortOrder: Number.isInteger(sortOrder) ? sortOrder : 0,
+        isActive: typeof isActive === 'boolean' ? isActive : true,
+        configId: config.id,
+      },
+    });
+
+    res.status(201).json(mapCareerBenefit(created));
+  } catch (err) {
+    console.error('POST /api/career/benefits error', err);
+    res.status(500).json({ error: 'Failed to create career benefit' });
+  }
+});
+
+app.put('/api/career/benefits/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid benefit id required' });
+
+    const { title, description, image, sortOrder, isActive } = req.body ?? {};
+    const updated = await prisma.careerBenefit.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        imageUrl: image,
+        sortOrder,
+        isActive,
+      },
+    });
+
+    res.json(mapCareerBenefit(updated));
+  } catch (err) {
+    console.error('PUT /api/career/benefits/:id error', err);
+    res.status(500).json({ error: 'Failed to update career benefit' });
+  }
+});
+
+app.delete('/api/career/benefits/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid benefit id required' });
+
+    await prisma.careerBenefit.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/career/benefits/:id error', err);
+    res.status(500).json({ error: 'Failed to delete career benefit' });
+  }
+});
+
+/* -----------------------------------
+ * CAREER TECHNOLOGY
+ * ----------------------------------- */
+
+app.get('/api/career/technologies/config', async (_req, res) => {
+  try {
+    const config = await getOrCreateCareerTechnologyConfig();
+    res.json(config);
+  } catch (err) {
+    console.error('GET /api/career/technologies/config error', err);
+    res.status(500).json({ error: 'Failed to fetch career technology config' });
+  }
+});
+
+app.put('/api/career/technologies/config', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description } = req.body ?? {};
+    const existing = await prisma.careerTechnologyConfig.findFirst();
+
+    const updated = existing
+      ? await prisma.careerTechnologyConfig.update({
+        where: { id: existing.id },
+        data: {
+          title: title ?? existing.title,
+          description: description ?? existing.description,
+        },
+      })
+      : await prisma.careerTechnologyConfig.create({
+        data: {
+          title: title || 'Trusted Technology Partners',
+          description: description || '',
+        },
+      });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/career/technologies/config error', err);
+    res.status(500).json({ error: 'Failed to save career technology config' });
+  }
+});
+
+app.get('/api/career/technologies', async (_req, res) => {
+  try {
+    const items = await prisma.careerTechnology.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    });
+    res.json(items.map(mapCareerTechnology));
+  } catch (err) {
+    console.error('GET /api/career/technologies error', err);
+    res.status(500).json({ error: 'Failed to fetch career technologies' });
+  }
+});
+
+app.post('/api/career/technologies', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { name, image, sortOrder, isActive } = req.body ?? {};
+    if (!name) return res.status(400).json({ error: 'name is required' });
+
+    const config = await getOrCreateCareerTechnologyConfig();
+    const created = await prisma.careerTechnology.create({
+      data: {
+        name,
+        imageUrl: image || null,
+        sortOrder: Number.isInteger(sortOrder) ? sortOrder : 0,
+        isActive: typeof isActive === 'boolean' ? isActive : true,
+        configId: config.id,
+      },
+    });
+
+    res.status(201).json(mapCareerTechnology(created));
+  } catch (err) {
+    console.error('POST /api/career/technologies error', err);
+    res.status(500).json({ error: 'Failed to create career technology' });
+  }
+});
+
+app.put('/api/career/technologies/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid technology id required' });
+
+    const { name, image, sortOrder, isActive } = req.body ?? {};
+    const updated = await prisma.careerTechnology.update({
+      where: { id },
+      data: {
+        name,
+        imageUrl: image,
+        sortOrder,
+        isActive,
+      },
+    });
+
+    res.json(mapCareerTechnology(updated));
+  } catch (err) {
+    console.error('PUT /api/career/technologies/:id error', err);
+    res.status(500).json({ error: 'Failed to update career technology' });
+  }
+});
+
+app.delete('/api/career/technologies/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid technology id required' });
+
+    await prisma.careerTechnology.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/career/technologies/:id error', err);
+    res.status(500).json({ error: 'Failed to delete career technology' });
+  }
+});
+
+/* -----------------------------------
+ * CAREER HIRING PROCESS
+ * ----------------------------------- */
+
+app.get('/api/career/hiring/config', async (_req, res) => {
+  try {
+    const config = await getOrCreateCareerHiringConfig();
+    res.json(config);
+  } catch (err) {
+    console.error('GET /api/career/hiring/config error', err);
+    res.status(500).json({ error: 'Failed to fetch hiring config' });
+  }
+});
+
+app.put('/api/career/hiring/config', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description } = req.body ?? {};
+    const existing = await prisma.careerHiringProcessConfig.findFirst();
+
+    const updated = existing
+      ? await prisma.careerHiringProcessConfig.update({
+        where: { id: existing.id },
+        data: {
+          title: title ?? existing.title,
+          description: description ?? existing.description,
+        },
+      })
+      : await prisma.careerHiringProcessConfig.create({
+        data: {
+          title: title || 'Hiring Journey',
+          description: description || '',
+        },
+      });
+
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /api/career/hiring/config error', err);
+    res.status(500).json({ error: 'Failed to save hiring config' });
+  }
+});
+
+app.get('/api/career/hiring', async (_req, res) => {
+  try {
+    const steps = await prisma.careerHiringProcessStep.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    });
+    res.json(steps.map(mapCareerHiringStep));
+  } catch (err) {
+    console.error('GET /api/career/hiring error', err);
+    res.status(500).json({ error: 'Failed to fetch hiring steps' });
+  }
+});
+
+app.post('/api/career/hiring', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { step, title, description, sortOrder, isActive } = req.body ?? {};
+    if (!step || !title) {
+      return res.status(400).json({ error: 'step and title are required' });
+    }
+
+    const config = await getOrCreateCareerHiringConfig();
+    const created = await prisma.careerHiringProcessStep.create({
+      data: {
+        stepLabel: step,
+        title,
+        description: description || null,
+        sortOrder: Number.isInteger(sortOrder) ? sortOrder : 0,
+        isActive: typeof isActive === 'boolean' ? isActive : true,
+        configId: config.id,
+      },
+    });
+
+    res.status(201).json(mapCareerHiringStep(created));
+  } catch (err) {
+    console.error('POST /api/career/hiring error', err);
+    res.status(500).json({ error: 'Failed to create hiring step' });
+  }
+});
+
+app.put('/api/career/hiring/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid hiring step id required' });
+
+    const { step, title, description, sortOrder, isActive } = req.body ?? {};
+    const updated = await prisma.careerHiringProcessStep.update({
+      where: { id },
+      data: {
+        stepLabel: step,
+        title,
+        description,
+        sortOrder,
+        isActive,
+      },
+    });
+
+    res.json(mapCareerHiringStep(updated));
+  } catch (err) {
+    console.error('PUT /api/career/hiring/:id error', err);
+    res.status(500).json({ error: 'Failed to update hiring step' });
+  }
+});
+
+app.delete('/api/career/hiring/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) return res.status(400).json({ error: 'Valid hiring step id required' });
+
+    await prisma.careerHiringProcessStep.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/career/hiring/:id error', err);
+    res.status(500).json({ error: 'Failed to delete hiring step' });
+  }
+});
+
+/* -----------------------------------
+ * CAREER CONTACT CTA
+ * ----------------------------------- */
+
+app.get('/api/career/cta', async (_req, res) => {
+  try {
+    const cta = await prisma.careerContactCta.findFirst({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(cta ? mapCareerCta(cta) : null);
+  } catch (err) {
+    console.error('GET /api/career/cta error', err);
+    res.status(500).json({ error: 'Failed to fetch career CTA' });
+  }
+});
+
+app.put('/api/career/cta', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, buttonText, buttonLink, image } = req.body ?? {};
+    if (!title) return res.status(400).json({ error: 'title is required' });
+
+    const existing = await prisma.careerContactCta.findFirst();
+    const saved = existing
+      ? await prisma.careerContactCta.update({
+        where: { id: existing.id },
+        data: {
+          title,
+          description: description || null,
+          buttonText: buttonText || null,
+          buttonLink: buttonLink || null,
+          imageUrl: image || null,
+        },
+      })
+      : await prisma.careerContactCta.create({
+        data: {
+          title,
+          description: description || null,
+          buttonText: buttonText || null,
+          buttonLink: buttonLink || null,
+          imageUrl: image || null,
+        },
+      });
+
+    res.json(mapCareerCta(saved));
+  } catch (err) {
+    console.error('PUT /api/career/cta error', err);
+    res.status(500).json({ error: 'Failed to save career CTA' });
+  }
+});
+
+/* ===============================================
  * ABOUT PAGE APIs
  * =============================================== */
 
