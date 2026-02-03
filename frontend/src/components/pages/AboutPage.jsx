@@ -115,12 +115,6 @@ const AboutPage = () => {
 
         <Box my={5}><CareerStorySection story={careerStory} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
-      
-        <Box my={10}><CareerBenefitsSection benefits={careerBenefits} /></Box>  
-        <Divider sx={{ borderColor: dividerColor }} />
-      
-        <Box my={10}><AboutMissionVisionSection content={missionVisionContent} /></Box>  
-        <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
           <ServicesWhyChoose
@@ -129,10 +123,15 @@ const AboutPage = () => {
             highlights={whyChooseItems}
             onContactClick={handleOpenContact}
           />
-        </Box>
+        </Box><Divider sx={{ borderColor: dividerColor }} />
+
+
+        <Box my={10}><AboutMissionVisionSection content={missionVisionContent} /></Box>
+
+
         <Divider sx={{ borderColor: dividerColor }} />
-       
-        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} category="about" /></Box> 
+
+        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} category="about" /></Box>
       </Container>
     </Box>
   );
