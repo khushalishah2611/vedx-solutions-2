@@ -17,6 +17,7 @@ import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import CollectionsBookmarkOutlinedIcon from '@mui/icons-material/CollectionsBookmarkOutlined';
 import GavelRoundedIcon from '@mui/icons-material/GavelRounded';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { getStoredAdminProfile } from '../data/adminProfile.js';
@@ -164,6 +165,7 @@ const AdminLayout = () => {
       { label: 'Contacts', icon: <ContactsRoundedIcon />, to: '/admin/contacts' },
       { label: 'Careers', icon: <WorkOutlineOutlinedIcon />, to: '/admin/careers' },
       { label: 'Services', icon: <DesignServicesOutlinedIcon />, to: '/admin/services' },
+      { label: 'About', icon: <InfoOutlinedIcon />, to: '/admin/about' },
       { label: 'Hire Developers', icon: <DesignServicesOutlinedIcon />, to: '/admin/hiredeveloper' },
       { label: 'Customer reviews', icon: <RateReviewOutlinedIcon />, to: '/admin/feedbacks' },
       { label: 'Legal Pages', icon: <GavelRoundedIcon />, to: '/admin/legal-pages' },

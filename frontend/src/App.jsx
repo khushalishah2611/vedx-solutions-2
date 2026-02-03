@@ -19,6 +19,7 @@ import AdminFeedbacksPage from './components/admin/AdminFeedbacksPage.jsx';
 import AdminCaseStudiesPage from './components/admin/AdminCaseStudiesPage.jsx';
 import AdminCaseStudyDetailsPage from './components/admin/AdminCaseStudyDetailsPage.jsx';
 import AdminLegalPages from './components/admin/AdminLegalPages.jsx';
+import AdminAboutPage from './components/admin/AdminAboutPage.jsx';
 import HomePage from './components/pages/HomePage.jsx';
 import ServiceDetailPage from './components/pages/ServiceDetailPage.jsx';
 import HireDeveloperDetailPage from './components/pages/HireDeveloperDetailPage.jsx';
@@ -49,6 +50,7 @@ const App = () => {
               <Route path="contacts" element={<AdminContactsPage />} />
               <Route path="careers" element={<AdminCareersPage />} />
               <Route path="services" element={<AdminServicesPage />} />
+              <Route path="about" element={<AdminAboutPage />} />
               <Route path="hiredeveloper" element={<AdminHiredeveloperPage />} />
               <Route path="feedbacks" element={<AdminFeedbacksPage />} />
               <Route path="legal-pages" element={<AdminLegalPages />} />

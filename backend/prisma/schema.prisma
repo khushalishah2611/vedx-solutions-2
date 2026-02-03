@@ -22,6 +22,11 @@ enum BannerType {
   TERMS_CONDITION
 }
 
+enum AboutMissionType {
+  MISSION
+  VISION
+}
+
 enum AdminRole {
   SUPER_ADMIN
   EDITOR
@@ -854,6 +859,48 @@ model HireContactButton {
   updatedAt   DateTime @updatedAt
 
   @@index([category, subcategory])
+}
+
+/// ----------------------------------------------------------
+/// ABOUT PAGE
+/// ----------------------------------------------------------
+model AboutMissionVision {
+  id          Int              @id @default(autoincrement())
+  type        AboutMissionType @unique
+  title       String
+  description String          @db.LongText
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AboutWhyChooseConfig {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String? @db.LongText
+
+  items       AboutWhyChooseItem[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AboutWhyChooseItem {
+  id          Int      @id @default(autoincrement())
+  configId    Int
+  config      AboutWhyChooseConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String? @db.LongText
+  imageUrl    String? @db.LongText
+
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([configId])
 }
 
 /// ----------------------------------------------------------

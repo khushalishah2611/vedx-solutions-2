@@ -1,7 +1,7 @@
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const CareerBenefitsSection = ({ benefits }) => {
+const CareerBenefitsSection = ({ benefits = [] }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
@@ -78,10 +78,6 @@ CareerBenefitsSection.propTypes = {
       icon: PropTypes.string,
     })
   ),
-};
-
-CareerBenefitsSection.defaultProps = {
-  benefits: [],
 };
 
 export default CareerBenefitsSection;
