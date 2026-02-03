@@ -1624,20 +1624,7 @@ const AdminCareersPage = () => {
                 rows={3}
                 fullWidth
               />
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                <AppTextField
-                  label="Button text"
-                  value={ctaForm.buttonText}
-                  onChange={(event) => setCtaForm((prev) => ({ ...prev, buttonText: event.target.value }))}
-                  fullWidth
-                />
-                <AppTextField
-                  label="Button link"
-                  value={ctaForm.buttonLink}
-                  onChange={(event) => setCtaForm((prev) => ({ ...prev, buttonLink: event.target.value }))}
-                  fullWidth
-                />
-              </Stack>
+              
               <ImageUpload
                 label="Background image"
                 value={ctaForm.image}
