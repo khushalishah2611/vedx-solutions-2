@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Divider, alpha, useTheme, Container } from '@mui/material';
 import {
   careerBenefits,
@@ -63,6 +63,12 @@ const CareersPage = () => {
       image: banner?.image || careerHero.image,
     }),
     [banner]
+  );
+  const handleApplyNow = useCallback(
+    (role) => {
+      handleOpenContact(role?.id ?? '');
+    },
+    [handleOpenContact]
   );
 
   useEffect(() => {
@@ -189,6 +195,7 @@ const CareersPage = () => {
           setOpenRoles(
             Array.isArray(data?.jobs) && data.jobs.length > 0
               ? data.jobs.map((job) => ({
+                id: job.id,
                 title: job.title,
                 experience: job.experience || '',
                 positions: job.position || '',
@@ -256,6 +263,7 @@ const CareersPage = () => {
           <CareerOpenRolesSection
             roles={openRoles}
             applyHref={careerHero.ctaHref}
+            onApply={handleApplyNow}
           />
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />

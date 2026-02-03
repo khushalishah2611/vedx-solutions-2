@@ -1,7 +1,11 @@
-import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { Box, Stack, Typography, alpha, useTheme } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const CareerJourneySection = ({ journey, title, description }) => {
+const CareerJourneySection = ({
+  journey = [],
+  title = 'Hiring Journey',
+  description = 'A transparent process designed to help you showcase your strengths.',
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
@@ -24,46 +28,66 @@ const CareerJourneySection = ({ journey, title, description }) => {
         </Typography>
       </Stack>
 
-      <Grid container spacing={3}>
-        {journey.map((step) => (
-          <Grid item xs={12} sm={6} md={4} key={step.step}>
-            <Paper
-              elevation={0}
-              sx={{
-                height: '100%',
-                p: 3,
-                borderRadius: 3,
-                backgroundColor: alpha(
-                  theme.palette.background.paper,
-                  isDark ? 0.78 : 0.97
-                ),
-                border: `1px solid ${alpha(
-                  theme.palette.divider,
-                  isDark ? 0.4 : 0.6
-                )}`,
-                boxShadow: isDark
-                  ? '0 16px 30px rgba(2,6,23,0.35)'
-                  : '0 16px 30px rgba(15,23,42,0.12)',
-              }}
+      <Box
+        sx={{
+          position: 'relative',
+          p: { xs: 3, md: 4 },
+          borderRadius: 4,
+          backgroundColor: alpha(
+            theme.palette.background.paper,
+            isDark ? 0.78 : 0.97
+          ),
+          border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.4 : 0.6)}`,
+          boxShadow: isDark
+            ? '0 18px 36px rgba(2,6,23,0.35)'
+            : '0 18px 36px rgba(15,23,42,0.12)',
+          overflowX: { xs: 'auto', md: 'visible' },
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            left: { xs: 32, md: 48 },
+            right: { xs: 32, md: 48 },
+            top: { xs: 72, md: 78 },
+            height: 2,
+            backgroundColor: alpha(accentColor, 0.55),
+          }}
+        />
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          spacing={4}
+          sx={{ minWidth: { xs: 720, md: 'auto' }, position: 'relative' }}
+        >
+          {journey.map((step) => (
+            <Stack
+              key={step.step}
+              spacing={1.5}
+              alignItems="center"
+              textAlign="center"
+              sx={{ width: { xs: 120, md: 'auto' } }}
             >
-              <Stack spacing={2}>
-                <Typography
-                  variant="overline"
-                  sx={{ color: accentColor, fontSize: 14, fontWeight: 700 }}
-                >
-                  {step.step}
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  {step.title}
-                </Typography>
-                <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.6 }}>
-                  {step.description}
-                </Typography>
-              </Stack>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                {step.title}
+              </Typography>
+              <Box
+                sx={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  border: `3px solid ${accentColor}`,
+                  backgroundColor: theme.palette.background.paper,
+                  boxShadow: `0 0 0 6px ${alpha(accentColor, 0.15)}`,
+                }}
+              />
+              <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.6 }}>
+                {step.description}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Box>
     </Box>
   );
 };
@@ -78,12 +102,6 @@ CareerJourneySection.propTypes = {
   ),
   title: PropTypes.string,
   description: PropTypes.string,
-};
-
-CareerJourneySection.defaultProps = {
-  journey: [],
-  title: 'Hiring Journey',
-  description: 'A transparent process designed to help you showcase your strengths.',
 };
 
 export default CareerJourneySection;

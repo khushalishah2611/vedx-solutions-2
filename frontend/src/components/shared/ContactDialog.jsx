@@ -6,12 +6,23 @@ import CloseIcon from '@mui/icons-material/Close';
 import { apiUrl } from '../../utils/const.js';
 import { fileToDataUrl } from '../../utils/files.js';
 
-const ContactDialog = ({ open, onClose }) => {
+const ContactDialog = ({ open, onClose, initialJobId = '' }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
 
   const employmentTypes = useMemo(() => ['Full-time', 'Part-time', 'Contract'], []);
+
+  const getInitialFormState = (jobIdValue = '') => ({
+    name: '',
+    email: '',
+    phone: '',
+    jobId: jobIdValue ? String(jobIdValue) : '',
+    experience: '',
+    employmentType: employmentTypes[0],
+    notes: '',
+    resume: null,
+  });
 
   const [formState, setFormState] = useState({
     name: '',
@@ -29,17 +40,8 @@ const ContactDialog = ({ open, onClose }) => {
   const [jobOptions, setJobOptions] = useState([]);
   const [jobLoading, setJobLoading] = useState(false);
 
-  const resetForm = () => {
-    setFormState({
-      name: '',
-      email: '',
-      phone: '',
-      jobId: '',
-      experience: '',
-      employmentType: employmentTypes[0],
-      notes: '',
-      resume: null,
-    });
+  const resetForm = (jobIdValue = '') => {
+    setFormState(getInitialFormState(jobIdValue));
     setResumeError('');
     setSubmitError('');
   };
@@ -69,6 +71,8 @@ const ContactDialog = ({ open, onClose }) => {
   useEffect(() => {
     if (!open) return;
     let isMounted = true;
+
+    resetForm(initialJobId);
 
     const loadJobs = async () => {
       setJobLoading(true);
@@ -104,7 +108,7 @@ const ContactDialog = ({ open, onClose }) => {
     return () => {
       isMounted = false;
     };
-  }, [open]);
+  }, [open, initialJobId]);
 
   const handleApplicationSubmit = async (event) => {
     event.preventDefault();

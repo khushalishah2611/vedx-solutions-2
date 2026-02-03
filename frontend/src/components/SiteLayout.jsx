@@ -1,19 +1,24 @@
 import { Box } from '@mui/material';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { useCallback, useMemo } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useCallback, useMemo, useState } from 'react';
 import FooterSection from './shared/FooterSection.jsx';
 import NavigationBar from './shared/NavigationBar.jsx';
 import ContactDialogContext from '../contexts/ContactDialogContext.jsx';
 import ScrollToTopButton from './shared/ScrollToTopButton.jsx';
 import LoadingOverlay from './shared/LoadingOverlay.jsx';
+import ContactDialog from './shared/ContactDialog.jsx';
 
 const SiteLayout = () => {
-  const navigate = useNavigate();
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState('');
 
-  const openDialog = useCallback(() => {
-    navigate('/contact');
-  }, [navigate]);
-  const closeDialog = useCallback(() => {}, []);
+  const openDialog = useCallback((jobId = '') => {
+    setSelectedJobId(jobId ? String(jobId) : '');
+    setContactDialogOpen(true);
+  }, []);
+  const closeDialog = useCallback(() => {
+    setContactDialogOpen(false);
+  }, []);
 
   const contextValue = useMemo(
     () => ({
@@ -36,6 +41,11 @@ const SiteLayout = () => {
       >
         <LoadingOverlay />
         <NavigationBar />
+        <ContactDialog
+          open={contactDialogOpen}
+          onClose={closeDialog}
+          initialJobId={selectedJobId}
+        />
         <Box component="main" sx={{ flexGrow: 1 }}>
           <Outlet />
         </Box>

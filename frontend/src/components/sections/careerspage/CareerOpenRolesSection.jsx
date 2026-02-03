@@ -2,7 +2,13 @@ import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/mater
 import PropTypes from 'prop-types';
 import { AppButton } from '../../shared/FormControls.jsx';
 
-const CareerOpenRolesSection = ({ roles, applyHref, title, description }) => {
+const CareerOpenRolesSection = ({
+  roles = [],
+  applyHref = null,
+  title = 'Open Positions',
+  description = 'Explore current opportunities to join our high-impact teams.',
+  onApply,
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
@@ -26,7 +32,7 @@ const CareerOpenRolesSection = ({ roles, applyHref, title, description }) => {
 
       <Grid container spacing={3}>
         {roles.map((role) => (
-          <Grid item xs={12} md={6} key={role.title}>
+          <Grid item xs={12} md={6} key={role.id ?? role.title}>
             <Paper
               elevation={0}
               sx={{
@@ -64,11 +70,12 @@ const CareerOpenRolesSection = ({ roles, applyHref, title, description }) => {
                 <Typography variant="body2" sx={{ color: subtleText, lineHeight: 1.6 }}>
                   {role.description}
                 </Typography>
-                {applyHref && (
+                {(applyHref || onApply) && (
                   <Box>
                     <AppButton
                       variant="outlined"
-                      href={applyHref}
+                      href={onApply ? undefined : applyHref}
+                      onClick={onApply ? () => onApply(role) : undefined}
                       sx={{
                         textTransform: 'none',
                         borderRadius: '10px',
@@ -100,13 +107,7 @@ CareerOpenRolesSection.propTypes = {
   applyHref: PropTypes.string,
   title: PropTypes.string,
   description: PropTypes.string,
-};
-
-CareerOpenRolesSection.defaultProps = {
-  roles: [],
-  applyHref: null,
-  title: 'Open Positions',
-  description: 'Explore current opportunities to join our high-impact teams.',
+  onApply: PropTypes.func,
 };
 
 export default CareerOpenRolesSection;
