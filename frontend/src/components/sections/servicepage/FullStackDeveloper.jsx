@@ -8,14 +8,22 @@ import {
   alpha,
   useTheme,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import { AppButton } from "../../shared/FormControls.jsx";
-
 import { apiUrl } from "../../../utils/const.js";
-
 
 const norm = (v) => String(v || "").trim().toLowerCase();
 const safeStr = (v) => String(v ?? "").trim();
+
+/** ✅ make image absolute if backend gives relative path */
+const toAbsMaybe = (url) => {
+  const u = safeStr(url);
+  if (!u) return "";
+  if (/^https?:\/\//i.test(u)) return u; // already absolute
+  if (u.startsWith("data:")) return u; // data url (base64)
+  return apiUrl(u.startsWith("/") ? u : `/${u}`); // make absolute
+};
 
 const splitHighlightsFromDescription = (text) => {
   const raw = String(text || "").trim();
@@ -65,22 +73,27 @@ const useInViewOnce = () => {
   return [ref, inView];
 };
 
-/** ✅ normalize any backend shape into an array */
+/** ✅ normalize any backend response into an array */
 const normalizeHireServicesResponse = (data) => {
+  if (!data) return [];
   if (Array.isArray(data)) return data;
 
-  // common wrappers
-  if (Array.isArray(data?.data)) return data.data;
-  if (Array.isArray(data?.items)) return data.items;
-  if (Array.isArray(data?.results)) return data.results;
-  if (Array.isArray(data?.hireServices)) return data.hireServices;
-  if (Array.isArray(data?.services)) return data.services;
+  // unwrap common wrappers like { success:true, data:{...} }
+  const root =
+    data?.data && typeof data.data === "object" && !Array.isArray(data.data)
+      ? data.data
+      : data;
 
-  // single object
-  if (data?.hireService && typeof data.hireService === "object")
-    return [data.hireService];
-  if (data && typeof data === "object") return [data];
+  if (Array.isArray(root?.data)) return root.data;
+  if (Array.isArray(root?.items)) return root.items;
+  if (Array.isArray(root?.results)) return root.results;
+  if (Array.isArray(root?.hireServices)) return root.hireServices;
+  if (Array.isArray(root?.services)) return root.services;
 
+  if (root?.hireService && typeof root.hireService === "object")
+    return [root.hireService];
+
+  if (typeof root === "object") return [root];
   return [];
 };
 
@@ -95,13 +108,15 @@ function FullStackDeveloper({
 }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
 
   const [apiTitle, setApiTitle] = useState("");
   const [apiDesc, setApiDesc] = useState("");
   const [apiHighlights, setApiHighlights] = useState([]);
   const [apiImage, setApiImage] = useState("");
 
-  const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [leftRef, leftInView] = useInViewOnce();
   const [rightRef, rightInView] = useInViewOnce();
@@ -110,19 +125,26 @@ function FullStackDeveloper({
     const controller = new AbortController();
 
     const loadHireServices = async () => {
+      setLoading(true);
+      setError("");
+
       try {
         const params = new URLSearchParams();
         if (category) params.append("category", category);
         if (subcategory) params.append("subcategory", subcategory);
 
-        const url = `/api/hire-services${params.toString() ? `?${params.toString()}` : ""}`;
+        const url = `/api/hire-services${
+          params.toString() ? `?${params.toString()}` : ""
+        }`;
 
         const res = await fetch(apiUrl(url), { signal: controller.signal });
-        const data = await res.json().catch(() => null);
+        const json = await res.json().catch(() => null);
 
-        if (!res.ok) throw new Error(data?.error || "Failed to load hire-services");
+        if (!res.ok) {
+          throw new Error(json?.error || json?.message || "Failed to load hire-services");
+        }
 
-        const list = normalizeHireServicesResponse(data);
+        const list = normalizeHireServicesResponse(json);
 
         const match =
           list.find((it) => {
@@ -133,14 +155,15 @@ function FullStackDeveloper({
 
         if (!match) return;
 
-        setApiTitle(match?.title || "");
-        setApiDesc(match?.description || "");
-        setApiImage(match?.image || "");
+        setApiTitle(safeStr(match?.title));
+        setApiDesc(safeStr(match?.description));
+        setApiImage(safeStr(match?.image));
 
+        // highlights from array OR fallback from description
         const fromArr = Array.isArray(match?.highlights)
           ? match.highlights
               .map((x) => (typeof x === "string" ? x : x?.title || x?.text))
-              .map((x) => String(x || "").trim())
+              .map((x) => safeStr(x))
               .filter(Boolean)
           : [];
 
@@ -150,6 +173,9 @@ function FullStackDeveloper({
       } catch (e) {
         if (e?.name === "AbortError") return;
         console.error("Hire services load failed:", e);
+        setError(e?.message || "Something went wrong");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -157,6 +183,7 @@ function FullStackDeveloper({
     return () => controller.abort();
   }, [category, subcategory]);
 
+  // ✅ resolved content (API first, then props fallback)
   const resolvedTitle = safeStr(apiTitle) || safeStr(title);
   const resolvedDesc = safeStr(apiDesc) || safeStr(description);
 
@@ -166,7 +193,10 @@ function FullStackDeveloper({
     return [];
   }, [apiHighlights, highlights]);
 
-  const resolvedImage = image || apiImage || "";
+  const resolvedImage = useMemo(() => {
+    const raw = image || apiImage || "";
+    return toAbsMaybe(raw);
+  }, [image, apiImage]);
 
   const hireButtonText = useMemo(() => {
     const c = safeStr(category);
@@ -178,6 +208,18 @@ function FullStackDeveloper({
 
   const hasAnyContent =
     !!resolvedTitle || !!resolvedDesc || !!resolvedImage || resolvedHighlights.length > 0;
+
+  // if nothing + loading then show loader block
+  if (!hasAnyContent && loading) {
+    return (
+      <Box component="section" sx={{ py: 4 }}>
+        <Stack alignItems="center" justifyContent="center" sx={{ minHeight: 180 }}>
+          <CircularProgress />
+        </Stack>
+      </Box>
+    );
+  }
+
   if (!hasAnyContent) return null;
 
   return (
@@ -229,8 +271,7 @@ function FullStackDeveloper({
                 </Typography>
               )}
 
-           
-
+          
               <AppButton
                 variant="contained"
                 size="large"
