@@ -1,41 +1,110 @@
-import { Box, Container, Grid, Stack, Typography, alpha, useTheme } from '@mui/material';
-import PropTypes from 'prop-types';
-import { AppButton } from '../../shared/FormControls.jsx';
+import React from "react";
+import {
+  Box,
+  Container,
+  Grid,
+  Stack,
+  Typography,
+  alpha,
+  useTheme,
+} from "@mui/material";
+import PropTypes from "prop-types";
+import { AppButton } from "../../shared/FormControls.jsx";
 
-const AboutHeroSection = ({ hero, stats, onCtaClick }) => {
+const DEFAULT_HERO_TITLE = "About Us";
+const DEFAULT_DESC =
+  "Empowering your vision: unleashing dedicated resources for Success";
+
+const AboutHeroSection = ({
+  hero = null,
+  stats = [],
+  onCtaClick = null,
+
+  // ✅ optional fallbacks if hero is null
+  heroTitle = DEFAULT_HERO_TITLE,
+  heroDescription = DEFAULT_DESC,
+  heroImage = "",
+  heroHasImage = true,
+}) => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
-  const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
-  const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
+  const isDark = theme.palette.mode === "dark";
 
-  const buttonProps = onCtaClick
-    ? { onClick: onCtaClick }
-    : { href: '#contact' };
+  const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
+  const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
+
+  // ✅ final resolved content
+  const resolvedTitle = hero?.title || heroTitle;
+  const resolvedDesc = hero?.description || heroDescription;
+  const resolvedImage = hero?.baseImage || heroImage;
+  const hasImage = Boolean(resolvedImage) && heroHasImage;
+
+  const buttonProps = onCtaClick ? { onClick: onCtaClick } : { href: "#contact" };
+  const ctaLabel = hero?.ctaLabel || "Contact us";
 
   return (
     <Box
       component="section"
       sx={{
-        backgroundImage: hero?.baseImage
-          ? `linear-gradient(to bottom, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.82)), url("${hero.baseImage}")`
-          : 'linear-gradient(to bottom, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.82))',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        filter: isDark ? 'brightness(0.95)' : 'brightness(0.85)',
-        position: 'relative',
-        overflow: 'hidden',
-        minHeight: { xs: '60vh', md: '70vh' },
-        display: 'flex',
-        alignItems: 'center',
+        position: "relative",
+        overflow: "hidden",
+        minHeight: { xs: "60vh", md: "70vh" },
+        display: "flex",
+        alignItems: "center",
         pb: { xs: 10, md: 14 },
         pt: { xs: 14, md: 18 },
       }}
     >
+      {/* ✅ Background layer */}
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: hasImage
+            ? `url("${resolvedImage}")`
+            : isDark
+              ? "linear-gradient(135deg, rgba(2,6,23,1) 0%, rgba(15,23,42,1) 50%, rgba(2,6,23,1) 100%)"
+              : "linear-gradient(135deg, rgba(241,245,249,1) 0%, rgba(226,232,240,1) 50%, rgba(241,245,249,1) 100%)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          transform: hasImage ? "scale(1.05)" : "none",
+          filter: hasImage
+            ? isDark
+              ? "brightness(0.85)"
+              : "brightness(0.95)"
+            : "none",
+        }}
+      />
+
+      {/* ✅ Overlay layer (separate from background) */}
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background: isDark
+            ? `linear-gradient(
+                90deg,
+                rgba(5,9,18,0.85) 0%,
+                rgba(5,9,18,0.65) 40%,
+                rgba(5,9,18,0.2) 70%,
+                rgba(5,9,18,0) 100%
+              )`
+            : `linear-gradient(
+                90deg,
+                rgba(255,255,255,0.92) 0%,
+                rgba(255,255,255,0.75) 40%,
+                rgba(255,255,255,0.35) 70%,
+                rgba(255,255,255,0) 100%
+              )`,
+        }}
+      />
+
+      {/* ✅ Content */}
       <Container
         maxWidth={false}
         sx={{
-          position: 'relative',
+          position: "relative",
           zIndex: 1,
           px: { xs: 3, md: 20 },
         }}
@@ -45,140 +114,61 @@ const AboutHeroSection = ({ hero, stats, onCtaClick }) => {
             <Stack
               spacing={3}
               sx={{
-                textAlign: { xs: 'center', md: 'left' },
-                alignItems: { xs: 'center', md: 'flex-start' },
+                textAlign: { xs: "center", md: "left" },
+                alignItems: { xs: "center", md: "flex-start" },
               }}
             >
-              {hero?.label && (
-                <Typography
-                  variant="overline"
-                  sx={{ color: alpha('#fff', 0.75), letterSpacing: 2 }}
-                >
-                  {hero.label}
-                </Typography>
-              )}
+           
               <Typography
                 variant="h1"
                 sx={{
                   fontSize: { xs: 38, sm: 46, md: 56 },
                   fontWeight: 800,
                   lineHeight: 1.1,
-                  color: '#fff',
+                  // ✅ readable on both overlays
+                  color: isDark ? "#fff" : theme.palette.text.primary,
                 }}
               >
-                {hero?.title}
+                {resolvedTitle}
               </Typography>
+
               <Typography
                 variant="body1"
-                sx={{ color: subtleText, maxWidth: 560, lineHeight: 1.7 }}
+                sx={{
+                  maxWidth: 560,
+                  lineHeight: 1.7,
+                  // ✅ don’t override subtleText accidentally
+                  color: isDark ? alpha("#fff", 0.92) : subtleText,
+                }}
               >
-                {hero?.description}
+                {resolvedDesc}
               </Typography>
-              {hero?.extendedDescription && (
-                <Typography
-                  variant="body2"
-                  sx={{ color: subtleText, maxWidth: 560, lineHeight: 1.7 }}
-                >
-                  {hero.extendedDescription}
-                </Typography>
-              )}
+
               <AppButton
                 variant="contained"
                 size="large"
                 {...buttonProps}
                 sx={{
-                  background:
-                    'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
-                  color: '#fff',
-                  borderRadius: '12px',
-                  textTransform: 'none',
+                  background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                  color: "#fff",
+                  borderRadius: "12px",
+                  textTransform: "none",
                   fontWeight: 600,
                   px: { xs: 4, md: 6 },
                   py: { xs: 1.5, md: 1.75 },
-                  '&:hover': {
+                  "&:hover": {
                     background:
-                      'linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)',
+                      "linear-gradient(90deg, #FF4C4C 0%, #9939FF 100%)",
                   },
                 }}
               >
-                {hero?.ctaLabel || 'Contact us'}
+                {ctaLabel}
               </AppButton>
 
-              {stats?.length > 0 && (
-                <Stack
-                  pt={2}
-                  width="100%"
-                  alignItems={{ xs: 'center', sm: 'flex-start' }}
-                >
-                  <Stack
-                    direction="row"
-                    spacing={{ xs: 3, sm: 4 }}
-                    justifyContent={{ xs: 'center', sm: 'flex-start' }}
-                    alignItems="center"
-                    sx={{
-                      width: '100%',
-                      overflowX: { xs: 'auto', sm: 'visible' },
-                      pb: { xs: 1, sm: 0 },
-                    }}
-                  >
-                    {stats.map((stat) => (
-                      <Stack
-                        key={stat.label}
-                        spacing={0.5}
-                        sx={{
-                          minWidth: { xs: 110, sm: 'auto' },
-                          textAlign: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Typography
-                          component="span"
-                          sx={{
-                            fontSize: { xs: 24, md: 30 },
-                            fontWeight: 700,
-                            color: accentColor,
-                          }}
-                        >
-                          {stat.value}
-                        </Typography>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          sx={{ color: subtleText, fontWeight: 500 }}
-                        >
-                          {stat.label}
-                        </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-                </Stack>
-              )}
+            
             </Stack>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Box
-              sx={{
-                position: 'relative',
-                display: 'flex',
-                justifyContent: { xs: 'center', md: 'flex-end' },
-              }}
-            >
-              <Box
-                component="img"
-                src={hero?.overlayImage || hero?.baseImage}
-                alt={hero?.title || 'About Vedx Solutions'}
-                sx={{
-                  width: { xs: '100%', md: '85%' },
-                  maxWidth: 520,
-                  borderRadius: 4,
-                  boxShadow: isDark
-                    ? '0 30px 60px rgba(15,23,42,0.6)'
-                    : '0 30px 60px rgba(15,23,42,0.2)',
-                  border: `1px solid ${alpha('#fff', 0.25)}`,
-                }}
-              />
-            </Box>
-          </Grid>
+
         </Grid>
       </Container>
     </Box>
@@ -202,12 +192,12 @@ AboutHeroSection.propTypes = {
     })
   ),
   onCtaClick: PropTypes.func,
-};
 
-AboutHeroSection.defaultProps = {
-  hero: null,
-  stats: [],
-  onCtaClick: null,
+  // optional fallbacks
+  heroTitle: PropTypes.string,
+  heroDescription: PropTypes.string,
+  heroImage: PropTypes.string,
+  heroHasImage: PropTypes.bool,
 };
 
 export default AboutHeroSection;
