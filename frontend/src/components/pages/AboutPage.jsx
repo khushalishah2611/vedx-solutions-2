@@ -151,21 +151,8 @@ const AboutPage = () => {
 
         <Box my={10}><AboutMissionVisionSection content={missionVisionContent} /></Box>
 
-
         <Divider sx={{ borderColor: dividerColor }} />
-      
-        <Box my={10}><AboutMissionVisionSection content={missionVisionContent} /></Box>  
-        <Divider sx={{ borderColor: dividerColor }} />
-
-        <Box my={10}>
-          <ServicesWhyChoose
-            title={whyChooseConfig.title}
-            description={whyChooseConfig.description}
-            highlights={whyChooseItems}
-            onContactClick={handleOpenContact}
-          />
-        </Box>
-        <Divider sx={{ borderColor: dividerColor }} />
+    
        
         <Box my={10}><ServicesCTA onContactClick={handleOpenContact} category="about" /></Box> 
       </Container>

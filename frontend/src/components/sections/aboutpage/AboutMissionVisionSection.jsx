@@ -33,7 +33,7 @@ const AboutMissionVisionSection = ({ content = null }) => {
               sx={{
                 height: '100%',
                 p: { xs: 3, md: 4 },
-                borderRadius: 3,
+                borderRadius: 0.5,
                 backgroundColor: alpha(
                   theme.palette.background.paper,
                   isDark ? 0.78 : 0.97
