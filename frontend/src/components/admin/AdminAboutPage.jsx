@@ -458,15 +458,7 @@ const AdminAboutPage = () => {
                     minRows={4}
                     required
                   />
-                  <AppTextField
-                    label="Extended description"
-                    value={storyForm.extendedDescription}
-                    onChange={(event) =>
-                      setStoryForm((prev) => ({ ...prev, extendedDescription: event.target.value }))
-                    }
-                    multiline
-                    minRows={3}
-                  />
+              
                 </Stack>
               </Grid>
               <Grid item xs={12} md={6}>

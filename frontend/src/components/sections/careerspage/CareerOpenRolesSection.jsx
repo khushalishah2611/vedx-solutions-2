@@ -38,7 +38,7 @@ const CareerOpenRolesSection = ({
               sx={{
                 height: '100%',
                 p: 3,
-                borderRadius: 3,
+                borderRadius: 0.5,
                 backgroundColor: alpha(
                   theme.palette.background.paper,
                   isDark ? 0.78 : 0.97

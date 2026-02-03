@@ -1976,19 +1976,7 @@ const AdminDashboardPage = () => {
                   fullWidth
                 />
 
-                <AppTextField
-                  label="Extended description"
-                  value={dashboardStoryForm.extendedDescription}
-                  onChange={(event) =>
-                    setDashboardStoryForm((prev) => ({
-                      ...prev,
-                      extendedDescription: event.target.value,
-                    }))
-                  }
-                  multiline
-                  rows={3}
-                  fullWidth
-                />
+               
 
                 <Stack direction="row" spacing={2} alignItems="center">
                   <AppButton variant="contained" onClick={handleDashboardStorySave}>

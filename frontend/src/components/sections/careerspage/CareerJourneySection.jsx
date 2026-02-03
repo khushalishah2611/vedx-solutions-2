@@ -32,7 +32,7 @@ const CareerJourneySection = ({
         sx={{
           position: 'relative',
           p: { xs: 3, md: 4 },
-          borderRadius: 4,
+          borderRadius: 0.5,
           backgroundColor: alpha(
             theme.palette.background.paper,
             isDark ? 0.78 : 0.97

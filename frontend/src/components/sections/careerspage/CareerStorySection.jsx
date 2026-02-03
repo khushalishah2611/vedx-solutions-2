@@ -235,22 +235,10 @@ export default function CareerStorySection({ story = {} }) {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  We are
+                  About Vedx Solutions
                 </Box>
               </Box>
 
-              {/* Heading with typing effect */}
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 800,
-                  lineHeight: 1.5,
-                }}
-              >
-                {title}
-                <br />
-                <TypingTitle />
-              </Typography>
 
               {/* Description */}
               <Typography
@@ -266,18 +254,7 @@ export default function CareerStorySection({ story = {} }) {
                 {description}
               </Typography>
 
-              {/* Extended Description */}
-              <Typography
-                variant="body2"
-                sx={{
-                  color: !isDark
-                    ? alpha('#000', 0.9)
-                    : alpha('#ffffff', 0.9),
-                  lineHeight: 1.7,
-                }}
-              >
-                {extendedDescription}
-              </Typography>
+           
             </Stack>
           </Grid>
         </Grid>

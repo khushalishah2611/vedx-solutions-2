@@ -34,7 +34,7 @@ const AboutHeroSection = ({
 
   // ✅ final resolved content
   const resolvedTitle = hero?.title || heroTitle;
-  const resolvedDesc = hero?.description || heroDescription;
+  const resolvedDesc = heroDescription;
   const resolvedImage = hero?.baseImage || heroImage;
   const hasImage = Boolean(resolvedImage) && heroHasImage;
 

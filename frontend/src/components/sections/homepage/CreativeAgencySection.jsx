@@ -265,18 +265,7 @@ export default function CreativeAgencySection({ story = {} }) {
                 {description}
               </Typography>
 
-              {/* Extended Description */}
-              <Typography
-                variant="body2"
-                sx={{
-                  color: !isDark
-                    ? alpha('#000', 0.9)
-                    : alpha('#ffffff', 0.9),
-                  lineHeight: 1.7,
-                }}
-              >
-                {extendedDescription}
-              </Typography>
+           
             </Stack>
           </Grid>
         </Grid>

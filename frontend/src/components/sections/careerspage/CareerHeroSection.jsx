@@ -17,7 +17,7 @@ const CareerHeroSection = ({ hero, onCtaClick, rightContent }) => {
 
   const heroTitle = hero?.title || "Join our team";
   const heroDescription =
-    hero?.description || "Explore exciting roles and grow your career with us.";
+  "We believe in harnessing the collective brilliance of our diverse talents to craft innovative solutions and contribute to the ever-evolving digital landscape. Ready to join us and be at the forefront of transformative projects, taking your career in IT beyond limits?";
   const heroCaption = hero?.caption || "";
   const heroImage = hero?.image || "";
   const heroHasImage = Boolean(heroImage);
@@ -148,19 +148,7 @@ const CareerHeroSection = ({ hero, onCtaClick, rightContent }) => {
                 {heroDescription}
               </Typography>
 
-              {!!heroCaption && (
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: isDark ? subtleText : "rgba(2,6,23,0.65)",
-                    maxWidth: 560,
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {heroCaption}
-                </Typography>
-              )}
-
+            
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={1.5}

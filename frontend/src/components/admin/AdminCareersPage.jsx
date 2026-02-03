@@ -1275,16 +1275,7 @@ const AdminCareersPage = () => {
                 rows={4}
                 fullWidth
               />
-              <AppTextField
-                label="Extended description"
-                value={storyForm.extendedDescription}
-                onChange={(event) =>
-                  setStoryForm((prev) => ({ ...prev, extendedDescription: event.target.value }))
-                }
-                multiline
-                rows={3}
-                fullWidth
-              />
+         
               {storySaved ? (
                 <Typography color="success.main" variant="body2">
                   Story saved successfully.

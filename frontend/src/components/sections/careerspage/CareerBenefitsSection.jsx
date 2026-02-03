@@ -31,7 +31,7 @@ const CareerBenefitsSection = ({ benefits = [], title, description }) => {
               sx={{
                 height: '100%',
                 p: 3,
-                borderRadius: 3,
+                borderRadius: 0.5,
                 textAlign: 'center',
                 backgroundColor: alpha(
                   theme.palette.background.paper,
