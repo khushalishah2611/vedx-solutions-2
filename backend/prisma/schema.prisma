@@ -27,6 +27,18 @@ enum AboutMissionType {
   VISION
 }
 
+model AboutStory {
+  id                 Int      @id @default(autoincrement())
+  title              String
+  description        String   @db.LongText
+  extendedDescription String? @db.LongText
+  imageBase          String?  @db.LongText
+  imageOverlay       String?  @db.LongText
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 enum AdminRole {
   SUPER_ADMIN
   EDITOR

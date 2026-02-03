@@ -6846,6 +6846,17 @@ const mapAboutWhyChooseItemToResponse = (item) => ({
   updatedAt: item.updatedAt,
 });
 
+const mapAboutStoryToResponse = (story) => ({
+  id: story.id,
+  title: story.title,
+  description: story.description,
+  extendedDescription: story.extendedDescription || '',
+  imageBase: story.imageBase || '',
+  imageOverlay: story.imageOverlay || '',
+  createdAt: story.createdAt,
+  updatedAt: story.updatedAt,
+});
+
 // GET benefit hero/config
 app.get('/api/benefits/config', async (_req, res) => {
   try {
@@ -7290,6 +7301,58 @@ app.delete('/api/contact-buttons/:id', async (req, res) => {
 /* ===============================================
  * ABOUT PAGE APIs
  * =============================================== */
+
+// GET about story
+app.get('/api/about/story', async (_req, res) => {
+  try {
+    const story = await prisma.aboutStory.findFirst({ orderBy: { createdAt: 'desc' } });
+    res.json(story ? mapAboutStoryToResponse(story) : null);
+  } catch (err) {
+    console.error('GET /api/about/story error', err);
+    res.status(500).json({ error: 'Failed to fetch about story' });
+  }
+});
+
+// CREATE/UPDATE about story
+app.put('/api/about/story', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, extendedDescription, imageBase, imageOverlay } = req.body ?? {};
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required.' });
+    }
+
+    const existing = await prisma.aboutStory.findFirst();
+    const saved = existing
+      ? await prisma.aboutStory.update({
+        where: { id: existing.id },
+        data: {
+          title,
+          description,
+          extendedDescription: extendedDescription || null,
+          imageBase: imageBase || null,
+          imageOverlay: imageOverlay || null,
+        },
+      })
+      : await prisma.aboutStory.create({
+        data: {
+          title,
+          description,
+          extendedDescription: extendedDescription || null,
+          imageBase: imageBase || null,
+          imageOverlay: imageOverlay || null,
+        },
+      });
+
+    res.json(mapAboutStoryToResponse(saved));
+  } catch (err) {
+    console.error('PUT /api/about/story error', err);
+    res.status(500).json({ error: 'Failed to save about story' });
+  }
+});
 
 // GET about mission/vision content
 app.get('/api/about/mission-vision', async (_req, res) => {

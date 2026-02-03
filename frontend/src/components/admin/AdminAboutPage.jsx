@@ -60,6 +60,14 @@ const initialWhyChooseItem = {
   isActive: true,
 };
 
+const initialStory = {
+  title: "",
+  description: "",
+  extendedDescription: "",
+  imageBase: "",
+  imageOverlay: "",
+};
+
 const AdminAboutPage = () => {
   const [contactForm, setContactForm] = useState(initialContact);
   const [contactId, setContactId] = useState(null);
@@ -68,6 +76,9 @@ const AdminAboutPage = () => {
   const [missionVisionForm, setMissionVisionForm] = useState(initialMissionVision);
   const [missionSaved, setMissionSaved] = useState(false);
   const [visionSaved, setVisionSaved] = useState(false);
+
+  const [storyForm, setStoryForm] = useState(initialStory);
+  const [storySaved, setStorySaved] = useState(false);
 
   const [whyChooseConfig, setWhyChooseConfig] = useState(initialWhyChooseConfig);
   const [whyChooseSaved, setWhyChooseSaved] = useState(false);
@@ -156,11 +167,32 @@ const AdminAboutPage = () => {
     }
   }, []);
 
+  const loadStory = useCallback(async () => {
+    try {
+      const res = await fetch(apiUrl("/api/about/story"));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Unable to load about story");
+
+      if (data) {
+        setStoryForm({
+          title: data.title || "",
+          description: data.description || "",
+          extendedDescription: data.extendedDescription || "",
+          imageBase: data.imageBase || "",
+          imageOverlay: data.imageOverlay || "",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load about story", error);
+    }
+  }, []);
+
   useEffect(() => {
     loadContactButton();
     loadMissionVision();
+    loadStory();
     loadWhyChoose();
-  }, [loadContactButton, loadMissionVision, loadWhyChoose]);
+  }, [loadContactButton, loadMissionVision, loadStory, loadWhyChoose]);
 
   const handleContactSave = async () => {
     try {
@@ -246,6 +278,34 @@ const AdminAboutPage = () => {
       setWhyChooseSaved(true);
     } catch (error) {
       console.error("Failed to save about why-choose config", error);
+    }
+  };
+
+  const handleStorySave = async () => {
+    try {
+      setStorySaved(false);
+
+      const response = await fetch(apiUrl("/api/about/story"), {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(storyForm),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to save about story");
+      }
+
+      setStoryForm({
+        title: data.title || "",
+        description: data.description || "",
+        extendedDescription: data.extendedDescription || "",
+        imageBase: data.imageBase || "",
+        imageOverlay: data.imageOverlay || "",
+      });
+      setStorySaved(true);
+    } catch (error) {
+      console.error("Failed to save about story", error);
     }
   };
 
@@ -369,6 +429,66 @@ const AdminAboutPage = () => {
                 Save contact CTA
               </AppButton>
               {contactSaved && <Alert severity="success">Contact CTA saved.</Alert>}
+            </Stack>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+          <CardHeader title="About story" subheader="Manage the About story images, title, and descriptions." />
+          <Divider />
+          <CardContent>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Stack spacing={2}>
+                  <AppTextField
+                    label="Title"
+                    value={storyForm.title}
+                    onChange={(event) =>
+                      setStoryForm((prev) => ({ ...prev, title: event.target.value }))
+                    }
+                    required
+                  />
+                  <AppTextField
+                    label="Description"
+                    value={storyForm.description}
+                    onChange={(event) =>
+                      setStoryForm((prev) => ({ ...prev, description: event.target.value }))
+                    }
+                    multiline
+                    minRows={4}
+                    required
+                  />
+                  <AppTextField
+                    label="Extended description"
+                    value={storyForm.extendedDescription}
+                    onChange={(event) =>
+                      setStoryForm((prev) => ({ ...prev, extendedDescription: event.target.value }))
+                    }
+                    multiline
+                    minRows={3}
+                  />
+                </Stack>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Stack spacing={3}>
+                  <ImageUpload
+                    label="Base image"
+                    value={storyForm.imageBase}
+                    onChange={(value) => setStoryForm((prev) => ({ ...prev, imageBase: value }))}
+                  />
+                  <ImageUpload
+                    label="Overlay image"
+                    value={storyForm.imageOverlay}
+                    onChange={(value) => setStoryForm((prev) => ({ ...prev, imageOverlay: value }))}
+                  />
+                </Stack>
+              </Grid>
+            </Grid>
+            <Stack direction="row" spacing={2} sx={{ mt: 3 }} alignItems="center">
+              <AppButton variant="contained" onClick={handleStorySave}>
+                Save story
+              </AppButton>
+              {storySaved && <Alert severity="success">Story saved.</Alert>}
             </Stack>
           </CardContent>
         </Card>

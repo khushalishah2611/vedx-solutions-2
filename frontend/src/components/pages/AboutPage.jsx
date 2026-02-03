@@ -30,6 +30,7 @@ const AboutPage = () => {
   const [missionVisionContent, setMissionVisionContent] = useState(aboutMissionVision);
   const [whyChooseConfig, setWhyChooseConfig] = useState({ title: '', description: '' });
   const [whyChooseItems, setWhyChooseItems] = useState([]);
+  const [storyContent, setStoryContent] = useState(careerStory);
   const resolvedHero = useMemo(
     () => ({
       ...aboutHero,
@@ -58,6 +59,27 @@ const AboutPage = () => {
         }
       } catch (error) {
         console.error('Failed to load mission/vision', error);
+      }
+    };
+
+    const loadStory = async () => {
+      try {
+        const res = await fetch(apiUrl('/api/about/story'));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Unable to load about story');
+
+        if (isMounted && data) {
+          setStoryContent({
+            title: data.title || careerStory.title,
+            description: data.description || careerStory.description,
+            extendedDescription: data.extendedDescription || careerStory.body,
+            image: data.imageBase || careerStory.image,
+            imageBase: data.imageBase || careerStory.image,
+            imageOverlay: data.imageOverlay || careerStory.image,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load about story', error);
       }
     };
 
@@ -93,6 +115,7 @@ const AboutPage = () => {
     };
 
     loadMissionVision();
+    loadStory();
     loadWhyChoose();
 
     return () => {
@@ -113,7 +136,7 @@ const AboutPage = () => {
         }}
       >
 
-        <Box my={5}><CareerStorySection story={careerStory} /></Box>
+        <Box my={5}><CareerStorySection story={storyContent} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
 
         <Box my={10}>
@@ -130,8 +153,21 @@ const AboutPage = () => {
 
 
         <Divider sx={{ borderColor: dividerColor }} />
+      
+        <Box my={10}><AboutMissionVisionSection content={missionVisionContent} /></Box>  
+        <Divider sx={{ borderColor: dividerColor }} />
 
-        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} category="about" /></Box>
+        <Box my={10}>
+          <ServicesWhyChoose
+            title={whyChooseConfig.title}
+            description={whyChooseConfig.description}
+            highlights={whyChooseItems}
+            onContactClick={handleOpenContact}
+          />
+        </Box>
+        <Divider sx={{ borderColor: dividerColor }} />
+       
+        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} category="about" /></Box> 
       </Container>
     </Box>
   );
