@@ -1,6 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Card, CardContent, CardHeader, Chip, Divider, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Stack, IconButton, Tooltip, Typography } from '@mui/material';
-import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Divider,
+  MenuItem,
+  Pagination,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Stack,
+  IconButton,
+  Tooltip,
+  Typography,
+  useTheme,
+  alpha,
+} from '@mui/material';
+
+import {
+  AppButton,
+  AppDialog,
+  AppDialogActions,
+  AppDialogContent,
+  AppDialogTitle,
+  AppSelectField,
+  AppTextField,
+} from '../shared/FormControls.jsx';
 
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -99,6 +129,7 @@ const ImageUpload = ({ label, value, onChange, helperText }) => {
         {value ? `Change ${label}` : `Upload ${label}`}
         <input type="file" hidden accept="image/*" onChange={handleChange} />
       </AppButton>
+
       {value && (
         <img
           src={value}
@@ -106,6 +137,7 @@ const ImageUpload = ({ label, value, onChange, helperText }) => {
           style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 8 }}
         />
       )}
+
       {helperText && (
         <Typography variant="caption" color="text.secondary">
           {helperText}
@@ -141,9 +173,7 @@ const sanitizeRichText = (value) => {
         child.setAttribute('target', '_blank');
         child.setAttribute('rel', 'noopener noreferrer');
         [...child.attributes].forEach((attr) => {
-          if (!['href', 'target', 'rel'].includes(attr.name)) {
-            child.removeAttribute(attr.name);
-          }
+          if (!['href', 'target', 'rel'].includes(attr.name)) child.removeAttribute(attr.name);
         });
       } else {
         [...child.attributes].forEach((attr) => child.removeAttribute(attr.name));
@@ -211,6 +241,16 @@ const createEmptyFormState = () => ({
 });
 
 const AdminBlogsPage = () => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  // ✅ Theme based colors (fix for Title)
+  const titleColor = theme.palette.text.primary;
+
+  // ✅ Optional table row hover same feel
+  const rowHoverBg = alpha(theme.palette.primary.main, isDark ? 0.12 : 0.06);
+  const rowBorder = alpha(theme.palette.divider, isDark ? 0.65 : 1);
+
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [categoriesError, setCategoriesError] = useState('');
@@ -232,7 +272,6 @@ const AdminBlogsPage = () => {
   const [dialogError, setDialogError] = useState('');
 
   const [formState, setFormState] = useState(createEmptyFormState());
-
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   // view dialog state
@@ -269,11 +308,8 @@ const AdminBlogsPage = () => {
     setCategoryDialogMode(mode);
     setCategoryDialogError('');
     setCategoryDialogOpen(true);
-    if (category) {
-      setCategoryForm({ id: category.id, name: category.name || '' });
-    } else {
-      setCategoryForm({ id: '', name: '' });
-    }
+    if (category) setCategoryForm({ id: category.id, name: category.name || '' });
+    else setCategoryForm({ id: '', name: '' });
   };
 
   const closeCategoryDialog = () => {
@@ -319,13 +355,10 @@ const AdminBlogsPage = () => {
 
       if (categoryDialogMode === 'edit') {
         setBlogList((prev) =>
-          prev.map((blog) =>
-            blog.categoryId === saved.id ? { ...blog, category: saved.name } : blog
-          )
+          prev.map((blog) => (blog.categoryId === saved.id ? { ...blog, category: saved.name } : blog))
         );
       }
 
-      // if the blog form or filters were using an empty category, set it to the newly created one
       if (!formState.categoryId || formState.categoryId === categoryForm.id) {
         setFormState((prev) => ({ ...prev, categoryId: saved.id }));
       }
@@ -349,9 +382,7 @@ const AdminBlogsPage = () => {
       if (!token) throw new Error('Your session expired. Please log in again.');
       const response = await fetch(apiUrl(`/api/admin/blog-categories/${categoryToDelete.id}`), {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const payload = await response.json();
@@ -376,8 +407,6 @@ const AdminBlogsPage = () => {
       if (formState.categoryId === categoryToDelete.id) {
         setFormState((prev) => ({ ...prev, categoryId: updatedCategories[0]?.id || '' }));
       }
-
-      setCategoryToDelete(null);
     } catch (error) {
       console.error('Delete blog category failed', error);
       setCategoriesError(error?.message || 'Unable to delete category right now.');
@@ -576,9 +605,7 @@ const AdminBlogsPage = () => {
       const mapped = mapApiBlogToRow(result.post);
 
       setBlogList((prev) => {
-        if (dialogMode === 'edit') {
-          return prev.map((blog) => (blog.id === mapped.id ? mapped : blog));
-        }
+        if (dialogMode === 'edit') return prev.map((blog) => (blog.id === mapped.id ? mapped : blog));
         return [mapped, ...prev];
       });
 
@@ -591,13 +618,8 @@ const AdminBlogsPage = () => {
     }
   };
 
-  const openDeleteDialog = (blog) => {
-    setDeleteTarget(blog);
-  };
-
-  const closeDeleteDialog = () => {
-    setDeleteTarget(null);
-  };
+  const openDeleteDialog = (blog) => setDeleteTarget(blog);
+  const closeDeleteDialog = () => setDeleteTarget(null);
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
@@ -605,9 +627,7 @@ const AdminBlogsPage = () => {
       if (!token) throw new Error('Your session expired. Please log in again.');
       const response = await fetch(apiUrl(`/api/admin/blog-posts/${deleteTarget.id}`), {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result?.message || 'Unable to delete blog.');
@@ -619,13 +639,8 @@ const AdminBlogsPage = () => {
     }
   };
 
-  const openViewDialog = (blog) => {
-    setViewBlog(blog);
-  };
-
-  const closeViewDialog = () => {
-    setViewBlog(null);
-  };
+  const openViewDialog = (blog) => setViewBlog(blog);
+  const closeViewDialog = () => setViewBlog(null);
 
   return (
     <Stack spacing={3}>
@@ -672,11 +687,7 @@ const AdminBlogsPage = () => {
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Delete category">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => setCategoryToDelete(category)}
-                          >
+                          <IconButton size="small" color="error" onClick={() => setCategoryToDelete(category)}>
                             <DeleteOutlineIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -713,11 +724,7 @@ const AdminBlogsPage = () => {
           title="Blogs"
           subheader="Create, edit, view or remove posts in a simple table view."
           action={
-            <AppButton
-              startIcon={<NoteAddOutlinedIcon />}
-              variant="contained"
-              onClick={openCreateDialog}
-            >
+            <AppButton startIcon={<NoteAddOutlinedIcon />} variant="contained" onClick={openCreateDialog}>
               New draft
             </AppButton>
           }
@@ -734,9 +741,9 @@ const AdminBlogsPage = () => {
               {categoriesError}
             </Typography>
           )}
+
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'flex-end' }} mb={2}>
             <AppSelectField
-             
               label="Category"
               value={filterDraft.category}
               onChange={(event) => setFilterDraft((prev) => ({ ...prev, category: event.target.value }))}
@@ -751,8 +758,8 @@ const AdminBlogsPage = () => {
               ))}
               <MenuItem value="">Uncategorized</MenuItem>
             </AppSelectField>
+
             <AppSelectField
-             
               label="Status"
               value={filterDraft.status}
               onChange={(event) => setFilterDraft((prev) => ({ ...prev, status: event.target.value }))}
@@ -765,8 +772,8 @@ const AdminBlogsPage = () => {
                 </MenuItem>
               ))}
             </AppSelectField>
+
             <AppSelectField
-             
               label="Publish date"
               value={filterDraft.date}
               onChange={(event) => setFilterDraft((prev) => ({ ...prev, date: event.target.value }))}
@@ -778,6 +785,7 @@ const AdminBlogsPage = () => {
                 </MenuItem>
               ))}
             </AppSelectField>
+
             {filterDraft.date === 'custom' && (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flex={1}>
                 <AppTextField
@@ -799,6 +807,7 @@ const AdminBlogsPage = () => {
               </Stack>
             )}
           </Stack>
+
           <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" mb={2}>
             <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
               {activeFilterChips.map((chip) => (
@@ -819,6 +828,7 @@ const AdminBlogsPage = () => {
               </AppButton>
             </Stack>
           </Stack>
+
           <TableContainer>
             <Table size="small">
               <TableHead>
@@ -831,27 +841,38 @@ const AdminBlogsPage = () => {
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody>
                 {pagedBlogs.map((blog) => (
-                  <TableRow key={blog.id} hover>
+                  <TableRow
+                    key={blog.id}
+                    hover
+                    sx={{
+                      '& td': { borderColor: rowBorder },
+                      '&:hover': { backgroundColor: rowHoverBg },
+                    }}
+                  >
                     <TableCell width="24%">
+                      {/* ✅ FIXED: Title is theme-based now */}
                       <Typography
                         variant="subtitle1"
-                        fontWeight={700}
                         noWrap
-                        sx={{ color: '#ffffff' }}
+                        sx={{
+                          fontWeight: 700,
+                          color: titleColor,
+                          maxWidth: 420,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
                       >
                         {blog.title}
                       </Typography>
                     </TableCell>
+
                     <TableCell width="16%">
-                      <Chip
-                        label={blog.category}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                      />
+                      <Chip label={blog.category} size="small" color="primary" variant="outlined" />
                     </TableCell>
+
                     <TableCell width="14%">
                       <Chip
                         label={blog.status}
@@ -861,17 +882,15 @@ const AdminBlogsPage = () => {
                         sx={{ fontWeight: 600 }}
                       />
                     </TableCell>
+
                     <TableCell width="14%">
                       <Typography variant="body2" color="text.secondary">
                         {blog.publishDate}
                       </Typography>
                     </TableCell>
+
                     <TableCell width="22%">
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ whiteSpace: 'pre-line' }}
-                      >
+                      <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-line' }}>
                         {blog.shortDescription || 'No summary added yet.'}
                       </Typography>
                     </TableCell>
@@ -879,29 +898,17 @@ const AdminBlogsPage = () => {
                     <TableCell align="right">
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
                         <Tooltip title="View details">
-                          <IconButton
-                            size="small"
-                            color="inherit"
-                            onClick={() => openViewDialog(blog)}
-                          >
+                          <IconButton size="small" color="inherit" onClick={() => openViewDialog(blog)}>
                             <VisibilityOutlinedIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Edit draft">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => openEditDialog(blog)}
-                          >
+                          <IconButton size="small" color="primary" onClick={() => openEditDialog(blog)}>
                             <EditOutlinedIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => openDeleteDialog(blog)}
-                          >
+                          <IconButton size="small" color="error" onClick={() => openDeleteDialog(blog)}>
                             <DeleteOutlineIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -909,19 +916,17 @@ const AdminBlogsPage = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+
                 {!loadingBlogs && filteredBlogs.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7}>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        align="center"
-                      >
+                      <Typography variant="body2" color="text.secondary" align="center">
                         No drafts yet. Click "New draft" to create one.
                       </Typography>
                     </TableCell>
                   </TableRow>
                 )}
+
                 {loadingBlogs && (
                   <TableRow>
                     <TableCell colSpan={7}>
@@ -934,6 +939,7 @@ const AdminBlogsPage = () => {
               </TableBody>
             </Table>
           </TableContainer>
+
           <Stack mt={2} alignItems="flex-end">
             <Pagination
               count={Math.max(1, Math.ceil(filteredBlogs.length / rowsPerPage))}
@@ -994,9 +1000,7 @@ const AdminBlogsPage = () => {
 
       {/* Create / Edit draft dialog */}
       <AppDialog open={dialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>
-        <AppDialogTitle>
-          {dialogMode === 'edit' ? 'Edit draft' : 'New draft'}
-        </AppDialogTitle>
+        <AppDialogTitle>{dialogMode === 'edit' ? 'Edit draft' : 'New draft'}</AppDialogTitle>
         <AppDialogContent dividers>
           <Stack spacing={2} mt={1} component="form" onSubmit={handleSubmit}>
             <AppTextField
@@ -1007,6 +1011,7 @@ const AdminBlogsPage = () => {
               onChange={(event) => handleFormChange('title', event.target.value)}
               required
             />
+
             <AppTextField
               label="Subtitle"
               placeholder="Enter blog sub title"
@@ -1018,8 +1023,8 @@ const AdminBlogsPage = () => {
               maxRows={4}
               required
             />
+
             <AppSelectField
-             
               label="Category"
               value={formState.categoryId}
               onChange={(event) => handleFormChange('categoryId', event.target.value)}
@@ -1034,6 +1039,7 @@ const AdminBlogsPage = () => {
               ))}
               <MenuItem value="">Uncategorized</MenuItem>
             </AppSelectField>
+
             <AppTextField
               label="Publish date"
               type="date"
@@ -1045,13 +1051,13 @@ const AdminBlogsPage = () => {
               sx={{
                 '& input[type="date"]::-webkit-calendar-picker-indicator': {
                   filter: 'invert(1)',
-                  cursor: 'pointer'
-                }
+                  cursor: 'pointer',
+                },
               }}
               required
             />
+
             <AppSelectField
-             
               label="Status"
               value={formState.status}
               onChange={(event) => handleFormChange('status', event.target.value)}
@@ -1064,18 +1070,21 @@ const AdminBlogsPage = () => {
                 </MenuItem>
               ))}
             </AppSelectField>
+
             <ImageUpload
               label="cover image"
               value={formState.coverImage}
               onChange={(value) => handleFormChange('coverImage', value)}
               helperText="Shown on listing cards and as the hero image for the blog post."
             />
+
             <ImageUpload
               label="blog image"
               value={formState.blogImage}
               onChange={(value) => handleFormChange('blogImage', value)}
               helperText="Used within the blog content. If omitted, the cover image will be reused."
             />
+
             <AppTextField
               label="Short description"
               placeholder="Write a short description for the blog post"
@@ -1087,6 +1096,7 @@ const AdminBlogsPage = () => {
               fullWidth
               required
             />
+
             <AppTextField
               label="Long description"
               placeholder="Summarize the key takeaway for readers"
@@ -1098,6 +1108,7 @@ const AdminBlogsPage = () => {
               fullWidth
               required
             />
+
             <AppTextField
               label="Conclusion"
               placeholder="Wrap up your post with a clear takeaway"
@@ -1128,12 +1139,7 @@ const AdminBlogsPage = () => {
       </AppDialog>
 
       {/* View details dialog */}
-      <AppDialog
-        open={Boolean(viewBlog)}
-        onClose={closeViewDialog}
-        maxWidth="sm"
-        fullWidth
-      >
+      <AppDialog open={Boolean(viewBlog)} onClose={closeViewDialog} maxWidth="sm" fullWidth>
         <AppDialogTitle>Blog details</AppDialogTitle>
         <AppDialogContent dividers>
           {viewBlog && (
@@ -1141,11 +1147,13 @@ const AdminBlogsPage = () => {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {viewBlog.title}
               </Typography>
-                 <RichTextSection
+
+              <RichTextSection
                 label="Long description"
                 content={viewBlog.subtitle}
                 emptyText="No long description added yet."
               />
+
               <Stack spacing={1}>
                 {viewBlog.coverImage && (
                   <Box
@@ -1164,13 +1172,9 @@ const AdminBlogsPage = () => {
                   />
                 )}
               </Stack>
+
               <Stack direction="row" spacing={1} alignItems="center">
-                <Chip
-                  label={viewBlog.category}
-                  size="small"
-                  color="primary"
-                  variant="outlined"
-                />
+                <Chip label={viewBlog.category} size="small" color="primary" variant="outlined" />
                 <Chip
                   label={viewBlog.status}
                   size="small"
@@ -1181,19 +1185,21 @@ const AdminBlogsPage = () => {
                   Publish date: {viewBlog.publishDate}
                 </Typography>
               </Stack>
+
               <Divider />
+
               <RichTextSection
                 label="Short description"
                 content={viewBlog.shortDescription}
                 emptyText="No short description added yet."
               />
+
               <Divider />
-              <RichTextSection
-                label="Conclusion"
-                content={viewBlog.conclusion}
-                emptyText="No conclusion added yet."
-              />
+
+              <RichTextSection label="Conclusion" content={viewBlog.conclusion} emptyText="No conclusion added yet." />
+
               <Divider />
+
               <RichTextSection
                 label="Long description"
                 content={viewBlog.longDescription}

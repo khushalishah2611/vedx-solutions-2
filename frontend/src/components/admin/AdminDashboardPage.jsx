@@ -1664,7 +1664,7 @@ const AdminDashboardPage = () => {
             <Tab value="why-vedx" label="Why VEDX solutions" />
             <Tab value="tech-solutions" label="Tech solutions" />
             <Tab value="expertise" label="Expertise models" />
-            <Tab value="technologies" label="Technologies" />
+            {/* <Tab value="technologies" label="Technologies" /> */}
       
           </Tabs>
         </Box>
