@@ -268,7 +268,7 @@ const CareersPage = () => {
         </Box>
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}>
-          <ServicesCTA onContactClick={handleOpenContact} apiPath="/api/career/cta" />
+          <ServicesCTA apiPath="/api/career/cta" />
         </Box>
       </Container>
 

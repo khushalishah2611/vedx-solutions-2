@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Divider, alpha, useTheme, Container } from '@mui/material';
-import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
+import { useNavigate } from 'react-router-dom';
 import {
   aboutHero,
   aboutStats,
@@ -25,7 +25,10 @@ const AboutPage = () => {
   const theme = useTheme();
 
   const dividerColor = alpha(theme.palette.divider, 0.6);
-  const { openDialog: handleOpenContact } = useContactDialog();
+  const navigate = useNavigate();
+  const handleOpenContact = useCallback(() => {
+    navigate('/contact');
+  }, [navigate]);
   const { banner } = useBannerByType('about');
   const [missionVisionContent, setMissionVisionContent] = useState(aboutMissionVision);
   const [whyChooseConfig, setWhyChooseConfig] = useState({ title: '', description: '' });
@@ -154,7 +157,7 @@ const AboutPage = () => {
         <Divider sx={{ borderColor: dividerColor }} />
     
        
-        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} category="about" /></Box> 
+        <Box my={10}><ServicesCTA category="about" /></Box> 
       </Container>
     </Box>
   );
