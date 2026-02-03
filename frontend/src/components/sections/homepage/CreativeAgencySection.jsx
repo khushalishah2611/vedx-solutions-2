@@ -82,15 +82,24 @@ const TypingTitle = () => {
 };
 
 // === MAIN SECTION COMPONENT ===
-export default function CreativeAgencySection() {
+export default function CreativeAgencySection({ story = {} }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accentColor = isDark ? '#67e8f9' : theme.palette.primary.main;
 
   const HERO_IMAGE_BASE =
+    story?.imageBase ||
     'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=80';
   const HERO_IMAGE_OVERLAY =
+    story?.imageOverlay ||
     'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&q=80';
+  const title = story?.title || 'Creative Digital Agency Working For';
+  const description =
+    story?.description ||
+    "We're made up of top product experts and engineers who are capable in the invention and development of the industry's most advanced technologies including web, mobile apps, eCommerce, Commerce, loT, Al/ML, enterprise mobility, on-demand, cross-platform, cloud integration and alike. Technology happens to be the medium in which we work.";
+  const extendedDescription =
+    story?.extendedDescription ||
+    'If your organization is looking for an assistance on an upcoming software project or would like access to our talent, feel free to get in touch and begin a conversation.';
 
   // Left/right animation
   const [leftRef, leftInView] = useInView();
@@ -237,7 +246,7 @@ export default function CreativeAgencySection() {
                   lineHeight: 1.5,
                 }}
               >
-                Creative Digital Agency Working For
+                {title}
                 <br />
                 <TypingTitle />
               </Typography>
@@ -253,7 +262,7 @@ export default function CreativeAgencySection() {
                   lineHeight: 1.75,
                 }}
               >
-                We're made up of top product experts and engineers who are capable in the invention and development of the industry's most advanced technologies including web, mobile apps, eCommerce, Commerce, loT, Al/ML, enterprise mobility, on-demand, cross-platform, cloud integration and alike. Technology happens to be the medium in which we work.
+                {description}
               </Typography>
 
               {/* Extended Description */}
@@ -266,7 +275,7 @@ export default function CreativeAgencySection() {
                   lineHeight: 1.7,
                 }}
               >
-                If your organization is looking for an assistance on an upcoming software project or would like access to our talent, feel free to get in touch and begin a conversation.
+                {extendedDescription}
               </Typography>
             </Stack>
           </Grid>

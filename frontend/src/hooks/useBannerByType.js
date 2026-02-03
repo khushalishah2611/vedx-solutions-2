@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react';
 import { apiUrl } from '../utils/const.js';
 import { useLoadingFetch } from './useLoadingFetch.js';
 
-const normalizeType = (type) => (typeof type === 'string' ? type.trim().toLowerCase() : '');
+const normalizeType = (type) => {
+  if (typeof type !== 'string') return '';
+  const normalized = type.trim().toLowerCase();
+  if (normalized === 'caeer') return 'career';
+  return normalized;
+};
 
 const selectLatestBanner = (banners, type) => {
   const normalizedType = normalizeType(type);

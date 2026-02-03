@@ -6857,6 +6857,28 @@ const mapAboutStoryToResponse = (story) => ({
   updatedAt: story.updatedAt,
 });
 
+const mapDashboardStoryToResponse = (story) => ({
+  id: story.id,
+  title: story.title,
+  description: story.description,
+  extendedDescription: story.extendedDescription || '',
+  imageBase: story.imageBase || '',
+  imageOverlay: story.imageOverlay || '',
+  createdAt: story.createdAt,
+  updatedAt: story.updatedAt,
+});
+
+const mapCareerStoryToResponse = (story) => ({
+  id: story.id,
+  title: story.title,
+  description: story.description,
+  extendedDescription: story.extendedDescription || '',
+  imageBase: story.imageBase || '',
+  imageOverlay: story.imageOverlay || '',
+  createdAt: story.createdAt,
+  updatedAt: story.updatedAt,
+});
+
 // GET benefit hero/config
 app.get('/api/benefits/config', async (_req, res) => {
   try {
@@ -7295,6 +7317,118 @@ app.delete('/api/contact-buttons/:id', async (req, res) => {
   } catch (err) {
     console.error('DELETE /api/contact-buttons/:id error', err);
     res.status(500).json({ error: 'Failed to delete contact button' });
+  }
+});
+
+/* ===============================================
+ * DASHBOARD STORY APIs
+ * =============================================== */
+
+// GET dashboard story
+app.get('/api/dashboard/story', async (_req, res) => {
+  try {
+    const story = await prisma.dashboardStory.findFirst({ orderBy: { createdAt: 'desc' } });
+    res.json(story ? mapDashboardStoryToResponse(story) : null);
+  } catch (err) {
+    console.error('GET /api/dashboard/story error', err);
+    res.status(500).json({ error: 'Failed to fetch dashboard story' });
+  }
+});
+
+// CREATE/UPDATE dashboard story
+app.put('/api/dashboard/story', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, extendedDescription, imageBase, imageOverlay } = req.body ?? {};
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required.' });
+    }
+
+    const existing = await prisma.dashboardStory.findFirst();
+    const saved = existing
+      ? await prisma.dashboardStory.update({
+        where: { id: existing.id },
+        data: {
+          title,
+          description,
+          extendedDescription: extendedDescription || null,
+          imageBase: imageBase || null,
+          imageOverlay: imageOverlay || null,
+        },
+      })
+      : await prisma.dashboardStory.create({
+        data: {
+          title,
+          description,
+          extendedDescription: extendedDescription || null,
+          imageBase: imageBase || null,
+          imageOverlay: imageOverlay || null,
+        },
+      });
+
+    res.json(mapDashboardStoryToResponse(saved));
+  } catch (err) {
+    console.error('PUT /api/dashboard/story error', err);
+    res.status(500).json({ error: 'Failed to save dashboard story' });
+  }
+});
+
+/* ===============================================
+ * CAREER STORY APIs
+ * =============================================== */
+
+// GET career story
+app.get('/api/career/story', async (_req, res) => {
+  try {
+    const story = await prisma.careerStory.findFirst({ orderBy: { createdAt: 'desc' } });
+    res.json(story ? mapCareerStoryToResponse(story) : null);
+  } catch (err) {
+    console.error('GET /api/career/story error', err);
+    res.status(500).json({ error: 'Failed to fetch career story' });
+  }
+});
+
+// CREATE/UPDATE career story
+app.put('/api/career/story', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, extendedDescription, imageBase, imageOverlay } = req.body ?? {};
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required.' });
+    }
+
+    const existing = await prisma.careerStory.findFirst();
+    const saved = existing
+      ? await prisma.careerStory.update({
+        where: { id: existing.id },
+        data: {
+          title,
+          description,
+          extendedDescription: extendedDescription || null,
+          imageBase: imageBase || null,
+          imageOverlay: imageOverlay || null,
+        },
+      })
+      : await prisma.careerStory.create({
+        data: {
+          title,
+          description,
+          extendedDescription: extendedDescription || null,
+          imageBase: imageBase || null,
+          imageOverlay: imageOverlay || null,
+        },
+      });
+
+    res.json(mapCareerStoryToResponse(saved));
+  } catch (err) {
+    console.error('PUT /api/career/story error', err);
+    res.status(500).json({ error: 'Failed to save career story' });
   }
 });
 

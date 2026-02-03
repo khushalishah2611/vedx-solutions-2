@@ -143,6 +143,18 @@ const AdminDashboardPage = () => {
   const [bannerPage, setBannerPage] = useState(1);
 
   /* --------------------------
+   * DASHBOARD STORY
+   * -------------------------- */
+  const [dashboardStoryForm, setDashboardStoryForm] = useState({
+    title: "",
+    description: "",
+    extendedDescription: "",
+    imageBase: "",
+    imageOverlay: "",
+  });
+  const [dashboardStorySaved, setDashboardStorySaved] = useState(false);
+
+  /* --------------------------
    * PROCESS
    * -------------------------- */
   const [processList, setProcessList] = useState([]);
@@ -307,6 +319,7 @@ const AdminDashboardPage = () => {
       try {
         await Promise.all([
           loadBanners(),
+          loadDashboardStory(),
           loadProcessSteps(),
           loadOurServices(),
           loadIndustries(),
@@ -335,6 +348,55 @@ const AdminDashboardPage = () => {
       setBanners(data);
     } catch (err) {
       console.error("loadBanners error", err);
+    }
+  };
+
+  const loadDashboardStory = async () => {
+    try {
+      const res = await fetch(apiUrl("/api/dashboard/story"));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Unable to load dashboard story");
+      if (data) {
+        setDashboardStoryForm({
+          title: data.title || "",
+          description: data.description || "",
+          extendedDescription: data.extendedDescription || "",
+          imageBase: data.imageBase || "",
+          imageOverlay: data.imageOverlay || "",
+        });
+      }
+    } catch (err) {
+      console.error("loadDashboardStory error", err);
+    }
+  };
+
+  const handleDashboardStorySave = async () => {
+    try {
+      setDashboardStorySaved(false);
+      const response = await fetch(apiUrl("/api/dashboard/story"), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAdminAuthHeaders(),
+        },
+        body: JSON.stringify(dashboardStoryForm),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to save dashboard story");
+      }
+
+      setDashboardStoryForm({
+        title: data.title || "",
+        description: data.description || "",
+        extendedDescription: data.extendedDescription || "",
+        imageBase: data.imageBase || "",
+        imageOverlay: data.imageOverlay || "",
+      });
+      setDashboardStorySaved(true);
+    } catch (error) {
+      console.error("Failed to save dashboard story", error);
     }
   };
 
@@ -1595,6 +1657,7 @@ const AdminDashboardPage = () => {
             textColor="primary"
           >
             <Tab value="banner" label="Dashboard banner" />
+            <Tab value="creative-agency" label="Creative agency" />
             <Tab value="process" label="Process" />
             <Tab value="our-services" label="Our services" />
             <Tab value="industries" label="Industries we serve" />
@@ -1857,6 +1920,82 @@ const AdminDashboardPage = () => {
                   color="primary"
                   size="small"
                 />
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* CREATIVE AGENCY TAB */}
+        {activeTab === "creative-agency" && (
+          <Card sx={{ borderRadius: 0.5, border: "1px solid", borderColor: "divider" }}>
+            <CardHeader
+              title="Creative agency section"
+              subheader="Update the two images and copy used in the homepage creative agency section."
+            />
+            <Divider />
+            <CardContent>
+              <Stack spacing={3}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <ImageUpload
+                      label="Base image"
+                      value={dashboardStoryForm.imageBase}
+                      onChange={(value) =>
+                        setDashboardStoryForm((prev) => ({ ...prev, imageBase: value }))
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <ImageUpload
+                      label="Overlay image"
+                      value={dashboardStoryForm.imageOverlay}
+                      onChange={(value) =>
+                        setDashboardStoryForm((prev) => ({ ...prev, imageOverlay: value }))
+                      }
+                    />
+                  </Grid>
+                </Grid>
+
+                <AppTextField
+                  label="Title"
+                  value={dashboardStoryForm.title}
+                  onChange={(event) =>
+                    setDashboardStoryForm((prev) => ({ ...prev, title: event.target.value }))
+                  }
+                  fullWidth
+                />
+
+                <AppTextField
+                  label="Description"
+                  value={dashboardStoryForm.description}
+                  onChange={(event) =>
+                    setDashboardStoryForm((prev) => ({ ...prev, description: event.target.value }))
+                  }
+                  multiline
+                  rows={4}
+                  fullWidth
+                />
+
+                <AppTextField
+                  label="Extended description"
+                  value={dashboardStoryForm.extendedDescription}
+                  onChange={(event) =>
+                    setDashboardStoryForm((prev) => ({
+                      ...prev,
+                      extendedDescription: event.target.value,
+                    }))
+                  }
+                  multiline
+                  rows={3}
+                  fullWidth
+                />
+
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <AppButton variant="contained" onClick={handleDashboardStorySave}>
+                    Save creative agency content
+                  </AppButton>
+                  {dashboardStorySaved ? <Chip label="Saved" color="success" size="small" /> : null}
+                </Stack>
               </Stack>
             </CardContent>
           </Card>

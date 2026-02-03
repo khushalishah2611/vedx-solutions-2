@@ -1,5 +1,5 @@
 import { Box, Container, Divider, alpha, useTheme } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import CreativeAgencySection from '../sections/homepage/CreativeAgencySection.jsx';
 import HeroSection from '../sections/homepage/HeroSection.jsx';
 import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
@@ -11,21 +11,42 @@ import ServicesBlog from '../shared/ServicesBlog.jsx';
 import ServicesIndustries from '../shared/ServicesIndustries.jsx';
 import ServicesProcess from '../shared/ServicesProcess.jsx';
 import ServicesTestimonials from '../shared/ServicesTestimonials.jsx';
+import { apiUrl } from '../../utils/const.js';
 
 const HomePage = () => {
   const theme = useTheme();
   const dividerColor = alpha(theme.palette.divider, 0.6);
   const [contactPrefill, setContactPrefill] = useState('');
+  const [creativeStory, setCreativeStory] = useState(null);
 
   const handleContactRequest = useCallback((projectType) => {
     setContactPrefill(projectType || '');
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCreativeStory = async () => {
+      try {
+        const res = await fetch(apiUrl('/api/dashboard/story'));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Unable to load dashboard story');
+        if (isMounted) setCreativeStory(data || null);
+      } catch (error) {
+        console.error('Failed to load dashboard story', error);
+      }
+    };
+
+    loadCreativeStory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
       <HeroSection onRequestContact={handleContactRequest} />
-
-
 
       <Container
         maxWidth={false}
@@ -35,7 +56,7 @@ const HomePage = () => {
         }}
       >
         <Box my={5}>
-          <CreativeAgencySection />
+          <CreativeAgencySection story={creativeStory} />
         </Box>
 
         <Divider sx={{ borderColor: dividerColor }} />

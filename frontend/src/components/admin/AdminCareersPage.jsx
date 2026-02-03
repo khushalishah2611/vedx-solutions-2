@@ -10,6 +10,7 @@ import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import { apiUrl } from '../../utils/const.js';
+import ImageUpload from './tabs/ImageUpload.jsx';
 
 const normalizeDateInput = (value) => {
   const parsed = value ? new Date(value) : new Date();
@@ -141,6 +142,14 @@ const AdminCareersPage = () => {
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [loadingApplications, setLoadingApplications] = useState(false);
   const [activeSection, setActiveSection] = useState('job-posts');
+  const [storyForm, setStoryForm] = useState({
+    title: '',
+    description: '',
+    extendedDescription: '',
+    imageBase: '',
+    imageOverlay: '',
+  });
+  const [storySaved, setStorySaved] = useState(false);
 
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const [jobDialogMode, setJobDialogMode] = useState('create');
@@ -224,9 +233,59 @@ const AdminCareersPage = () => {
     }
   };
 
+  const loadCareerStory = async () => {
+    try {
+      const response = await fetch(apiUrl('/api/career/story'));
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load career story.');
+      if (payload) {
+        setStoryForm({
+          title: payload.title || '',
+          description: payload.description || '',
+          extendedDescription: payload.extendedDescription || '',
+          imageBase: payload.imageBase || '',
+          imageOverlay: payload.imageOverlay || '',
+        });
+      }
+    } catch (error) {
+      console.error('Load career story failed', error);
+    }
+  };
+
+  const handleStorySave = async () => {
+    try {
+      setStorySaved(false);
+      if (!token) throw new Error('Your session expired. Please log in again.');
+
+      const response = await fetch(apiUrl('/api/career/story'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(storyForm),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to save career story.');
+
+      setStoryForm({
+        title: payload.title || '',
+        description: payload.description || '',
+        extendedDescription: payload.extendedDescription || '',
+        imageBase: payload.imageBase || '',
+        imageOverlay: payload.imageOverlay || '',
+      });
+      setStorySaved(true);
+    } catch (error) {
+      console.error('Save career story failed', error);
+    }
+  };
+
   useEffect(() => {
     loadJobPosts();
     loadApplications();
+    loadCareerStory();
   }, []);
 
   const filteredJobPosts = useMemo(
@@ -703,8 +762,76 @@ const AdminCareersPage = () => {
         >
           <Tab value="job-posts" label="Job posts" icon={<WorkOutlineIcon />} iconPosition="start" />
           <Tab value="applications" label="Applications" icon={<DownloadOutlinedIcon />} iconPosition="start" />
+          <Tab value="story" label="Story" icon={<VisibilityOutlinedIcon />} iconPosition="start" />
         </Tabs>
       </Box>
+
+      {activeSection === 'story' && (
+        <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
+          <CardHeader
+            title="Career story"
+            subheader="Update the two images and copy shown in the careers story section."
+            action={
+              <AppButton variant="contained" onClick={handleStorySave}>
+                Save story
+              </AppButton>
+            }
+          />
+          <Divider />
+          <CardContent>
+            <Stack spacing={3}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <ImageUpload
+                    label="Base image"
+                    value={storyForm.imageBase}
+                    onChange={(value) => setStoryForm((prev) => ({ ...prev, imageBase: value }))}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <ImageUpload
+                    label="Overlay image"
+                    value={storyForm.imageOverlay}
+                    onChange={(value) => setStoryForm((prev) => ({ ...prev, imageOverlay: value }))}
+                  />
+                </Grid>
+              </Grid>
+
+              <AppTextField
+                label="Title"
+                value={storyForm.title}
+                onChange={(event) => setStoryForm((prev) => ({ ...prev, title: event.target.value }))}
+                fullWidth
+              />
+              <AppTextField
+                label="Description"
+                value={storyForm.description}
+                onChange={(event) =>
+                  setStoryForm((prev) => ({ ...prev, description: event.target.value }))
+                }
+                multiline
+                rows={4}
+                fullWidth
+              />
+              <AppTextField
+                label="Extended description"
+                value={storyForm.extendedDescription}
+                onChange={(event) =>
+                  setStoryForm((prev) => ({ ...prev, extendedDescription: event.target.value }))
+                }
+                multiline
+                rows={3}
+                fullWidth
+              />
+              {storySaved ? (
+                <Typography color="success.main" variant="body2">
+                  Story saved successfully.
+                </Typography>
+              ) : null}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       {activeSection === 'job-posts' && (
         <Card sx={{ borderRadius: 0.5, border: '1px solid', borderColor: 'divider' }}>
