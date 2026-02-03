@@ -6809,6 +6809,54 @@ const mapContactButtonToResponse = (button) => ({
   updatedAt: button.updatedAt,
 });
 
+const normalizeAboutMissionType = (value) => {
+  if (!value) return null;
+  const normalized = String(value).trim().toUpperCase();
+  if (normalized === 'MISSION') return 'MISSION';
+  if (normalized === 'VISION') return 'VISION';
+  return null;
+};
+
+const mapAboutMissionVisionToResponse = (item) => ({
+  id: item.id,
+  type: item.type ? item.type.toLowerCase() : '',
+  title: item.title,
+  description: item.description || '',
+  createdAt: item.createdAt,
+  updatedAt: item.updatedAt,
+});
+
+const mapAboutWhyChooseConfigToResponse = (config) => ({
+  id: config.id,
+  title: config.title,
+  description: config.description || '',
+  createdAt: config.createdAt,
+  updatedAt: config.updatedAt,
+});
+
+const mapAboutWhyChooseItemToResponse = (item) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description || '',
+  image: item.imageUrl || '',
+  sortOrder: item.sortOrder,
+  isActive: item.isActive,
+  configId: item.configId,
+  createdAt: item.createdAt,
+  updatedAt: item.updatedAt,
+});
+
+const mapAboutStoryToResponse = (story) => ({
+  id: story.id,
+  title: story.title,
+  description: story.description,
+  extendedDescription: story.extendedDescription || '',
+  imageBase: story.imageBase || '',
+  imageOverlay: story.imageOverlay || '',
+  createdAt: story.createdAt,
+  updatedAt: story.updatedAt,
+});
+
 // GET benefit hero/config
 app.get('/api/benefits/config', async (_req, res) => {
   try {
@@ -7247,6 +7295,275 @@ app.delete('/api/contact-buttons/:id', async (req, res) => {
   } catch (err) {
     console.error('DELETE /api/contact-buttons/:id error', err);
     res.status(500).json({ error: 'Failed to delete contact button' });
+  }
+});
+
+/* ===============================================
+ * ABOUT PAGE APIs
+ * =============================================== */
+
+// GET about story
+app.get('/api/about/story', async (_req, res) => {
+  try {
+    const story = await prisma.aboutStory.findFirst({ orderBy: { createdAt: 'desc' } });
+    res.json(story ? mapAboutStoryToResponse(story) : null);
+  } catch (err) {
+    console.error('GET /api/about/story error', err);
+    res.status(500).json({ error: 'Failed to fetch about story' });
+  }
+});
+
+// CREATE/UPDATE about story
+app.put('/api/about/story', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, extendedDescription, imageBase, imageOverlay } = req.body ?? {};
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required.' });
+    }
+
+    const existing = await prisma.aboutStory.findFirst();
+    const saved = existing
+      ? await prisma.aboutStory.update({
+        where: { id: existing.id },
+        data: {
+          title,
+          description,
+          extendedDescription: extendedDescription || null,
+          imageBase: imageBase || null,
+          imageOverlay: imageOverlay || null,
+        },
+      })
+      : await prisma.aboutStory.create({
+        data: {
+          title,
+          description,
+          extendedDescription: extendedDescription || null,
+          imageBase: imageBase || null,
+          imageOverlay: imageOverlay || null,
+        },
+      });
+
+    res.json(mapAboutStoryToResponse(saved));
+  } catch (err) {
+    console.error('PUT /api/about/story error', err);
+    res.status(500).json({ error: 'Failed to save about story' });
+  }
+});
+
+// GET about mission/vision content
+app.get('/api/about/mission-vision', async (_req, res) => {
+  try {
+    const items = await prisma.aboutMissionVision.findMany();
+    const payload = {
+      mission: null,
+      vision: null,
+    };
+
+    items.forEach((item) => {
+      if (item.type === 'MISSION') {
+        payload.mission = mapAboutMissionVisionToResponse(item);
+      }
+      if (item.type === 'VISION') {
+        payload.vision = mapAboutMissionVisionToResponse(item);
+      }
+    });
+
+    res.json(payload);
+  } catch (err) {
+    console.error('GET /api/about/mission-vision error', err);
+    res.status(500).json({ error: 'Failed to fetch mission & vision content' });
+  }
+});
+
+// CREATE/UPDATE about mission/vision content
+app.put('/api/about/mission-vision', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { type, title, description } = req.body ?? {};
+    const normalizedType = normalizeAboutMissionType(type);
+
+    if (!normalizedType) {
+      return res.status(400).json({ error: 'Valid type is required (MISSION or VISION).' });
+    }
+
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required.' });
+    }
+
+    const saved = await prisma.aboutMissionVision.upsert({
+      where: { type: normalizedType },
+      update: {
+        title,
+        description,
+      },
+      create: {
+        type: normalizedType,
+        title,
+        description,
+      },
+    });
+
+    res.json(mapAboutMissionVisionToResponse(saved));
+  } catch (err) {
+    console.error('PUT /api/about/mission-vision error', err);
+    res.status(500).json({ error: 'Failed to save mission & vision content' });
+  }
+});
+
+// GET about why-choose config
+app.get('/api/about/why-choose/config', async (_req, res) => {
+  try {
+    const config = await prisma.aboutWhyChooseConfig.findFirst({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(config ? mapAboutWhyChooseConfigToResponse(config) : null);
+  } catch (err) {
+    console.error('GET /api/about/why-choose/config error', err);
+    res.status(500).json({ error: 'Failed to fetch about why-choose config' });
+  }
+});
+
+// CREATE/UPDATE about why-choose config
+app.put('/api/about/why-choose/config', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description } = req.body ?? {};
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required.' });
+    }
+
+    const existing = await prisma.aboutWhyChooseConfig.findFirst();
+    const saved = existing
+      ? await prisma.aboutWhyChooseConfig.update({
+        where: { id: existing.id },
+        data: {
+          title,
+          description: description || null,
+        },
+      })
+      : await prisma.aboutWhyChooseConfig.create({
+        data: {
+          title,
+          description: description || null,
+        },
+      });
+
+    res.json(mapAboutWhyChooseConfigToResponse(saved));
+  } catch (err) {
+    console.error('PUT /api/about/why-choose/config error', err);
+    res.status(500).json({ error: 'Failed to save about why-choose config' });
+  }
+});
+
+// GET about why-choose items
+app.get('/api/about/why-choose/items', async (_req, res) => {
+  try {
+    const items = await prisma.aboutWhyChooseItem.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    });
+
+    res.json(items.map(mapAboutWhyChooseItemToResponse));
+  } catch (err) {
+    console.error('GET /api/about/why-choose/items error', err);
+    res.status(500).json({ error: 'Failed to fetch about why-choose items' });
+  }
+});
+
+// CREATE about why-choose item
+app.post('/api/about/why-choose/items', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const { title, description, image, sortOrder, isActive } = req.body ?? {};
+
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required.' });
+    }
+
+    const config = await prisma.aboutWhyChooseConfig.findFirst();
+    if (!config) {
+      return res.status(400).json({ error: 'Create the Why Choose config first.' });
+    }
+
+    const created = await prisma.aboutWhyChooseItem.create({
+      data: {
+        title,
+        description: description || null,
+        imageUrl: image || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
+        configId: config.id,
+      },
+    });
+
+    res.status(201).json(mapAboutWhyChooseItemToResponse(created));
+  } catch (err) {
+    console.error('POST /api/about/why-choose/items error', err);
+    res.status(500).json({ error: 'Failed to create about why-choose item' });
+  }
+});
+
+// UPDATE about why-choose item
+app.put('/api/about/why-choose/items/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ error: 'Valid item id required.' });
+    }
+
+    const { title, description, image, sortOrder, isActive } = req.body ?? {};
+
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required.' });
+    }
+
+    const updated = await prisma.aboutWhyChooseItem.update({
+      where: { id },
+      data: {
+        title,
+        description: description || null,
+        imageUrl: image || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
+      },
+    });
+
+    res.json(mapAboutWhyChooseItemToResponse(updated));
+  } catch (err) {
+    console.error('PUT /api/about/why-choose/items/:id error', err);
+    res.status(500).json({ error: 'Failed to update about why-choose item' });
+  }
+});
+
+// DELETE about why-choose item
+app.delete('/api/about/why-choose/items/:id', async (req, res) => {
+  try {
+    const { admin, status, message } = await getAuthenticatedAdmin(req);
+    if (!admin) return res.status(status).json({ message });
+
+    const id = parseIntegerId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ error: 'Valid item id required.' });
+    }
+
+    await prisma.aboutWhyChooseItem.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/about/why-choose/items/:id error', err);
+    res.status(500).json({ error: 'Failed to delete about why-choose item' });
   }
 });
 

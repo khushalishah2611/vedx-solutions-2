@@ -1,7 +1,7 @@
 import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const AboutMissionVisionSection = ({ content }) => {
+const AboutMissionVisionSection = ({ content = null }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.88 : 0.78);
@@ -74,10 +74,6 @@ AboutMissionVisionSection.propTypes = {
       description: PropTypes.string,
     }),
   }),
-};
-
-AboutMissionVisionSection.defaultProps = {
-  content: null,
 };
 
 export default AboutMissionVisionSection;

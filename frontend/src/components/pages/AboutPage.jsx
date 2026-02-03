@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Divider, alpha, useTheme, Container } from '@mui/material';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import {
@@ -15,16 +15,22 @@ import {
 
 import ServicesCTA from '../sections/servicepage/ServicesCTA.jsx';
 import { useBannerByType } from '../../hooks/useBannerByType.js';
+import { apiUrl } from '../../utils/const.js';
 
 import {
   CareerBenefitsSection, CareerStorySection
 } from '../sections/careerspage/index.js';
+import ServicesWhyChoose from '../sections/servicepage/ServicesWhyChoose.jsx';
 const AboutPage = () => {
   const theme = useTheme();
 
   const dividerColor = alpha(theme.palette.divider, 0.6);
   const { openDialog: handleOpenContact } = useContactDialog();
   const { banner } = useBannerByType('about');
+  const [missionVisionContent, setMissionVisionContent] = useState(aboutMissionVision);
+  const [whyChooseConfig, setWhyChooseConfig] = useState({ title: '', description: '' });
+  const [whyChooseItems, setWhyChooseItems] = useState([]);
+  const [storyContent, setStoryContent] = useState(careerStory);
   const resolvedHero = useMemo(
     () => ({
       ...aboutHero,
@@ -33,6 +39,89 @@ const AboutPage = () => {
     }),
     [banner]
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadMissionVision = async () => {
+      try {
+        const res = await fetch(apiUrl('/api/about/mission-vision'));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Unable to load mission/vision');
+
+        const next = {
+          mission: data?.mission ? { title: data.mission.title, description: data.mission.description } : null,
+          vision: data?.vision ? { title: data.vision.title, description: data.vision.description } : null,
+        };
+
+        if (isMounted && (next.mission || next.vision)) {
+          setMissionVisionContent(next);
+        }
+      } catch (error) {
+        console.error('Failed to load mission/vision', error);
+      }
+    };
+
+    const loadStory = async () => {
+      try {
+        const res = await fetch(apiUrl('/api/about/story'));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Unable to load about story');
+
+        if (isMounted && data) {
+          setStoryContent({
+            title: data.title || careerStory.title,
+            description: data.description || careerStory.description,
+            extendedDescription: data.extendedDescription || careerStory.body,
+            image: data.imageBase || careerStory.image,
+            imageBase: data.imageBase || careerStory.image,
+            imageOverlay: data.imageOverlay || careerStory.image,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load about story', error);
+      }
+    };
+
+    const loadWhyChoose = async () => {
+      try {
+        const [configRes, itemsRes] = await Promise.all([
+          fetch(apiUrl('/api/about/why-choose/config')),
+          fetch(apiUrl('/api/about/why-choose/items')),
+        ]);
+
+        const configData = await configRes.json();
+        const itemsData = await itemsRes.json();
+
+        if (configRes.ok && isMounted && configData) {
+          setWhyChooseConfig({
+            title: configData.title || '',
+            description: configData.description || '',
+          });
+        }
+
+        if (itemsRes.ok && isMounted && Array.isArray(itemsData)) {
+          setWhyChooseItems(
+            itemsData.map((item) => ({
+              title: item.title || '',
+              description: item.description || '',
+              image: item.image || '',
+            }))
+          );
+        }
+      } catch (error) {
+        console.error('Failed to load about why-choose', error);
+      }
+    };
+
+    loadMissionVision();
+    loadStory();
+    loadWhyChoose();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <Box sx={{ bgcolor: 'background.default', overflow: 'hidden' }}>
@@ -47,16 +136,26 @@ const AboutPage = () => {
         }}
       >
 
-        <Box my={5}><CareerStorySection story={careerStory} /></Box>
+        <Box my={5}><CareerStorySection story={storyContent} /></Box>
         <Divider sx={{ borderColor: dividerColor }} />
       
         <Box my={10}><CareerBenefitsSection benefits={careerBenefits} /></Box>  
         <Divider sx={{ borderColor: dividerColor }} />
       
-        <Box my={10}><AboutMissionVisionSection content={aboutMissionVision} /></Box>  
+        <Box my={10}><AboutMissionVisionSection content={missionVisionContent} /></Box>  
+        <Divider sx={{ borderColor: dividerColor }} />
+
+        <Box my={10}>
+          <ServicesWhyChoose
+            title={whyChooseConfig.title}
+            description={whyChooseConfig.description}
+            highlights={whyChooseItems}
+            onContactClick={handleOpenContact}
+          />
+        </Box>
         <Divider sx={{ borderColor: dividerColor }} />
        
-        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} /></Box> 
+        <Box my={10}><ServicesCTA onContactClick={handleOpenContact} category="about" /></Box> 
       </Container>
     </Box>
   );
