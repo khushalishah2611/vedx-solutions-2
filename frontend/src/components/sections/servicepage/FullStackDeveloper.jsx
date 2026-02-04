@@ -77,9 +77,8 @@ function FullStackDeveloper({
         if (category) serviceParams.append("category", category);
         if (subcategory) serviceParams.append("subcategory", subcategory);
 
-        const serviceUrl = `/api/hire-services${
-          serviceParams.toString() ? `?${serviceParams.toString()}` : ""
-        }`;
+        const serviceUrl = `/api/hire-services${serviceParams.toString() ? `?${serviceParams.toString()}` : ""
+          }`;
 
         const serviceRes = await fetch(apiUrl(serviceUrl), {
           signal: controller.signal,
@@ -151,15 +150,7 @@ function FullStackDeveloper({
               >
                 {resolvedTitle}
               </Typography>
-
-              <Divider
-                sx={{
-                  width: "80px",
-                  height: "4px",
-                  bgcolor: "primary.main",
-                  borderRadius: 0.5,
-                }}
-              />
+              <Divider sx={{ borderColor: "primary.main", width: "55%" ,height: "4px", }} />
 
               <Typography
                 variant="body1"
@@ -192,23 +183,23 @@ function FullStackDeveloper({
 
           {/* RIGHT */}
           <Grid item xs={12} md={6}>
-           
-              <Box
-                component="img"
-                src={resolvedImage}
-                alt={resolvedTitle}
-                sx={{
-                  width: "100%",
-                  height: "auto",
-                  maxHeight: 450,
-                  borderRadius: 0.5,
-                  boxShadow: isDark
-                    ? "0 20px 40px rgba(0,0,0,0.5)"
-                    : "0 20px 40px rgba(0,0,0,0.1)",
-                  objectFit: "cover",
-                }}
-              />
-       
+
+            <Box
+              component="img"
+              src={resolvedImage}
+              alt={resolvedTitle}
+              sx={{
+                width: "100%",
+                height: "auto",
+                maxHeight: 450,
+                borderRadius: 0.5,
+                boxShadow: isDark
+                  ? "0 20px 40px rgba(0,0,0,0.5)"
+                  : "0 20px 40px rgba(0,0,0,0.1)",
+                objectFit: "cover",
+              }}
+            />
+
           </Grid>
         </Grid>
       </Paper>
