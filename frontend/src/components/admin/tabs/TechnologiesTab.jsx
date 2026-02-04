@@ -78,6 +78,16 @@ const TechnologiesTab = ({
                           )}
                         </Stack>
 
+                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                          <Chip label={`Sort: ${Number.isFinite(Number(tech.sortOrder)) ? tech.sortOrder : 0}`} size="small" />
+                          <Chip
+                            label={tech.isActive ? 'Active' : 'Inactive'}
+                            size="small"
+                            color={tech.isActive ? 'success' : 'default'}
+                            variant="outlined"
+                          />
+                        </Stack>
+
                         <Box
                           sx={{
                             width: 180,

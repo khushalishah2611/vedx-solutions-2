@@ -540,6 +540,8 @@ const BenefitsTab = ({
                         <TableCell>Sub-category</TableCell>
                         <TableCell>Image</TableCell>
                         <TableCell>Description</TableCell>
+                        <TableCell>Sort order</TableCell>
+                        <TableCell>Active</TableCell>
                         <TableCell align="right">Actions</TableCell>
                       </TableRow>
                     </TableHead>
@@ -569,6 +571,8 @@ const BenefitsTab = ({
                               {benefit.description}
                             </Typography>
                           </TableCell>
+                          <TableCell>{Number.isFinite(Number(benefit.sortOrder)) ? benefit.sortOrder : 0}</TableCell>
+                          <TableCell>{benefit.isActive ? 'Yes' : 'No'}</TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                               <Tooltip title="Edit">

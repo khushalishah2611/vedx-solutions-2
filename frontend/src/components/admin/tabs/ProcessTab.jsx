@@ -36,6 +36,8 @@ const ProcessTab = ({
               <TableCell>Title</TableCell>
               <TableCell>Image</TableCell>
               <TableCell>Description</TableCell>
+              <TableCell>Sort order</TableCell>
+              <TableCell>Active</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -56,6 +58,8 @@ const ProcessTab = ({
                     {item.description}
                   </Typography>
                 </TableCell>
+                <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                <TableCell>{item.isActive ? 'Yes' : 'No'}</TableCell>
                 <TableCell align="right">
                   <Stack direction="row" spacing={1} justifyContent="flex-end">
                     <Tooltip title="Edit">
@@ -74,7 +78,7 @@ const ProcessTab = ({
             ))}
             {pagedProcesses.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={6}>
                   <Typography variant="body2" color="text.secondary" align="center">
                     {processList.length === 0
                       ? 'No process steps added yet.'

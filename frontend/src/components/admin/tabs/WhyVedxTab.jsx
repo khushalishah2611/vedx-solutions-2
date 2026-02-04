@@ -340,6 +340,8 @@ export default function WhyVedxTab({
                           <TableCell>Image</TableCell>
                           <TableCell>Title</TableCell>
                           <TableCell>Description</TableCell>
+                          <TableCell>Sort order</TableCell>
+                          <TableCell>Active</TableCell>
                           <TableCell align="right">Actions</TableCell>
                         </TableRow>
                       </TableHead>
@@ -372,7 +374,9 @@ export default function WhyVedxTab({
                               <Typography variant="body2" color="text.secondary" noWrap>
                                 {row.description}
                               </Typography>
-                        </TableCell>
+                            </TableCell>
+                            <TableCell>{Number.isFinite(Number(row.sortOrder)) ? row.sortOrder : 0}</TableCell>
+                            <TableCell>{row.isActive ? 'Yes' : 'No'}</TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <Tooltip title="Edit">
@@ -392,13 +396,13 @@ export default function WhyVedxTab({
 
                         {pagedReasons.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={4}>
+                            <TableCell colSpan={6}>
                               <Typography variant="body2" color="text.secondary" align="center">
                                 No reasons found.
                               </Typography>
                             </TableCell>
                           </TableRow>
-                    )}
+                        )}
                   </TableBody>
                 </Table>
               </TableContainer>

@@ -77,6 +77,8 @@ const emptyServiceForm = {
   bannerTitle: '',
   bannerSubtitle: '',
   bannerImage: imagePlaceholder,
+  sortOrder: 0,
+  isActive: true,
   createdAt: new Date().toISOString().split('T')[0],
   totalServices: 0,
   totalProjects: 0,
@@ -90,6 +92,8 @@ const emptyTechnologyForm = {
   title: '',
   image: imagePlaceholder,
   items: [],
+  sortOrder: 0,
+  isActive: true,
 };
 
 const initialBenefitHero = {
@@ -110,6 +114,8 @@ const emptyBenefitForm = {
   description: '',
   image: imagePlaceholder,
   benefitConfigId: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyHirePricingForm = {
@@ -119,6 +125,8 @@ const emptyHirePricingForm = {
   description: '',
   price: '',
   services: [],
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyContactButtonForm = {
@@ -128,6 +136,8 @@ const emptyContactButtonForm = {
   image: imagePlaceholder,
   category: '',
   subcategory: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyProcessForm = {
@@ -135,6 +145,8 @@ const emptyProcessForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyWhyVedxHero = {
@@ -155,12 +167,16 @@ const emptyWhyVedxForm = {
   category: '',
   subcategory: '',
   whyVedxConfigId: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyOurServiceForm = {
   id: '',
   title: '',
   image: imagePlaceholder,
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyIndustryForm = {
@@ -168,12 +184,16 @@ const emptyIndustryForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyTechSolutionForm = {
   id: '',
   title: '',
   description: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyExpertiseHero = {
@@ -186,6 +206,8 @@ const emptyExpertiseForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  sortOrder: 0,
+  isActive: true,
 };
 
 
@@ -221,6 +243,8 @@ const normalizeService = (service) => ({
   totalClients: service.totalClients ?? 0,
   faqs: service.faqs || [],
   description: service.description || '',
+  sortOrder: Number.isFinite(Number(service.sortOrder)) ? Number(service.sortOrder) : 0,
+  isActive: service.isActive ?? true,
 });
 
 const normalizeTechnology = (tech) => ({
@@ -228,6 +252,8 @@ const normalizeTechnology = (tech) => ({
   title: tech.title || '',
   image: tech.image || imagePlaceholder,
   items: tech.items || [],
+  sortOrder: Number.isFinite(Number(tech.sortOrder)) ? Number(tech.sortOrder) : 0,
+  isActive: tech.isActive ?? true,
 });
 
 const normalizeBenefit = (benefit) => ({
@@ -238,6 +264,8 @@ const normalizeBenefit = (benefit) => ({
   description: benefit.description || '',
   image: benefit.image || imagePlaceholder,
   benefitConfigId: benefit.benefitConfigId ? String(benefit.benefitConfigId) : '',
+  sortOrder: Number.isFinite(Number(benefit.sortOrder)) ? Number(benefit.sortOrder) : 0,
+  isActive: benefit.isActive ?? true,
 });
 
 const normalizeBenefitConfig = (config) => ({
@@ -260,6 +288,8 @@ const normalizePricingPlan = (plan) => ({
   heroTitle: plan.heroTitle || '',
   heroDescription: plan.heroDescription || '',
   heroImage: plan.heroImage || imagePlaceholder,
+  sortOrder: Number.isFinite(Number(plan.sortOrder)) ? Number(plan.sortOrder) : 0,
+  isActive: plan.isActive ?? true,
 });
 
 const normalizeContactButton = (button) => ({
@@ -269,6 +299,8 @@ const normalizeContactButton = (button) => ({
   image: button?.image || imagePlaceholder,
   category: button?.category || '',
   subcategory: button?.subcategory || '',
+  sortOrder: Number.isFinite(Number(button?.sortOrder)) ? Number(button?.sortOrder) : 0,
+  isActive: button?.isActive ?? true,
 });
 
 const normalizeProcess = (item) => ({
@@ -278,6 +310,8 @@ const normalizeProcess = (item) => ({
   category: item.category || '',
   subcategory: item.subcategory || '',
   image: item.image || imagePlaceholder,
+  sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+  isActive: item.isActive ?? true,
 });
 
 const normalizeWhyVedxReason = (item) => ({
@@ -288,6 +322,8 @@ const normalizeWhyVedxReason = (item) => ({
   category: item.category || '',
   subcategory: item.subcategory || '',
   whyVedxConfigId: item.whyVedxConfigId ? String(item.whyVedxConfigId) : '',
+  sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+  isActive: item.isActive ?? true,
 });
 
 const normalizeWhyVedx = (item) => ({
@@ -308,6 +344,8 @@ const normalizeWhyService = (item) => ({
   title: item.title || '',
   description: item.description || '',
   whyChooseConfigId: item.whyChooseConfigId ? String(item.whyChooseConfigId) : '',
+  sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+  isActive: item.isActive ?? true,
 });
 
 const normalizeWhyChoose = (item) => ({
@@ -329,6 +367,8 @@ const normalizeIndustry = (item) => ({
   image: item.image || imagePlaceholder,
   sectionTitle: item.sectionTitle || '',
   sectionDescription: item.sectionDescription || '',
+  sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+  isActive: item.isActive ?? true,
 });
 
 const normalizeTechSolution = (item) => ({
@@ -341,6 +381,8 @@ const normalizeTechSolution = (item) => ({
   sliderTitle: item.sliderTitle || '',
   sliderDescription: item.sliderDescription || '',
   sliderImage: item.sliderImage || imagePlaceholder,
+  sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+  isActive: item.isActive ?? true,
 });
 
 const normalizeExpertise = (item) => ({
@@ -350,6 +392,8 @@ const normalizeExpertise = (item) => ({
   image: item.image || imagePlaceholder,
   sectionTitle: item.sectionTitle || '',
   sectionDescription: item.sectionDescription || '',
+  sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+  isActive: item.isActive ?? true,
 });
 
 const emptyWhyServiceForm = {
@@ -359,6 +403,8 @@ const emptyWhyServiceForm = {
   title: '',
   description: '',
   whyChooseConfigId: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const dateFilterOptions = [
@@ -1882,6 +1928,8 @@ const rowsPerPage = 20;
         title: whyServiceForm.title,
         description: whyServiceForm.description,
         whyChooseConfigId: selectedWhyChooseId,
+        sortOrder: Number(whyServiceForm.sortOrder) || 0,
+        isActive: Boolean(whyServiceForm.isActive),
       };
 
       if (whyServiceDialogMode === 'edit' && activeWhyService) {
@@ -1988,6 +2036,8 @@ const rowsPerPage = 20;
       image: contactButtonForm.image,
       category: contactButtonForm.category,
       subcategory: contactButtonForm.subcategory,
+      sortOrder: Number(contactButtonForm.sortOrder) || 0,
+      isActive: Boolean(contactButtonForm.isActive),
     };
 
     try {
@@ -2054,6 +2104,8 @@ const rowsPerPage = 20;
       category: processForm.category || null,
       subcategory: processForm.subcategory || null,
       image: processForm.image,
+      sortOrder: Number(processForm.sortOrder) || 0,
+      isActive: Boolean(processForm.isActive),
     };
 
     try {
@@ -2714,6 +2766,8 @@ const rowsPerPage = 20;
 
                               <TableCell>FAQs</TableCell>
                               <TableCell>Totals</TableCell>
+                              <TableCell>Sort order</TableCell>
+                              <TableCell>Active</TableCell>
                               <TableCell align="right">Actions</TableCell>
                             </TableRow>
                           </TableHead>
@@ -2752,6 +2806,8 @@ const rowsPerPage = 20;
                                     <Typography variant="body2">Clients: {service.totalClients}</Typography>
                                   </Stack>
                                 </TableCell>
+                                <TableCell>{Number.isFinite(Number(service.sortOrder)) ? service.sortOrder : 0}</TableCell>
+                                <TableCell>{service.isActive ? 'Yes' : 'No'}</TableCell>
                                 <TableCell align="right">
                                   <Stack direction="row" spacing={1} justifyContent="flex-end">
                                     <Tooltip title="View details">
@@ -2829,6 +2885,8 @@ const rowsPerPage = 20;
                     <TableCell>Title</TableCell>
                     <TableCell>Image</TableCell>
                     <TableCell>Description</TableCell>
+                    <TableCell>Sort order</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -2849,6 +2907,8 @@ const rowsPerPage = 20;
                           {item.description}
                         </Typography>
                       </TableCell>
+                      <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                      <TableCell>{item.isActive ? 'Yes' : 'No'}</TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                           <Tooltip title="Edit">
@@ -2867,7 +2927,7 @@ const rowsPerPage = 20;
                   ))}
                   {processList.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No process steps added yet.
                         </Typography>
@@ -2985,6 +3045,8 @@ const rowsPerPage = 20;
                       <TableCell>Title</TableCell>
                       <TableCell>Image</TableCell>
                       <TableCell>Description</TableCell>
+                      <TableCell>Sort order</TableCell>
+                      <TableCell>Active</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -3007,6 +3069,8 @@ const rowsPerPage = 20;
                               {item.description}
                             </Typography>
                           </TableCell>
+                          <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                          <TableCell>{item.isActive ? 'Yes' : 'No'}</TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                               <Tooltip title="Edit">
@@ -3025,7 +3089,7 @@ const rowsPerPage = 20;
                       ))}
                     {industries.items.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4}>
+                        <TableCell colSpan={6}>
                           <Typography variant="body2" color="text.secondary" align="center">
                             No industries configured yet.
                           </Typography>
@@ -3097,6 +3161,8 @@ const rowsPerPage = 20;
                     <TableRow>
                       <TableCell>Title</TableCell>
                       <TableCell>Description</TableCell>
+                      <TableCell>Sort order</TableCell>
+                      <TableCell>Active</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -3111,6 +3177,8 @@ const rowsPerPage = 20;
                               {item.description}
                             </Typography>
                           </TableCell>
+                          <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                          <TableCell>{item.isActive ? 'Yes' : 'No'}</TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                               <Tooltip title="Edit">
@@ -3129,7 +3197,7 @@ const rowsPerPage = 20;
                       ))}
                     {techSolutions.solutions.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={3}>
+                        <TableCell colSpan={5}>
                           <Typography variant="body2" color="text.secondary" align="center">
                             No tech solutions yet.
                           </Typography>
@@ -3203,6 +3271,8 @@ const rowsPerPage = 20;
                       <TableCell>Title</TableCell>
                       <TableCell>Image</TableCell>
                       <TableCell>Description</TableCell>
+                      <TableCell>Sort order</TableCell>
+                      <TableCell>Active</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -3225,6 +3295,8 @@ const rowsPerPage = 20;
                               {item.description}
                             </Typography>
                           </TableCell>
+                          <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                          <TableCell>{item.isActive ? 'Yes' : 'No'}</TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                               <Tooltip title="Edit">
@@ -3243,7 +3315,7 @@ const rowsPerPage = 20;
                       ))}
                     {expertise.items.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4}>
+                        <TableCell colSpan={6}>
                           <Typography variant="body2" color="text.secondary" align="center">
                             No expertise cards configured yet.
                           </Typography>
@@ -3365,6 +3437,16 @@ const rowsPerPage = 20;
                                     No items added yet.
                                   </Typography>
                                 )}
+                              </Stack>
+
+                              <Stack direction="row" spacing={1} flexWrap="wrap">
+                                <Chip label={`Sort: ${Number.isFinite(Number(tech.sortOrder)) ? tech.sortOrder : 0}`} size="small" />
+                                <Chip
+                                  label={tech.isActive ? 'Active' : 'Inactive'}
+                                  size="small"
+                                  color={tech.isActive ? 'success' : 'default'}
+                                  variant="outlined"
+                                />
                               </Stack>
 
                               <Box
@@ -3551,6 +3633,8 @@ const rowsPerPage = 20;
                       <TableCell>Price</TableCell>
                       <TableCell>Description</TableCell>
                       <TableCell>Services</TableCell>
+                      <TableCell>Sort order</TableCell>
+                      <TableCell>Active</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -3576,6 +3660,8 @@ const rowsPerPage = 20;
                             )}
                           </Stack>
                         </TableCell>
+                        <TableCell>{Number.isFinite(Number(plan.sortOrder)) ? plan.sortOrder : 0}</TableCell>
+                        <TableCell>{plan.isActive ? 'Yes' : 'No'}</TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <Tooltip title="Edit">
@@ -3602,7 +3688,7 @@ const rowsPerPage = 20;
                     ))}
                     {hirePricing.plans.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={6}>
+                        <TableCell colSpan={8}>
                           <Typography variant="body2" color="text.secondary" align="center">
                             No hire pricing plans configured yet.
                           </Typography>
@@ -3688,6 +3774,27 @@ const rowsPerPage = 20;
                   fullWidth
                   required
                 />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <AppTextField
+                  type="number"
+                  label="Sort order"
+                  value={serviceForm.sortOrder}
+                  onChange={(event) => handleServiceFormChange('sortOrder', Number(event.target.value))}
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <AppSelectField
+                  label="Active status"
+                  value={serviceForm.isActive ? 'yes' : 'no'}
+                  onChange={(event) => handleServiceFormChange('isActive', event.target.value === 'yes')}
+                  fullWidth
+                >
+                  <MenuItem value="yes">Active</MenuItem>
+                  <MenuItem value="no">Inactive</MenuItem>
+                </AppSelectField>
               </Grid>
               <Grid item xs={12}>
                 <ImageUpload
@@ -3915,6 +4022,25 @@ const rowsPerPage = 20;
               minRows={3}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={hirePricingForm.sortOrder}
+              onChange={(event) => handleHirePricingFormChange('sortOrder', Number(event.target.value))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={hirePricingForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => handleHirePricingFormChange('isActive', event.target.value === 'yes')}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
             <Stack spacing={1}>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
                 <AppTextField
@@ -4102,6 +4228,25 @@ const rowsPerPage = 20;
               minRows={3}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={whyServiceForm.sortOrder}
+              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={whyServiceForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => setWhyServiceForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4165,6 +4310,25 @@ const rowsPerPage = 20;
               required
               fullWidth
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={technologyForm.sortOrder}
+              onChange={(event) => handleTechnologyFormChange('sortOrder', Number(event.target.value))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={technologyForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => handleTechnologyFormChange('isActive', event.target.value === 'yes')}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4246,6 +4410,25 @@ const rowsPerPage = 20;
               minRows={3}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={benefitForm.sortOrder}
+              onChange={(event) => handleBenefitFormChange('sortOrder', Number(event.target.value))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={benefitForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => handleBenefitFormChange('isActive', event.target.value === 'yes')}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4330,6 +4513,25 @@ const rowsPerPage = 20;
               onChange={(value) => handleContactButtonFormChange('image', value)}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={contactButtonForm.sortOrder}
+              onChange={(event) => handleContactButtonFormChange('sortOrder', Number(event.target.value))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={contactButtonForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => handleContactButtonFormChange('isActive', event.target.value === 'yes')}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4385,6 +4587,25 @@ const rowsPerPage = 20;
               onChange={(value) => handleProcessChange('image', value)}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={processForm.sortOrder}
+              onChange={(event) => handleProcessChange('sortOrder', Number(event.target.value))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={processForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => handleProcessChange('isActive', event.target.value === 'yes')}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4458,6 +4679,25 @@ const rowsPerPage = 20;
               onChange={(value) => setWhyVedxForm((prev) => ({ ...prev, image: value }))}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={whyVedxForm.sortOrder}
+              onChange={(event) => setWhyVedxForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={whyVedxForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => setWhyVedxForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4504,6 +4744,25 @@ const rowsPerPage = 20;
               onChange={(value) => setOurServiceForm((prev) => ({ ...prev, image: value }))}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={ourServiceForm.sortOrder}
+              onChange={(event) => setOurServiceForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={ourServiceForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => setOurServiceForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4558,6 +4817,25 @@ const rowsPerPage = 20;
               onChange={(value) => setIndustryForm((prev) => ({ ...prev, image: value }))}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={industryForm.sortOrder}
+              onChange={(event) => setIndustryForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={industryForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => setIndustryForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4606,6 +4884,25 @@ const rowsPerPage = 20;
               multiline
               minRows={3}
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={techSolutionForm.sortOrder}
+              onChange={(event) => setTechSolutionForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={techSolutionForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => setTechSolutionForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -4660,6 +4957,25 @@ const rowsPerPage = 20;
               onChange={(value) => setExpertiseForm((prev) => ({ ...prev, image: value }))}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={expertiseForm.sortOrder}
+              onChange={(event) => setExpertiseForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={expertiseForm.isActive ? 'yes' : 'no'}
+              onChange={(event) => setExpertiseForm((prev) => ({ ...prev, isActive: event.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>

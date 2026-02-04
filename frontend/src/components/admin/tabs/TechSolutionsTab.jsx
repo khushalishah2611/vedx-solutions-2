@@ -134,6 +134,8 @@ const TechSolutionsTab = ({
                   <TableRow>
                     <TableCell>Title</TableCell>
                     <TableCell>Description</TableCell>
+                    <TableCell>Sort order</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -149,6 +151,8 @@ const TechSolutionsTab = ({
                             {item.description}
                           </Typography>
                         </TableCell>
+                        <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                        <TableCell>{item.isActive ? 'Yes' : 'No'}</TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <Tooltip title="Edit">
@@ -172,7 +176,7 @@ const TechSolutionsTab = ({
 
                   {solutions.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3}>
+                      <TableCell colSpan={5}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No tech solutions yet.
                         </Typography>
