@@ -1134,8 +1134,9 @@ app.post('/api/admin/logout', async (req, res) => {
 app.get('/api/service-categories', async (_req, res) => {
   try {
     const categories = await prisma.serviceCategory.findMany({
-      include: { subCategories: true },
-      orderBy: { name: 'asc' },
+      where: { isActive: true },
+      include: { subCategories: { where: { isActive: true }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] } },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
 
     return res.json({ categories });
@@ -1148,8 +1149,9 @@ app.get('/api/service-categories', async (_req, res) => {
 app.get('/api/service-subcategories', async (_req, res) => {
   try {
     const subCategories = await prisma.serviceSubCategory.findMany({
+      where: { isActive: true },
       include: { category: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     return res.json({ subCategories });
@@ -1179,12 +1181,14 @@ const validateCategoryInput = (body) => {
   const providedSlug = normalizeSlug(body?.slug);
   const slugSource = providedSlug || normalizeSlug(name);
   const slug = slugSource;
+  const sortOrder = Number.isFinite(Number(body?.sortOrder)) ? Number(body.sortOrder) : 0;
+  const isActive = body?.isActive !== undefined ? Boolean(body.isActive) : true;
 
   if (!name || !slug) {
     return { error: 'Name is required for the category.' };
   }
 
-  return { name, description, slug };
+  return { name, description, slug, sortOrder, isActive };
 };
 
 app.get('/api/admin/service-categories', async (req, res) => {
@@ -1198,7 +1202,7 @@ app.get('/api/admin/service-categories', async (req, res) => {
   try {
     const categories = await prisma.serviceCategory.findMany({
       include: { subCategories: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     return res.json({ categories });
@@ -1222,7 +1226,7 @@ app.post('/api/admin/service-categories', async (req, res) => {
       return res.status(400).json({ message: validation.error });
     }
 
-    const { name, description, slug } = validation;
+    const { name, description, slug, sortOrder, isActive } = validation;
 
     const existing = await prisma.serviceCategory.findUnique({ where: { slug } });
 
@@ -1231,7 +1235,7 @@ app.post('/api/admin/service-categories', async (req, res) => {
     }
 
     const category = await prisma.serviceCategory.create({
-      data: { name, slug, description },
+      data: { name, slug, description, sortOrder, isActive },
     });
 
     return res.status(201).json({ category, message: 'Service category created.' });
@@ -1261,7 +1265,7 @@ app.put('/api/admin/service-categories/:id', async (req, res) => {
       return res.status(400).json({ message: validation.error });
     }
 
-    const { name, description, slug } = validation;
+    const { name, description, slug, sortOrder, isActive } = validation;
 
     const existing = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
 
@@ -1279,7 +1283,7 @@ app.put('/api/admin/service-categories/:id', async (req, res) => {
 
     const updated = await prisma.serviceCategory.update({
       where: { id: categoryId },
-      data: { name, description, slug },
+      data: { name, description, slug, sortOrder, isActive },
     });
 
     return res.json({ category: updated, message: 'Service category updated.' });
@@ -1338,6 +1342,8 @@ const validateSubCategoryInput = (body) => {
   const providedSlug = normalizeSlug(body?.slug);
   const slugSource = providedSlug || normalizeSlug(name);
   const slug = slugSource;
+  const sortOrder = Number.isFinite(Number(body?.sortOrder)) ? Number(body.sortOrder) : 0;
+  const isActive = body?.isActive !== undefined ? Boolean(body.isActive) : true;
 
   if (!name || !slug) {
     return { error: 'Name is required for the subcategory.' };
@@ -1347,7 +1353,7 @@ const validateSubCategoryInput = (body) => {
     return { error: 'A parent category id is required.' };
   }
 
-  return { name, description, categoryId, slug };
+  return { name, description, categoryId, slug, sortOrder, isActive };
 };
 
 app.get('/api/admin/service-subcategories', async (req, res) => {
@@ -1360,7 +1366,7 @@ app.get('/api/admin/service-subcategories', async (req, res) => {
 
     const subCategories = await prisma.serviceSubCategory.findMany({
       include: { category: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     return res.json({ subCategories });
@@ -1384,7 +1390,7 @@ app.post('/api/admin/service-subcategories', async (req, res) => {
       return res.status(400).json({ message: validation.error });
     }
 
-    const { name, description, slug, categoryId } = validation;
+    const { name, description, slug, categoryId, sortOrder, isActive } = validation;
 
     const category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
 
@@ -1399,7 +1405,7 @@ app.post('/api/admin/service-subcategories', async (req, res) => {
     }
 
     const subCategory = await prisma.serviceSubCategory.create({
-      data: { name, description, slug, categoryId },
+      data: { name, description, slug, categoryId, sortOrder, isActive },
     });
 
     return res.status(201).json({ subCategory, message: 'Service subcategory created.' });
@@ -1429,7 +1435,7 @@ app.put('/api/admin/service-subcategories/:id', async (req, res) => {
       return res.status(400).json({ message: validation.error });
     }
 
-    const { name, description, slug, categoryId } = validation;
+    const { name, description, slug, categoryId, sortOrder, isActive } = validation;
 
     const subCategory = await prisma.serviceSubCategory.findUnique({ where: { id: subCategoryId } });
 
@@ -1453,7 +1459,7 @@ app.put('/api/admin/service-subcategories/:id', async (req, res) => {
 
     const updated = await prisma.serviceSubCategory.update({
       where: { id: subCategoryId },
-      data: { name, description, slug, categoryId },
+      data: { name, description, slug, categoryId, sortOrder, isActive },
     });
 
     return res.json({ subCategory: updated, message: 'Service subcategory updated.' });
@@ -1669,12 +1675,14 @@ const validateHireCategoryInput = (body) => {
   const providedSlug = normalizeSlug(body?.slug);
   const slugSource = providedSlug || normalizeSlug(title);
   const slug = slugSource;
+  const sortOrder = Number.isFinite(Number(body?.sortOrder)) ? Number(body.sortOrder) : 0;
+  const isActive = body?.isActive !== undefined ? Boolean(body.isActive) : true;
 
   if (!title || !slug) {
     return { error: 'Title is required for the hire category.' };
   }
 
-  return { title, description, slug };
+  return { title, description, slug, sortOrder, isActive };
 };
 
 const validateHireRoleInput = (body) => {
@@ -1684,6 +1692,8 @@ const validateHireRoleInput = (body) => {
   const providedSlug = normalizeSlug(body?.slug);
   const slugSource = providedSlug || normalizeSlug(title);
   const slug = slugSource;
+  const sortOrder = Number.isFinite(Number(body?.sortOrder)) ? Number(body.sortOrder) : 0;
+  const isActive = body?.isActive !== undefined ? Boolean(body.isActive) : true;
 
   if (!title || !slug) {
     return { error: 'Title is required for the hire sub-category.' };
@@ -1693,14 +1703,15 @@ const validateHireRoleInput = (body) => {
     return { error: 'A parent hire category id is required.' };
   }
 
-  return { title, description, hireCategoryId, slug };
+  return { title, description, hireCategoryId, slug, sortOrder, isActive };
 };
 
 app.get('/api/hire-categories', async (_req, res) => {
   try {
     const categories = await prisma.hireCategory.findMany({
-      include: { roles: true },
-      orderBy: { createdAt: 'desc' },
+      where: { isActive: true },
+      include: { roles: { where: { isActive: true } } },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     return res.json({ categories });
@@ -1720,7 +1731,7 @@ app.get('/api/admin/hire-categories', async (req, res) => {
 
     const categories = await prisma.hireCategory.findMany({
       include: { roles: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     return res.json({ categories });
@@ -1744,7 +1755,7 @@ app.post('/api/admin/hire-categories', async (req, res) => {
       return res.status(400).json({ message: validation.error });
     }
 
-    const { title, description, slug } = validation;
+    const { title, description, slug, sortOrder, isActive } = validation;
 
     const existing = await prisma.hireCategory.findUnique({ where: { slug } });
 
@@ -1753,7 +1764,7 @@ app.post('/api/admin/hire-categories', async (req, res) => {
     }
 
     const category = await prisma.hireCategory.create({
-      data: { title, description, slug },
+      data: { title, description, slug, sortOrder, isActive },
     });
 
     return res.status(201).json({ category, message: 'Hire category created.' });
@@ -1783,7 +1794,7 @@ app.put('/api/admin/hire-categories/:id', async (req, res) => {
       return res.status(400).json({ message: validation.error });
     }
 
-    const { title, description, slug } = validation;
+    const { title, description, slug, sortOrder, isActive } = validation;
 
     const existing = await prisma.hireCategory.findUnique({ where: { id: categoryId } });
 
@@ -1801,7 +1812,7 @@ app.put('/api/admin/hire-categories/:id', async (req, res) => {
 
     const updated = await prisma.hireCategory.update({
       where: { id: categoryId },
-      data: { title, description, slug },
+      data: { title, description, slug, sortOrder, isActive },
     });
 
     return res.json({ category: updated, message: 'Hire category updated.' });
@@ -1858,7 +1869,7 @@ app.get('/api/admin/hire-roles', async (req, res) => {
 
     const roles = await prisma.hireRole.findMany({
       include: { hireCategory: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     return res.json({ roles });
@@ -1882,7 +1893,7 @@ app.post('/api/admin/hire-roles', async (req, res) => {
       return res.status(400).json({ message: validation.error });
     }
 
-    const { title, description, slug, hireCategoryId } = validation;
+    const { title, description, slug, hireCategoryId, sortOrder, isActive } = validation;
 
     const category = await prisma.hireCategory.findUnique({ where: { id: hireCategoryId } });
 
@@ -1897,7 +1908,7 @@ app.post('/api/admin/hire-roles', async (req, res) => {
     }
 
     const role = await prisma.hireRole.create({
-      data: { title, description, slug, hireCategoryId },
+      data: { title, description, slug, hireCategoryId, sortOrder, isActive },
     });
 
     return res.status(201).json({ role, message: 'Hire sub-category created.' });
@@ -1927,7 +1938,7 @@ app.put('/api/admin/hire-roles/:id', async (req, res) => {
       return res.status(400).json({ message: validation.error });
     }
 
-    const { title, description, slug, hireCategoryId } = validation;
+    const { title, description, slug, hireCategoryId, sortOrder, isActive } = validation;
 
     const role = await prisma.hireRole.findUnique({ where: { id: roleId } });
 
@@ -1951,7 +1962,7 @@ app.put('/api/admin/hire-roles/:id', async (req, res) => {
 
     const updated = await prisma.hireRole.update({
       where: { id: roleId },
-      data: { title, description, slug, hireCategoryId },
+      data: { title, description, slug, hireCategoryId, sortOrder, isActive },
     });
 
     return res.json({ role: updated, message: 'Hire sub-category updated.' });

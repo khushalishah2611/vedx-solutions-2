@@ -123,8 +123,11 @@ function FullStackDeveloper({
   const [leftRef, leftInView] = useInViewOnce();
   const [rightRef, rightInView] = useInViewOnce();
 
+  const requestIdRef = useRef(0);
+
   useEffect(() => {
-    const controller = new AbortController();
+    let isActive = true;
+    const requestId = ++requestIdRef.current;
 
     const loadHireServices = async () => {
       setLoading(true);
@@ -139,7 +142,7 @@ function FullStackDeveloper({
           params.toString() ? `?${params.toString()}` : ""
         }`;
 
-        const res = await fetch(buildApiUrl(url), { signal: controller.signal });
+        const res = await fetch(buildApiUrl(url));
 
         // if server returns non-json sometimes, handle safely
         const text = await res.text();
@@ -168,6 +171,8 @@ function FullStackDeveloper({
             return cOk && sOk;
           }) || list[0];
 
+        if (!isActive || requestId !== requestIdRef.current) return;
+
         if (!match) {
           setError("No matching hire-service found.");
           return;
@@ -188,16 +193,20 @@ function FullStackDeveloper({
 
         setApiHighlights(fromArr.length ? fromArr : fromDesc);
       } catch (e) {
-        if (e?.name === "AbortError") return;
+        if (!isActive || requestId !== requestIdRef.current) return;
         console.error("Hire services load failed:", e);
         setError(e?.message || "Something went wrong");
       } finally {
-        setLoading(false);
+        if (isActive && requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     loadHireServices();
-    return () => controller.abort();
+    return () => {
+      isActive = false;
+    };
   }, [category, subcategory]);
 
   // ✅ resolved content (API first, then props fallback)
