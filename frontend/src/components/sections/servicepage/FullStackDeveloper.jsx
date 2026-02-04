@@ -12,18 +12,18 @@ import {
 import { AppButton } from "../../shared/FormControls.jsx";
 import { apiUrl } from "../../../utils/const.js";
 
-// --- helpers ---
+// ---------- helpers ----------
 const safeStr = (v) => String(v ?? "").trim();
 const norm = (v) => String(v || "").trim().toLowerCase();
 
-const isHttpUrl = (value) => /^https?:\/\//i.test(value);
-const isDataUrl = (value) => String(value || "").startsWith("data:");
+const isHttpUrl = (v) => /^https?:\/\//i.test(v);
+const isDataUrl = (v) => String(v || "").startsWith("data:");
 
 const toAbsMaybe = (url) => {
   const raw = safeStr(url);
   if (!raw) return "";
   if (isHttpUrl(raw) || isDataUrl(raw)) return raw;
-  return typeof apiUrl === "function" ? apiUrl(raw) : raw;
+  return apiUrl(raw.startsWith("/") ? raw : `/${raw}`);
 };
 
 const normalizeList = (data) => {
@@ -35,28 +35,28 @@ const normalizeList = (data) => {
       ? data.data
       : data;
 
-  if (Array.isArray(root?.data)) return root.data;
-  if (Array.isArray(root?.items)) return root.items;
-  if (Array.isArray(root?.results)) return root.results;
-  if (Array.isArray(root?.hireServices)) return root.hireServices;
-  if (Array.isArray(root?.services)) return root.services;
-
-  return [];
+  return (
+    root?.data ||
+    root?.items ||
+    root?.results ||
+    root?.hireServices ||
+    root?.services ||
+    []
+  );
 };
 
+// ---------- component ----------
 function FullStackDeveloper({
   onContactClick,
   category,
   subcategory,
-
-  // ✅ fallback props
   image,
   title,
   description,
 }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
-  const dividerColor = alpha(theme.palette.divider, isDark ? 0.4 : 0.25);
+  const dividerColor = alpha(theme.palette.divider, isDark ? 0.35 : 0.25);
 
   const [serviceData, setServiceData] = useState({
     title: "",
@@ -67,97 +67,116 @@ function FullStackDeveloper({
   const requestIdRef = useRef(0);
 
   useEffect(() => {
-    let isActive = true;
+    let active = true;
     const requestId = ++requestIdRef.current;
     const controller = new AbortController();
 
-    const loadService = async () => {
+    (async () => {
       try {
-        const serviceParams = new URLSearchParams();
-        if (category) serviceParams.append("category", category);
-        if (subcategory) serviceParams.append("subcategory", subcategory);
+        const params = new URLSearchParams();
+        if (category) params.append("category", category);
+        if (subcategory) params.append("subcategory", subcategory);
 
-        const serviceUrl = `/api/hire-services${serviceParams.toString() ? `?${serviceParams.toString()}` : ""
-          }`;
+        const res = await fetch(
+          apiUrl(`/api/hire-services${params.toString() ? `?${params}` : ""}`),
+          { signal: controller.signal }
+        );
 
-        const serviceRes = await fetch(apiUrl(serviceUrl), {
-          signal: controller.signal,
-        });
+        const json = await res.json().catch(() => null);
+        const list = normalizeList(json);
 
-        const serviceJson = await serviceRes.json().catch(() => null);
-        const serviceList = normalizeList(serviceJson);
-
-        const matchedService =
-          serviceList.find((it) => {
+        const match =
+          list.find((it) => {
             const cOk = category ? norm(it?.category) === norm(category) : true;
             const sOk = subcategory
               ? norm(it?.subcategory) === norm(subcategory)
               : true;
             return cOk && sOk;
-          }) || serviceList[0];
+          }) || list[0];
 
-        if (!isActive || requestId !== requestIdRef.current) return;
+        if (!active || requestId !== requestIdRef.current) return;
 
         setServiceData({
-          title: safeStr(matchedService?.title) || "",
-          description: safeStr(matchedService?.description) || "",
-          image: safeStr(matchedService?.image) || "",
+          title: safeStr(match?.title),
+          description: safeStr(match?.description),
+          image: safeStr(match?.image),
         });
       } catch (e) {
-        if (!isActive || e?.name === "AbortError") return;
-        console.error("Load Error:", e);
+        if (e?.name !== "AbortError") console.error(e);
       }
-    };
-
-    loadService();
+    })();
 
     return () => {
-      isActive = false;
+      active = false;
       controller.abort();
     };
   }, [category, subcategory]);
 
-  // ✅ binding priority: API first, fallback to props
-  const resolvedTitle = serviceData.title || safeStr(title) || "Service Title";
+  const resolvedTitle = serviceData.title || safeStr(title);
   const resolvedDesc =
     serviceData.description ||
     safeStr(description) ||
-    "No description provided for this service.";
+    "No description provided.";
   const resolvedImage = toAbsMaybe(serviceData.image || image);
 
   return (
-    <Box component="section" sx={{ px: { xs: 2, md: 4 }, py: 4 }}>
+    <Box
+      component="section"
+      sx={{
+        width: "100%",
+        px: { xs: 2, md: 6 },
+        py: { xs: 4, md: 6 },
+      }}
+    >
       <Paper
         elevation={0}
         sx={{
-          borderRadius: 0.5,
-          overflow: "hidden",
+          width: "100%",
+          borderRadius: 1,
+          p: { xs: 3, md: 6 },
           background: isDark
-            ? "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
-            : "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+            ? "linear-gradient(135deg,#0f172a,#1e293b)"
+            : "linear-gradient(135deg,#f8fafc,#e2e8f0)",
           border: `1px solid ${dividerColor}`,
-          p: { xs: 4, md: 8 },
         }}
       >
-        <Grid container spacing={4} alignItems="center">
-          {/* LEFT */}
+        <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
+          {/* LEFT CONTENT */}
           <Grid item xs={12} md={6}>
-            <Stack spacing={3}>
+            <Stack
+              spacing={2.5}
+              sx={{
+                textAlign: { xs: "center", md: "left" },
+                alignItems: { xs: "center", md: "flex-start" },
+              }}
+            >
               <Typography
                 variant="h3"
                 fontWeight={800}
-                sx={{ color: theme.palette.text.primary }}
+                sx={{
+                  fontSize: { xs: "1.9rem", sm: "2.2rem", md: "2.6rem" },
+                  lineHeight: 1.15,
+                }}
               >
                 {resolvedTitle}
               </Typography>
-              <Divider sx={{ borderColor: "primary.main", width: "55%" ,height: "4px", }} />
+
+              <Divider
+                sx={{
+                  width: { xs: "70%", md: "50%" },
+                  height: "4px",
+                  borderRadius: 999,
+                  borderColor: "primary.main",
+                  mx: { xs: "auto", md: 0 },
+                }}
+              />
 
               <Typography
-                variant="body1"
                 sx={{
-                  color: theme.palette.text.secondary,
+                  fontSize: { xs: "1rem", md: "1.1rem" },
+                  color: "text.secondary",
                   whiteSpace: "pre-line",
-                  fontSize: "1.1rem",
+                  maxWidth: 560,
                 }}
               >
                 {resolvedDesc}
@@ -167,13 +186,14 @@ function FullStackDeveloper({
                 variant="contained"
                 onClick={onContactClick}
                 sx={{
-                  width: "fit-content",
-                  background: "linear-gradient(90deg, #6366f1 0%, #a855f7 100%)",
+                  mt: 1,
                   px: 4,
-                  py: 1.5,
+                  py: 1.4,
                   borderRadius: "10px",
-                  fontWeight: 600,
+                  fontWeight: 700,
                   textTransform: "none",
+                  background:
+                    "linear-gradient(90deg,#6366f1,#a855f7)",
                 }}
               >
                 Hire {subcategory || category || "Expert"}
@@ -181,25 +201,30 @@ function FullStackDeveloper({
             </Stack>
           </Grid>
 
-          {/* RIGHT */}
+          {/* RIGHT IMAGE */}
           <Grid item xs={12} md={6}>
-
             <Box
-              component="img"
-              src={resolvedImage}
-              alt={resolvedTitle}
               sx={{
-                width: "100%",
-                height: "auto",
-                maxHeight: 450,
-                borderRadius: 0.5,
-                boxShadow: isDark
-                  ? "0 20px 40px rgba(0,0,0,0.5)"
-                  : "0 20px 40px rgba(0,0,0,0.1)",
-                objectFit: "cover",
+                display: "flex",
+                justifyContent: "center",
               }}
-            />
-
+            >
+              <Box
+                component="img"
+                src={resolvedImage}
+                alt={resolvedTitle}
+                sx={{
+                  width: "100%",
+                  maxWidth: 560,
+                  height: { xs: 240, sm: 320, md: 420 },
+                  objectFit: "cover",
+                  borderRadius: 1,
+                  boxShadow: isDark
+                    ? "0 20px 40px rgba(0,0,0,0.45)"
+                    : "0 20px 40px rgba(0,0,0,0.12)",
+                }}
+              />
+            </Box>
           </Grid>
         </Grid>
       </Paper>
