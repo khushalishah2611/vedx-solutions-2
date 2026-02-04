@@ -70,6 +70,8 @@ const emptyServiceForm = {
   bannerTitle: '',
   bannerSubtitle: '',
   bannerImage: imagePlaceholder,
+  sortOrder: 0,
+  isActive: true,
   createdAt: new Date().toISOString().split('T')[0],
   totalServices: 0,
   totalProjects: 0,
@@ -83,6 +85,8 @@ const emptyTechnologyForm = {
   title: '',
   image: imagePlaceholder,
   items: [],
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyBenefitForm = {
@@ -93,6 +97,8 @@ const emptyBenefitForm = {
   description: '',
   image: imagePlaceholder,
   benefitConfigId: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyHireServiceForm = {
@@ -102,6 +108,8 @@ const emptyHireServiceForm = {
   title: '',
   description: '',
   image: imagePlaceholder,
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyContactButtonForm = {
@@ -111,6 +119,8 @@ const emptyContactButtonForm = {
   image: imagePlaceholder,
   category: '',
   subcategory: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyProcessForm = {
@@ -120,6 +130,8 @@ const emptyProcessForm = {
   image: imagePlaceholder,
   serviceId: '',
   subcategory: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyWhyVedxForm = {
@@ -132,6 +144,8 @@ const emptyWhyVedxForm = {
   categoryName: '',
   subcategoryName: '',
   whyVedxId: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyWhyServiceForm = {
@@ -140,12 +154,16 @@ const emptyWhyServiceForm = {
   subcategory: '',
   title: '',
   description: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const emptyTechSolutionForm = {
   id: '',
   title: '',
   description: '',
+  sortOrder: 0,
+  isActive: true,
 };
 
 const dateFilterOptions = [
@@ -360,6 +378,8 @@ const AdminServicesPage = () => {
       createdAt: normalizeDate(menu?.createdAt),
       subcategories: menu?.subcategories || [],
       faqs: menu?.faqs || [],
+      sortOrder: Number.isFinite(Number(menu?.sortOrder)) ? Number(menu?.sortOrder) : 0,
+      isActive: menu?.isActive ?? true,
     }),
     []
   );
@@ -370,6 +390,8 @@ const AdminServicesPage = () => {
       title: tech?.title || '',
       image: tech?.image || imagePlaceholder,
       items: tech?.items || [],
+      sortOrder: Number.isFinite(Number(tech?.sortOrder)) ? Number(tech?.sortOrder) : 0,
+      isActive: tech?.isActive ?? true,
     }),
     []
   );
@@ -380,6 +402,8 @@ const AdminServicesPage = () => {
       benefitConfigId: benefit?.benefitConfigId ? String(benefit.benefitConfigId) : '',
       category: benefit?.category || '',
       subcategory: benefit?.subcategory || '',
+      sortOrder: Number.isFinite(Number(benefit?.sortOrder)) ? Number(benefit?.sortOrder) : 0,
+      isActive: benefit?.isActive ?? true,
     }),
     []
   );
@@ -405,6 +429,8 @@ const AdminServicesPage = () => {
       image: button?.image || imagePlaceholder,
       category: button?.category || '',
       subcategory: button?.subcategory || '',
+      sortOrder: Number.isFinite(Number(button?.sortOrder)) ? Number(button?.sortOrder) : 0,
+      isActive: button?.isActive ?? true,
     }),
     []
   );
@@ -434,6 +460,8 @@ const AdminServicesPage = () => {
       createdAt: normalizeDate(process?.createdAt),
       subcategory: process?.subcategory || '',
       serviceId: process?.serviceId || '',
+      sortOrder: Number.isFinite(Number(process?.sortOrder)) ? Number(process?.sortOrder) : 0,
+      isActive: process?.isActive ?? true,
     }),
     []
   );
@@ -443,6 +471,8 @@ const AdminServicesPage = () => {
       ...(service || {}),
       category: service?.category || '',
       subcategory: service?.subcategory || '',
+      sortOrder: Number.isFinite(Number(service?.sortOrder)) ? Number(service?.sortOrder) : 0,
+      isActive: service?.isActive ?? true,
     }),
     []
   );
@@ -452,6 +482,8 @@ const AdminServicesPage = () => {
       ...(service || {}),
       category: service?.category || '',
       subcategory: service?.subcategory || '',
+      sortOrder: Number.isFinite(Number(service?.sortOrder)) ? Number(service?.sortOrder) : 0,
+      isActive: service?.isActive ?? true,
     }),
     []
   );
@@ -479,6 +511,8 @@ const AdminServicesPage = () => {
       categoryName: reason?.categoryName || '',
       subcategoryName: reason?.subcategoryName || '',
       whyVedxId: reason?.whyVedxId || '',
+      sortOrder: Number.isFinite(Number(reason?.sortOrder)) ? Number(reason?.sortOrder) : 0,
+      isActive: reason?.isActive ?? true,
     }),
     []
   );
@@ -1636,6 +1670,8 @@ const AdminServicesPage = () => {
       bannerTitle: serviceForm.bannerTitle,
       bannerSubtitle: serviceForm.bannerSubtitle,
       bannerImage: serviceForm.bannerImage,
+      sortOrder: Number(serviceForm.sortOrder) || 0,
+      isActive: Boolean(serviceForm.isActive),
       totalServices: Number(serviceForm.totalServices) || 0,
       totalProjects: Number(serviceForm.totalProjects) || 0,
       totalClients: Number(serviceForm.totalClients) || 0,
@@ -1677,7 +1713,13 @@ const AdminServicesPage = () => {
     event?.preventDefault();
     if (!technologyForm.title?.trim() || !technologyForm.image) return;
 
-    const payload = { title: technologyForm.title, image: technologyForm.image, items: technologyForm.items || [] };
+    const payload = {
+      title: technologyForm.title,
+      image: technologyForm.image,
+      items: technologyForm.items || [],
+      sortOrder: Number(technologyForm.sortOrder) || 0,
+      isActive: Boolean(technologyForm.isActive),
+    };
     const isEdit = technologyDialogMode === 'edit' && activeTechnology;
     const url = isEdit ? apiUrl(`/api/technologies/${activeTechnology.id}`) : apiUrl('/api/technologies');
 
@@ -1777,6 +1819,8 @@ const AdminServicesPage = () => {
       description: benefitForm.description,
       image: benefitForm.image,
       benefitConfigId,
+      sortOrder: Number(benefitForm.sortOrder) || 0,
+      isActive: Boolean(benefitForm.isActive),
     };
 
     const isEdit = benefitDialogMode === 'edit' && activeBenefit;
@@ -1856,6 +1900,8 @@ const AdminServicesPage = () => {
       title: whyServiceForm.title,
       description: whyServiceForm.description,
       whyChooseId: Number(selectedWhyChooseId),
+      sortOrder: Number(whyServiceForm.sortOrder) || 0,
+      isActive: Boolean(whyServiceForm.isActive),
     };
 
     const isEdit = whyServiceDialogMode === 'edit' && activeWhyService;
@@ -1925,6 +1971,8 @@ const AdminServicesPage = () => {
       description: hireServiceForm.description,
       image: hireServiceForm.image,
       hireDeveloperId: hireServiceForm.hireDeveloperId || null,
+      sortOrder: Number(hireServiceForm.sortOrder) || 0,
+      isActive: Boolean(hireServiceForm.isActive),
     };
 
     const isEdit = hireServiceDialogMode === 'edit' && activeHireService;
@@ -1971,6 +2019,8 @@ const AdminServicesPage = () => {
       image: contactButtonForm.image,
       category: contactButtonForm.category,
       subcategory: contactButtonForm.subcategory,
+      sortOrder: Number(contactButtonForm.sortOrder) || 0,
+      isActive: Boolean(contactButtonForm.isActive),
     };
 
     const isEdit = contactButtonDialogMode === 'edit' && activeContactButton;
@@ -2012,6 +2062,8 @@ const AdminServicesPage = () => {
       description: processForm.description,
       image: processForm.image,
       serviceId: processForm.serviceId || null,
+      sortOrder: Number(processForm.sortOrder) || 0,
+      isActive: Boolean(processForm.isActive),
     };
 
     const isEdit = processDialogMode === 'edit' && activeProcess;
@@ -2097,6 +2149,8 @@ const AdminServicesPage = () => {
       categoryId: whyVedxForm.categoryId || null,
       subcategoryId: whyVedxForm.subcategoryId || null,
       whyVedxId: whyVedxForm.whyVedxId || selectedWhyVedxId || null,
+      sortOrder: Number(whyVedxForm.sortOrder) || 0,
+      isActive: Boolean(whyVedxForm.isActive),
     };
 
     if (!payload.whyVedxId) {
@@ -2141,10 +2195,19 @@ const AdminServicesPage = () => {
     if (techSolutionDialogMode === 'edit' && activeTechSolution) {
       setTechSolutions((prev) => ({
         ...prev,
-        solutions: (prev.solutions || []).map((s) => (s.id === activeTechSolution.id ? { ...techSolutionForm } : s)),
+        solutions: (prev.solutions || []).map((s) =>
+          s.id === activeTechSolution.id
+            ? { ...techSolutionForm, sortOrder: Number(techSolutionForm.sortOrder) || 0, isActive: Boolean(techSolutionForm.isActive) }
+            : s
+        ),
       }));
     } else {
-      const newItem = { ...techSolutionForm, id: `tech-solution-${Date.now()}` };
+      const newItem = {
+        ...techSolutionForm,
+        id: `tech-solution-${Date.now()}`,
+        sortOrder: Number(techSolutionForm.sortOrder) || 0,
+        isActive: Boolean(techSolutionForm.isActive),
+      };
       setTechSolutions((prev) => ({ ...prev, solutions: [newItem, ...(prev.solutions || [])] }));
     }
 
@@ -2471,6 +2534,28 @@ const AdminServicesPage = () => {
                 />
               </Grid>
 
+              <Grid item xs={12} sm={6}>
+                <AppTextField
+                  type="number"
+                  label="Sort order"
+                  value={serviceForm.sortOrder}
+                  onChange={(e) => setServiceForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))}
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <AppSelectField
+                  label="Active status"
+                  value={serviceForm.isActive ? 'yes' : 'no'}
+                  onChange={(e) => setServiceForm((p) => ({ ...p, isActive: e.target.value === 'yes' }))}
+                  fullWidth
+                >
+                  <MenuItem value="yes">Active</MenuItem>
+                  <MenuItem value="no">Inactive</MenuItem>
+                </AppSelectField>
+              </Grid>
+
               <Grid item xs={12}>
                 <ImageUpload
                   label="Banner image *"
@@ -2726,6 +2811,25 @@ const AdminServicesPage = () => {
               minRows={3}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={whyServiceForm.sortOrder}
+              onChange={(e) => setWhyServiceForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={whyServiceForm.isActive ? 'yes' : 'no'}
+              onChange={(e) => setWhyServiceForm((p) => ({ ...p, isActive: e.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -2791,6 +2895,25 @@ const AdminServicesPage = () => {
               fullWidth
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={technologyForm.sortOrder}
+              onChange={(e) => setTechnologyForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={technologyForm.isActive ? 'yes' : 'no'}
+              onChange={(e) => setTechnologyForm((p) => ({ ...p, isActive: e.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -2862,6 +2985,25 @@ const AdminServicesPage = () => {
               minRows={3}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={benefitForm.sortOrder}
+              onChange={(e) => setBenefitForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={benefitForm.isActive ? 'yes' : 'no'}
+              onChange={(e) => setBenefitForm((p) => ({ ...p, isActive: e.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -2939,6 +3081,25 @@ const AdminServicesPage = () => {
               onChange={(value) => handleContactButtonFormChange('image', value)}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={contactButtonForm.sortOrder}
+              onChange={(e) => handleContactButtonFormChange('sortOrder', Number(e.target.value))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={contactButtonForm.isActive ? 'yes' : 'no'}
+              onChange={(e) => handleContactButtonFormChange('isActive', e.target.value === 'yes')}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -2995,6 +3156,25 @@ const AdminServicesPage = () => {
               onChange={(value) => setProcessForm((p) => ({ ...p, image: value }))}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={processForm.sortOrder}
+              onChange={(e) => setProcessForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={processForm.isActive ? 'yes' : 'no'}
+              onChange={(e) => setProcessForm((p) => ({ ...p, isActive: e.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -3076,6 +3256,25 @@ const AdminServicesPage = () => {
               onChange={(value) => setWhyVedxForm((p) => ({ ...p, image: value }))}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={whyVedxForm.sortOrder}
+              onChange={(e) => setWhyVedxForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={whyVedxForm.isActive ? 'yes' : 'no'}
+              onChange={(e) => setWhyVedxForm((p) => ({ ...p, isActive: e.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -3152,6 +3351,25 @@ const AdminServicesPage = () => {
               onChange={(value) => setHireServiceForm((p) => ({ ...p, image: value }))}
               required
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={hireServiceForm.sortOrder}
+              onChange={(e) => setHireServiceForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={hireServiceForm.isActive ? 'yes' : 'no'}
+              onChange={(e) => setHireServiceForm((p) => ({ ...p, isActive: e.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -3202,6 +3420,25 @@ const AdminServicesPage = () => {
               multiline
               minRows={3}
             />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={techSolutionForm.sortOrder}
+              onChange={(e) => setTechSolutionForm((p) => ({ ...p, sortOrder: Number(e.target.value) }))}
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+
+            <AppSelectField
+              label="Active status"
+              value={techSolutionForm.isActive ? 'yes' : 'no'}
+              onChange={(e) => setTechSolutionForm((p) => ({ ...p, isActive: e.target.value === 'yes' }))}
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>

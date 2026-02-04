@@ -162,6 +162,8 @@ const AdminDashboardPage = () => {
     title: "",
     description: "",
     image: "",
+    sortOrder: 0,
+    isActive: true,
   });
   const [processDialogOpen, setProcessDialogOpen] = useState(false);
   const [editingProcessId, setEditingProcessId] = useState(null);
@@ -175,6 +177,7 @@ const AdminDashboardPage = () => {
     sliderTitle: "",
     sliderDescription: "",
     sliderImage: "",
+    isActive: true,
   });
   const [editingSliderId, setEditingSliderId] = useState(null);
   const [ourServicesSliderPage, setOurServicesSliderPage] = useState(1);
@@ -185,6 +188,7 @@ const AdminDashboardPage = () => {
   const [ourServiceForm, setOurServiceForm] = useState({
     title: "",
     sliderId: "",
+    sortOrder: 0,
   });
 
   const [ourServiceDialogOpen, setOurServiceDialogOpen] = useState(false);
@@ -206,6 +210,8 @@ const AdminDashboardPage = () => {
     title: "",
     description: "",
     image: "",
+    sortOrder: 0,
+    isActive: true,
   });
   const [industrySaved, setIndustrySaved] = useState(false);
   const [industryDialogOpen, setIndustryDialogOpen] = useState(false);
@@ -225,6 +231,8 @@ const AdminDashboardPage = () => {
     title: "",
     description: "",
     image: "",
+    sortOrder: 0,
+    isActive: true,
   });
   const [editingWhyVedxReasonId, setEditingWhyVedxReasonId] = useState(null);
   const [whyVedxReasonDialogOpen, setWhyVedxReasonDialogOpen] = useState(false);
@@ -243,6 +251,8 @@ const AdminDashboardPage = () => {
   const [techSolutionForm, setTechSolutionForm] = useState({
     title: "",
     description: "",
+    sortOrder: 0,
+    isActive: true,
   });
   const [techSolutionsSaved, setTechSolutionsSaved] = useState(false);
   const [techSolutionDialogOpen, setTechSolutionDialogOpen] = useState(false);
@@ -261,6 +271,8 @@ const AdminDashboardPage = () => {
     title: "",
     description: "",
     image: "",
+    sortOrder: 0,
+    isActive: true,
   });
   const [expertiseSaved, setExpertiseSaved] = useState(false);
   const [expertiseDialogOpen, setExpertiseDialogOpen] = useState(false);
@@ -685,10 +697,12 @@ const AdminDashboardPage = () => {
         title: item.title || "",
         description: item.description || "",
         image: item.image || "",
+        sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+        isActive: item.isActive ?? true,
       });
       setEditingProcessId(item.id);
     } else {
-      setProcessForm({ title: "", description: "", image: "" });
+      setProcessForm({ title: "", description: "", image: "", sortOrder: 0, isActive: true });
       setEditingProcessId(null);
     }
     setProcessDialogOpen(true);
@@ -700,7 +714,7 @@ const AdminDashboardPage = () => {
   const closeProcessDialog = () => {
     setProcessDialogOpen(false);
     setEditingProcessId(null);
-    setProcessForm({ title: "", description: "", image: "" });
+    setProcessForm({ title: "", description: "", image: "", sortOrder: 0, isActive: true });
     if (processFileInputRef.current) {
       processFileInputRef.current.value = "";
     }
@@ -723,6 +737,8 @@ const AdminDashboardPage = () => {
       title: processForm.title.trim(),
       description: processForm.description || null,
       image: processForm.image || null,
+      sortOrder: Number(processForm.sortOrder) || 0,
+      isActive: Boolean(processForm.isActive),
     };
 
     try {
@@ -783,6 +799,7 @@ const AdminDashboardPage = () => {
       sliderTitle: "",
       sliderDescription: "",
       sliderImage: "",
+      isActive: true,
     });
     setEditingSliderId(null);
     setSliderDialogOpen(true);
@@ -795,6 +812,7 @@ const AdminDashboardPage = () => {
       sliderTitle: "",
       sliderDescription: "",
       sliderImage: "",
+      isActive: true,
     });
   };
 
@@ -808,6 +826,7 @@ const AdminDashboardPage = () => {
       sliderTitle: ourServicesHeroForm.sliderTitle.trim(),
       sliderDescription: ourServicesHeroForm.sliderDescription || null,
       sliderImage: ourServicesHeroForm.sliderImage || null,
+      isActive: Boolean(ourServicesHeroForm.isActive),
     };
 
     try {
@@ -851,6 +870,7 @@ const AdminDashboardPage = () => {
       sliderTitle: slider.sliderTitle,
       sliderDescription: slider.sliderDescription ?? "",
       sliderImage: slider.sliderImage ?? "",
+      isActive: slider.isActive ?? true,
     });
     setEditingSliderId(slider.id);
     setSliderDialogOpen(true);
@@ -874,6 +894,7 @@ const AdminDashboardPage = () => {
               sliderTitle: first.sliderTitle,
               sliderDescription: first.sliderDescription ?? "",
               sliderImage: first.sliderImage ?? "",
+              isActive: first.isActive ?? true,
             });
           } else {
             setEditingSliderId(null);
@@ -881,6 +902,7 @@ const AdminDashboardPage = () => {
               sliderTitle: "",
               sliderDescription: "",
               sliderImage: "",
+              isActive: true,
             });
           }
         }
@@ -912,6 +934,7 @@ const AdminDashboardPage = () => {
       title: "",
       // don't pick default here (sliders may not be loaded yet)
       sliderId: "",
+      sortOrder: 0,
     }));
 
     setOurServiceDialogOpen(true);
@@ -923,6 +946,7 @@ const AdminDashboardPage = () => {
     setOurServiceForm({
       title: service.title ?? "",
       sliderId: service.sliderId ?? "",
+      sortOrder: Number.isFinite(Number(service.sortOrder)) ? Number(service.sortOrder) : 0,
     });
     setOurServiceDialogOpen(true);
   };
@@ -933,6 +957,7 @@ const AdminDashboardPage = () => {
     setOurServiceForm({
       title: "",
       sliderId: "",
+      sortOrder: 0,
     });
   };
 
@@ -945,6 +970,7 @@ const AdminDashboardPage = () => {
     const payload = {
       title,
       sliderId,
+      sortOrder: Number(ourServiceForm.sortOrder) || 0,
     };
 
     try {
@@ -1049,10 +1075,12 @@ const AdminDashboardPage = () => {
         title: item.title || "",
         description: item.description || "",
         image: item.image || "",
+        sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+        isActive: item.isActive ?? true,
       });
       setEditingIndustryId(item.id);
     } else {
-      setIndustryForm({ title: "", description: "", image: "" });
+      setIndustryForm({ title: "", description: "", image: "", sortOrder: 0, isActive: true });
       setEditingIndustryId(null);
     }
     setIndustryDialogOpen(true);
@@ -1064,7 +1092,7 @@ const AdminDashboardPage = () => {
   const closeIndustryDialog = () => {
     setIndustryDialogOpen(false);
     setEditingIndustryId(null);
-    setIndustryForm({ title: "", description: "", image: "" });
+    setIndustryForm({ title: "", description: "", image: "", sortOrder: 0, isActive: true });
     if (industryFileInputRef.current) {
       industryFileInputRef.current.value = "";
     }
@@ -1089,6 +1117,8 @@ const AdminDashboardPage = () => {
       title: industryForm.title.trim(),
       description: industryForm.description || null,
       image: industryForm.image || null,
+      sortOrder: Number(industryForm.sortOrder) || 0,
+      isActive: Boolean(industryForm.isActive),
     };
 
     try {
@@ -1177,10 +1207,12 @@ const AdminDashboardPage = () => {
         title: item.title,
         description: item.description,
         image: item.image,
+        sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+        isActive: item.isActive ?? true,
       });
       setEditingWhyVedxReasonId(item.id);
     } else {
-      setWhyVedxReasonForm({ title: "", description: "", image: "" });
+      setWhyVedxReasonForm({ title: "", description: "", image: "", sortOrder: 0, isActive: true });
       setEditingWhyVedxReasonId(null);
     }
     setWhyVedxReasonDialogOpen(true);
@@ -1188,7 +1220,7 @@ const AdminDashboardPage = () => {
 
   const closeWhyVedxReasonDialog = () => {
     setWhyVedxReasonDialogOpen(false);
-    setWhyVedxReasonForm({ title: "", description: "", image: "" });
+    setWhyVedxReasonForm({ title: "", description: "", image: "", sortOrder: 0, isActive: true });
     setEditingWhyVedxReasonId(null);
   };
 
@@ -1281,10 +1313,15 @@ const AdminDashboardPage = () => {
 
   const openTechSolutionDialog = (item = null) => {
     if (item) {
-      setTechSolutionForm({ title: item.title, description: item.description ?? "" });
+      setTechSolutionForm({
+        title: item.title,
+        description: item.description ?? "",
+        sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+        isActive: item.isActive ?? true,
+      });
       setEditingTechSolutionId(item.id);
     } else {
-      setTechSolutionForm({ title: "", description: "" });
+      setTechSolutionForm({ title: "", description: "", sortOrder: 0, isActive: true });
       setEditingTechSolutionId(null);
     }
     setTechSolutionDialogOpen(true);
@@ -1293,7 +1330,7 @@ const AdminDashboardPage = () => {
   const closeTechSolutionDialog = () => {
     setTechSolutionDialogOpen(false);
     setEditingTechSolutionId(null);
-    setTechSolutionForm({ title: "", description: "" });
+    setTechSolutionForm({ title: "", description: "", sortOrder: 0, isActive: true });
   };
 
   const handleTechSolutionSave = async () => {
@@ -1302,6 +1339,8 @@ const AdminDashboardPage = () => {
     const payload = {
       title: techSolutionForm.title.trim(),
       description: techSolutionForm.description || null,
+      sortOrder: Number(techSolutionForm.sortOrder) || 0,
+      isActive: Boolean(techSolutionForm.isActive),
     };
 
     try {
@@ -1385,10 +1424,12 @@ const AdminDashboardPage = () => {
         title: item.title || "",
         description: item.description || "",
         image: item.image || "",
+        sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+        isActive: item.isActive ?? true,
       });
       setEditingExpertiseId(item.id);
     } else {
-      setExpertiseForm({ title: "", description: "", image: "" });
+      setExpertiseForm({ title: "", description: "", image: "", sortOrder: 0, isActive: true });
       setEditingExpertiseId(null);
     }
     setExpertiseDialogOpen(true);
@@ -1400,7 +1441,7 @@ const AdminDashboardPage = () => {
   const closeExpertiseDialog = () => {
     setExpertiseDialogOpen(false);
     setEditingExpertiseId(null);
-    setExpertiseForm({ title: "", description: "", image: "" });
+    setExpertiseForm({ title: "", description: "", image: "", sortOrder: 0, isActive: true });
     if (expertiseFileInputRef.current) {
       expertiseFileInputRef.current.value = "";
     }
@@ -1423,6 +1464,8 @@ const AdminDashboardPage = () => {
       title: expertiseForm.title.trim(),
       description: expertiseForm.description || null,
       image: expertiseForm.image || null,
+      sortOrder: Number(expertiseForm.sortOrder) || 0,
+      isActive: Boolean(expertiseForm.isActive),
     };
 
     try {
@@ -2013,6 +2056,8 @@ const AdminDashboardPage = () => {
                     <TableCell>Image</TableCell>
                     <TableCell>Title</TableCell>
                     <TableCell>Description</TableCell>
+                    <TableCell>Sort order</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -2046,6 +2091,8 @@ const AdminDashboardPage = () => {
                           {item.description || "-"}
                         </Typography>
                       </TableCell>
+                      <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                      <TableCell>{item.isActive ? "Yes" : "No"}</TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                           <Tooltip title="Edit">
@@ -2068,7 +2115,7 @@ const AdminDashboardPage = () => {
                   ))}
                   {!processList.length && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No process steps configured yet.
                         </Typography>
@@ -2132,6 +2179,7 @@ const AdminDashboardPage = () => {
                           <TableCell>Image</TableCell>
                           <TableCell>Title</TableCell>
                           <TableCell>Description</TableCell>
+                          <TableCell>Active</TableCell>
                           <TableCell align="right">Actions</TableCell>
                         </TableRow>
                       </TableHead>
@@ -2167,6 +2215,7 @@ const AdminDashboardPage = () => {
                                 {slider.sliderDescription || "-"}
                               </Typography>
                             </TableCell>
+                            <TableCell>{slider.isActive ? "Yes" : "No"}</TableCell>
                             <TableCell align="right">
                               <Stack direction="row" spacing={1} justifyContent="flex-end">
                                 <Tooltip title="Edit slider">
@@ -2194,7 +2243,7 @@ const AdminDashboardPage = () => {
                         ))}
                         {ourServicesSliders.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={4}>
+                            <TableCell colSpan={5}>
                               <Typography variant="body2" color="text.secondary" align="center">
                                 No sliders configured yet.
                               </Typography>
@@ -2256,6 +2305,7 @@ const AdminDashboardPage = () => {
                       <TableRow>
                         <TableCell>Title</TableCell>
                         <TableCell>Slider</TableCell>
+                        <TableCell>Sort order</TableCell>
                         <TableCell align="right">Actions</TableCell>
                       </TableRow>
                     </TableHead>
@@ -2272,6 +2322,9 @@ const AdminDashboardPage = () => {
                               <Typography variant="body2" color="text.secondary">
                                 {slider?.sliderTitle || "-"}
                               </Typography>
+                            </TableCell>
+                            <TableCell>
+                              {Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}
                             </TableCell>
                             <TableCell align="right">
                               <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -2300,7 +2353,7 @@ const AdminDashboardPage = () => {
                       })}
                       {services.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={3}>
+                          <TableCell colSpan={4}>
                             <Typography variant="body2" color="text.secondary" align="center">
                               No service cards configured yet.
                             </Typography>
@@ -2393,6 +2446,8 @@ const AdminDashboardPage = () => {
                     <TableCell>Title</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell>Image</TableCell>
+                    <TableCell>Sort order</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -2426,6 +2481,8 @@ const AdminDashboardPage = () => {
                           </Typography>
                         )}
                       </TableCell>
+                      <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                      <TableCell>{item.isActive ? "Yes" : "No"}</TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                           <Tooltip title="Edit">
@@ -2448,7 +2505,7 @@ const AdminDashboardPage = () => {
                   ))}
                   {!industriesItems.length && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No industries configured yet.
                         </Typography>
@@ -2539,6 +2596,8 @@ const AdminDashboardPage = () => {
                     <TableCell>Title</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell>Image</TableCell>
+                    <TableCell>Sort order</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -2572,6 +2631,8 @@ const AdminDashboardPage = () => {
                           </Typography>
                         )}
                       </TableCell>
+                      <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                      <TableCell>{item.isActive ? "Yes" : "No"}</TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                           <Tooltip title="Edit">
@@ -2594,7 +2655,7 @@ const AdminDashboardPage = () => {
                   ))}
                   {!whyVedxReasons.length && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No reasons added yet.
                         </Typography>
@@ -2681,6 +2742,8 @@ const AdminDashboardPage = () => {
                   <TableRow>
                     <TableCell>Title</TableCell>
                     <TableCell>Description</TableCell>
+                    <TableCell>Sort order</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -2693,6 +2756,8 @@ const AdminDashboardPage = () => {
                           {item.description}
                         </Typography>
                       </TableCell>
+                      <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                      <TableCell>{item.isActive ? "Yes" : "No"}</TableCell>
                       <TableCell align="right">
                         <Tooltip title="Edit">
                           <IconButton size="small" onClick={() => openTechSolutionDialog(item)}>
@@ -2713,7 +2778,7 @@ const AdminDashboardPage = () => {
                   ))}
                   {!techSolutionsList.length && (
                     <TableRow>
-                      <TableCell colSpan={3}>
+                      <TableCell colSpan={5}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No solutions configured yet.
                         </Typography>
@@ -2812,6 +2877,8 @@ const AdminDashboardPage = () => {
                     <TableCell>Image</TableCell>
                     <TableCell>Title</TableCell>
                     <TableCell>Description</TableCell>
+                    <TableCell>Sort order</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -2845,6 +2912,8 @@ const AdminDashboardPage = () => {
                           {item.description}
                         </Typography>
                       </TableCell>
+                      <TableCell>{Number.isFinite(Number(item.sortOrder)) ? item.sortOrder : 0}</TableCell>
+                      <TableCell>{item.isActive ? "Yes" : "No"}</TableCell>
                       <TableCell align="right">
                         <Tooltip title="Edit">
                           <IconButton size="small" onClick={() => openExpertiseDialog(item)}>
@@ -2865,7 +2934,7 @@ const AdminDashboardPage = () => {
                   ))}
                   {!expertiseItems.length && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No expertise options configured yet.
                         </Typography>
@@ -3020,6 +3089,19 @@ const AdminDashboardPage = () => {
                   required
                 />
               </Grid>
+              <Grid item xs={12} md={4}>
+                <AppSelectField
+                  label="Active status"
+                  value={ourServicesHeroForm.isActive ? "yes" : "no"}
+                  onChange={(event) =>
+                    handleOurServicesHeroChange("isActive", event.target.value === "yes")
+                  }
+                  fullWidth
+                >
+                  <MenuItem value="yes">Active</MenuItem>
+                  <MenuItem value="no">Inactive</MenuItem>
+                </AppSelectField>
+              </Grid>
             </Grid>
           </Box>
         </AppDialogContent>
@@ -3135,6 +3217,17 @@ const AdminDashboardPage = () => {
                 setOurServiceForm((prev) => ({ ...prev, title: event.target.value }))
               }
               fullWidth
+            />
+
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={ourServiceForm.sortOrder}
+              onChange={(event) =>
+                setOurServiceForm((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
             />
           </Stack>
         </AppDialogContent>
@@ -3285,6 +3378,33 @@ const AdminDashboardPage = () => {
               onChange={(value) => setWhyVedxReasonForm((prev) => ({ ...prev, image: value }))}
               required
             />
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={whyVedxReasonForm.sortOrder}
+              onChange={(event) =>
+                setWhyVedxReasonForm((prev) => ({
+                  ...prev,
+                  sortOrder: Number(event.target.value),
+                }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+            <AppSelectField
+              label="Active status"
+              value={whyVedxReasonForm.isActive ? "yes" : "no"}
+              onChange={(event) =>
+                setWhyVedxReasonForm((prev) => ({
+                  ...prev,
+                  isActive: event.target.value === "yes",
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -3398,6 +3518,33 @@ const AdminDashboardPage = () => {
                 onChange={handleIndustryImageChange}
               />
             </Stack>
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={industryForm.sortOrder}
+              onChange={(event) =>
+                setIndustryForm((prev) => ({
+                  ...prev,
+                  sortOrder: Number(event.target.value),
+                }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+            <AppSelectField
+              label="Active status"
+              value={industryForm.isActive ? "yes" : "no"}
+              onChange={(event) =>
+                setIndustryForm((prev) => ({
+                  ...prev,
+                  isActive: event.target.value === "yes",
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -3443,6 +3590,33 @@ const AdminDashboardPage = () => {
               minRows={3}
               placeholder="Add optional details about the solution"
             />
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={techSolutionForm.sortOrder}
+              onChange={(event) =>
+                setTechSolutionForm((prev) => ({
+                  ...prev,
+                  sortOrder: Number(event.target.value),
+                }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+            <AppSelectField
+              label="Active status"
+              value={techSolutionForm.isActive ? "yes" : "no"}
+              onChange={(event) =>
+                setTechSolutionForm((prev) => ({
+                  ...prev,
+                  isActive: event.target.value === "yes",
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -3536,6 +3710,33 @@ const AdminDashboardPage = () => {
                 onChange={handleExpertiseImageChange}
               />
             </Stack>
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={expertiseForm.sortOrder}
+              onChange={(event) =>
+                setExpertiseForm((prev) => ({
+                  ...prev,
+                  sortOrder: Number(event.target.value),
+                }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+            <AppSelectField
+              label="Active status"
+              value={expertiseForm.isActive ? "yes" : "no"}
+              onChange={(event) =>
+                setExpertiseForm((prev) => ({
+                  ...prev,
+                  isActive: event.target.value === "yes",
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
           </Stack>
         </AppDialogContent>
       <AppDialogActions>
@@ -3649,6 +3850,33 @@ const AdminDashboardPage = () => {
               minRows={3}
               placeholder="Add optional details for the process step"
             />
+            <AppTextField
+              type="number"
+              label="Sort order"
+              value={processForm.sortOrder}
+              onChange={(event) =>
+                setProcessForm((prev) => ({
+                  ...prev,
+                  sortOrder: Number(event.target.value),
+                }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+            <AppSelectField
+              label="Active status"
+              value={processForm.isActive ? "yes" : "no"}
+              onChange={(event) =>
+                setProcessForm((prev) => ({
+                  ...prev,
+                  isActive: event.target.value === "yes",
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="yes">Active</MenuItem>
+              <MenuItem value="no">Inactive</MenuItem>
+            </AppSelectField>
             <Box
               sx={{
                 border: "1px dashed",

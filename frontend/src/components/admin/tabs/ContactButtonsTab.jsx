@@ -175,6 +175,8 @@ const ContactButtonsTab = ({
                           <TableCell>Description</TableCell>
                           <TableCell>Sub-category</TableCell>
                           <TableCell>Image</TableCell>
+                          <TableCell>Sort order</TableCell>
+                          <TableCell>Active</TableCell>
                           <TableCell align="right">Actions</TableCell>
                         </TableRow>
                       </TableHead>
@@ -200,6 +202,8 @@ const ContactButtonsTab = ({
                                 sx={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 1 }}
                               />
                             </TableCell>
+                            <TableCell>{Number.isFinite(Number(button.sortOrder)) ? button.sortOrder : 0}</TableCell>
+                            <TableCell>{button.isActive ? 'Yes' : 'No'}</TableCell>
                             <TableCell align="right">
                               <Stack direction="row" spacing={1} justifyContent="flex-end">
                                 <Tooltip title="Edit">

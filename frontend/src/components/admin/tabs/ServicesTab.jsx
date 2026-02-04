@@ -306,6 +306,15 @@ const ServicesTab = ({
                               <Typography variant="body2">Services: {service.totalServices}</Typography>
                               <Typography variant="body2">Projects: {service.totalProjects}</Typography>
                               <Typography variant="body2">Clients: {service.totalClients}</Typography>
+                              <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
+                                <Chip label={`Sort: ${Number.isFinite(Number(service.sortOrder)) ? service.sortOrder : 0}`} size="small" />
+                                <Chip
+                                  label={service.isActive ? 'Active' : 'Inactive'}
+                                  size="small"
+                                  color={service.isActive ? 'success' : 'default'}
+                                  variant="outlined"
+                                />
+                              </Stack>
                             </Grid>
 
                             <Grid item xs={12} md={1} display="flex" alignItems="flex-end">

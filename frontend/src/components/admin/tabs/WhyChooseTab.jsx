@@ -357,6 +357,8 @@ const WhyChooseTab = ({
                       <TableCell>Sub-category</TableCell>
                       <TableCell>Title</TableCell>
                       <TableCell>Description</TableCell>
+                      <TableCell>Sort order</TableCell>
+                      <TableCell>Active</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -372,6 +374,8 @@ const WhyChooseTab = ({
                             {service.description}
                           </Typography>
                         </TableCell>
+                        <TableCell>{Number.isFinite(Number(service.sortOrder)) ? service.sortOrder : 0}</TableCell>
+                        <TableCell>{service.isActive ? 'Yes' : 'No'}</TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
                             <Tooltip title="Edit">
@@ -392,7 +396,7 @@ const WhyChooseTab = ({
 
                     {allServices.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={5}>
+                        <TableCell colSpan={7}>
                           <Typography variant="body2" color="text.secondary" align="center">
                             No highlights yet. Use "Add highlight" to create category-wise reasons to choose you.
                           </Typography>

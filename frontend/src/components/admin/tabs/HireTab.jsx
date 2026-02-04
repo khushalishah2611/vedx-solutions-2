@@ -184,6 +184,16 @@ const HireTab = ({
                                       variant="outlined"
                                       color={service.subcategory ? 'primary' : 'default'}
                                     />
+                                    <Chip
+                                      label={`Sort: ${Number.isFinite(Number(service.sortOrder)) ? service.sortOrder : 0}`}
+                                      size="small"
+                                    />
+                                    <Chip
+                                      label={service.isActive ? 'Active' : 'Inactive'}
+                                      size="small"
+                                      color={service.isActive ? 'success' : 'default'}
+                                      variant="outlined"
+                                    />
                                   </Stack>
                                 </Stack>
                                 <Box component="img" src={service.image || imagePlaceholder} alt={`${service.title} preview`} sx={{ width: 140, height: 90, objectFit: 'cover', borderRadius: 1 }} />
