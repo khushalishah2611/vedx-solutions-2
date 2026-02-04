@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Grid,
@@ -17,20 +17,13 @@ import { apiUrl } from "../../../utils/const.js";
 const norm = (v) => String(v || "").trim().toLowerCase();
 const safeStr = (v) => String(v ?? "").trim();
 
-const buildApiUrl = (path = "") => {
-  const p = String(path || "");
-  if (typeof apiUrl === "function") return apiUrl(p);
-  const base = String(apiUrl || "").replace(/\/+$/, "");
-  const clean = p.startsWith("/") ? p : `/${p}`;
-  return `${base}${clean}`;
-};
-
+const isHttpUrl = (value) => /^https?:\/\//i.test(value);
+const isDataUrl = (value) => value.startsWith("data:");
 const toAbsMaybe = (url) => {
-  const u = safeStr(url);
-  if (!u) return "";
-  if (/^https?:\/\//i.test(u)) return u;
-  if (u.startsWith("data:")) return u;
-  return buildApiUrl(u.startsWith("/") ? u : `/${u}`);
+  const raw = safeStr(url);
+  if (!raw) return "";
+  if (isHttpUrl(raw) || isDataUrl(raw)) return raw;
+  return typeof apiUrl === "function" ? apiUrl(raw) : raw;
 };
 
 const splitHighlightsFromDescription = (text) => {
@@ -83,7 +76,6 @@ function FullStackDeveloper({
   onContactClick,
   category,
   subcategory,
-  highlights,
   image,
   title,
   description,
@@ -103,16 +95,18 @@ function FullStackDeveloper({
   useEffect(() => {
     let isActive = true;
     const requestId = ++requestIdRef.current;
+    const controller = new AbortController();
 
     const loadHireServices = async () => {
       setLoading(true);
+      setError("");
       try {
         const params = new URLSearchParams();
         if (category) params.append("category", category);
         if (subcategory) params.append("subcategory", subcategory);
 
         const url = `/api/hire-services${params.toString() ? `?${params.toString()}` : ""}`;
-        const res = await fetch(buildApiUrl(url));
+        const res = await fetch(apiUrl(url), { signal: controller.signal });
         
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
@@ -136,9 +130,9 @@ function FullStackDeveloper({
           });
         }
       } catch (e) {
-        if (isActive) {
+        if (isActive && e.name !== "AbortError") {
           console.error("Fetch Error:", e);
-          setError(e.message);
+          setError(e.message || "Unable to load service details.");
         }
       } finally {
         if (isActive && requestId === requestIdRef.current) setLoading(false);
@@ -146,7 +140,10 @@ function FullStackDeveloper({
     };
 
     loadHireServices();
-    return () => { isActive = false; };
+    return () => { 
+      isActive = false; 
+      controller.abort();
+    };
   }, [category, subcategory]);
 
   // ડેટા બાઈન્ડિંગ લોજિક (API ડેટા પહેલા, પછી Props)
@@ -198,6 +195,11 @@ function FullStackDeveloper({
               <Typography variant="body1" sx={{ color: theme.palette.text.secondary, whiteSpace: "pre-line", fontSize: "1.1rem" }}>
                 {resolvedDesc || "No description provided for this service."}
               </Typography>
+              {error ? (
+                <Typography variant="body2" color="error">
+                  {error}
+                </Typography>
+              ) : null}
 
               <AppButton
                 variant="contained"
