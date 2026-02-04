@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Avatar, Card, CardContent, CardHeader, Chip, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
-import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppTextField } from '../shared/FormControls.jsx';
+import { Avatar, Card, CardContent, CardHeader, Chip, Divider, FormControlLabel, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
+import { AppButton, AppCheckbox, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppTextField } from '../shared/FormControls.jsx';
 
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -26,6 +26,8 @@ const normalizeServiceSubcategory = (sub = {}) => ({
   name: sub.name || '',
   slug: sub.slug || '',
   description: sub.description || '',
+  sortOrder: Number.isFinite(Number(sub.sortOrder)) ? Number(sub.sortOrder) : 0,
+  isActive: sub.isActive ?? true,
   createdOn: formatDate(sub.createdAt),
 });
 
@@ -34,6 +36,8 @@ const normalizeServiceCategory = (category = {}, fallbackSubcategories = []) => 
   name: category.name || '',
   slug: category.slug || '',
   description: category.description || '',
+  sortOrder: Number.isFinite(Number(category.sortOrder)) ? Number(category.sortOrder) : 0,
+  isActive: category.isActive ?? true,
   createdOn: formatDate(category.createdAt),
   subcategories: Array.isArray(category.subCategories)
     ? category.subCategories.map((sub) => normalizeServiceSubcategory(sub))
@@ -45,6 +49,8 @@ const normalizeHireSubcategory = (sub = {}) => ({
   title: sub.title || '',
   slug: sub.slug || '',
   description: sub.description || '',
+  sortOrder: Number.isFinite(Number(sub.sortOrder)) ? Number(sub.sortOrder) : 0,
+  isActive: sub.isActive ?? true,
   createdOn: formatDate(sub.createdAt),
 });
 
@@ -53,6 +59,8 @@ const normalizeHireCategory = (category = {}, fallbackSubcategories = []) => ({
   title: category.title || '',
   slug: category.slug || '',
   description: category.description || '',
+  sortOrder: Number.isFinite(Number(category.sortOrder)) ? Number(category.sortOrder) : 0,
+  isActive: category.isActive ?? true,
   createdOn: formatDate(category.createdAt),
   subcategories: Array.isArray(category.roles)
     ? category.roles.map((role) => normalizeHireSubcategory(role))
@@ -78,6 +86,8 @@ const AdminNavigationPage = () => {
     name: '',
     slug: '',
     description: '',
+    sortOrder: 0,
+    isActive: true,
   });
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [savingCategory, setSavingCategory] = useState(false);
@@ -85,7 +95,14 @@ const AdminNavigationPage = () => {
   const [subDialogOpen, setSubDialogOpen] = useState(false);
   const [subDialogMode, setSubDialogMode] = useState('create');
   const [subDialogError, setSubDialogError] = useState('');
-  const [subForm, setSubForm] = useState({ id: '', name: '', slug: '', description: '' });
+  const [subForm, setSubForm] = useState({
+    id: '',
+    name: '',
+    slug: '',
+    description: '',
+    sortOrder: 0,
+    isActive: true,
+  });
   const [subToDelete, setSubToDelete] = useState(null);
   const [savingSubcategory, setSavingSubcategory] = useState(false);
 
@@ -161,9 +178,18 @@ const AdminNavigationPage = () => {
         name: category.name || '',
         slug: category.slug || '',
         description: category.description || '',
+        sortOrder: category.sortOrder ?? 0,
+        isActive: category.isActive ?? true,
       });
     } else {
-      setCategoryForm({ id: '', name: '', slug: '', description: '' });
+      setCategoryForm({
+        id: '',
+        name: '',
+        slug: '',
+        description: '',
+        sortOrder: 0,
+        isActive: true,
+      });
     }
   };
 
@@ -174,6 +200,10 @@ const AdminNavigationPage = () => {
     const trimmedName = categoryForm.name.trim();
     const normalizedSlug = slugify(categoryForm.slug || trimmedName);
     const description = categoryForm.description.trim();
+    const sortOrder = Number.isFinite(Number(categoryForm.sortOrder))
+      ? Number(categoryForm.sortOrder)
+      : 0;
+    const isActive = Boolean(categoryForm.isActive);
 
     if (!trimmedName) {
       setCategoryDialogError('Name is required.');
@@ -208,6 +238,8 @@ const AdminNavigationPage = () => {
             name: trimmedName,
             description: description || null,
             slug: normalizedSlug,
+            sortOrder,
+            isActive,
           }),
         }
       );
@@ -295,7 +327,14 @@ const AdminNavigationPage = () => {
     if (subcategory) {
       setSubForm({ ...subcategory });
     } else {
-      setSubForm({ id: '', name: '', slug: '', description: '' });
+      setSubForm({
+        id: '',
+        name: '',
+        slug: '',
+        description: '',
+        sortOrder: 0,
+        isActive: true,
+      });
     }
   };
 
@@ -308,6 +347,8 @@ const AdminNavigationPage = () => {
     const trimmedName = subForm.name.trim();
     const normalizedSlug = slugify(subForm.slug || trimmedName);
     const description = subForm.description.trim();
+    const sortOrder = Number.isFinite(Number(subForm.sortOrder)) ? Number(subForm.sortOrder) : 0;
+    const isActive = Boolean(subForm.isActive);
 
     if (!trimmedName) {
       setSubDialogError('Sub-category name is required.');
@@ -343,6 +384,8 @@ const AdminNavigationPage = () => {
             description: description || null,
             slug: normalizedSlug,
             categoryId: selectedCategory.id,
+            sortOrder,
+            isActive,
           }),
         }
       );
@@ -444,6 +487,8 @@ const AdminNavigationPage = () => {
     title: '',
     slug: '',
     description: '',
+    sortOrder: 0,
+    isActive: true,
   });
   const [hireCategoryError, setHireCategoryError] = useState('');
   const [savingHireCategory, setSavingHireCategory] = useState(false);
@@ -455,7 +500,13 @@ const AdminNavigationPage = () => {
     [hireCategories, activeHireCategoryId]
   );
 
-  const [hireSubcategoryForm, setHireSubcategoryForm] = useState({ title: '', slug: '', description: '' });
+  const [hireSubcategoryForm, setHireSubcategoryForm] = useState({
+    title: '',
+    slug: '',
+    description: '',
+    sortOrder: 0,
+    isActive: true,
+  });
   const [editingHireSubcategoryId, setEditingHireSubcategoryId] = useState(null);
   const [hireSubcategoryError, setHireSubcategoryError] = useState('');
   const [savingHireSubcategory, setSavingHireSubcategory] = useState(false);
@@ -517,10 +568,12 @@ const AdminNavigationPage = () => {
         title: category.title || '',
         slug: category.slug || '',
         description: category.description || '',
+        sortOrder: category.sortOrder ?? 0,
+        isActive: category.isActive ?? true,
       });
     } else {
       setEditingHireCategoryId(null);
-      setHireCategoryForm({ title: '', slug: '', description: '' });
+      setHireCategoryForm({ title: '', slug: '', description: '', sortOrder: 0, isActive: true });
     }
     setHireCategoryError('');
     setHireCategoryDialogOpen(true);
@@ -536,6 +589,10 @@ const AdminNavigationPage = () => {
     const trimmedTitle = hireCategoryForm.title.trim();
     const normalizedSlug = slugify(hireCategoryForm.slug || trimmedTitle);
     const description = hireCategoryForm.description.trim();
+    const sortOrder = Number.isFinite(Number(hireCategoryForm.sortOrder))
+      ? Number(hireCategoryForm.sortOrder)
+      : 0;
+    const isActive = Boolean(hireCategoryForm.isActive);
 
     if (!trimmedTitle) {
       setHireCategoryError('Category title is required.');
@@ -571,6 +628,8 @@ const AdminNavigationPage = () => {
             title: trimmedTitle,
             description: description || null,
             slug: normalizedSlug,
+            sortOrder,
+            isActive,
           }),
         }
       );
@@ -656,7 +715,7 @@ const AdminNavigationPage = () => {
   const openSubcategoryDialog = (category) => {
     setActiveHireCategoryId(category.id);
     setEditingHireSubcategoryId(null);
-    setHireSubcategoryForm({ title: '', slug: '', description: '' });
+    setHireSubcategoryForm({ title: '', slug: '', description: '', sortOrder: 0, isActive: true });
     setHireSubcategoryError('');
     setSubcategoryDialogOpen(true);
   };
@@ -672,6 +731,10 @@ const AdminNavigationPage = () => {
     const trimmedTitle = hireSubcategoryForm.title.trim();
     const normalizedSlug = slugify(hireSubcategoryForm.slug || trimmedTitle);
     const description = hireSubcategoryForm.description.trim();
+    const sortOrder = Number.isFinite(Number(hireSubcategoryForm.sortOrder))
+      ? Number(hireSubcategoryForm.sortOrder)
+      : 0;
+    const isActive = Boolean(hireSubcategoryForm.isActive);
 
     if (!trimmedTitle) {
       setHireSubcategoryError('Sub-category title is required.');
@@ -708,6 +771,8 @@ const AdminNavigationPage = () => {
             description: description || null,
             slug: normalizedSlug,
             hireCategoryId: activeHireCategory.id,
+            sortOrder,
+            isActive,
           }),
         }
       );
@@ -740,7 +805,13 @@ const AdminNavigationPage = () => {
         })
       );
 
-      setHireSubcategoryForm({ title: '', slug: '', description: '' });
+      setHireSubcategoryForm({
+        title: '',
+        slug: '',
+        description: '',
+        sortOrder: 0,
+        isActive: true,
+      });
       setEditingHireSubcategoryId(null);
       setHireSubcategoryError('');
     } catch (error) {
@@ -757,6 +828,8 @@ const AdminNavigationPage = () => {
       title: subcategory.title || '',
       slug: subcategory.slug || '',
       description: subcategory.description || '',
+      sortOrder: subcategory.sortOrder ?? 0,
+      isActive: subcategory.isActive ?? true,
     });
     setHireSubcategoryError('');
   };
@@ -1222,6 +1295,33 @@ const AdminNavigationPage = () => {
               multiline
               minRows={3}
             />
+            <AppTextField
+              label="Sort order"
+              type="number"
+              value={categoryForm.sortOrder}
+              onChange={(event) =>
+                setCategoryForm((prev) => ({
+                  ...prev,
+                  sortOrder: event.target.value,
+                }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+            <FormControlLabel
+              control={
+                <AppCheckbox
+                  checked={Boolean(categoryForm.isActive)}
+                  onChange={(event) =>
+                    setCategoryForm((prev) => ({
+                      ...prev,
+                      isActive: event.target.checked,
+                    }))
+                  }
+                />
+              }
+              label="Active"
+            />
             {categoryDialogError && (
               <Typography color="error" variant="body2">
                 {categoryDialogError}
@@ -1298,6 +1398,33 @@ const AdminNavigationPage = () => {
               fullWidth
               multiline
               minRows={3}
+            />
+            <AppTextField
+              label="Sort order"
+              type="number"
+              value={subForm.sortOrder}
+              onChange={(event) =>
+                setSubForm((prev) => ({
+                  ...prev,
+                  sortOrder: event.target.value,
+                }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+            <FormControlLabel
+              control={
+                <AppCheckbox
+                  checked={Boolean(subForm.isActive)}
+                  onChange={(event) =>
+                    setSubForm((prev) => ({
+                      ...prev,
+                      isActive: event.target.checked,
+                    }))
+                  }
+                />
+              }
+              label="Active"
             />
             {subDialogError && (
               <Typography color="error" variant="body2">
@@ -1393,6 +1520,33 @@ const AdminNavigationPage = () => {
               minRows={3}
               placeholder="Optional description for the category"
             />
+            <AppTextField
+              label="Sort order"
+              type="number"
+              value={hireCategoryForm.sortOrder}
+              onChange={(event) =>
+                setHireCategoryForm((prev) => ({
+                  ...prev,
+                  sortOrder: event.target.value,
+                }))
+              }
+              fullWidth
+              inputProps={{ min: 0 }}
+            />
+            <FormControlLabel
+              control={
+                <AppCheckbox
+                  checked={Boolean(hireCategoryForm.isActive)}
+                  onChange={(event) =>
+                    setHireCategoryForm((prev) => ({
+                      ...prev,
+                      isActive: event.target.checked,
+                    }))
+                  }
+                />
+              }
+              label="Active"
+            />
           </Stack>
         </AppDialogContent>
         <AppDialogActions>
@@ -1460,6 +1614,33 @@ const AdminNavigationPage = () => {
                 multiline
                 minRows={3}
                 placeholder="Optional description"
+              />
+              <AppTextField
+                label="Sort order"
+                type="number"
+                value={hireSubcategoryForm.sortOrder}
+                onChange={(event) =>
+                  setHireSubcategoryForm((prev) => ({
+                    ...prev,
+                    sortOrder: event.target.value,
+                  }))
+                }
+                fullWidth
+                inputProps={{ min: 0 }}
+              />
+              <FormControlLabel
+                control={
+                  <AppCheckbox
+                    checked={Boolean(hireSubcategoryForm.isActive)}
+                    onChange={(event) =>
+                      setHireSubcategoryForm((prev) => ({
+                        ...prev,
+                        isActive: event.target.checked,
+                      }))
+                    }
+                  />
+                }
+                label="Active"
               />
 
               <Stack direction="row" justifyContent="flex-end">
