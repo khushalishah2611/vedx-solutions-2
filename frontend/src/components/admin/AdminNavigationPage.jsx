@@ -943,9 +943,22 @@ const AdminNavigationPage = () => {
                             </Stack>
                           }
                           secondary={
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {category.description}
-                            </Typography>
+                            <Stack spacing={0.5}>
+                              <Typography variant="body2" color="text.secondary" noWrap>
+                                {category.description}
+                              </Typography>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Typography variant="caption" color="text.secondary">
+                                  Sort: {category.sortOrder}
+                                </Typography>
+                                <Chip
+                                  size="small"
+                                  variant="outlined"
+                                  color={category.isActive ? 'success' : 'default'}
+                                  label={category.isActive ? 'Active' : 'Inactive'}
+                                />
+                              </Stack>
+                            </Stack>
                           }
                         />
                         <Stack direction="row" spacing={1}>
@@ -1028,8 +1041,6 @@ const AdminNavigationPage = () => {
                       Category description
                     </Typography>
                     <Typography variant="body1">{selectedCategory.description}</Typography>
-
-
                   </Stack>
 
                   <Divider />
@@ -1040,6 +1051,8 @@ const AdminNavigationPage = () => {
                         <TableRow>
                           <TableCell>Sub-category</TableCell>
                           <TableCell>Description</TableCell>
+                          <TableCell>Sort</TableCell>
+                          <TableCell>Active</TableCell>
                           <TableCell width={120} align="right">
                             Actions
                           </TableCell>
@@ -1061,6 +1074,19 @@ const AdminNavigationPage = () => {
                               <Typography variant="body2" color="text.secondary" noWrap>
                                 {subcategory.description || 'No description'}
                               </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {subcategory.sortOrder}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                size="small"
+                                variant="outlined"
+                                color={subcategory.isActive ? 'success' : 'default'}
+                                label={subcategory.isActive ? 'Active' : 'Inactive'}
+                              />
                             </TableCell>
                             <TableCell align="right">
                               <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -1088,7 +1114,7 @@ const AdminNavigationPage = () => {
                         ))}
                         {selectedCategory.subcategories.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={3}>
+                            <TableCell colSpan={5}>
                               <Typography
                                 variant="body2"
                                 color="text.secondary"
@@ -1165,6 +1191,8 @@ const AdminNavigationPage = () => {
                 <TableRow>
                   <TableCell>Category</TableCell>
                   <TableCell>Description</TableCell>
+                  <TableCell>Sort</TableCell>
+                  <TableCell>Active</TableCell>
                   <TableCell>Sub-categories</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
@@ -1182,6 +1210,19 @@ const AdminNavigationPage = () => {
                       <Typography variant="body2" color="text.secondary" noWrap>
                         {category.description || '-'}
                       </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {category.sortOrder}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        color={category.isActive ? 'success' : 'default'}
+                        label={category.isActive ? 'Active' : 'Inactive'}
+                      />
                     </TableCell>
                     <TableCell sx={{ maxWidth: 360 }}>
                       {category.subcategories.length ? (
@@ -1223,7 +1264,7 @@ const AdminNavigationPage = () => {
                 ))}
                 {!loadingHireCategories && !hireCategories.length && (
                   <TableRow>
-                    <TableCell colSpan={4}>
+                    <TableCell colSpan={6}>
                       <Typography variant="body2" color="text.secondary" align="center">
                         No hire categories configured yet.
                       </Typography>
@@ -1232,7 +1273,7 @@ const AdminNavigationPage = () => {
                 )}
                 {loadingHireCategories && (
                   <TableRow>
-                    <TableCell colSpan={4}>
+                    <TableCell colSpan={6}>
                       <Typography variant="body2" color="text.secondary" align="center">
                         Loading hire categories...
                       </Typography>
@@ -1659,6 +1700,8 @@ const AdminNavigationPage = () => {
                     <TableCell>Title</TableCell>
                     <TableCell>Slug</TableCell>
                     <TableCell>Description</TableCell>
+                    <TableCell>Sort</TableCell>
+                    <TableCell>Active</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -1671,6 +1714,19 @@ const AdminNavigationPage = () => {
                         <Typography variant="body2" color="text.secondary" noWrap>
                           {subcategory.description || '-'}
                         </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {subcategory.sortOrder}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          color={subcategory.isActive ? 'success' : 'default'}
+                          label={subcategory.isActive ? 'Active' : 'Inactive'}
+                        />
                       </TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -1697,7 +1753,7 @@ const AdminNavigationPage = () => {
                   ))}
                   {!activeHireCategory.subcategories.length && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No sub-categories yet.
                         </Typography>
