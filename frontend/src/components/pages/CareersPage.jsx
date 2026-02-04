@@ -18,7 +18,7 @@ import {
   CareerJourneySection,
   CareerOpenRolesSection,
   CareerStorySection,
-  CareerTrustedSection
+  // CareerTrustedSection
 } from '../sections/careerspage/index.js';
 
 const CareersPage = () => {
@@ -243,13 +243,13 @@ const CareersPage = () => {
             description={benefitsContent.description}
           />
         </Box>
-        <Box my={10}>
+        {/* <Box my={10}>
           <CareerTrustedSection
             logos={technologyContent.items}
             title={technologyContent.title}
             description={technologyContent.description}
           />
-        </Box>
+        </Box> */}
         <Divider sx={{ borderColor: dividerColor }} />
         <Box my={10}>
           <CareerJourneySection
