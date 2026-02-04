@@ -16,33 +16,36 @@ import { apiUrl } from "../../../utils/const.js";
 const norm = (v) => String(v || "").trim().toLowerCase();
 const safeStr = (v) => String(v ?? "").trim();
 
+/** ✅ Works if apiUrl is string OR function */
+const buildApiUrl = (path = "") => {
+  const p = String(path || "");
+
+  // apiUrl function (your current style)
+  if (typeof apiUrl === "function") return apiUrl(p);
+
+  // apiUrl string base URL (common style)
+  const base = String(apiUrl || "").replace(/\/+$/, "");
+  const clean = p.startsWith("/") ? p : `/${p}`;
+  return `${base}${clean}`;
+};
+
 /** ✅ make image absolute if backend gives relative path */
 const toAbsMaybe = (url) => {
   const u = safeStr(url);
   if (!u) return "";
-  if (/^https?:\/\//i.test(u)) return u; // already absolute
-  if (u.startsWith("data:")) return u; // data url (base64)
-  return apiUrl(u.startsWith("/") ? u : `/${u}`); // make absolute
+  if (/^https?:\/\//i.test(u)) return u;
+  if (u.startsWith("data:")) return u;
+  return buildApiUrl(u.startsWith("/") ? u : `/${u}`);
 };
 
+/** ✅ Removed bullet parsing logic as requested */
 const splitHighlightsFromDescription = (text) => {
   const raw = String(text || "").trim();
   if (!raw) return [];
 
-  const lines = raw
-    .replace(/\r/g, "")
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  const bulletLines = lines
-    .map((l) => l.replace(/^(\*|-|•)\s+/, "").trim())
-    .filter((_, i) => /^(\*|-|•)\s+/.test(lines[i]));
-
-  if (bulletLines.length) return bulletLines;
-
   return raw
-    .split(/(?:\n{2,}|•|\*)/g)
+    .replace(/\r/g, "")
+    .split(/(?:\n{2,})/g) // split by paragraph breaks
     .map((s) => s.trim())
     .filter(Boolean)
     .slice(0, 10);
@@ -78,7 +81,6 @@ const normalizeHireServicesResponse = (data) => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
 
-  // unwrap common wrappers like { success:true, data:{...} }
   const root =
     data?.data && typeof data.data === "object" && !Array.isArray(data.data)
       ? data.data
@@ -137,11 +139,22 @@ function FullStackDeveloper({
           params.toString() ? `?${params.toString()}` : ""
         }`;
 
-        const res = await fetch(apiUrl(url), { signal: controller.signal });
-        const json = await res.json().catch(() => null);
+        const res = await fetch(buildApiUrl(url), { signal: controller.signal });
+
+        // if server returns non-json sometimes, handle safely
+        const text = await res.text();
+        const json = (() => {
+          try {
+            return text ? JSON.parse(text) : null;
+          } catch {
+            return null;
+          }
+        })();
 
         if (!res.ok) {
-          throw new Error(json?.error || json?.message || "Failed to load hire-services");
+          throw new Error(
+            json?.error || json?.message || `Failed to load hire-services (${res.status})`
+          );
         }
 
         const list = normalizeHireServicesResponse(json);
@@ -149,17 +162,21 @@ function FullStackDeveloper({
         const match =
           list.find((it) => {
             const cOk = category ? norm(it?.category) === norm(category) : true;
-            const sOk = subcategory ? norm(it?.subcategory) === norm(subcategory) : true;
+            const sOk = subcategory
+              ? norm(it?.subcategory) === norm(subcategory)
+              : true;
             return cOk && sOk;
           }) || list[0];
 
-        if (!match) return;
+        if (!match) {
+          setError("No matching hire-service found.");
+          return;
+        }
 
         setApiTitle(safeStr(match?.title));
         setApiDesc(safeStr(match?.description));
         setApiImage(safeStr(match?.image));
 
-        // highlights from array OR fallback from description
         const fromArr = Array.isArray(match?.highlights)
           ? match.highlights
               .map((x) => (typeof x === "string" ? x : x?.title || x?.text))
@@ -207,15 +224,37 @@ function FullStackDeveloper({
   }, [category, subcategory]);
 
   const hasAnyContent =
-    !!resolvedTitle || !!resolvedDesc || !!resolvedImage || resolvedHighlights.length > 0;
+    !!resolvedTitle ||
+    !!resolvedDesc ||
+    !!resolvedImage ||
+    resolvedHighlights.length > 0;
 
-  // if nothing + loading then show loader block
+  // ✅ Loader
   if (!hasAnyContent && loading) {
     return (
       <Box component="section" sx={{ py: 4 }}>
         <Stack alignItems="center" justifyContent="center" sx={{ minHeight: 180 }}>
           <CircularProgress />
         </Stack>
+      </Box>
+    );
+  }
+
+  // ✅ Show error instead of blank
+  if (!hasAnyContent && error) {
+    return (
+      <Box component="section" sx={{ py: 4 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2,
+            borderRadius: 1,
+            border: `1px solid ${alpha(theme.palette.divider, 0.35)}`,
+          }}
+        >
+          <Typography fontWeight={700}>Section load failed</Typography>
+          <Typography sx={{ mt: 0.5, color: "error.main" }}>{error}</Typography>
+        </Paper>
       </Box>
     );
   }
@@ -271,7 +310,18 @@ function FullStackDeveloper({
                 </Typography>
               )}
 
-          
+              {/* (Optional) If you want highlights to show, uncomment this
+              {!!resolvedHighlights.length && (
+                <Stack spacing={1}>
+                  {resolvedHighlights.map((h, i) => (
+                    <Typography key={i} sx={{ color: alpha("#fff", isDark ? 0.85 : 0.75) }}>
+                      • {safeStr(h)}
+                    </Typography>
+                  ))}
+                </Stack>
+              )}
+              */}
+
               <AppButton
                 variant="contained"
                 size="large"

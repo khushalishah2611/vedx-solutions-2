@@ -20,7 +20,7 @@ const CareerBenefitsSection = ({
           {title}
         </Typography>
 
-        <Typography variant="body1" sx={{ color: subtleText, maxWidth: 760, lineHeight: 1.7 }}>
+        <Typography variant="body1" sx={{ color: subtleText, lineHeight: 1.7 }}>
           {description}
         </Typography>
       </Stack>
