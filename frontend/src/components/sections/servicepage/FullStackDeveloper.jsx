@@ -192,8 +192,7 @@ function FullStackDeveloper({
                   borderRadius: "10px",
                   fontWeight: 700,
                   textTransform: "none",
-                  background:
-                    "linear-gradient(90deg,#6366f1,#a855f7)",
+                   background: 'linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)',
                 }}
               >
                 Hire {subcategory || category || "Expert"}
