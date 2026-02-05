@@ -157,6 +157,10 @@ const ServicesCTA = ({
   const hasContent = Boolean(title || description);
 
   const bannerMinHeight = { xs: 200, sm: 220, md: 250, lg: 270 };
+  const descriptionColor = alpha(
+    isDark ? "#fff" : theme.palette.text.primary,
+    isDark ? 0.82 : 0.78
+  );
 
   return (
     <Box component="section" id="contact-section" sx={{ mt: { xs: 6, md: 8 } }}>
@@ -238,7 +242,7 @@ const ServicesCTA = ({
                 {looksLikeHtml(description) ? (
                   <Box
                     sx={{
-                      color: alpha(isDark ? "#fff" : theme.palette.text.primary, 0.82),
+                      color: descriptionColor,
                       "& p": { m: 0, mb: 1.1 },
                       "& ul, & ol": { m: 0, pl: 2.5 },
                       "& li": { mb: 0.5 },
@@ -251,10 +255,11 @@ const ServicesCTA = ({
                       <Typography
                         variant="body1"
                         sx={{
-                          color: alpha(isDark ? "#fff" : theme.palette.text.primary, 0.82),
+                          color: descriptionColor,
                           maxWidth: 820,
                           whiteSpace: "pre-line",
                           lineHeight: 1.65,
+                          fontWeight: 500,
                         }}
                       >
                         {paragraphs}
@@ -268,8 +273,9 @@ const ServicesCTA = ({
                             key={`${idx}-${b}`}
                             variant="body1"
                             sx={{
-                              color: alpha(isDark ? "#fff" : theme.palette.text.primary, 0.9),
+                              color: descriptionColor,
                               lineHeight: 1.55,
+                              fontWeight: 500,
                             }}
                           >
                             {"* "}

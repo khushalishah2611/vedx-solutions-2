@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -73,6 +74,7 @@ const ContactPage = () => {
 
   const { fetchWithLoading } = useLoadingFetch();
   const { banner } = useBannerByType("contact");
+  const [searchParams] = useSearchParams();
 
   const heroImage = String(
     banner?.image 
@@ -94,6 +96,9 @@ const ContactPage = () => {
   const [statusMessage, setStatusMessage] = useState("");
   const [statusSeverity, setStatusSeverity] = useState("success");
   const [submitting, setSubmitting] = useState(false);
+  const contactTypeParam = searchParams.get("contactType") || "Contact";
+  const projectTypeParam = searchParams.get("projectType") || "";
+  const planParam = searchParams.get("plan") || "";
 
   useEffect(() => {
     let isMounted = true;
@@ -122,6 +127,19 @@ const ContactPage = () => {
       isMounted = false;
     };
   }, [fetchWithLoading]);
+
+  useEffect(() => {
+    if (!projectTypeParam) return;
+    setProjectTypes((prev) => {
+      if (prev.includes(projectTypeParam)) return prev;
+      return [...prev, projectTypeParam];
+    });
+    setFormValues((prev) => ({
+      ...prev,
+      projectType: projectTypeParam,
+      description: prev.description || (planParam ? `Plan: ${planParam}` : ""),
+    }));
+  }, [planParam, projectTypeParam]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -161,7 +179,7 @@ const ContactPage = () => {
           phone: formValues.phone,
           projectType: formValues.projectType,
           description: formValues.description,
-          contactType: "Contact",
+          contactType: contactTypeParam,
         }),
       });
 
