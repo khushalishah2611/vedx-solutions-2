@@ -14,7 +14,7 @@ import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import { megaMenuContent, navigationLinks } from '../../data/content.js';
 import { ColorModeContext } from '../../contexts/ColorModeContext.jsx';
 import { Link as RouterLink } from 'react-router-dom';
-import { createAnchorHref } from '../../utils/formatters.js';
+import { createAnchorHref, createSlug } from '../../utils/formatters.js';
 import { useContactDialog } from '../../contexts/ContactDialogContext.jsx';
 import { useServiceHireCatalog } from '../../hooks/useServiceHireCatalog.js';
 
@@ -156,6 +156,11 @@ const NavigationBar = () => {
   const handleServiceClose = () => setServiceAnchor(null);
   const handleHireClose = () => setHireAnchor(null);
   const handleAboutClose = () => setAboutAnchor(null);
+  const closeAllDesktopMenus = () => {
+    setServiceAnchor(null);
+    setHireAnchor(null);
+    setAboutAnchor(null);
+  };
 
   const toggleDrawerMenu = (key) => () =>
     setExpandedMenus((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -382,10 +387,16 @@ const NavigationBar = () => {
                 {activeCategory?.subItems?.map((item) => {
                   const isObject = typeof item === 'object' && item !== null;
                   const label = isObject ? item.label : item;
-                  const href =
-                    isObject && item.href
-                      ? item.href
+                  const resolvedHref = isObject && item.href ? item.href : '';
+                  const baseHref =
+                    activeCategory?.href || activeCategoryHref || '/services';
+                  const basePath = baseHref.split('#')[0];
+                  const fallbackHref = basePath.startsWith('/services/')
+                    ? `${basePath}/${createSlug(label)}`
+                    : basePath.startsWith('/hire-developers/')
+                      ? `${basePath}/${createSlug(label)}`
                       : `/services${createAnchorHref(label)}`;
+                  const href = resolvedHref || fallbackHref;
                   const isRouteLink = href.startsWith('/');
                   const linkProps = isRouteLink
                     ? { component: RouterLink, to: href }
@@ -616,6 +627,9 @@ const NavigationBar = () => {
                   to={item.path}
                   color="inherit"
                   sx={desktopLinkSx}
+                  onMouseEnter={closeAllDesktopMenus}
+                  onFocus={closeAllDesktopMenus}
+                  onClick={closeAllDesktopMenus}
                 >
                   {item.label}
                 </AppButton>
@@ -875,10 +889,18 @@ const NavigationBar = () => {
                                     const isObject =
                                       typeof subItem === 'object' && subItem !== null;
                                     const label = isObject ? subItem.label : subItem;
-                                    const href =
-                                      isObject && subItem.href
-                                        ? subItem.href
+                                    const resolvedHref =
+                                      isObject && subItem.href ? subItem.href : '';
+                                    const baseHref =
+                                      category.href ??
+                                      `/services${createAnchorHref(category.label)}`;
+                                    const basePath = baseHref.split('#')[0];
+                                    const fallbackHref = basePath.startsWith('/services/')
+                                      ? `${basePath}/${createSlug(label)}`
+                                      : basePath.startsWith('/hire-developers/')
+                                        ? `${basePath}/${createSlug(label)}`
                                         : `/services${createAnchorHref(label)}`;
+                                    const href = resolvedHref || fallbackHref;
                                     const isRouteLink = href.startsWith('/');
                                     const linkProps = isRouteLink
                                       ? { component: RouterLink, to: href }

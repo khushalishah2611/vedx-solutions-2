@@ -11,6 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { AppButton } from "./FormControls.jsx";
+import { useNavigate } from "react-router-dom";
 
 import { apiUrl } from "../../utils/const.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
@@ -20,6 +21,7 @@ const PricingModels = () => {
   const isDark = theme.palette.mode === "dark";
   const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
   const { fetchWithLoading } = useLoadingFetch();
+  const navigate = useNavigate();
 
   const [apiPlans, setApiPlans] = useState([]);
   const [heroContent, setHeroContent] = useState({
@@ -129,6 +131,18 @@ const PricingModels = () => {
   const featureText = isDark
     ? alpha("#ffffff", 0.85)
     : alpha(theme.palette.text.primary, 0.78);
+
+  const handleBookTalent = (planTitle) => {
+    const projectType = "Hire Developer";
+    const params = new URLSearchParams({
+      projectType,
+      contactType: projectType,
+    });
+    if (planTitle) {
+      params.set("plan", planTitle);
+    }
+    navigate(`/contact?${params.toString()}`);
+  };
 
   return (
     <Box
@@ -334,6 +348,7 @@ const PricingModels = () => {
                     <AppButton
                       variant={isHighlighted ? "contained" : "outlined"}
                       color="inherit"
+                      onClick={() => handleBookTalent(plan.title)}
                       sx={{
                         mt: 2,
                         borderRadius: 0.5,
