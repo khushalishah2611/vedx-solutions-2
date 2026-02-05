@@ -24,7 +24,7 @@ import { useBannerByType } from '../../hooks/useBannerByType.js';
 import { apiUrl } from '../../utils/const.js';
 import { useLoadingFetch } from '../../hooks/useLoadingFetch.js';
 
-const POSTS_PER_PAGE = 4;
+const POSTS_PER_PAGE = 6;
 
 const BlogListPage = () => {
   const theme = useTheme();
@@ -510,7 +510,7 @@ const BlogListPage = () => {
                 )}
 
                 {/* PAGINATION – custom UI */}
-                {paginatedPosts.length > 0 && (
+                {filteredPosts.length > POSTS_PER_PAGE && (
                   <Stack alignItems="center" sx={{ mt: { xs: 4, md: 6 } }}>
                     <Pagination
                       count={totalPages}
