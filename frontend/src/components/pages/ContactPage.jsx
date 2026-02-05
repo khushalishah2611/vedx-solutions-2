@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Alert,
@@ -8,17 +8,12 @@ import {
   Container,
   Grid,
   MenuItem,
-  Rating,
   Stack,
   Typography,
   alpha,
   useTheme,
 } from "@mui/material";
-import {
-  AppButton,
-  AppSelectField,
-  AppTextField,
-} from "../shared/FormControls.jsx";
+import { AppButton, AppSelectField, AppTextField } from "../shared/FormControls.jsx";
 
 import PhoneInTalkRoundedIcon from "@mui/icons-material/PhoneInTalkRounded";
 import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
@@ -28,37 +23,46 @@ import { apiUrl } from "../../utils/const.js";
 import { useBannerByType } from "../../hooks/useBannerByType.js";
 import { useLoadingFetch } from "../../hooks/useLoadingFetch.js";
 
+/* ---------------- helpers ---------------- */
+const safeStr = (v) => (typeof v === "string" ? v.trim() : "");
 
-const contactProjectTypes = [
-
-];
-
-const createMapUrl = (address) =>
+const createMapSearchUrl = (address) =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
+const createDirectionsUrl = (addressOrLatLng) =>
+  `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    addressOrLatLng
+  )}`;
+
+// ✅ embed (no API key)
+const createEmbedUrl = (addressOrQuery) =>
+  `https://www.google.com/maps?q=${encodeURIComponent(addressOrQuery)}&output=embed`;
+
+/* ---------------- fallback project types ---------------- */
+const contactProjectTypes = [];
+
+/* ---------------- locations ---------------- */
 const contactLocations = [
   {
+    key: "vadodara",
     label: "Vadodara Office",
     address: "Vedx Solution Pvt Ltd, Vadodara, Gujarat, India",
-    lat: 22.3446425,
-    lng: 73.2147198,
-    mapUrl:
-      "https://www.google.com/maps/place/Vedx+solution+Pvt+ltd/@22.344642,73.21472,14z/data=!4m6!3m5!1s0x395fcdb58438851d:0x38a17515d716976!8m2!3d22.3446425!4d73.2147198!16s%2Fg%2F11x34kz_b1?hl=en-GB&entry=ttu",
-    get embedUrl() {
-      return `https://www.google.com/maps?q=${this.lat},${this.lng}&z=15&output=embed`;
-    },
-    get directionsUrl() {
-      return `https://www.google.com/maps/dir/?api=1&destination=${this.lat},${this.lng}`;
-    },
+    mapUrl: createMapSearchUrl("Vedx Solution Pvt Ltd, Vadodara, Gujarat, India"),
+    directionsUrl: createDirectionsUrl("Vedx Solution Pvt Ltd, Vadodara, Gujarat, India"),
+    embedUrl: createEmbedUrl("Vedx Solution Pvt Ltd, Vadodara, Gujarat, India"),
   },
   {
+    key: "ahmedabad",
     label: "Ahmedabad Office",
     address:
       "A-311, Titanium Business Park, Near Makarba Railway Crossing, B/H. Divya Bhaskar Press, Ahmedabad - 380051",
-    mapUrl: createMapUrl(
+    mapUrl: createMapSearchUrl(
       "A-311, Titanium Business Park, Near Makarba Railway Crossing, B/H. Divya Bhaskar Press, Ahmedabad - 380051"
     ),
-    directionsUrl: createMapUrl(
+    directionsUrl: createDirectionsUrl(
+      "A-311, Titanium Business Park, Near Makarba Railway Crossing, B/H. Divya Bhaskar Press, Ahmedabad - 380051"
+    ),
+    embedUrl: createEmbedUrl(
       "A-311, Titanium Business Park, Near Makarba Railway Crossing, B/H. Divya Bhaskar Press, Ahmedabad - 380051"
     ),
   },
@@ -66,15 +70,16 @@ const contactLocations = [
 
 const primaryLocation = contactLocations[0];
 
+/* ---------------- contact cards ---------------- */
 const contactDetails = [
   {
-    label: "India Phone Number",
+    label: "Indian",
     value: "+91 9099924828",
     icon: <PhoneInTalkRoundedIcon fontSize="large" />,
     href: "tel:+919099924828",
   },
   {
-    label: "USA Phone Number",
+    label: "USA",
     value: "+1 320396",
     icon: <PhoneInTalkRoundedIcon fontSize="large" />,
     href: "tel:+1320396",
@@ -111,11 +116,7 @@ const ContactPage = () => {
   const { banner } = useBannerByType("contact");
   const [searchParams] = useSearchParams();
 
-  const heroImage = String(
-    banner?.image 
-  ).trim();
-
-  // ✅ hero image check (for your snippet)
+  const heroImage = safeStr(banner?.image);
   const heroHasImage = Boolean(heroImage);
 
   const [projectTypes, setProjectTypes] = useState(contactProjectTypes);
@@ -131,9 +132,13 @@ const ContactPage = () => {
   const [statusMessage, setStatusMessage] = useState("");
   const [statusSeverity, setStatusSeverity] = useState("success");
   const [submitting, setSubmitting] = useState(false);
+
   const contactTypeParam = searchParams.get("contactType") || "Contact";
   const projectTypeParam = searchParams.get("projectType") || "";
   const planParam = searchParams.get("plan") || "";
+
+  // ✅ map location switch
+  const [selectedLocation, setSelectedLocation] = useState(primaryLocation);
 
   useEffect(() => {
     let isMounted = true;
@@ -142,18 +147,17 @@ const ContactPage = () => {
       try {
         const response = await fetchWithLoading(apiUrl("/api/project-types"));
         if (!response?.ok) throw new Error("Failed to fetch project types");
-        const payload = await response.json();
 
+        const payload = await response.json().catch(() => null);
         if (!isMounted) return;
 
         const types = (payload?.projectTypes || [])
-          .map((item) => item?.name)
+          .map((item) => safeStr(item?.name))
           .filter(Boolean);
 
         if (types.length > 0) setProjectTypes(types);
       } catch (error) {
         console.error("Failed to load project types", error);
-        // keep fallback list
       }
     };
 
@@ -165,10 +169,13 @@ const ContactPage = () => {
 
   useEffect(() => {
     if (!projectTypeParam) return;
+
     setProjectTypes((prev) => {
-      if (prev.includes(projectTypeParam)) return prev;
-      return [...prev, projectTypeParam];
+      const list = Array.isArray(prev) ? prev : [];
+      if (list.includes(projectTypeParam)) return list;
+      return [...list, projectTypeParam];
     });
+
     setFormValues((prev) => ({
       ...prev,
       projectType: projectTypeParam,
@@ -180,8 +187,8 @@ const ContactPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const resolvedProjectType = useMemo(
-    () => (Array.isArray(projectTypes) ? projectTypes?.[0] : "") || "",
+  const projectTypeOptions = useMemo(
+    () => (Array.isArray(projectTypes) ? projectTypes : []),
     [projectTypes]
   );
 
@@ -195,9 +202,7 @@ const ContactPage = () => {
     setStatusMessage("");
 
     const token = localStorage.getItem("adminToken");
-    const endpoint = token
-      ? "/api/admin/contacts"
-      : "/api/admin/contacts?public=true";
+    const endpoint = token ? "/api/admin/contacts" : "/api/admin/contacts?public=true";
 
     const headers = {
       "Content-Type": "application/json",
@@ -218,15 +223,8 @@ const ContactPage = () => {
         }),
       });
 
-      let payload = {};
-      try {
-        payload = await response.json();
-      } catch {
-        payload = {};
-      }
-
-      if (!response?.ok)
-        throw new Error(payload?.message || "Unable to submit request.");
+      const payload = await response.json().catch(() => ({}));
+      if (!response?.ok) throw new Error(payload?.message || "Unable to submit request.");
 
       setStatusSeverity("success");
       setStatusMessage(payload?.message || "Thanks! Your enquiry has been received.");
@@ -238,9 +236,6 @@ const ContactPage = () => {
         projectType: "",
         description: "",
       });
-
-      // keeps linter happy (you were using void earlier)
-      void resolvedProjectType;
     } catch (error) {
       setStatusSeverity("error");
       setStatusMessage(error?.message || "Unable to submit your enquiry right now.");
@@ -249,21 +244,22 @@ const ContactPage = () => {
     }
   };
 
+  const cardBorder = `1px solid ${alpha(isDark ? accentColor : theme.palette.primary.main, 0.3)}`;
+
   return (
     <Box component="main" sx={{ bgcolor: "background.default", overflowX: "hidden" }}>
-      {/* ✅ HERO Section (your new design) */}
+      {/* HERO */}
       <Box
         sx={{
           position: "relative",
           overflow: "hidden",
-          minHeight: { xs: "60vh", md: "70vh" },
+          minHeight: { xs: "54vh", md: "70vh" },
           display: "flex",
           alignItems: "center",
-          pb: { xs: 12, md: 14 },
-          pt: { xs: 14, md: 18 },
+          pb: { xs: 8, md: 14 },
+          pt: { xs: 12, md: 18 },
         }}
       >
-        {/* Background Image */}
         <Box
           sx={{
             position: "absolute",
@@ -277,8 +273,6 @@ const ContactPage = () => {
             filter: isDark ? "brightness(0.85)" : "brightness(0.7)",
           }}
         />
-
-        {/* Overlay */}
         <Box
           sx={{
             position: "absolute",
@@ -290,20 +284,19 @@ const ContactPage = () => {
           }}
         />
 
-        {/* Content */}
         <Container
           maxWidth={false}
           sx={{
             position: "relative",
             zIndex: 1,
-            px: { xs: 3, md: 20 },
+            px: { xs: 2, sm: 3, md: 12, lg: 20 },
           }}
         >
           <Stack spacing={2.5} alignItems={{ xs: "center", md: "flex-start" }}>
             <Typography
               variant="h1"
               sx={{
-                fontSize: { xs: 34, sm: 42, md: 56 },
+                fontSize: { xs: 30, sm: 42, md: 56 },
                 fontWeight: 800,
                 lineHeight: 1.1,
                 textAlign: { xs: "center", md: "left" },
@@ -318,12 +311,14 @@ const ContactPage = () => {
               sx={{
                 color: isDark ? alpha("#ffffff", 0.85) : alpha("#0f172a", 0.78),
                 maxWidth: 640,
-                fontSize: { xs: 14, md: 16 },
+                fontSize: { xs: 13.5, md: 16 },
+                lineHeight: 1.7,
                 textAlign: { xs: "center", md: "left" },
+                px: { xs: 1, sm: 0 },
               }}
             >
-              We are here to discuss your ideas, understand your challenges, and build
-              the next big thing together.
+              We are here to discuss your ideas, understand your challenges, and build the next big
+              thing together.
             </Typography>
           </Stack>
         </Container>
@@ -333,12 +328,15 @@ const ContactPage = () => {
       <Container
         id="contact"
         maxWidth={false}
-        sx={{ px: { xs: 3, md: 20 }, py: { xs: 6, md: 10 } }}
+        sx={{
+          px: { xs: 2, sm: 3, md: 12, lg: 20 },
+          py: { xs: 5, md: 10 },
+        }}
       >
-        <Box my={5}>
-          <Stack spacing={{ xs: 6, md: 10 }}>
+        <Box my={{ xs: 2, md: 5 }}>
+          <Stack spacing={{ xs: 5, md: 10 }}>
             {/* Section Title */}
-            <Stack spacing={3} alignItems="center">
+            <Stack spacing={2.5} alignItems="center">
               <Box
                 sx={{
                   display: "inline-flex",
@@ -346,18 +344,14 @@ const ContactPage = () => {
                   px: 2,
                   py: 1,
                   borderRadius: 0.5,
-                  border: `1px solid ${alpha("#ffffff", 0.1)}`,
-                  background: !isDark
-                    ? alpha("#ddddddff", 0.9)
-                    : alpha("#0000007c", 0.9),
-                  color: alpha(accentColor, 0.9),
+                  border: `1px solid ${alpha("#ffffff", isDark ? 0.12 : 0.15)}`,
+                  background: !isDark ? alpha("#ddddddff", 0.9) : alpha("#0000007c", 0.9),
                   fontWeight: 600,
                   letterSpacing: 1,
                   textTransform: "uppercase",
                   fontSize: 11,
                   lineHeight: 1.3,
                   width: "fit-content",
-                  mx: { xs: "auto", md: 0 },
                 }}
               >
                 <Box
@@ -377,85 +371,103 @@ const ContactPage = () => {
                 sx={{
                   textAlign: "center",
                   fontWeight: 700,
-                  fontSize: { xs: 26, sm: 30, md: 40 },
+                  fontSize: { xs: 22, sm: 30, md: 40 },
+                  lineHeight: 1.2,
                 }}
               >
                 Reach Out to Us @
               </Typography>
             </Stack>
 
-            {/* Contact Cards */}
-            <Grid spacing={2} container sx={{ p: { xs: 3, sm: 4 }, m: { xs: 0, md: 5 } }}>
-              {contactDetails.map((detail) => (
-                <Grid item xs={12} md={4} key={detail.label}>
-                  <Card
-                    sx={{
-                      height: "100%",
-                      borderRadius: 0.5,
-                      background: isDark
-                        ? "linear-gradient(160deg, #0f172a 0%, #111827 100%)"
-                        : "linear-gradient(160deg, #ffffff 0%, #f7f8ff 100%)",
-                      border: `1px solid ${alpha(
-                        isDark ? accentColor : theme.palette.primary.main,
-                        0.3
-                      )}`,
-                      boxShadow: isDark
-                        ? "0 18px 45px rgba(3, 7, 18, 0.65)"
-                        : "0 18px 45px rgba(14, 18, 68, 0.15)",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <CardContent>
-                      <Stack spacing={2} alignItems="center" textAlign="center">
-                        <Box
-                          sx={{
-                            width: 72,
-                            height: 72,
-                            borderRadius: "50%",
-                            display: "grid",
-                            placeItems: "center",
-                            background:
-                              "linear-gradient(135deg, #FF5E5E 0%, #A84DFF 100%)",
-                            color: "common.white",
-                          }}
-                        >
-                          {detail.icon}
-                        </Box>
+             <Grid spacing={2} container sx={{ p: { xs: 3, sm: 4 }, m: { xs: 0, md: 5 } }}>
+              {contactDetails.map((detail) => {
+                const isPhone = detail.label === "Indian" || detail.label === "USA";
+                const valueText = isPhone ? `${detail.label} - ${detail.value}` : detail.value;
 
-                        <Stack spacing={1}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                            {detail.label}
-                          </Typography>
-
-                          <Typography
-                            component="a"
-                            href={detail.href}
-                            target={detail.external ? "_blank" : undefined}
-                            rel={detail.external ? "noopener noreferrer" : undefined}
+                return (
+                  <Grid item xs={12} sm={6} md={4} key={detail.label} sx={{ display: "flex" }}>
+                    <Card
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: 0.5,
+                        background: isDark
+                          ? "linear-gradient(160deg, #0f172a 0%, #111827 100%)"
+                          : "linear-gradient(160deg, #ffffff 0%, #f7f8ff 100%)",
+                        border: cardBorder,
+                        boxShadow: isDark
+                          ? "0 18px 45px rgba(3, 7, 18, 0.65)"
+                          : "0 18px 45px rgba(14, 18, 68, 0.15)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <CardContent
+                        sx={{
+                          py: { xs: 2.5, md: 3 },
+                          px: { xs: 2.25, md: 3 }, // ✅ same left/right space on mobile
+                          height: "100%", // ✅ keep equal content area
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Stack spacing={1.75} alignItems="center" textAlign="center" sx={{ width: "100%" }}>
+                          <Box
                             sx={{
-                              fontSize: 18,
-                              fontWeight: 700,
-                              textDecoration: "none",
-                              color: "inherit",
-                              wordBreak: "break-word",
+                              width: { xs: 64, md: 72 },
+                              height: { xs: 64, md: 72 },
+                              borderRadius: "50%",
+                              display: "grid",
+                              placeItems: "center",
+                              background: "linear-gradient(135deg, #FF5E5E 0%, #A84DFF 100%)",
+                              color: "common.white",
+                              flexShrink: 0,
                             }}
                           >
-                            {detail.value}
-                          </Typography>
+                            {detail.icon}
+                          </Box>
+
+                          <Stack spacing={0.75} sx={{ width: "100%" }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                              {isPhone ? "Phone Number" : detail.label}
+                            </Typography>
+
+                            <Typography
+                              component="a"
+                              href={detail.href}
+                              target={detail.external ? "_blank" : undefined}
+                              rel={detail.external ? "noopener noreferrer" : undefined}
+                              sx={{
+                                fontSize: { xs: 15.5, md: 18 },
+                                fontWeight: 700,
+                                textDecoration: "none",
+                                color: "inherit",
+                                px: { xs: 1, sm: 0 },
+                                lineHeight: 1.35,
+                                wordBreak: isPhone ? "normal" : "break-word",
+                                whiteSpace: isPhone ? "nowrap" : "normal", // ✅ phone one line
+                                overflow: isPhone ? "hidden" : "visible",
+                                textOverflow: isPhone ? "ellipsis" : "clip",
+                              }}
+                            >
+                              {valueText}
+                            </Typography>
+                          </Stack>
                         </Stack>
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
             </Grid>
 
-            <Grid container spacing={{ xs: 4, md: 2 }}>
-              {/* Form column */}
+   
+           <Grid >
+          
               <Grid item xs={12} md={6}>
-                <Stack
+                 <Stack
                   spacing={3}
                   sx={{
                     height: "100%",
@@ -594,7 +606,7 @@ const ContactPage = () => {
 
               {/* Map column */}
               <Grid item xs={12} md={6}>
-                <Stack spacing={1.5}>
+              <Stack spacing={1.5}>
                   <Box
                     sx={{
                       position: "relative",
@@ -603,9 +615,9 @@ const ContactPage = () => {
                       boxShadow: isDark
                         ? "0 30px 60px rgba(3, 7, 18, 0.75)"
                         : "0 30px 45px rgba(15, 23, 42, 0.18)",
-                      height: { xs: 260, sm: 340, md: 520 },
+                      height: { xs: 280, sm: 360, md: 520 },
+                      minHeight: 260,
                       width: "100%",
-                      maxWidth: "100%",
                       border: `1px solid ${alpha(
                         isDark ? accentColor : theme.palette.primary.main,
                         0.22
@@ -614,8 +626,9 @@ const ContactPage = () => {
                   >
                     <Box
                       component="iframe"
-                      title="Vedx Solutions locations map"
-                      src={primaryLocation.embedUrl}
+                      key={selectedLocation.key} 
+                      title={`${selectedLocation.label} map`}
+                      src={selectedLocation.embedUrl}
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
                       allowFullScreen
@@ -626,121 +639,72 @@ const ContactPage = () => {
                         height: "100%",
                       }}
                     />
+                  </Box>
 
-                    <Box
+      
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                    <AppButton
+                      fullWidth
+                      variant="contained"
+                      onClick={() => setSelectedLocation(contactLocations[0])}
                       sx={{
-                        position: "absolute",
-                        top: 14,
-                        left: 14,
-                        width: { xs: "calc(100% - 28px)", sm: 360 },
-                        bgcolor: "common.white",
-                        borderRadius: 1,
-                        boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-                        p: 1.5,
+                        background:
+                          selectedLocation.key === "vadodara"
+                            ? "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)"
+                            : isDark
+                              ? alpha("#ffffff", 0.12)
+                              : alpha("#000", 0.08),
+                        color: selectedLocation.key === "vadodara" ? "#fff" : "inherit",
+                        textTransform: "none",
+                        fontWeight: 800,
+                        borderRadius: 0.5,
+                        transition: "all 200ms ease",
+                        py: 1.1,
+                        "&:hover": {
+                          background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                          color: "#fff",
+                          transform: "translateY(-1px)",
+                          boxShadow: isDark
+                            ? "0 14px 30px rgba(0,0,0,0.45)"
+                            : "0 14px 30px rgba(15,23,42,0.18)",
+                        },
+                        "&:active": { transform: "translateY(0px)" },
                       }}
                     >
-                      <Stack spacing={0.8}>
-                        <Stack
-                          direction="row"
-                          justifyContent="space-between"
-                          alignItems="flex-start"
-                          gap={2}
-                        >
-                          <Box>
-                            <Typography
-                              sx={{ fontWeight: 800, fontSize: 16, color: "#111827" }}
-                            >
-                              Vedx Solutions
-                            </Typography>
+                      Vadodara Directions
+                    </AppButton>
 
-                            <Typography
-                              sx={{
-                                fontSize: 12.5,
-                                color: "#374151",
-                                lineHeight: 1.4,
-                              }}
-                            >
-                              {primaryLocation.address}
-                            </Typography>
-                          </Box>
-
-                          <Box
-                            component="a"
-                            href={primaryLocation.directionsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ textDecoration: "none" }}
-                          >
-                            <Typography
-                              sx={{
-                                fontSize: 12.5,
-                                fontWeight: 700,
-                                color: "#2563eb",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              Directions
-                            </Typography>
-                          </Box>
-                        </Stack>
-
-                        <Stack spacing={1}>
-                          {contactLocations.map((location) => (
-                            <Box key={location.label}>
-                              <Typography
-                                sx={{
-                                  fontSize: 12.5,
-                                  fontWeight: 700,
-                                  color: "#111827",
-                                }}
-                              >
-                                {location.label}
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  fontSize: 12,
-                                  color: "#374151",
-                                  lineHeight: 1.4,
-                                }}
-                              >
-                                {location.address}
-                              </Typography>
-                              <Typography
-                                component="a"
-                                href={location.directionsUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                sx={{
-                                  display: "inline-block",
-                                  mt: 0.4,
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  color: "#2563eb",
-                                  textDecoration: "none",
-                                }}
-                              >
-                                Directions
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Stack>
-
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <Typography
-                            sx={{ fontSize: 12.5, fontWeight: 700, color: "#111827" }}
-                          >
-                            5.0
-                          </Typography>
-                          <Rating value={5} precision={0.5} readOnly size="small" />
-                          <Typography
-                            sx={{ fontSize: 12, color: "#2563eb", fontWeight: 700 }}
-                          >
-                            2 reviews
-                          </Typography>
-                        </Stack>
-                      </Stack>
-                    </Box>
-                  </Box>
+                    <AppButton
+                      fullWidth
+                      variant="contained"
+                      onClick={() => setSelectedLocation(contactLocations[1])}
+                      sx={{
+                        background:
+                          selectedLocation.key === "ahmedabad"
+                            ? "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)"
+                            : isDark
+                              ? alpha("#ffffff", 0.12)
+                              : alpha("#000", 0.08),
+                        color: selectedLocation.key === "ahmedabad" ? "#fff" : "inherit",
+                        textTransform: "none",
+                        fontWeight: 800,
+                        borderRadius: 0.5,
+                        transition: "all 200ms ease",
+                        py: 1.1,
+                        "&:hover": {
+                          background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                          color: "#fff",
+                          transform: "translateY(-1px)",
+                          boxShadow: isDark
+                            ? "0 14px 30px rgba(0,0,0,0.45)"
+                            : "0 14px 30px rgba(15,23,42,0.18)",
+                        },
+                        "&:active": { transform: "translateY(0px)" },
+                      }}
+                    >
+                      Ahmedabad Directions
+                    </AppButton>
+                  </Stack>
                 </Stack>
               </Grid>
             </Grid>
