@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Grid,
@@ -40,12 +40,20 @@ const resolveImg = (val) => {
   return "";
 };
 
+const toAbsMaybe = (url) => {
+  const u = safeStr(url);
+  if (!u) return "";
+  if (/^https?:\/\//i.test(u)) return u;
+  if (u.startsWith("data:")) return u; // base64 image support
+  return apiUrl(u.startsWith("/") ? u : `/${u}`);
+};
+
 const ServicesProcess = ({
   apiPath = "/api/service-processes",
   title = "Process",
   subtitle = "Slide through the journey or let it autoplay—hover to pause and take a closer look.",
   description = "We choreograph every step with cinematic animations—auto-playing slides, hover pauses, and directional controls—so you can explore our delivery rhythm without missing a beat.",
-  autoplayMs = 6500,
+  autoplayMs = 500, // ✅ milliseconds
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -54,7 +62,10 @@ const ServicesProcess = ({
   const [apiSteps, setApiSteps] = useState([]);
   const [error, setError] = useState("");
 
-  const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
+  // ✅ your requested icon colors
+  const leftColor = isDark ? "#67e8f9" : theme.palette.primary.main; // cyan / theme primary
+  const rightColor = "#a855f7"; // purple
+
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
   const dividerColor = alpha(theme.palette.divider, isDark ? 0.3 : 0.6);
 
@@ -67,10 +78,13 @@ const ServicesProcess = ({
     return 1;
   }, [isLgUp, isMdUp]);
 
-  // ✅ Page-based carousel (fixes the 5 items / 3-per-view bug)
+  // ✅ Page-based carousel
   const [page, setPage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [animationDirection, setAnimationDirection] = useState("right");
+
+  // ✅ optional: pause for a moment after manual click
+  const [manualPauseUntil, setManualPauseUntil] = useState(0);
 
   const resolvedSteps = useMemo(() => apiSteps ?? [], [apiSteps]);
   const total = resolvedSteps.length;
@@ -80,6 +94,17 @@ const ServicesProcess = ({
     return Math.ceil(total / stepsPerView);
   }, [total, stepsPerView]);
 
+  const showNavigation = totalPages > 1;
+
+  // keep page in range when responsive changes
+  useEffect(() => {
+    if (!totalPages) {
+      setPage(0);
+      return;
+    }
+    setPage((p) => Math.min(p, totalPages - 1));
+  }, [totalPages]);
+
   const startIndex = useMemo(() => page * stepsPerView, [page, stepsPerView]);
 
   const visibleSteps = useMemo(() => {
@@ -87,27 +112,18 @@ const ServicesProcess = ({
     return resolvedSteps.slice(startIndex, startIndex + stepsPerView);
   }, [resolvedSteps, startIndex, stepsPerView, total]);
 
-  const showNavigation = totalPages > 1;
-
-  // If screen size changes (stepsPerView changes), ensure page is valid
-  useEffect(() => {
-    if (!totalPages) {
-      setPage(0);
-      return;
-    }
-    setPage((p) => Math.min(p, totalPages - 1));
-  }, [totalPages, stepsPerView]);
-
   const handlePrev = useCallback(() => {
     if (!showNavigation) return;
     setAnimationDirection("left");
     setPage((p) => (p - 1 < 0 ? totalPages - 1 : p - 1));
+    setManualPauseUntil(Date.now() + 1200);
   }, [showNavigation, totalPages]);
 
   const handleNext = useCallback(() => {
     if (!showNavigation) return;
     setAnimationDirection("right");
     setPage((p) => (p + 1 >= totalPages ? 0 : p + 1));
+    setManualPauseUntil(Date.now() + 1200);
   }, [showNavigation, totalPages]);
 
   const pulseBorder = keyframes`
@@ -116,18 +132,40 @@ const ServicesProcess = ({
     100% { box-shadow: 0 0 0 0 rgba(103, 232, 249, 0); }
   `;
 
-  // 🌀 Auto-scroll with pause support
+  /* ✅ Better autoplay (setTimeout) */
+  const timerRef = useRef(null);
+
   useEffect(() => {
-    if (!showNavigation || isPaused) return undefined;
+    if (timerRef.current) clearTimeout(timerRef.current);
 
-    const t = setInterval(() => {
-      handleNext();
-    }, autoplayMs);
+    const ms = Number(autoplayMs);
+    const autoplayEnabled = Number.isFinite(ms) && ms > 0;
 
-    return () => clearInterval(t);
-  }, [handleNext, isPaused, showNavigation, autoplayMs]);
+    if (!autoplayEnabled) return;
+    if (!showNavigation) return;
+    if (isPaused) return;
 
-  // ✅ Load from API (NO category/subcategory, NO static fallback)
+    const now = Date.now();
+    if (manualPauseUntil > now) {
+      timerRef.current = setTimeout(() => {
+        setManualPauseUntil(0);
+      }, manualPauseUntil - now);
+      return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      };
+    }
+
+    timerRef.current = setTimeout(() => {
+      setAnimationDirection("right");
+      setPage((p) => (p + 1 >= totalPages ? 0 : p + 1));
+    }, ms);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [autoplayMs, showNavigation, isPaused, totalPages, manualPauseUntil]);
+
+  // ✅ Load from API
   useEffect(() => {
     let isMounted = true;
 
@@ -141,22 +179,23 @@ const ServicesProcess = ({
         const data = await response.json();
         if (!isMounted) return;
 
-        // Accept either array OR { data: [...] } OR { processes: [...] }
         const list = Array.isArray(data) ? data : data?.data || data?.processes || [];
 
         const mapped = (Array.isArray(list) ? list : [])
-          // NOTE: if your API uses "status" or something else, adjust here
           .filter((item) => item?.isActive ?? true)
           .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
-          .map((item) => ({
-            title: safeStr(item?.title) || "Step",
-            description: safeStr(item?.description),
-            image: resolveImg(item?.image),
-          }))
+          .map((item) => {
+            const img = resolveImg(item?.image);
+            return {
+              title: safeStr(item?.title) || "Step",
+              description: safeStr(item?.description),
+              image: img ? toAbsMaybe(img) : "",
+            };
+          })
           .filter((x) => x.title);
 
         setApiSteps(mapped);
-        setPage(0); // reset to first page on reload
+        setPage(0);
       } catch (e) {
         console.error("Failed to load process steps", e);
         if (!isMounted) return;
@@ -173,6 +212,23 @@ const ServicesProcess = ({
     };
   }, [apiPath, fetchWithLoading]);
 
+  // ✅ base nav button style (positioning/shape)
+  const navBtnBaseSx = useMemo(
+    () => ({
+      position: "absolute",
+      top: "50%",
+      transform: "translateY(-50%)",
+      zIndex: 5,
+      width: { xs: 42, md: 48 },
+      height: { xs: 42, md: 48 },
+      borderRadius: "50%",
+      backdropFilter: "blur(10px)",
+      boxShadow: `0 10px 26px ${alpha("#000", 0.35)}`,
+      transition: "all 0.3s ease",
+    }),
+    []
+  );
+
   return (
     <Box
       component="section"
@@ -181,10 +237,16 @@ const ServicesProcess = ({
       sx={{ py: { xs: 4, md: 6 } }}
     >
       {/* Section Header */}
-      <Stack spacing={3} sx={{ mb: 3, textAlign: "center", alignItems: "center" }}>
+      <Stack spacing={2.2} sx={{ mb: 3, textAlign: "center", alignItems: "center" }}>
         <Typography variant="h3" sx={{ fontSize: { xs: 32, md: 42 }, fontWeight: 700 }}>
           {title}
         </Typography>
+
+        {!!subtitle && (
+          <Typography variant="body1" sx={{ color: subtleText, maxWidth: 980 }}>
+            {subtitle}
+          </Typography>
+        )}
 
         <Typography variant="body1" sx={{ color: subtleText, maxWidth: 980 }}>
           {description}
@@ -206,6 +268,53 @@ const ServicesProcess = ({
         </Stack>
       ) : (
         <Stack sx={{ position: "relative" }}>
+          {/* ✅ LEFT/RIGHT arrows (your requested icon color styles) */}
+          {showNavigation && (
+            <>
+              <IconButton
+                aria-label="Previous steps"
+                onClick={handlePrev}
+                sx={{
+                  ...navBtnBaseSx,
+                  left: { xs: 6, md: -18 },
+                  border: `1px solid ${alpha(leftColor, 0.4)}`,
+                  background: alpha(leftColor, isDark ? 0.12 : 0.18),
+                  color: leftColor,
+                  "&:hover": {
+                    background: alpha(leftColor, isDark ? 0.2 : 0.28),
+                    transform: "translateY(-50%) translateX(-2px) scale(1.06)",
+                  },
+                  "&:active": {
+                    transform: "translateY(-50%) scale(0.98)",
+                  },
+                }}
+              >
+                <KeyboardArrowLeftRoundedIcon sx={{ fontSize: 28 }} />
+              </IconButton>
+
+              <IconButton
+                aria-label="Next steps"
+                onClick={handleNext}
+                sx={{
+                  ...navBtnBaseSx,
+                  right: { xs: 6, md: -18 },
+                  border: `1px solid ${alpha(rightColor, 0.45)}`,
+                  background: alpha(rightColor, isDark ? 0.14 : 0.2),
+                  color: rightColor,
+                  "&:hover": {
+                    background: alpha(rightColor, isDark ? 0.22 : 0.3),
+                    transform: "translateY(-50%) translateX(2px) scale(1.06)",
+                  },
+                  "&:active": {
+                    transform: "translateY(-50%) scale(0.98)",
+                  },
+                }}
+              >
+                <KeyboardArrowRightRoundedIcon sx={{ fontSize: 28 }} />
+              </IconButton>
+            </>
+          )}
+
           <Grid container spacing={2}>
             {visibleSteps.map((step, index) => (
               <Grid item xs={12} md={6} lg={4} key={`${step.title}-${startIndex + index}`}>
@@ -222,7 +331,7 @@ const ServicesProcess = ({
                     transition: "transform 0.5s ease, box-shadow 0.5s ease, border-color 0.45s ease",
                     "&:hover": {
                       transform: "translateY(-10px) scale(1.02)",
-                      borderColor: alpha(accentColor, isDark ? 0.9 : 0.8),
+                      borderColor: alpha(leftColor, isDark ? 0.9 : 0.8),
                     },
                   }}
                 >
@@ -231,7 +340,7 @@ const ServicesProcess = ({
                       position: "relative",
                       height: 300,
                       background: step.image ? `url(${step.image}) center/cover no-repeat` : "none",
-                      bgcolor: step.image ? "transparent" : alpha(accentColor, 0.12),
+                      bgcolor: step.image ? "transparent" : alpha(leftColor, 0.12),
                       isolation: "isolate",
                       "&::after": {
                         content: "''",
@@ -239,7 +348,7 @@ const ServicesProcess = ({
                         inset: 0,
                         background: `linear-gradient(${
                           animationDirection === "right" ? "90deg" : "-90deg"
-                        }, ${alpha(accentColor, 0.28)}, transparent 55%)`,
+                        }, ${alpha(leftColor, 0.28)}, transparent 55%)`,
                         mixBlendMode: "screen",
                         pointerEvents: "none",
                       },
@@ -291,59 +400,6 @@ const ServicesProcess = ({
               </Grid>
             ))}
           </Grid>
-
-          {showNavigation && (
-            <Stack
-              direction={{ xs: "column", md: "row" }}
-              spacing={1.5}
-              justifyContent="space-between"
-              alignItems={{ xs: "flex-start", md: "center" }}
-              sx={{ px: { xs: 1, md: 2 }, pt: 1 }}
-            >
-              <Stack spacing={0.25}>
-                <Typography variant="body2" sx={{ color: subtleText }}>
-                  {subtitle}
-                </Typography>
-               
-              </Stack>
-
-              <Stack direction="row" spacing={1}>
-                <IconButton
-                  aria-label="Previous steps"
-                  onClick={handlePrev}
-                  sx={{
-                    border: `1px solid ${alpha(accentColor, 0.4)}`,
-                    background: alpha(accentColor, isDark ? 0.12 : 0.18),
-                    color: accentColor,
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      background: alpha(accentColor, isDark ? 0.2 : 0.28),
-                      transform: "translateX(-2px) scale(1.02)",
-                    },
-                  }}
-                >
-                  <KeyboardArrowLeftRoundedIcon />
-                </IconButton>
-
-                <IconButton
-                  aria-label="Next steps"
-                  onClick={handleNext}
-                  sx={{
-                    border: `1px solid ${alpha("#a855f7", 0.45)}`,
-                    background: alpha("#a855f7", isDark ? 0.14 : 0.2),
-                    color: "#a855f7",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      background: alpha("#a855f7", isDark ? 0.22 : 0.3),
-                      transform: "translateX(2px) scale(1.02)",
-                    },
-                  }}
-                >
-                  <KeyboardArrowRightRoundedIcon />
-                </IconButton>
-              </Stack>
-            </Stack>
-          )}
         </Stack>
       )}
     </Box>
