@@ -10,8 +10,6 @@ const ServicesBlog = ({ showHeading = true, headingText = "Latest Blogs", posts,
   const [apiPosts, setApiPosts] = useState([]);
   const { fetchWithLoading } = useLoadingFetch();
 
-  // ✅ heading true = 4 cards, heading false = 3 cards
-  // ✅ limit prop overrides both
   const resolvedLimit = useMemo(() => {
     if (Number.isFinite(limit)) return limit;
     return showHeading ? 4 : 3;
@@ -21,7 +19,7 @@ const ServicesBlog = ({ showHeading = true, headingText = "Latest Blogs", posts,
     let isMounted = true;
 
     const loadLatestPosts = async () => {
-      // ✅ If posts already provided from parent, do not fetch
+
       if (posts?.length) return;
 
       try {
@@ -88,9 +86,7 @@ const ServicesBlog = ({ showHeading = true, headingText = "Latest Blogs", posts,
     return resolvedPosts.slice(0, resolvedLimit);
   }, [resolvedPosts, resolvedLimit]);
 
-  // ✅ Responsive grid: when heading false (3 cards),
-  // we show 3 cards nicely in one row on lg (4 columns each).
-  const lgCols = showHeading ? 3 : 4; // 12/3=4 cards, 12/4=3 cards
+  const lgCols = showHeading ? 3 : 4; 
 
   return (
     <Box component="section">
