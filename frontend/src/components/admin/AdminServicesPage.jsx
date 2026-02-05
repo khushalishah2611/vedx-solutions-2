@@ -350,6 +350,19 @@ const AdminServicesPage = () => {
   const [techSolutionForm, setTechSolutionForm] = useState(emptyTechSolutionForm);
   const [activeTechSolution, setActiveTechSolution] = useState(null);
   const [techSolutionToDelete, setTechSolutionToDelete] = useState(null);
+  const sortByOrderAndStatus = useCallback((a, b) => {
+    const activeA = Boolean(a?.isActive);
+    const activeB = Boolean(b?.isActive);
+    if (activeA !== activeB) return activeA ? -1 : 1;
+
+    const orderA = Number.isFinite(Number(a?.sortOrder)) ? Number(a.sortOrder) : 0;
+    const orderB = Number.isFinite(Number(b?.sortOrder)) ? Number(b.sortOrder) : 0;
+    if (orderA !== orderB) return orderA - orderB;
+
+    const labelA = String(a?.title || a?.name || a?.category || '').toLowerCase();
+    const labelB = String(b?.title || b?.name || b?.category || '').toLowerCase();
+    return labelA.localeCompare(labelB);
+  }, []);
 
   // ---------- Auth ----------
   const requireToken = useCallback(() => {
@@ -376,6 +389,7 @@ const AdminServicesPage = () => {
     (menu) => ({
       ...(menu || {}),
       createdAt: normalizeDate(menu?.createdAt),
+      category: menu?.category || menu?.categoryName || '',
       subcategories: menu?.subcategories || [],
       faqs: menu?.faqs || [],
       sortOrder: Number.isFinite(Number(menu?.sortOrder)) ? Number(menu?.sortOrder) : 0,
@@ -400,8 +414,8 @@ const AdminServicesPage = () => {
     (benefit) => ({
       ...(benefit || {}),
       benefitConfigId: benefit?.benefitConfigId ? String(benefit.benefitConfigId) : '',
-      category: benefit?.category || '',
-      subcategory: benefit?.subcategory || '',
+      category: benefit?.category || benefit?.categoryName || '',
+      subcategory: benefit?.subcategory || benefit?.subcategoryName || '',
       sortOrder: Number.isFinite(Number(benefit?.sortOrder)) ? Number(benefit?.sortOrder) : 0,
       isActive: benefit?.isActive ?? true,
     }),
@@ -427,8 +441,8 @@ const AdminServicesPage = () => {
       title: button?.title || '',
       description: button?.description || '',
       image: button?.image || imagePlaceholder,
-      category: button?.category || '',
-      subcategory: button?.subcategory || '',
+      category: button?.category || button?.categoryName || '',
+      subcategory: button?.subcategory || button?.subcategoryName || '',
       sortOrder: Number.isFinite(Number(button?.sortOrder)) ? Number(button?.sortOrder) : 0,
       isActive: button?.isActive ?? true,
     }),
@@ -458,7 +472,7 @@ const AdminServicesPage = () => {
     (process) => ({
       ...(process || {}),
       createdAt: normalizeDate(process?.createdAt),
-      subcategory: process?.subcategory || '',
+      subcategory: process?.subcategory || process?.subcategoryName || '',
       serviceId: process?.serviceId || '',
       sortOrder: Number.isFinite(Number(process?.sortOrder)) ? Number(process?.sortOrder) : 0,
       isActive: process?.isActive ?? true,
@@ -469,8 +483,8 @@ const AdminServicesPage = () => {
   const normalizeHireService = useCallback(
     (service) => ({
       ...(service || {}),
-      category: service?.category || '',
-      subcategory: service?.subcategory || '',
+      category: service?.category || service?.categoryName || '',
+      subcategory: service?.subcategory || service?.subcategoryName || '',
       sortOrder: Number.isFinite(Number(service?.sortOrder)) ? Number(service?.sortOrder) : 0,
       isActive: service?.isActive ?? true,
     }),
@@ -480,8 +494,8 @@ const AdminServicesPage = () => {
   const normalizeWhyService = useCallback(
     (service) => ({
       ...(service || {}),
-      category: service?.category || '',
-      subcategory: service?.subcategory || '',
+      category: service?.category || service?.categoryName || '',
+      subcategory: service?.subcategory || service?.subcategoryName || '',
       sortOrder: Number.isFinite(Number(service?.sortOrder)) ? Number(service?.sortOrder) : 0,
       isActive: service?.isActive ?? true,
     }),
@@ -982,7 +996,7 @@ const AdminServicesPage = () => {
 
   // ---------- FIXED FILTERS (Bug fix) ----------
   const filteredServices = useMemo(() => {
-    return services.filter((service) => {
+    const filtered = services.filter((service) => {
       const matchesCategory = categoryFilter ? service.category === categoryFilter : true;
       const matchesSubcategory = subcategoryFilter
         ? (service.subcategories || []).some((s) => s?.name === subcategoryFilter)
@@ -994,7 +1008,8 @@ const AdminServicesPage = () => {
         matchesSubcategory
       );
     });
-  }, [services, categoryFilter, subcategoryFilter, serviceDateFilter, serviceDateRange]);
+    return [...filtered].sort(sortByOrderAndStatus);
+  }, [services, categoryFilter, subcategoryFilter, serviceDateFilter, serviceDateRange, sortByOrderAndStatus]);
 
   useEffect(() => {
     setServicePage(1);
@@ -1024,7 +1039,7 @@ const AdminServicesPage = () => {
   }, [services]);
 
   const filteredProcesses = useMemo(() => {
-    return processList.filter((item) => {
+    const filtered = processList.filter((item) => {
       const linkedService = serviceLookupById.get(String(item.serviceId));
 
       const matchesCategory = categoryFilter ? linkedService?.category === categoryFilter : true;
@@ -1035,7 +1050,8 @@ const AdminServicesPage = () => {
 
       return matchesCategory && matchesSubcategory;
     });
-  }, [processList, serviceLookupById, categoryFilter, subcategoryFilter]);
+    return [...filtered].sort(sortByOrderAndStatus);
+  }, [processList, serviceLookupById, categoryFilter, subcategoryFilter, sortByOrderAndStatus]);
 
   useEffect(() => clampPage(setProcessPage, filteredProcesses.length, rowsPerPage), [filteredProcesses.length]);
 
@@ -1046,7 +1062,11 @@ const AdminServicesPage = () => {
 
   // Technologies tab should NOT be filtered
   const groupedTechnologies = useMemo(() => {
-    const sorted = [...technologies].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    const sorted = [...technologies].sort((a, b) => {
+      const order = sortByOrderAndStatus(a, b);
+      if (order !== 0) return order;
+      return (a.title || '').localeCompare(b.title || '');
+    });
     const groups = new Map();
     sorted.forEach((tech) => {
       const key = (tech?.title || '').trim() || 'Untitled';
@@ -1056,7 +1076,7 @@ const AdminServicesPage = () => {
     return Array.from(groups.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, items]) => ({ key, items }));
-  }, [technologies]);
+  }, [sortByOrderAndStatus, technologies]);
 
   // Why Vedx options
   const whyVedxOptions = useMemo(() => {
@@ -1088,26 +1108,32 @@ const AdminServicesPage = () => {
 
   const activeWhyVedxReasons = useMemo(() => {
     if (!selectedWhyVedxId) return whyVedxReasons;
-    return whyVedxReasons.filter((r) => String(r.whyVedxId) === String(selectedWhyVedxId));
-  }, [selectedWhyVedxId, whyVedxReasons]);
+    const filtered = whyVedxReasons.filter((r) => String(r.whyVedxId) === String(selectedWhyVedxId));
+    return [...filtered].sort(sortByOrderAndStatus);
+  }, [selectedWhyVedxId, sortByOrderAndStatus, whyVedxReasons]);
 
   useEffect(() => clampPage(setWhyVedxPage, activeWhyVedxReasons.length, rowsPerPage), [activeWhyVedxReasons.length]);
 
+  const sortedWhyServices = useMemo(() => {
+    return [...(whyChoose.services || [])].sort(sortByOrderAndStatus);
+  }, [sortByOrderAndStatus, whyChoose.services]);
+
   const pagedWhyServices = useMemo(() => {
     const start = (whyServicePage - 1) * rowsPerPage;
-    return (whyChoose.services || []).slice(start, start + rowsPerPage);
-  }, [whyChoose.services, whyServicePage]);
+    return sortedWhyServices.slice(start, start + rowsPerPage);
+  }, [sortedWhyServices, whyServicePage, rowsPerPage]);
 
-  useEffect(() => clampPage(setWhyServicePage, (whyChoose.services || []).length, rowsPerPage), [whyChoose.services]);
+  useEffect(() => clampPage(setWhyServicePage, sortedWhyServices.length, rowsPerPage), [sortedWhyServices.length]);
 
   // Hire services (filtered by main filters)
   const filteredHireServices = useMemo(() => {
-    return (hireContent.services || []).filter((service) => {
+    const filtered = (hireContent.services || []).filter((service) => {
       const matchesCategory = categoryFilter ? service.category === categoryFilter : true;
       const matchesSubcategory = subcategoryFilter ? service.subcategory === subcategoryFilter : true;
       return matchesCategory && matchesSubcategory;
     });
-  }, [hireContent.services, categoryFilter, subcategoryFilter]);
+    return [...filtered].sort(sortByOrderAndStatus);
+  }, [hireContent.services, categoryFilter, subcategoryFilter, sortByOrderAndStatus]);
 
   useEffect(() => clampPage(setHireServicePage, filteredHireServices.length, rowsPerPage), [filteredHireServices.length]);
 
@@ -1128,12 +1154,13 @@ const AdminServicesPage = () => {
 
   // Contact buttons
   const filteredContactButtons = useMemo(() => {
-    return (contactButtons || []).filter((button) => {
+    const filtered = (contactButtons || []).filter((button) => {
       const matchesCategory = contactCategoryFilter ? button.category === contactCategoryFilter : true;
       const matchesSubcategory = contactSubcategoryFilter ? button.subcategory === contactSubcategoryFilter : true;
       return matchesCategory && matchesSubcategory;
     });
-  }, [contactButtons, contactCategoryFilter, contactSubcategoryFilter]);
+    return [...filtered].sort(sortByOrderAndStatus);
+  }, [contactButtons, contactCategoryFilter, contactSubcategoryFilter, sortByOrderAndStatus]);
 
   useEffect(() => clampPage(setContactButtonPage, filteredContactButtons.length, rowsPerPage), [filteredContactButtons.length]);
 
@@ -1169,8 +1196,9 @@ const AdminServicesPage = () => {
 
   const visibleBenefits = useMemo(() => {
     if (!selectedBenefitConfigId) return [];
-    return benefits.filter((b) => String(b.benefitConfigId) === String(selectedBenefitConfigId));
-  }, [benefits, selectedBenefitConfigId]);
+    const filtered = benefits.filter((b) => String(b.benefitConfigId) === String(selectedBenefitConfigId));
+    return [...filtered].sort(sortByOrderAndStatus);
+  }, [benefits, selectedBenefitConfigId, sortByOrderAndStatus]);
 
   useEffect(() => clampPage(setBenefitPage, visibleBenefits.length, rowsPerPage), [visibleBenefits.length]);
 
@@ -2470,6 +2498,7 @@ const AdminServicesPage = () => {
           subcategoryFilter={subcategoryFilter}
           setSubcategoryFilter={setSubcategoryFilter}
           groupedHireServices={groupedHireServices}
+          filteredHireServices={filteredHireServices}
           hireContent={hireContent}
           rowsPerPage={rowsPerPage}
           hireServicePage={hireServicePage}

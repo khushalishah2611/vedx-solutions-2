@@ -656,6 +656,19 @@ const rowsPerPage = 20;
   const [contactButtonPage, setContactButtonPage] = useState(1);
   const [hireMasterCategories, setHireMasterCategories] = useState([]);
   const [hireMasterSubcategories, setHireMasterSubcategories] = useState([]);
+  const sortByOrderAndStatus = useCallback((a, b) => {
+    const activeA = Boolean(a?.isActive);
+    const activeB = Boolean(b?.isActive);
+    if (activeA !== activeB) return activeA ? -1 : 1;
+
+    const orderA = Number.isFinite(Number(a?.sortOrder)) ? Number(a.sortOrder) : 0;
+    const orderB = Number.isFinite(Number(b?.sortOrder)) ? Number(b.sortOrder) : 0;
+    if (orderA !== orderB) return orderA - orderB;
+
+    const labelA = String(a?.title || a?.name || a?.category || '').toLowerCase();
+    const labelB = String(b?.title || b?.name || b?.category || '').toLowerCase();
+    return labelA.localeCompare(labelB);
+  }, []);
 
   const requireToken = useCallback(() => {
     const token = localStorage.getItem('adminToken');
@@ -1454,8 +1467,8 @@ const rowsPerPage = 20;
   }, [allSubcategoryOptions, subcategoryLookup, technologyForm.category]);
 
   const filteredServices = useMemo(
-    () =>
-      services.filter((service) => {
+    () => {
+      const filtered = services.filter((service) => {
         const matchesCategory = serviceCategoryFilter
           ? service.category === serviceCategoryFilter
           : true;
@@ -1471,8 +1484,10 @@ const rowsPerPage = 20;
           matchesCategory &&
           matchesSubcategory
         );
-      }),
-    [serviceCategoryFilter, serviceDateFilter, serviceDateRange, serviceSubcategoryFilter, services]
+      });
+      return [...filtered].sort(sortByOrderAndStatus);
+    },
+    [serviceCategoryFilter, serviceDateFilter, serviceDateRange, serviceSubcategoryFilter, services, sortByOrderAndStatus]
   );
 
   const pagedServices = useMemo(() => {
@@ -1516,7 +1531,11 @@ const rowsPerPage = 20;
   }, [filteredServices.length, rowsPerPage]);
 
   const groupedTechnologies = useMemo(() => {
-    const sorted = [...technologies].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    const sorted = [...technologies].sort((a, b) => {
+      const order = sortByOrderAndStatus(a, b);
+      if (order !== 0) return order;
+      return (a.title || '').localeCompare(b.title || '');
+    });
     const groups = new Map();
     sorted.forEach((tech) => {
       const key = (tech?.title || '').trim() || 'Untitled';
@@ -1526,12 +1545,13 @@ const rowsPerPage = 20;
     return Array.from(groups.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, items]) => ({ key, items }));
-  }, [technologies]);
+  }, [sortByOrderAndStatus, technologies]);
 
   const visibleBenefits = useMemo(() => {
     if (!selectedBenefitConfigId) return [];
-    return benefits.filter((benefit) => String(benefit.benefitConfigId) === String(selectedBenefitConfigId));
-  }, [benefits, selectedBenefitConfigId]);
+    const filtered = benefits.filter((benefit) => String(benefit.benefitConfigId) === String(selectedBenefitConfigId));
+    return [...filtered].sort(sortByOrderAndStatus);
+  }, [benefits, selectedBenefitConfigId, sortByOrderAndStatus]);
 
   const pagedBenefits = useMemo(() => {
     const start = (benefitPage - 1) * rowsPerPage;
@@ -1555,8 +1575,8 @@ const rowsPerPage = 20;
 
   const pagedWhyServices = useMemo(() => {
     const start = (whyServicePage - 1) * rowsPerPage;
-    return whyChoose.services.slice(start, start + rowsPerPage);
-  }, [whyChoose.services, rowsPerPage, whyServicePage]);
+    return [...(whyChoose.services || [])].sort(sortByOrderAndStatus).slice(start, start + rowsPerPage);
+  }, [whyChoose.services, rowsPerPage, sortByOrderAndStatus, whyServicePage]);
 
   const pagedHirePricingPlans = useMemo(() => {
     const start = (hirePricingPage - 1) * rowsPerPage;
@@ -1564,12 +1584,21 @@ const rowsPerPage = 20;
   }, [hirePricing.plans, rowsPerPage, hirePricingPage]);
 
   const filteredContactButtons = useMemo(() => {
-    return (contactButtons || []).filter((button) => {
+    const filtered = (contactButtons || []).filter((button) => {
       const matchesCategory = contactCategoryFilter ? button.category === contactCategoryFilter : true;
       const matchesSubcategory = contactSubcategoryFilter ? button.subcategory === contactSubcategoryFilter : true;
       return matchesCategory && matchesSubcategory;
     });
-  }, [contactButtons, contactCategoryFilter, contactSubcategoryFilter]);
+    return [...filtered].sort(sortByOrderAndStatus);
+  }, [contactButtons, contactCategoryFilter, contactSubcategoryFilter, sortByOrderAndStatus]);
+
+  const sortedWhyVedxReasons = useMemo(() => {
+    return [...(whyVedxReasons || [])].sort(sortByOrderAndStatus);
+  }, [sortByOrderAndStatus, whyVedxReasons]);
+
+  const sortedProcessList = useMemo(() => {
+    return [...(processList || [])].sort(sortByOrderAndStatus);
+  }, [processList, sortByOrderAndStatus]);
 
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredContactButtons.length / rowsPerPage));
@@ -2891,7 +2920,7 @@ const rowsPerPage = 20;
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {processList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
+                  {sortedProcessList.slice((processPage - 1) * rowsPerPage, processPage * rowsPerPage).map((item) => (
                     <TableRow key={item.id} hover>
                       <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
                       <TableCell>
@@ -2925,7 +2954,7 @@ const rowsPerPage = 20;
                       </TableCell>
                     </TableRow>
                   ))}
-                  {processList.length === 0 && (
+                  {sortedProcessList.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
@@ -2939,7 +2968,7 @@ const rowsPerPage = 20;
             </TableContainer>
             <Stack mt={2} alignItems="flex-end">
               <Pagination
-                count={Math.max(1, Math.ceil(processList.length / rowsPerPage))}
+                count={Math.max(1, Math.ceil(sortedProcessList.length / rowsPerPage))}
                 page={processPage}
                 onChange={(event, page) => setProcessPage(page)}
                 color="primary"
@@ -2983,7 +3012,7 @@ const rowsPerPage = 20;
           whyVedxSubcategoryOptions={(whyVedxHeroForm.categoryId
             ? (subcategoryLookup.get(whyVedxHeroForm.categoryId) || []).map((value) => ({ value, label: value }))
             : allSubcategoryOptions.map((value) => ({ value, label: value })))}
-          activeWhyVedxReasons={whyVedxReasons}
+          activeWhyVedxReasons={sortedWhyVedxReasons}
           rowsPerPage={rowsPerPage}
           whyVedxPage={whyVedxPage}
           setWhyVedxPage={setWhyVedxPage}

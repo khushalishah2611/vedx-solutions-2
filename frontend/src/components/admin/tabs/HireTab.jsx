@@ -18,6 +18,7 @@ const HireTab = ({
   subcategoryFilter,
   setSubcategoryFilter,
   groupedHireServices,
+  filteredHireServices,
   hireContent,
   rowsPerPage,
   hireServicePage,
@@ -234,7 +235,7 @@ const HireTab = ({
 
           <Stack mt={2} alignItems="flex-end">
             <Pagination
-              count={Math.max(1, Math.ceil(hireContent.services.length / rowsPerPage))}
+              count={Math.max(1, Math.ceil(filteredHireServices.length / rowsPerPage))}
               page={hireServicePage}
               onChange={(event, page) => setHireServicePage(page)}
               color="primary"
@@ -262,6 +263,7 @@ HireTab.propTypes = {
   subcategoryFilter: PropTypes.string.isRequired,
   setSubcategoryFilter: PropTypes.func.isRequired,
   groupedHireServices: PropTypes.arrayOf(PropTypes.shape({ category: PropTypes.string, services: PropTypes.array })).isRequired,
+  filteredHireServices: PropTypes.arrayOf(PropTypes.object).isRequired,
   hireContent: PropTypes.shape({ services: PropTypes.array }).isRequired,
   rowsPerPage: PropTypes.number.isRequired,
   hireServicePage: PropTypes.number.isRequired,

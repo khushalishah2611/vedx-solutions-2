@@ -350,25 +350,25 @@ const ServicesTab = ({
                         </CardContent>
                       </Card>
                     ))}
-
-                    {filteredServices?.length === 0 && (
-                      <Typography variant="body2" color="text.secondary" align="center">
-                        No service categories yet. Click "Add service" to create your first entry.
-                      </Typography>
-                    )}
-                  </Stack>
-
-                  <Stack mt={2} alignItems="flex-end">
-                    <Pagination
-                      count={Math.max(1, Math.ceil((filteredServices?.length || 0) / rowsPerPage))}
-                      page={servicePage}
-                      onChange={(event, page) => setServicePage?.(page)}
-                      color="primary"
-                    />
                   </Stack>
                 </AccordionDetails>
               </Accordion>
             ))}
+
+            {filteredServices?.length === 0 && (
+              <Typography variant="body2" color="text.secondary" align="center">
+                No service categories yet. Click "Add service" to create your first entry.
+              </Typography>
+            )}
+          </Stack>
+
+          <Stack mt={2} alignItems="flex-end">
+            <Pagination
+              count={Math.max(1, Math.ceil((filteredServices?.length || 0) / rowsPerPage))}
+              page={servicePage}
+              onChange={(event, page) => setServicePage?.(page)}
+              color="primary"
+            />
           </Stack>
         </CardContent>
       </Card>
