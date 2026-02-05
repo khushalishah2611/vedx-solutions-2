@@ -6460,6 +6460,8 @@ const mapServiceMenuToResponse = (menu) => ({
   totalProjects: menu.totalProjects,
   totalClients: menu.totalClients,
   description: menu.description || '',
+  sortOrder: menu.sortOrder ?? 0,
+  isActive: menu.isActive ?? true,
   subcategories: menu.subcategories?.map(s => ({
     id: s.id,
     name: s.name,
@@ -6491,7 +6493,7 @@ app.get('/api/service-menus', async (req, res) => {
         subcategories: true,
         faqs: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(menus.map(mapServiceMenuToResponse));
@@ -6545,6 +6547,8 @@ app.post('/api/service-menus', async (req, res) => {
       description,
       subcategories,
       faqs,
+      sortOrder,
+      isActive,
     } = req.body ?? {};
 
     if (!category || !bannerTitle || !bannerSubtitle || !bannerImage) {
@@ -6563,6 +6567,8 @@ app.post('/api/service-menus', async (req, res) => {
         totalProjects: totalProjects || 0,
         totalClients: totalClients || 0,
         description: description || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
         subcategories: subcategories?.length ? {
           create: subcategories.map(s => ({ name: s.name })),
         } : undefined,
@@ -6608,6 +6614,8 @@ app.put('/api/service-menus/:id', async (req, res) => {
       description,
       subcategories,
       faqs,
+      sortOrder,
+      isActive,
     } = req.body ?? {};
 
     // Update main menu
@@ -6622,6 +6630,8 @@ app.put('/api/service-menus/:id', async (req, res) => {
         totalProjects,
         totalClients,
         description,
+        sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+        isActive: isActive === undefined ? undefined : Boolean(isActive),
       },
     });
 
@@ -6704,6 +6714,8 @@ const mapTechnologyToResponse = (tech) => ({
   title: tech.title,
   image: tech.image,
   items: tech.items || [],
+  sortOrder: tech.sortOrder ?? 0,
+  isActive: tech.isActive ?? true,
   createdAt: tech.createdAt,
   updatedAt: tech.updatedAt,
 });
@@ -6711,7 +6723,9 @@ const mapTechnologyToResponse = (tech) => ({
 // GET all technologies
 app.get('/api/technologies', async (req, res) => {
   try {
-    const technologies = await prisma.technology.findMany({ orderBy: { createdAt: 'desc' } });
+    const technologies = await prisma.technology.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    });
 
     res.json(technologies.map(mapTechnologyToResponse));
   } catch (err) {
@@ -6726,7 +6740,7 @@ app.post('/api/technologies', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, image, items } = req.body ?? {};
+    const { title, image, items, sortOrder, isActive } = req.body ?? {};
 
     if (!title || !image) {
       return res.status(400).json({
@@ -6739,6 +6753,8 @@ app.post('/api/technologies', async (req, res) => {
         title,
         image,
         items: Array.isArray(items) ? items : [],
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -6760,7 +6776,7 @@ app.put('/api/technologies/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid technology id required' });
     }
 
-    const { title, image, items } = req.body ?? {};
+    const { title, image, items, sortOrder, isActive } = req.body ?? {};
 
     const updated = await prisma.technology.update({
       where: { id },
@@ -6768,6 +6784,8 @@ app.put('/api/technologies/:id', async (req, res) => {
         title,
         image,
         items: Array.isArray(items) ? items : undefined,
+        sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+        isActive: isActive === undefined ? undefined : Boolean(isActive),
       },
     });
 
@@ -6810,6 +6828,8 @@ const mapBenefitToResponse = (benefit) => ({
   image: benefit.image,
   benefitConfigId: benefit.benefitConfigId || null,
   benefitConfigTitle: benefit.benefitConfig?.title || '',
+  sortOrder: benefit.sortOrder ?? 0,
+  isActive: benefit.isActive ?? true,
   createdAt: benefit.createdAt,
   updatedAt: benefit.updatedAt,
 });
@@ -6833,6 +6853,8 @@ const mapContactButtonToResponse = (button) => ({
   image: button.image || '',
   category: button.category || '',
   subcategory: button.subcategory || '',
+  sortOrder: button.sortOrder ?? 0,
+  isActive: button.isActive ?? true,
   createdAt: button.createdAt,
   updatedAt: button.updatedAt,
 });
@@ -7129,7 +7151,7 @@ app.get('/api/benefits', async (req, res) => {
         ...(subcategory && { subcategory }),
         ...(parsedBenefitConfigId && { benefitConfigId: parsedBenefitConfigId }),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
       include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
 
@@ -7146,7 +7168,7 @@ app.post('/api/benefits', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
+    const { title, category, subcategory, description, image, benefitConfigId, sortOrder, isActive } = req.body ?? {};
 
     if (!title || !description || !image) {
       return res.status(400).json({
@@ -7176,6 +7198,8 @@ app.post('/api/benefits', async (req, res) => {
         description,
         image,
         benefitConfigId: config.id,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
       include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
@@ -7198,7 +7222,7 @@ app.put('/api/benefits/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid benefit id required' });
     }
 
-    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
+    const { title, category, subcategory, description, image, benefitConfigId, sortOrder, isActive } = req.body ?? {};
 
     const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
     if (!parsedBenefitConfigId) {
@@ -7223,6 +7247,8 @@ app.put('/api/benefits/:id', async (req, res) => {
         description,
         image,
         benefitConfigId: config.id,
+        sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+        isActive: isActive === undefined ? undefined : Boolean(isActive),
       },
       include: { benefitConfig: { include: { category: true, subcategory: true } } },
     });
@@ -7260,7 +7286,9 @@ app.delete('/api/benefits/:id', async (req, res) => {
 // GET all contact buttons
 app.get('/api/contact-buttons', async (_req, res) => {
   try {
-    const buttons = await prisma.contactButton.findMany({ orderBy: { createdAt: 'desc' } });
+    const buttons = await prisma.contactButton.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    });
 
     res.json(buttons.map(mapContactButtonToResponse));
   } catch (err) {
@@ -7275,7 +7303,7 @@ app.post('/api/contact-buttons', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, image, category, subcategory } = req.body ?? {};
+    const { title, description, image, category, subcategory, sortOrder, isActive } = req.body ?? {};
 
     if (!title || !image) {
       return res.status(400).json({ error: 'Title and image are required' });
@@ -7288,6 +7316,8 @@ app.post('/api/contact-buttons', async (req, res) => {
         image,
         category: category || null,
         subcategory: subcategory || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -7309,7 +7339,7 @@ app.put('/api/contact-buttons/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid contact button id required' });
     }
 
-    const { title, description, image, category, subcategory } = req.body ?? {};
+    const { title, description, image, category, subcategory, sortOrder, isActive } = req.body ?? {};
 
     const updated = await prisma.contactButton.update({
       where: { id },
@@ -7319,6 +7349,8 @@ app.put('/api/contact-buttons/:id', async (req, res) => {
         image,
         category: category || null,
         subcategory: subcategory || null,
+        sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+        isActive: isActive === undefined ? undefined : Boolean(isActive),
       },
     });
 
@@ -8247,6 +8279,8 @@ const mapServiceProcessToResponse = (process) => ({
   description: process.description,
   image: process.image,
   serviceId: process.serviceId || null,
+  sortOrder: process.sortOrder ?? 0,
+  isActive: process.isActive ?? true,
   createdAt: process.createdAt,
   updatedAt: process.updatedAt,
 });
@@ -8256,7 +8290,7 @@ app.get('/api/service-processes', async (req, res) => {
   try {
     const processes = await prisma.serviceProcess.findMany({
       where: req.query.serviceId ? { serviceId: req.query.serviceId } : undefined,
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(processes.map(mapServiceProcessToResponse));
@@ -8272,7 +8306,7 @@ app.post('/api/service-processes', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, image, serviceId } = req.body ?? {};
+    const { title, description, image, serviceId, sortOrder, isActive } = req.body ?? {};
 
     if (!title || !description || !image) {
       return res.status(400).json({
@@ -8295,6 +8329,8 @@ app.post('/api/service-processes', async (req, res) => {
         description,
         image,
         serviceId: serviceId || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -8316,7 +8352,7 @@ app.put('/api/service-processes/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid service process id required' });
     }
 
-    const { title, description, image, serviceId } = req.body ?? {};
+    const { title, description, image, serviceId, sortOrder, isActive } = req.body ?? {};
 
     if (serviceId) {
       const serviceExists = await prisma.serviceMenu.findUnique({
@@ -8334,6 +8370,8 @@ app.put('/api/service-processes/:id', async (req, res) => {
         description,
         image,
         serviceId: serviceId === null ? null : serviceId,
+        sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+        isActive: isActive === undefined ? undefined : Boolean(isActive),
       },
     });
 
@@ -8379,6 +8417,8 @@ const mapHireDeveloperToResponse = (hireDev) => ({
     title: s.title,
     description: s.description,
     image: s.image,
+    sortOrder: s.sortOrder ?? 0,
+    isActive: s.isActive ?? true,
   })) || [],
   createdAt: hireDev.createdAt,
   updatedAt: hireDev.updatedAt,
@@ -8451,6 +8491,8 @@ const mapHireServiceToResponse = (service) => ({
   description: service.description,
   image: service.image,
   hireDeveloperId: service.hireDeveloperId,
+  sortOrder: service.sortOrder ?? 0,
+  isActive: service.isActive ?? true,
   createdAt: service.createdAt,
   updatedAt: service.updatedAt,
 });
@@ -8465,7 +8507,7 @@ app.get('/api/hire-services', async (req, res) => {
         ...(category && { category }),
         ...(subcategory && { subcategory }),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(services.map(mapHireServiceToResponse));
@@ -8481,7 +8523,7 @@ app.post('/api/hire-services', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { category, subcategory, title, description, image, hireDeveloperId } = req.body ?? {};
+    const { category, subcategory, title, description, image, hireDeveloperId, sortOrder, isActive } = req.body ?? {};
 
     if (!title || !description || !image) {
       return res.status(400).json({
@@ -8497,6 +8539,8 @@ app.post('/api/hire-services', async (req, res) => {
         description,
         image,
         hireDeveloperId: hireDeveloperId || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -8518,7 +8562,7 @@ app.put('/api/hire-services/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid hire service id required' });
     }
 
-    const { category, subcategory, title, description, image, hireDeveloperId } = req.body ?? {};
+    const { category, subcategory, title, description, image, hireDeveloperId, sortOrder, isActive } = req.body ?? {};
 
     const updated = await prisma.hireService.update({
       where: { id },
@@ -8529,6 +8573,8 @@ app.put('/api/hire-services/:id', async (req, res) => {
         description,
         image,
         hireDeveloperId: hireDeveloperId === null ? null : hireDeveloperId,
+        sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+        isActive: isActive === undefined ? undefined : Boolean(isActive),
       },
     });
 
@@ -8569,6 +8615,8 @@ const mapHireContactButtonToResponse = (button) => ({
   image: button.image || '',
   category: button.category || '',
   subcategory: button.subcategory || '',
+  sortOrder: button.sortOrder ?? 0,
+  isActive: button.isActive ?? true,
   createdAt: button.createdAt,
   updatedAt: button.updatedAt,
 });
@@ -8583,7 +8631,7 @@ app.get('/api/hire-developer/contact-buttons', async (req, res) => {
         ...(category && { category }),
         ...(subcategory && { subcategory }),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(buttons.map(mapHireContactButtonToResponse));
@@ -8599,7 +8647,7 @@ app.post('/api/hire-developer/contact-buttons', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, image, category, subcategory } = req.body ?? {};
+    const { title, description, image, category, subcategory, sortOrder, isActive } = req.body ?? {};
 
     if (!title || !image) {
       return res.status(400).json({ error: 'Title and image are required' });
@@ -8612,6 +8660,8 @@ app.post('/api/hire-developer/contact-buttons', async (req, res) => {
         image,
         category: category || null,
         subcategory: subcategory || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -8633,7 +8683,7 @@ app.put('/api/hire-developer/contact-buttons/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid hire contact button id required' });
     }
 
-    const { title, description, image, category, subcategory } = req.body ?? {};
+    const { title, description, image, category, subcategory, sortOrder, isActive } = req.body ?? {};
 
     const updated = await prisma.hireContactButton.update({
       where: { id },
@@ -8643,6 +8693,8 @@ app.put('/api/hire-developer/contact-buttons/:id', async (req, res) => {
         image,
         category: category || null,
         subcategory: subcategory || null,
+        sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+        isActive: isActive === undefined ? undefined : Boolean(isActive),
       },
     });
 
@@ -8794,6 +8846,8 @@ const mapWhyServiceToResponse = (service) => ({
   title: service.title,
   description: service.description,
   whyChooseId: service.whyChooseId,
+  sortOrder: service.sortOrder ?? 0,
+  isActive: service.isActive ?? true,
   createdAt: service.createdAt,
   updatedAt: service.updatedAt,
 });
@@ -8810,7 +8864,7 @@ app.get('/api/why-services', async (req, res) => {
         ...(subcategory && { subcategory }),
         ...(parsedWhyChooseId && { whyChooseId: parsedWhyChooseId }),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(services.map(mapWhyServiceToResponse));
@@ -8826,7 +8880,7 @@ app.post('/api/why-services', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
+    const { category, subcategory, title, description, whyChooseId, sortOrder, isActive } = req.body ?? {};
 
     if (!category || !title || !description) {
       return res.status(400).json({
@@ -8853,6 +8907,8 @@ app.post('/api/why-services', async (req, res) => {
         title,
         description,
         whyChooseId: resolvedWhyChooseId,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -8874,13 +8930,15 @@ app.put('/api/why-services/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid why service id required' });
     }
 
-    const { category, subcategory, title, description, whyChooseId } = req.body ?? {};
+    const { category, subcategory, title, description, whyChooseId, sortOrder, isActive } = req.body ?? {};
 
     const data = {
       category,
       subcategory: subcategory === undefined ? undefined : subcategory?.trim() || null,
       title,
       description,
+      sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+      isActive: isActive === undefined ? undefined : Boolean(isActive),
     };
 
     if (whyChooseId !== undefined) {
@@ -8946,6 +9004,8 @@ const mapWhyVedxToResponse = (whyVedx) => ({
     title: r.title,
     description: r.description,
     image: r.image,
+    sortOrder: r.sortOrder ?? 0,
+    isActive: r.isActive ?? true,
   })) || [],
   createdAt: whyVedx.createdAt,
   updatedAt: whyVedx.updatedAt,
@@ -9099,6 +9159,8 @@ const mapWhyVedxReasonToResponse = (reason) => ({
   subcategoryId: reason.subcategoryId || null,
   subcategoryName: reason.subcategory?.name || reason.subcategoryName || reason.subcategory || '',
   whyVedxId: reason.whyVedxId,
+  sortOrder: reason.sortOrder ?? 0,
+  isActive: reason.isActive ?? true,
   createdAt: reason.createdAt,
   updatedAt: reason.updatedAt,
 });
@@ -9121,7 +9183,7 @@ app.get('/api/why-vedx-reasons', async (req, res) => {
           : {}),
       },
       include: { category: true, subcategory: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(reasons.map(mapWhyVedxReasonToResponse));
@@ -9137,7 +9199,7 @@ app.post('/api/why-vedx-reasons', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, image, whyVedxId } = req.body ?? {};
+    const { title, description, image, whyVedxId, sortOrder, isActive } = req.body ?? {};
     const categoryId = parseIntegerId(req.body?.categoryId);
     const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
@@ -9186,6 +9248,8 @@ app.post('/api/why-vedx-reasons', async (req, res) => {
         whyVedxId: resolvedWhyVedxId,
         categoryId: category?.id || null,
         subcategoryId: subcategory?.id || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
       include: { category: true, subcategory: true },
     });
@@ -9208,11 +9272,17 @@ app.put('/api/why-vedx-reasons/:id', async (req, res) => {
       return res.status(400).json({ error: 'Valid reason id required' });
     }
 
-    const { title, description, image, whyVedxId } = req.body ?? {};
+    const { title, description, image, whyVedxId, sortOrder, isActive } = req.body ?? {};
     const categoryId = parseIntegerId(req.body?.categoryId);
     const subcategoryId = parseIntegerId(req.body?.subcategoryId);
 
-    const data = { title, description, image };
+    const data = {
+      title,
+      description,
+      image,
+      sortOrder: sortOrder === undefined ? undefined : Number(sortOrder) || 0,
+      isActive: isActive === undefined ? undefined : Boolean(isActive),
+    };
 
     if (whyVedxId !== undefined) {
       const resolvedWhyVedxId = await resolveWhyVedxId(whyVedxId);
@@ -9512,7 +9582,7 @@ app.get('/api/hire-developer/services', async (req, res) => {
       where: {
         ...(category && { category: String(category) }),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(services);
@@ -9539,6 +9609,8 @@ app.post('/api/hire-developer/services', async (req, res) => {
       totalClients,
       description,
       faqs,
+      sortOrder,
+      isActive,
     } = req.body;
 
     const service = await prisma.hireDeveloperService.create({
@@ -9553,6 +9625,8 @@ app.post('/api/hire-developer/services', async (req, res) => {
         totalClients: Number(totalClients) || 0,
         description: description?.trim() || null,
         faqs: faqs ?? null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -9583,6 +9657,8 @@ app.put('/api/hire-developer/services/:id', async (req, res) => {
       totalClients,
       description,
       faqs,
+      sortOrder,
+      isActive,
     } = req.body;
 
     const updated = await prisma.hireDeveloperService.update({
@@ -9604,6 +9680,8 @@ app.put('/api/hire-developer/services/:id', async (req, res) => {
         }),
         description: description?.trim() || null,
         ...(faqs !== undefined && { faqs }),
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -9641,7 +9719,7 @@ app.get('/api/hire-developer/technologies', async (_req, res) => {
   try {
     const technologies = await prisma.hireDeveloperTechnology.findMany({
       orderBy: [
-        { title: 'asc' },
+        { sortOrder: 'asc' },
         { createdAt: 'desc' },
       ],
     });
@@ -9659,7 +9737,7 @@ app.post('/api/hire-developer/technologies', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, image, items } = req.body;
+    const { title, image, items, sortOrder, isActive } = req.body;
 
     if (!title || !String(title).trim()) {
       return res.status(400).json({ error: 'Title is required' });
@@ -9673,6 +9751,8 @@ app.post('/api/hire-developer/technologies', async (req, res) => {
         title: String(title).trim(),
         image: String(image).trim(),
         items: items ?? [],
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -9692,7 +9772,7 @@ app.put('/api/hire-developer/technologies/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const { title, image, items } = req.body;
+    const { title, image, items, sortOrder, isActive } = req.body;
 
     const updated = await prisma.hireDeveloperTechnology.update({
       where: { id },
@@ -9700,6 +9780,8 @@ app.put('/api/hire-developer/technologies/:id', async (req, res) => {
         ...(title !== undefined && { title: String(title).trim() }),
         ...(image !== undefined && { image: String(image).trim() }),
         ...(items !== undefined && { items }),
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -9750,6 +9832,8 @@ const mapHireBenefit = (benefit) => ({
   description: benefit.description,
   image: benefit.image,
   benefitConfigId: benefit.benefitConfigId || null,
+  sortOrder: benefit.sortOrder ?? 0,
+  isActive: benefit.isActive ?? true,
   createdAt: benefit.createdAt,
   updatedAt: benefit.updatedAt,
 });
@@ -9818,7 +9902,7 @@ app.get('/api/hire-developer/benefits', async (req, res) => {
         ...(subcategory && { subcategory: String(subcategory) }),
         ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(benefits.map(mapHireBenefit));
@@ -9834,7 +9918,7 @@ app.post('/api/hire-developer/benefits', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
+    const { title, category, subcategory, description, image, benefitConfigId, sortOrder, isActive } = req.body ?? {};
     const parsedConfigId = parseIntegerId(benefitConfigId);
 
     if (!parsedConfigId) {
@@ -9860,6 +9944,8 @@ app.post('/api/hire-developer/benefits', async (req, res) => {
         description: description?.trim() || null,
         image: String(image).trim(),
         benefitConfigId: parsedConfigId,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -9879,7 +9965,7 @@ app.put('/api/hire-developer/benefits/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const { title, category, subcategory, description, image, benefitConfigId } = req.body ?? {};
+    const { title, category, subcategory, description, image, benefitConfigId, sortOrder, isActive } = req.body ?? {};
     const parsedConfigId = parseIntegerId(benefitConfigId);
 
     if (benefitConfigId !== undefined && !parsedConfigId) {
@@ -9902,6 +9988,8 @@ app.put('/api/hire-developer/benefits/:id', async (req, res) => {
         description: description?.trim() || null,
         ...(image !== undefined && { image: String(image).trim() }),
         ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -9938,7 +10026,7 @@ app.delete('/api/hire-developer/benefits/:id', async (req, res) => {
 app.get('/api/hire-developer/pricing', async (_req, res) => {
   try {
     const pricing = await prisma.hireDeveloperPricing.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
     res.json(pricing);
   } catch (err) {
@@ -9962,6 +10050,8 @@ app.post('/api/hire-developer/pricing', async (req, res) => {
       heroTitle,
       heroDescription,
       heroImage,
+      sortOrder,
+      isActive,
     } = req.body;
 
     if (!title || !String(title).trim()) {
@@ -9981,6 +10071,8 @@ app.post('/api/hire-developer/pricing', async (req, res) => {
         heroTitle: heroTitle?.trim() || null,
         heroDescription: heroDescription?.trim() || null,
         heroImage: heroImage?.trim() || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -10009,6 +10101,8 @@ app.put('/api/hire-developer/pricing/:id', async (req, res) => {
       heroTitle,
       heroDescription,
       heroImage,
+      sortOrder,
+      isActive,
     } = req.body;
 
     const updated = await prisma.hireDeveloperPricing.update({
@@ -10022,6 +10116,8 @@ app.put('/api/hire-developer/pricing/:id', async (req, res) => {
         heroTitle: heroTitle?.trim() || null,
         heroDescription: heroDescription?.trim() || null,
         heroImage: heroImage?.trim() || null,
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -10066,7 +10162,7 @@ app.get('/api/hire-developer/processes', async (req, res) => {
         ...(normalizedCategory ? { category: normalizedCategory } : {}),
         ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(processes);
@@ -10082,7 +10178,7 @@ app.post('/api/hire-developer/processes', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, category, subcategory, image } = req.body;
+    const { title, description, category, subcategory, image, sortOrder, isActive } = req.body;
 
     if (!title || !String(title).trim()) {
       return res.status(400).json({ error: 'Title is required' });
@@ -10098,6 +10194,8 @@ app.post('/api/hire-developer/processes', async (req, res) => {
         category: category?.trim() || null,
         subcategory: subcategory?.trim() || null,
         image: String(image).trim(),
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -10117,7 +10215,7 @@ app.put('/api/hire-developer/processes/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const { title, description, category, subcategory, image } = req.body;
+    const { title, description, category, subcategory, image, sortOrder, isActive } = req.body;
 
     const updated = await prisma.hireDeveloperProcess.update({
       where: { id },
@@ -10127,6 +10225,8 @@ app.put('/api/hire-developer/processes/:id', async (req, res) => {
         ...(category !== undefined && { category: category?.trim() || null }),
         ...(subcategory !== undefined && { subcategory: subcategory?.trim() || null }),
         ...(image !== undefined && { image: String(image).trim() }),
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -10174,6 +10274,8 @@ const mapHireWhyVedxConfig = (config, includeReasons = false) => ({
       category: reason.category || '',
       subcategory: reason.subcategory || '',
       whyVedxConfigId: reason.whyVedxConfigId || null,
+      sortOrder: reason.sortOrder ?? 0,
+      isActive: reason.isActive ?? true,
     })),
   }),
   createdAt: config.createdAt,
@@ -10193,7 +10295,7 @@ app.get('/api/hire-developer/why-vedx', async (req, res) => {
         ...(normalizedCategory ? { category: normalizedCategory } : {}),
         ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
       },
-      include: includeReasons ? { reasons: { orderBy: { createdAt: 'desc' } } } : {},
+      include: includeReasons ? { reasons: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] } } : {},
       orderBy: { createdAt: 'desc' },
     });
 
@@ -10249,7 +10351,7 @@ app.get('/api/hire-developer/why-vedx-reasons', async (req, res) => {
         ...(normalizedCategory ? { category: normalizedCategory } : {}),
         ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(reasons.map((reason) => ({
@@ -10260,6 +10362,8 @@ app.get('/api/hire-developer/why-vedx-reasons', async (req, res) => {
       category: reason.category || '',
       subcategory: reason.subcategory || '',
       whyVedxConfigId: reason.whyVedxConfigId || null,
+      sortOrder: reason.sortOrder ?? 0,
+      isActive: reason.isActive ?? true,
       createdAt: reason.createdAt,
       updatedAt: reason.updatedAt,
     })));
@@ -10275,7 +10379,7 @@ app.post('/api/hire-developer/why-vedx-reasons', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, image, category, subcategory, whyVedxConfigId } = req.body ?? {};
+    const { title, description, image, category, subcategory, whyVedxConfigId, sortOrder, isActive } = req.body ?? {};
     const parsedConfigId = parseIntegerId(whyVedxConfigId);
 
     if (!parsedConfigId) {
@@ -10301,6 +10405,8 @@ app.post('/api/hire-developer/why-vedx-reasons', async (req, res) => {
         category: category?.trim() || null,
         subcategory: subcategory?.trim() || null,
         whyVedxConfigId: parsedConfigId,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -10312,6 +10418,8 @@ app.post('/api/hire-developer/why-vedx-reasons', async (req, res) => {
       category: created.category || '',
       subcategory: created.subcategory || '',
       whyVedxConfigId: created.whyVedxConfigId || null,
+      sortOrder: created.sortOrder ?? 0,
+      isActive: created.isActive ?? true,
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
     });
@@ -10330,7 +10438,7 @@ app.put('/api/hire-developer/why-vedx-reasons/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const { title, description, image, category, subcategory, whyVedxConfigId } = req.body ?? {};
+    const { title, description, image, category, subcategory, whyVedxConfigId, sortOrder, isActive } = req.body ?? {};
     const parsedConfigId = parseIntegerId(whyVedxConfigId);
 
     if (whyVedxConfigId !== undefined && !parsedConfigId) {
@@ -10353,6 +10461,8 @@ app.put('/api/hire-developer/why-vedx-reasons/:id', async (req, res) => {
         ...(category !== undefined && { category: category?.trim() || null }),
         ...(subcategory !== undefined && { subcategory: subcategory?.trim() || null }),
         ...(parsedConfigId && { whyVedxConfigId: parsedConfigId }),
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -10364,6 +10474,8 @@ app.put('/api/hire-developer/why-vedx-reasons/:id', async (req, res) => {
       category: updated.category || '',
       subcategory: updated.subcategory || '',
       whyVedxConfigId: updated.whyVedxConfigId || null,
+      sortOrder: updated.sortOrder ?? 0,
+      isActive: updated.isActive ?? true,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
     });
@@ -10412,6 +10524,8 @@ const mapHireWhyChooseConfig = (config, includeServices = false) => ({
       title: item.title,
       description: item.description,
       whyChooseConfigId: item.whyChooseConfigId || null,
+      sortOrder: item.sortOrder ?? 0,
+      isActive: item.isActive ?? true,
     })),
   }),
   createdAt: config.createdAt,
@@ -10427,7 +10541,7 @@ app.get('/api/hire-developer/why-choose', async (req, res) => {
         ...(category && { category: String(category) }),
         ...(subcategory && { subcategory: String(subcategory) }),
       },
-      include: { services: true },
+      include: { services: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] } },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -10493,7 +10607,7 @@ app.get('/api/hire-developer/why-choose-services', async (req, res) => {
         ...(subcategory && { subcategory: String(subcategory) }),
         ...(parsedConfigId && { whyChooseConfigId: parsedConfigId }),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     res.json(
@@ -10504,6 +10618,8 @@ app.get('/api/hire-developer/why-choose-services', async (req, res) => {
         title: item.title,
         description: item.description,
         whyChooseConfigId: item.whyChooseConfigId || null,
+        sortOrder: item.sortOrder ?? 0,
+        isActive: item.isActive ?? true,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
       }))
@@ -10520,7 +10636,7 @@ app.post('/api/hire-developer/why-choose-services', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { category, subcategory, title, description, whyChooseConfigId } = req.body ?? {};
+    const { category, subcategory, title, description, whyChooseConfigId, sortOrder, isActive } = req.body ?? {};
     const parsedConfigId = parseIntegerId(whyChooseConfigId);
 
     if (!parsedConfigId) {
@@ -10542,6 +10658,8 @@ app.post('/api/hire-developer/why-choose-services', async (req, res) => {
         title: String(title).trim(),
         description: description?.trim() || null,
         whyChooseConfigId: parsedConfigId,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -10552,6 +10670,8 @@ app.post('/api/hire-developer/why-choose-services', async (req, res) => {
       title: created.title,
       description: created.description,
       whyChooseConfigId: created.whyChooseConfigId || null,
+      sortOrder: created.sortOrder ?? 0,
+      isActive: created.isActive ?? true,
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
     });
@@ -10570,7 +10690,7 @@ app.put('/api/hire-developer/why-choose-services/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const { category, subcategory, title, description, whyChooseConfigId } = req.body ?? {};
+    const { category, subcategory, title, description, whyChooseConfigId, sortOrder, isActive } = req.body ?? {};
     const parsedConfigId = parseIntegerId(whyChooseConfigId);
 
     if (whyChooseConfigId !== undefined && !parsedConfigId) {
@@ -10592,6 +10712,8 @@ app.put('/api/hire-developer/why-choose-services/:id', async (req, res) => {
         ...(title !== undefined && { title: String(title).trim() }),
         description: description?.trim() || null,
         ...(parsedConfigId && { whyChooseConfigId: parsedConfigId }),
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -10602,6 +10724,8 @@ app.put('/api/hire-developer/why-choose-services/:id', async (req, res) => {
       title: updated.title,
       description: updated.description,
       whyChooseConfigId: updated.whyChooseConfigId || null,
+      sortOrder: updated.sortOrder ?? 0,
+      isActive: updated.isActive ?? true,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
     });
@@ -10637,7 +10761,7 @@ app.delete('/api/hire-developer/why-choose-services/:id', async (req, res) => {
 app.get('/api/hire-developer/industries', async (_req, res) => {
   try {
     const industries = await prisma.hireDeveloperIndustry.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
     res.json(industries);
   } catch (err) {
@@ -10658,6 +10782,8 @@ app.post('/api/hire-developer/industries', async (req, res) => {
       image,
       sectionTitle,
       sectionDescription,
+      sortOrder,
+      isActive,
     } = req.body;
 
     if (!title || !String(title).trim()) {
@@ -10674,6 +10800,8 @@ app.post('/api/hire-developer/industries', async (req, res) => {
         image: String(image).trim(),
         sectionTitle: sectionTitle?.trim() || null,
         sectionDescription: sectionDescription?.trim() || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -10699,6 +10827,8 @@ app.put('/api/hire-developer/industries/:id', async (req, res) => {
       image,
       sectionTitle,
       sectionDescription,
+      sortOrder,
+      isActive,
     } = req.body;
 
     const updated = await prisma.hireDeveloperIndustry.update({
@@ -10709,6 +10839,8 @@ app.put('/api/hire-developer/industries/:id', async (req, res) => {
         ...(image !== undefined && { image: String(image).trim() }),
         sectionTitle: sectionTitle?.trim() || null,
         sectionDescription: sectionDescription?.trim() || null,
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -10745,7 +10877,7 @@ app.delete('/api/hire-developer/industries/:id', async (req, res) => {
 app.get('/api/hire-developer/tech-solutions', async (_req, res) => {
   try {
     const solutions = await prisma.hireDeveloperTechSolution.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
     res.json(solutions);
   } catch (err) {
@@ -10760,7 +10892,7 @@ app.post('/api/hire-developer/tech-solutions', async (req, res) => {
     const { admin, status, message } = await getAuthenticatedAdmin(req);
     if (!admin) return res.status(status).json({ message });
 
-    const { title, description, sectionTitle, sectionDescription } = req.body;
+    const { title, description, sectionTitle, sectionDescription, sortOrder, isActive } = req.body;
 
     if (!title || !String(title).trim()) {
       return res.status(400).json({ error: 'Title is required' });
@@ -10772,6 +10904,8 @@ app.post('/api/hire-developer/tech-solutions', async (req, res) => {
         description: description?.trim() || null,
         sectionTitle: sectionTitle?.trim() || null,
         sectionDescription: sectionDescription?.trim() || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -10791,7 +10925,7 @@ app.put('/api/hire-developer/tech-solutions/:id', async (req, res) => {
     const id = requireIdParam(req, res);
     if (!id) return;
 
-    const { title, description, sectionTitle, sectionDescription } = req.body;
+    const { title, description, sectionTitle, sectionDescription, sortOrder, isActive } = req.body;
 
     const updated = await prisma.hireDeveloperTechSolution.update({
       where: { id },
@@ -10800,6 +10934,8 @@ app.put('/api/hire-developer/tech-solutions/:id', async (req, res) => {
         description: description?.trim() || null,
         sectionTitle: sectionTitle?.trim() || null,
         sectionDescription: sectionDescription?.trim() || null,
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -10836,7 +10972,7 @@ app.delete('/api/hire-developer/tech-solutions/:id', async (req, res) => {
 app.get('/api/hire-developer/expertise', async (_req, res) => {
   try {
     const expertise = await prisma.hireDeveloperExpertise.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
     res.json(expertise);
   } catch (err) {
@@ -10857,6 +10993,8 @@ app.post('/api/hire-developer/expertise', async (req, res) => {
       image,
       sectionTitle,
       sectionDescription,
+      sortOrder,
+      isActive,
     } = req.body;
 
     if (!title || !String(title).trim()) {
@@ -10873,6 +11011,8 @@ app.post('/api/hire-developer/expertise', async (req, res) => {
         image: String(image).trim(),
         sectionTitle: sectionTitle?.trim() || null,
         sectionDescription: sectionDescription?.trim() || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -10898,6 +11038,8 @@ app.put('/api/hire-developer/expertise/:id', async (req, res) => {
       image,
       sectionTitle,
       sectionDescription,
+      sortOrder,
+      isActive,
     } = req.body;
 
     const updated = await prisma.hireDeveloperExpertise.update({
@@ -10908,6 +11050,8 @@ app.put('/api/hire-developer/expertise/:id', async (req, res) => {
         ...(image !== undefined && { image: String(image).trim() }),
         sectionTitle: sectionTitle?.trim() || null,
         sectionDescription: sectionDescription?.trim() || null,
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
@@ -10944,7 +11088,7 @@ app.delete('/api/hire-developer/expertise/:id', async (req, res) => {
 app.get('/api/hire-developer/our-services', async (_req, res) => {
   try {
     const services = await prisma.hireDeveloperOurService.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
     res.json(services);
   } catch (err) {
@@ -10965,6 +11109,8 @@ app.post('/api/hire-developer/our-services', async (req, res) => {
       sliderTitle,
       sliderDescription,
       sliderImage,
+      sortOrder,
+      isActive,
     } = req.body;
 
     if (!title || !String(title).trim()) {
@@ -10981,6 +11127,8 @@ app.post('/api/hire-developer/our-services', async (req, res) => {
         sliderTitle: sliderTitle?.trim() || null,
         sliderDescription: sliderDescription?.trim() || null,
         sliderImage: sliderImage?.trim() || null,
+        sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });
 
@@ -11006,6 +11154,8 @@ app.put('/api/hire-developer/our-services/:id', async (req, res) => {
       sliderTitle,
       sliderDescription,
       sliderImage,
+      sortOrder,
+      isActive,
     } = req.body;
 
     const updated = await prisma.hireDeveloperOurService.update({
@@ -11016,6 +11166,8 @@ app.put('/api/hire-developer/our-services/:id', async (req, res) => {
         sliderTitle: sliderTitle?.trim() || null,
         sliderDescription: sliderDescription?.trim() || null,
         sliderImage: sliderImage?.trim() || null,
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) || 0 }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
       },
     });
 
