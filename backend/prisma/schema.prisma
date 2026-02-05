@@ -196,6 +196,8 @@ model Banner {
   imageUrl  String?  @db.LongText
   /// Home banner mate multiple images
   images    BannerImage[]
+  sortOrder Int          @default(0)
+  isActive  Boolean      @default(true)
 
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt

@@ -14,12 +14,18 @@ const selectLatestBanner = (banners, type) => {
   const normalizedType = normalizeType(type);
   if (!normalizedType) return null;
 
-  const matches = banners.filter((banner) => banner?.type === normalizedType);
+  const matches = banners.filter(
+    (banner) => banner?.type === normalizedType && (banner?.isActive ?? true)
+  );
   if (!matches.length) return null;
 
   return matches
     .slice()
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    .sort((a, b) => {
+      const sortDiff = (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0);
+      if (sortDiff !== 0) return sortDiff;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })[0];
 };
 
 export const useBannerByType = (type) => {

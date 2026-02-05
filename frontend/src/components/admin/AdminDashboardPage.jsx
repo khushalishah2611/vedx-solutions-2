@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Box, Card, CardContent, CardHeader, Divider, Grid, IconButton, MenuItem, Pagination, Stack, Tab, Tabs, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Tooltip, Typography, Chip } from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Divider, FormControlLabel, Grid, IconButton, MenuItem, Pagination, Stack, Switch, Tab, Tabs, Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Tooltip, Typography, Chip } from '@mui/material';
 import { AppButton, AppDialog, AppDialogActions, AppDialogContent, AppDialogTitle, AppSelectField, AppTextField } from '../shared/FormControls.jsx';
 
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -138,6 +138,8 @@ const AdminDashboardPage = () => {
     image: "",
     images: [],
     type: "",
+    sortOrder: 0,
+    isActive: true,
   });
   const [editingBannerId, setEditingBannerId] = useState(null);
   const [bannerPage, setBannerPage] = useState(1);
@@ -315,6 +317,9 @@ const AdminDashboardPage = () => {
     return [...banners].sort((a, b) => {
       const typeDiff = getTypeOrder(a.type) - getTypeOrder(b.type);
       if (typeDiff !== 0) return typeDiff;
+
+      const sortDiff = (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+      if (sortDiff !== 0) return sortDiff;
 
       const aUpdated = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
       const bUpdated = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
@@ -620,6 +625,10 @@ const AdminDashboardPage = () => {
       type: bannerForm.type,
       image: isHome ? null : bannerForm.image || null,
       images: isHome ? bannerForm.images : [],
+      sortOrder: Number.isFinite(Number(bannerForm.sortOrder))
+        ? Number(bannerForm.sortOrder)
+        : 0,
+      isActive: Boolean(bannerForm.isActive),
     };
 
     try {
@@ -647,7 +656,7 @@ const AdminDashboardPage = () => {
       console.error("handleAddOrUpdateBanner error", err);
     }
 
-    setBannerForm({ title: "", image: "", images: [], type: "" });
+    setBannerForm({ title: "", image: "", images: [], type: "", sortOrder: 0, isActive: true });
     setEditingBannerId(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -662,6 +671,8 @@ const AdminDashboardPage = () => {
       image: match.image || "",
       images: match.images || [],
       type: match.type,
+      sortOrder: Number.isFinite(Number(match.sortOrder)) ? Number(match.sortOrder) : 0,
+      isActive: Boolean(match.isActive ?? true),
     });
     setEditingBannerId(id);
   };
@@ -680,7 +691,7 @@ const AdminDashboardPage = () => {
       });
       if (editingBannerId === id) {
         setEditingBannerId(null);
-        setBannerForm({ title: "", image: "", images: [], type: "" });
+        setBannerForm({ title: "", image: "", images: [], type: "", sortOrder: 0, isActive: true });
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     } catch (err) {
@@ -1819,6 +1830,38 @@ const AdminDashboardPage = () => {
                     <MenuItem value="terms-and-condition">Terms and condition</MenuItem>
                   </AppSelectField>
 
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                    <AppTextField
+                      label="Sort order"
+                      type="number"
+                      value={bannerForm.sortOrder}
+                      onChange={(event) =>
+                        setBannerForm((prev) => ({
+                          ...prev,
+                          sortOrder: event.target.value,
+                        }))
+                      }
+                      inputProps={{ min: 0 }}
+                      fullWidth
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={Boolean(bannerForm.isActive)}
+                          onChange={(event) =>
+                            setBannerForm((prev) => ({
+                              ...prev,
+                              isActive: event.target.checked,
+                            }))
+                          }
+                          color="primary"
+                        />
+                      }
+                      label={bannerForm.isActive ? "Active" : "Inactive"}
+                      sx={{ whiteSpace: "nowrap" }}
+                    />
+                  </Stack>
+
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -1853,6 +1896,8 @@ const AdminDashboardPage = () => {
                   <TableRow>
                     <TableCell>Type</TableCell>
                     <TableCell>Title</TableCell>
+                    <TableCell>Sort order</TableCell>
+                    <TableCell>Status</TableCell>
                     <TableCell>Image(s)</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
@@ -1867,7 +1912,7 @@ const AdminDashboardPage = () => {
                       <React.Fragment key={item.id}>
                         {showTypeHeader && (
                           <TableRow sx={{ backgroundColor: "background.default" }}>
-                            <TableCell colSpan={4} sx={{ fontWeight: 700, color: "text.secondary" }}>
+                            <TableCell colSpan={6} sx={{ fontWeight: 700, color: "text.secondary" }}>
                               {typeLabel} ({bannerCountsByType[item.type] || 0})
                             </TableCell>
                           </TableRow>
@@ -1875,6 +1920,15 @@ const AdminDashboardPage = () => {
                         <TableRow hover>
                           <TableCell sx={{ textTransform: "capitalize" }}>{typeLabel}</TableCell>
                           <TableCell sx={{ fontWeight: 700 }}>{item.title}</TableCell>
+                          <TableCell>{item.sortOrder ?? 0}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={item.isActive ? "Active" : "Inactive"}
+                              color={item.isActive ? "success" : "default"}
+                              size="small"
+                              variant={item.isActive ? "filled" : "outlined"}
+                            />
+                          </TableCell>
                           <TableCell sx={{ maxWidth: 320 }}>
                             {item.type === "home" ? (
                               item.images?.length ? (
@@ -1945,7 +1999,7 @@ const AdminDashboardPage = () => {
                   })}
                   {!banners.length && (
                     <TableRow>
-                      <TableCell colSpan={4}>
+                      <TableCell colSpan={6}>
                         <Typography variant="body2" color="text.secondary" align="center">
                           No banner entries yet.
                         </Typography>

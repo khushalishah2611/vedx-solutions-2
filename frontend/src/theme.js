@@ -6,7 +6,7 @@ const getPalette = (mode) => {
   return {
     mode,
     background: {
-      default: isDark ? '#050505' : '#f8fafc',
+      default: isDark ? '#050505' : '#ffffff',
       paper: isDark ? '#111118' : '#ffffff'
     },
     primary: {
@@ -27,7 +27,7 @@ const getComponents = (mode) => {
   const isDark = mode === 'dark';
   const paperBackground = isDark
     ? 'linear-gradient(145deg, rgba(255,255,255,0.08), rgba(99,102,241,0.1))'
-    : 'linear-gradient(145deg, rgba(79,70,229,0.08), rgba(236,72,153,0.08))';
+    : 'none';
 
   return {
     MuiButton: {

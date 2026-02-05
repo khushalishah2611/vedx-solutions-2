@@ -5460,6 +5460,8 @@ const mapBannerToResponse = (banner) => {
     type: toUiBannerType(banner.type), // "HOME" -> "home" for frontend
     image: isHome ? null : banner.imageUrl || null,
     images,
+    sortOrder: banner.sortOrder ?? 0,
+    isActive: Boolean(banner.isActive),
     createdAt: banner.createdAt,
     updatedAt: banner.updatedAt,
   };
@@ -5611,7 +5613,7 @@ app.get('/api/banners', async (_req, res) => {
 // CREATE banner
 app.post('/api/banners', async (req, res) => {
   try {
-    const { title, type, image, images } = req.body ?? {};
+    const { title, type, image, images, sortOrder, isActive } = req.body ?? {};
 
     if (!title) {
       return res.status(400).json({ error: 'title is required' });
@@ -5619,6 +5621,8 @@ app.post('/api/banners', async (req, res) => {
 
     const bannerType = normalizeBannerTypeInput(type);
     const isHome = bannerType === 'HOME';
+    const parsedSortOrder = Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0;
+    const parsedIsActive = typeof isActive === 'boolean' ? isActive : true;
     const imageList = isHome && Array.isArray(images)
       ? images.filter(Boolean)
       : [];
@@ -5642,6 +5646,8 @@ app.post('/api/banners', async (req, res) => {
         title,
         type: bannerType,
         imageUrl: isHome ? null : (image || null),
+        sortOrder: parsedSortOrder,
+        isActive: parsedIsActive,
         images:
           isHome && imageList.length
             ? {
@@ -5670,7 +5676,7 @@ app.put('/api/banners/:id', async (req, res) => {
       return res.status(400).json({ error: 'A valid banner id is required' });
     }
 
-    const { title, type, image, images } = req.body ?? {};
+    const { title, type, image, images, sortOrder, isActive } = req.body ?? {};
 
     const existing = await prisma.banner.findUnique({
       where: { id },
@@ -5683,6 +5689,10 @@ app.put('/api/banners/:id', async (req, res) => {
 
     const bannerType = type ? normalizeBannerTypeInput(type) : existing.type;
     const isHome = bannerType === 'HOME';
+    const parsedSortOrder = Number.isFinite(Number(sortOrder))
+      ? Number(sortOrder)
+      : existing.sortOrder;
+    const parsedIsActive = typeof isActive === 'boolean' ? isActive : existing.isActive;
 
     if (!isHome) {
       const imageError = validateImageUrl(typeof image === 'string' ? image : existing.imageUrl);
@@ -5702,6 +5712,8 @@ app.put('/api/banners/:id', async (req, res) => {
           : typeof image === 'string'
             ? image
             : existing.imageUrl,
+        sortOrder: parsedSortOrder,
+        isActive: parsedIsActive,
       },
     });
 

@@ -20,9 +20,15 @@ export const useBannersByType = (type) => {
         }
         const data = await response.json();
         if (!isMounted) return;
-        const filtered = (data ?? []).filter((banner) => banner?.type === normalizedType);
+        const filtered = (data ?? []).filter(
+          (banner) => banner?.type === normalizedType && (banner?.isActive ?? true)
+        );
         setBanners(
-          filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          filtered.sort((a, b) => {
+            const sortDiff = (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0);
+            if (sortDiff !== 0) return sortDiff;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          })
         );
       } catch (error) {
         console.error('Failed to load banners', error);
