@@ -379,7 +379,7 @@ const ContactPage = () => {
               </Typography>
             </Stack>
 
-             <Grid spacing={2} container sx={{ p: { xs: 3, sm: 4 }, m: { xs: 0, md: 5 } }}>
+            <Grid spacing={2} container sx={{ p: { xs: 3, sm: 4 }, m: { xs: 0, md: 5 } }}>
               {contactDetails.map((detail) => {
                 const isPhone = detail.label === "Indian" || detail.label === "USA";
                 const valueText = isPhone ? `${detail.label} - ${detail.value}` : detail.value;
@@ -462,12 +462,19 @@ const ContactPage = () => {
                 );
               })}
             </Grid>
+<Container
+  maxWidth={false}
+  sx={{ px: { xs: 2, sm: 3, md: 12, lg: 5 } }}
+>
 
-   
-           <Grid >
-          
+            <Grid
+              container
+              rowSpacing={{ xs: 4, md: 2 }}
+              columnSpacing={{ xs: 2, md: 2 }}
+            >
+
               <Grid item xs={12} md={6}>
-                 <Stack
+                <Stack
                   spacing={3}
                   sx={{
                     height: "100%",
@@ -606,7 +613,7 @@ const ContactPage = () => {
 
               {/* Map column */}
               <Grid item xs={12} md={6}>
-              <Stack spacing={1.5}>
+                <Stack spacing={1.5}>
                   <Box
                     sx={{
                       position: "relative",
@@ -626,7 +633,7 @@ const ContactPage = () => {
                   >
                     <Box
                       component="iframe"
-                      key={selectedLocation.key} 
+                      key={selectedLocation.key}
                       title={`${selectedLocation.label} map`}
                       src={selectedLocation.embedUrl}
                       loading="lazy"
@@ -641,7 +648,7 @@ const ContactPage = () => {
                     />
                   </Box>
 
-      
+
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                     <AppButton
                       fullWidth
@@ -708,6 +715,7 @@ const ContactPage = () => {
                 </Stack>
               </Grid>
             </Grid>
+            </Container>
           </Stack>
         </Box>
       </Container>
