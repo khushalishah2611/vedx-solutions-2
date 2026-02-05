@@ -83,6 +83,7 @@ const NotFoundPage = () => {
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+
             <AppButton
               variant="contained"
               size="large"
@@ -90,8 +91,16 @@ const NotFoundPage = () => {
               to="/"
               startIcon={<ArrowBackRoundedIcon />}
               sx={{
-                background: 'inear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
-                
+                background: "linear-gradient(90deg, #FF5E5E 0%, #A84DFF 100%)",
+                color: "#fff",
+                borderRadius: "12px",
+                textTransform: "none",
+                fontWeight: 600,
+                px: { xs: 5, md: 6 },
+                py: { xs: 1.5, md: 1.75 },
+                "&:hover": {
+                  background: "linear-gradient(90deg, #A84DFF 0%, #FF5E5E 100%)",
+                },
               }}
             >
               Back to Home
