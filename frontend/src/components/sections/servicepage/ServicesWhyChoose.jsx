@@ -106,12 +106,15 @@ const ServicesWhyChoose = ({
                   const payload = await res.json();
                   const reasons = Array.isArray(payload) ? payload : payload?.reasons;
 
-                  return (reasons || []).map((item) => ({
-                    title: item?.title || '',
-                    description: item?.description || '',
-                    image: item?.image || '',
-                    icon: item?.icon,
-                  }));
+                  return (reasons || [])
+                    .filter((item) => (item?.isActive ?? true) === true)
+                    .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+                    .map((item) => ({
+                      title: item?.title || '',
+                      description: item?.description || '',
+                      image: item?.image || '',
+                      icon: item?.icon,
+                    }));
                 })
                 .catch((err) => {
                   console.error('why-vedx-reasons error:', err);

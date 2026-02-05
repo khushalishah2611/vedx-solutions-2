@@ -13,11 +13,12 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
+import { Link } from "react-router-dom";
 import { apiUrl } from "../../../utils/const.js";
 import { useLoadingFetch } from "../../../hooks/useLoadingFetch.js";
+import { createSlug } from "../../../utils/formatters.js";
 
-
-function ServiceDetails({ activeService, theme, supportingTextColor }) {
+function ServiceDetails({ activeService, theme, supportingTextColor, categorySlug }) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const capabilitiesList = useMemo(() => {
@@ -43,31 +44,49 @@ function ServiceDetails({ activeService, theme, supportingTextColor }) {
   const title = activeService?.sliderTitle ?? activeService?.title ?? "Service";
   const description = activeService?.sliderDescription ?? activeService?.description ?? "";
 
-  const renderCapabilityText = (capability) => (
-    <Typography
-      key={capability}
-      variant="body2"
-      sx={{
-        fontWeight: 600,
-        cursor: "pointer",
-        transition: "0.3s",
-        color: supportingTextColor,
-        "&:hover": {
-          color: "transparent",
-          backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
-          WebkitBackgroundClip: "text",
-        },
-      }}
-    >
-      {capability}
-    </Typography>
-  );
+  const renderCapabilityText = (capability) => {
+    const capabilitySlug = createSlug(capability);
+    const hasLink = Boolean(categorySlug && capabilitySlug);
+
+    return (
+      <Typography
+        key={capability}
+        variant="body2"
+        component={hasLink ? Link : "span"}
+        to={hasLink ? `/services/${categorySlug}/${capabilitySlug}` : undefined}
+        sx={{
+          fontWeight: 600,
+          cursor: "pointer",
+          transition: "0.3s",
+          color: supportingTextColor,
+          textDecoration: "none",
+          "&:hover": {
+            color: "transparent",
+            backgroundImage: "linear-gradient(90deg, #9c27b0, #2196f3)",
+            WebkitBackgroundClip: "text",
+          },
+        }}
+      >
+        {capability}
+      </Typography>
+    );
+  };
 
   return (
     <Grid item xs={12} md={6} sx={{ mt: { xs: 5, md: 0 } }}>
       <Slide in={true} direction="left" timeout={500} key={title}>
         <Stack spacing={3}>
-          <Typography variant="h4" sx={{ fontSize: { xs: 26, md: 34 }, fontWeight: 700 }}>
+          <Typography
+            variant="h4"
+            component={categorySlug ? Link : "span"}
+            to={categorySlug ? `/services/${categorySlug}` : undefined}
+            sx={{
+              fontSize: { xs: 26, md: 34 },
+              fontWeight: 700,
+              textDecoration: "none",
+              color: "inherit",
+            }}
+          >
             {title}
           </Typography>
 
@@ -187,6 +206,11 @@ const ServicesShowcase = () => {
         "",
     };
   }, [activeServiceFromServices, leftItems, activeIndex]);
+
+  const categorySlug = useMemo(() => {
+    const title = activeService?.sliderTitle ?? activeService?.title ?? "";
+    return createSlug(title);
+  }, [activeService]);
 
   const scrollRef = useRef(null);
 
@@ -547,7 +571,12 @@ const ServicesShowcase = () => {
           <Grid item md="auto" sx={{ display: { xs: "none", md: "flex" }, alignItems: "stretch" }}>
             <Divider orientation="vertical" flexItem sx={{ borderColor: alpha(theme.palette.divider, 0.7), mx: 3 }} />
           </Grid>
-          <ServiceDetails activeService={activeService} theme={theme} supportingTextColor={supportingTextColor} />
+          <ServiceDetails
+            activeService={activeService}
+            theme={theme}
+            supportingTextColor={supportingTextColor}
+            categorySlug={categorySlug}
+          />
         </Grid>
       </Stack>
     </Box>

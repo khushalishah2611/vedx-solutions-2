@@ -244,6 +244,7 @@ model ServiceSlider {
 
   services          ServiceCard[]
 
+  sortOrder         Int           @default(0)
   isActive          Boolean       @default(true)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
@@ -1420,6 +1421,9 @@ model HomeWhyVedxReason {
   title       String
   description String    @db.Text
   image       String    @db.LongText
+
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

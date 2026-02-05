@@ -5483,6 +5483,7 @@ const mapServiceSliderToResponse = (slider) => ({
   sliderTitle: slider.sliderTitle,
   sliderDescription: slider.sliderDescription || '',
   sliderImage: slider.sliderImageUrl || null, // map sliderImageUrl -> sliderImage
+  sortOrder: slider.sortOrder ?? 0,
   isActive: slider.isActive,
   createdAt: slider.createdAt,
   updatedAt: slider.updatedAt,
@@ -5875,7 +5876,7 @@ app.delete('/api/process-steps/:id', async (req, res) => {
 app.get('/api/our-services/sliders', async (_req, res) => {
   try {
     const sliders = await prisma.serviceSlider.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
     res.json(sliders.map(mapServiceSliderToResponse));
   } catch (err) {
@@ -5886,7 +5887,7 @@ app.get('/api/our-services/sliders', async (_req, res) => {
 
 app.post('/api/our-services/sliders', async (req, res) => {
   try {
-    const { sliderTitle, sliderDescription, sliderImage, isActive } = req.body ?? {};
+    const { sliderTitle, sliderDescription, sliderImage, isActive, sortOrder } = req.body ?? {};
     if (!sliderTitle) {
       return res.status(400).json({ error: 'sliderTitle is required' });
     }
@@ -5896,6 +5897,7 @@ app.post('/api/our-services/sliders', async (req, res) => {
         sliderTitle,
         sliderDescription: sliderDescription || null,
         sliderImageUrl: sliderImage || null,
+        sortOrder: Number.isInteger(Number(sortOrder)) ? Number(sortOrder) : 0,
         isActive: typeof isActive === 'boolean' ? isActive : true,
       },
     });
@@ -5914,7 +5916,9 @@ app.put('/api/our-services/sliders/:id', async (req, res) => {
       return res.status(400).json({ error: 'A valid slider id is required' });
     }
 
-    const { sliderTitle, sliderDescription, sliderImage, isActive } = req.body ?? {};
+    const { sliderTitle, sliderDescription, sliderImage, isActive, sortOrder } = req.body ?? {};
+    const resolvedSortOrder =
+      sortOrder !== undefined && Number.isInteger(Number(sortOrder)) ? Number(sortOrder) : undefined;
 
     const updated = await prisma.serviceSlider.update({
       where: { id },
@@ -5923,6 +5927,7 @@ app.put('/api/our-services/sliders/:id', async (req, res) => {
         sliderDescription,
         sliderImageUrl: sliderImage,
         isActive,
+        ...(resolvedSortOrder !== undefined ? { sortOrder: resolvedSortOrder } : {}),
       },
     });
 
@@ -11045,6 +11050,8 @@ const mapHomeWhyVedxReasonToResponses = (item) => ({
   title: item.title,
   description: item.description || '',
   image: item.image || null,
+  sortOrder: item.sortOrder ?? 0,
+  isActive: item.isActive ?? true,
   createdAt: item.createdAt,
   updatedAt: item.updatedAt,
 });
@@ -11061,6 +11068,8 @@ const validateHomeWhyVedxReasonInputs = (body) => {
   const title = normalizeText(body?.title);
   const description = normalizeText(body?.description);
   const image = typeof body?.image === 'string' ? body.image : null;
+  const sortOrder = Number.isInteger(Number(body?.sortOrder)) ? Number(body.sortOrder) : 0;
+  const isActive = typeof body?.isActive === 'boolean' ? body.isActive : true;
 
   if (!title) return { error: 'title is required' };
   if (!description) return { error: 'description is required' };
@@ -11069,7 +11078,7 @@ const validateHomeWhyVedxReasonInputs = (body) => {
   const imageError = validateImageUrl(image);
   if (imageError) return { error: imageError };
 
-  return { title, description, image };
+  return { title, description, image, sortOrder, isActive };
 };
 
 
@@ -11219,7 +11228,7 @@ app.put('/api/admin/home/why-vedx-config', async (req, res) => {
 app.get('/api/homes/why-vedx-reasons', async (_req, res) => {
   try {
     const items = await prisma.homeWhyVedxReason.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     return res.json({ reasons: items.map(mapHomeWhyVedxReasonToResponses) });
@@ -11244,6 +11253,8 @@ app.post('/api/homes/why-vedx-reasons', async (req, res) => {
         title: validation.title,
         description: validation.description,
         image: validation.image,
+        sortOrder: validation.sortOrder,
+        isActive: validation.isActive,
 
       },
     });
@@ -11274,6 +11285,11 @@ app.put('/api/homes/why-vedx-reasons/:id', async (req, res) => {
     const description =
       typeof req.body?.description === 'string' ? normalizeText(req.body.description) : undefined;
     const image = typeof req.body?.image === 'string' ? req.body.image : undefined;
+    const sortOrder =
+      req.body?.sortOrder !== undefined && Number.isInteger(Number(req.body.sortOrder))
+        ? Number(req.body.sortOrder)
+        : undefined;
+    const isActive = typeof req.body?.isActive === 'boolean' ? req.body.isActive : undefined;
 
     if (title !== undefined && !title) return res.status(400).json({ error: 'title is required' });
     if (description !== undefined && !description)
@@ -11289,6 +11305,8 @@ app.put('/api/homes/why-vedx-reasons/:id', async (req, res) => {
       ...(title !== undefined ? { title } : {}),
       ...(description !== undefined ? { description } : {}),
       ...(image !== undefined ? { image } : {}),
+      ...(sortOrder !== undefined ? { sortOrder } : {}),
+      ...(isActive !== undefined ? { isActive } : {}),
     };
 
 

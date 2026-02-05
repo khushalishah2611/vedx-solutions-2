@@ -179,6 +179,7 @@ const AdminDashboardPage = () => {
     sliderTitle: "",
     sliderDescription: "",
     sliderImage: "",
+    sortOrder: 0,
     isActive: true,
   });
   const [editingSliderId, setEditingSliderId] = useState(null);
@@ -298,6 +299,26 @@ const AdminDashboardPage = () => {
    * -------------------------- */
   const selectedSliderForServiceDialog =
     ourServicesSliders.find((s) => s.id === ourServiceForm.sliderId) || null;
+
+  const sortedOurServicesSliders = useMemo(() => {
+    return [...ourServicesSliders].sort((a, b) => {
+      const sortDiff = (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+      if (sortDiff !== 0) return sortDiff;
+      const aUpdated = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const bUpdated = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return bUpdated - aUpdated;
+    });
+  }, [ourServicesSliders]);
+
+  const sortedWhyVedxReasons = useMemo(() => {
+    return [...whyVedxReasons].sort((a, b) => {
+      const sortDiff = (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+      if (sortDiff !== 0) return sortDiff;
+      const aUpdated = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const bUpdated = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return bUpdated - aUpdated;
+    });
+  }, [whyVedxReasons]);
 
   const bannerCountsByType = useMemo(() => {
     const counts = {};
@@ -810,6 +831,7 @@ const AdminDashboardPage = () => {
       sliderTitle: "",
       sliderDescription: "",
       sliderImage: "",
+      sortOrder: 0,
       isActive: true,
     });
     setEditingSliderId(null);
@@ -823,6 +845,7 @@ const AdminDashboardPage = () => {
       sliderTitle: "",
       sliderDescription: "",
       sliderImage: "",
+      sortOrder: 0,
       isActive: true,
     });
   };
@@ -837,6 +860,7 @@ const AdminDashboardPage = () => {
       sliderTitle: ourServicesHeroForm.sliderTitle.trim(),
       sliderDescription: ourServicesHeroForm.sliderDescription || null,
       sliderImage: ourServicesHeroForm.sliderImage || null,
+      sortOrder: Number(ourServicesHeroForm.sortOrder) || 0,
       isActive: Boolean(ourServicesHeroForm.isActive),
     };
 
@@ -881,6 +905,7 @@ const AdminDashboardPage = () => {
       sliderTitle: slider.sliderTitle,
       sliderDescription: slider.sliderDescription ?? "",
       sliderImage: slider.sliderImage ?? "",
+      sortOrder: Number.isFinite(Number(slider.sortOrder)) ? Number(slider.sortOrder) : 0,
       isActive: slider.isActive ?? true,
     });
     setEditingSliderId(slider.id);
@@ -905,6 +930,7 @@ const AdminDashboardPage = () => {
               sliderTitle: first.sliderTitle,
               sliderDescription: first.sliderDescription ?? "",
               sliderImage: first.sliderImage ?? "",
+              sortOrder: Number.isFinite(Number(first.sortOrder)) ? Number(first.sortOrder) : 0,
               isActive: first.isActive ?? true,
             });
           } else {
@@ -913,6 +939,7 @@ const AdminDashboardPage = () => {
               sliderTitle: "",
               sliderDescription: "",
               sliderImage: "",
+              sortOrder: 0,
               isActive: true,
             });
           }
@@ -1653,7 +1680,7 @@ const AdminDashboardPage = () => {
     (industryPage - 1) * rowsPerPage,
     industryPage * rowsPerPage
   );
-  const paginatedWhyVedxReasons = whyVedxReasons.slice(
+  const paginatedWhyVedxReasons = sortedWhyVedxReasons.slice(
     (whyVedxReasonPage - 1) * rowsPerPage,
     whyVedxReasonPage * rowsPerPage
   );
@@ -1673,7 +1700,7 @@ const AdminDashboardPage = () => {
     (ourServicePage - 1) * rowsPerPage,
     ourServicePage * rowsPerPage
   );
-  const paginatedOurServiceSliders = ourServicesSliders.slice(
+  const paginatedOurServiceSliders = sortedOurServicesSliders.slice(
     (ourServicesSliderPage - 1) * rowsPerPage,
     ourServicesSliderPage * rowsPerPage
   );
@@ -2233,6 +2260,7 @@ const AdminDashboardPage = () => {
                           <TableCell>Image</TableCell>
                           <TableCell>Title</TableCell>
                           <TableCell>Description</TableCell>
+                          <TableCell>Sort order</TableCell>
                           <TableCell>Active</TableCell>
                           <TableCell align="right">Actions</TableCell>
                         </TableRow>
@@ -2269,6 +2297,9 @@ const AdminDashboardPage = () => {
                                 {slider.sliderDescription || "-"}
                               </Typography>
                             </TableCell>
+                            <TableCell>
+                              {Number.isFinite(Number(slider.sortOrder)) ? slider.sortOrder : 0}
+                            </TableCell>
                             <TableCell>{slider.isActive ? "Yes" : "No"}</TableCell>
                             <TableCell align="right">
                               <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -2297,7 +2328,7 @@ const AdminDashboardPage = () => {
                         ))}
                         {ourServicesSliders.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={5}>
+                            <TableCell colSpan={6}>
                               <Typography variant="body2" color="text.secondary" align="center">
                                 No sliders configured yet.
                               </Typography>
@@ -3156,6 +3187,18 @@ const AdminDashboardPage = () => {
                   <MenuItem value="no">Inactive</MenuItem>
                 </AppSelectField>
               </Grid>
+              <Grid item xs={12} md={4}>
+                <AppTextField
+                  type="number"
+                  label="Sort order"
+                  value={ourServicesHeroForm.sortOrder}
+                  onChange={(event) =>
+                    handleOurServicesHeroChange("sortOrder", Number(event.target.value))
+                  }
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                />
+              </Grid>
             </Grid>
           </Box>
         </AppDialogContent>
@@ -3203,7 +3246,7 @@ const AdminDashboardPage = () => {
                 fullWidth
                 helperText="Choose which slider this service belongs to"
               >
-                {ourServicesSliders.map((slider) => (
+                {sortedOurServicesSliders.map((slider) => (
                   <MenuItem key={slider.id} value={slider.id}>
                     {slider.sliderTitle}
                   </MenuItem>
@@ -3312,7 +3355,7 @@ const AdminDashboardPage = () => {
         <AppDialogTitle>Choose slider</AppDialogTitle>
         <AppDialogContent dividers>
           <Grid container spacing={2} mt={0.5}>
-            {ourServicesSliders.map((slider) => (
+            {sortedOurServicesSliders.map((slider) => (
               <Grid item xs={12} sm={6} md={4} key={slider.id}>
                 <Card
                   onClick={() => {
