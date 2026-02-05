@@ -4,6 +4,20 @@ import { apiUrl } from '../utils/const.js';
 import { megaMenuContent } from '../data/content.js';
 import { useLoadingFetch } from './useLoadingFetch.js';
 
+const sortByOrderAndLabel = (a, b) => {
+  const activeA = a?.isActive ?? true;
+  const activeB = b?.isActive ?? true;
+  if (activeA !== activeB) return activeA ? -1 : 1;
+
+  const orderA = Number.isFinite(Number(a?.sortOrder)) ? Number(a.sortOrder) : 0;
+  const orderB = Number.isFinite(Number(b?.sortOrder)) ? Number(b.sortOrder) : 0;
+  if (orderA !== orderB) return orderA - orderB;
+
+  const labelA = String(a?.name || a?.title || '').toLowerCase();
+  const labelB = String(b?.name || b?.title || '').toLowerCase();
+  return labelA.localeCompare(labelB);
+};
+
 const buildServiceMenu = (categories, subCategories) => {
   const grouped = new Map();
 
@@ -14,9 +28,9 @@ const buildServiceMenu = (categories, subCategories) => {
     grouped.get(sub.categoryId).push(sub);
   });
 
-  const menuCategories = categories.map((category) => {
+  const menuCategories = [...categories].sort(sortByOrderAndLabel).map((category) => {
     const items = grouped.get(category.id) ?? category.subCategories ?? [];
-    const sortedItems = [...items].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const sortedItems = [...items].sort(sortByOrderAndLabel);
     const categoryHref = `/services/${category.slug}`;
 
     return {
@@ -46,9 +60,9 @@ const buildHireMenu = (categories, roles) => {
     grouped.get(role.hireCategoryId).push(role);
   });
 
-  const menuCategories = categories.map((category) => {
+  const menuCategories = [...categories].sort(sortByOrderAndLabel).map((category) => {
     const items = grouped.get(category.id) ?? category.roles ?? [];
-    const sortedItems = [...items].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    const sortedItems = [...items].sort(sortByOrderAndLabel);
     const categoryHref = `/hire-developers/${category.slug}`;
 
     return {

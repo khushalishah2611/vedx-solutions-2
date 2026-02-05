@@ -21,6 +21,28 @@ const slugify = (value = '') =>
 const formatDate = (value) =>
   value ? String(value).split('T')[0] : new Date().toISOString().split('T')[0];
 
+const sortByOrderAndStatus = (a, b) => {
+  const activeA = a?.isActive ?? true;
+  const activeB = b?.isActive ?? true;
+  if (activeA !== activeB) return activeA ? -1 : 1;
+
+  const orderA = Number.isFinite(Number(a?.sortOrder)) ? Number(a.sortOrder) : 0;
+  const orderB = Number.isFinite(Number(b?.sortOrder)) ? Number(b.sortOrder) : 0;
+  if (orderA !== orderB) return orderA - orderB;
+
+  const labelA = String(a?.name || a?.title || '').toLowerCase();
+  const labelB = String(b?.name || b?.title || '').toLowerCase();
+  return labelA.localeCompare(labelB);
+};
+
+const sortNestedCategories = (list) =>
+  [...list]
+    .map((item) => ({
+      ...item,
+      subcategories: [...(item.subcategories || [])].sort(sortByOrderAndStatus),
+    }))
+    .sort(sortByOrderAndStatus);
+
 const normalizeServiceSubcategory = (sub = {}) => ({
   id: sub.id,
   name: sub.name || '',
@@ -151,8 +173,9 @@ const AdminNavigationPage = () => {
       const normalized = (payload.categories || []).map((category) =>
         normalizeServiceCategory(category, [])
       );
-      setCategories(normalized);
-      setSelectedCategoryId(normalized[0]?.id || null);
+      const sorted = sortNestedCategories(normalized);
+      setCategories(sorted);
+      setSelectedCategoryId(sorted[0]?.id || null);
       resetPagination();
     } catch (error) {
       console.error('Load service categories failed', error);
@@ -258,9 +281,11 @@ const AdminNavigationPage = () => {
       );
 
       setCategories((prev) =>
-        categoryDialogMode === 'edit'
-          ? prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
-          : [updatedCategory, ...prev]
+        sortNestedCategories(
+          categoryDialogMode === 'edit'
+            ? prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
+            : [updatedCategory, ...prev]
+        )
       );
 
       if (categoryDialogMode === 'create') {
@@ -304,7 +329,9 @@ const AdminNavigationPage = () => {
       }
 
       setCategories((prev) => {
-        const updated = prev.filter((cat) => cat.id !== categoryToDelete.id);
+        const updated = sortNestedCategories(
+          prev.filter((cat) => cat.id !== categoryToDelete.id)
+        );
         if (selectedCategoryId === categoryToDelete.id) {
           setSelectedCategoryId(updated[0]?.id || null);
           resetPagination();
@@ -399,23 +426,25 @@ const AdminNavigationPage = () => {
       const updatedSub = normalizeServiceSubcategory(payload.subCategory);
 
       setCategories((prev) =>
-        prev.map((category) => {
-          if (category.id !== selectedCategory.id) return category;
+        sortNestedCategories(
+          prev.map((category) => {
+            if (category.id !== selectedCategory.id) return category;
 
-          if (subDialogMode === 'edit') {
+            if (subDialogMode === 'edit') {
+              return {
+                ...category,
+                subcategories: category.subcategories.map((sub) =>
+                  sub.id === updatedSub.id ? updatedSub : sub
+                ),
+              };
+            }
+
             return {
               ...category,
-              subcategories: category.subcategories.map((sub) =>
-                sub.id === updatedSub.id ? updatedSub : sub
-              ),
+              subcategories: [updatedSub, ...category.subcategories],
             };
-          }
-
-          return {
-            ...category,
-            subcategories: [updatedSub, ...category.subcategories],
-          };
-        })
+          })
+        )
       );
 
       closeSubDialog();
@@ -454,15 +483,17 @@ const AdminNavigationPage = () => {
       }
 
       setCategories((prev) =>
-        prev.map((category) =>
-          category.id === selectedCategory.id
-            ? {
-              ...category,
-              subcategories: category.subcategories.filter(
-                (sub) => sub.id !== subToDelete.id
-              ),
-            }
-            : category
+        sortNestedCategories(
+          prev.map((category) =>
+            category.id === selectedCategory.id
+              ? {
+                ...category,
+                subcategories: category.subcategories.filter(
+                  (sub) => sub.id !== subToDelete.id
+                ),
+              }
+              : category
+          )
         )
       );
     } catch (error) {
@@ -546,7 +577,7 @@ const AdminNavigationPage = () => {
       const normalized = (payload.categories || []).map((category) =>
         normalizeHireCategory(category, [])
       );
-      setHireCategories(normalized);
+      setHireCategories(sortNestedCategories(normalized));
       setHireCategoryPage(1);
     } catch (error) {
       console.error('Load hire categories failed', error);
@@ -648,9 +679,11 @@ const AdminNavigationPage = () => {
       );
 
       setHireCategories((prev) =>
-        editingHireCategoryId
-          ? prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
-          : [updatedCategory, ...prev]
+        sortNestedCategories(
+          editingHireCategoryId
+            ? prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
+            : [updatedCategory, ...prev]
+        )
       );
 
       setHireCategoryPage(1);
@@ -691,7 +724,9 @@ const AdminNavigationPage = () => {
       }
 
       setHireCategories((prev) => {
-        const updated = prev.filter((cat) => cat.id !== hireCategoryToDelete.id);
+        const updated = sortNestedCategories(
+          prev.filter((cat) => cat.id !== hireCategoryToDelete.id)
+        );
 
         const maxPage = Math.max(1, Math.ceil(updated.length / rowsPerPage));
         if (hireCategoryPage > maxPage) {
@@ -786,23 +821,25 @@ const AdminNavigationPage = () => {
       const updatedSubcategory = normalizeHireSubcategory(payload.role);
 
       setHireCategories((prev) =>
-        prev.map((cat) => {
-          if (cat.id !== activeHireCategory.id) return cat;
+        sortNestedCategories(
+          prev.map((cat) => {
+            if (cat.id !== activeHireCategory.id) return cat;
 
-          if (editingHireSubcategoryId) {
+            if (editingHireSubcategoryId) {
+              return {
+                ...cat,
+                subcategories: cat.subcategories.map((sub) =>
+                  sub.id === updatedSubcategory.id ? updatedSubcategory : sub
+                ),
+              };
+            }
+
             return {
               ...cat,
-              subcategories: cat.subcategories.map((sub) =>
-                sub.id === updatedSubcategory.id ? updatedSubcategory : sub
-              ),
+              subcategories: [updatedSubcategory, ...cat.subcategories],
             };
-          }
-
-          return {
-            ...cat,
-            subcategories: [updatedSubcategory, ...cat.subcategories],
-          };
-        })
+          })
+        )
       );
 
       setHireSubcategoryForm({
@@ -859,13 +896,15 @@ const AdminNavigationPage = () => {
       }
 
       setHireCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === activeHireCategory.id
-            ? {
-              ...cat,
-              subcategories: cat.subcategories.filter((sub) => sub.id !== id),
-            }
-            : cat
+        sortNestedCategories(
+          prev.map((cat) =>
+            cat.id === activeHireCategory.id
+              ? {
+                ...cat,
+                subcategories: cat.subcategories.filter((sub) => sub.id !== id),
+              }
+              : cat
+          )
         )
       );
     } catch (error) {
