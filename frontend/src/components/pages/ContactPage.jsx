@@ -33,23 +33,51 @@ const contactProjectTypes = [
 
 ];
 
-const contactLocation = {
-  address: "Vedx Solution Pvt Ltd, Vadodara, Gujarat, India",
-  lat: 22.3446425,
-  lng: 73.2147198,
-  mapUrl:
-    "https://www.google.com/maps/place/Vedx+solution+Pvt+ltd/@22.344642,73.21472,14z/data=!4m6!3m5!1s0x395fcdb58438851d:0x38a17515d716976!8m2!3d22.3446425!4d73.2147198!16s%2Fg%2F11x34kz_b1?hl=en-GB&entry=ttu",
-  get embedUrl() {
-    return `https://www.google.com/maps?q=${this.lat},${this.lng}&z=15&output=embed`;
+const createMapUrl = (address) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+const contactLocations = [
+  {
+    label: "Vadodara Office",
+    address: "Vedx Solution Pvt Ltd, Vadodara, Gujarat, India",
+    lat: 22.3446425,
+    lng: 73.2147198,
+    mapUrl:
+      "https://www.google.com/maps/place/Vedx+solution+Pvt+ltd/@22.344642,73.21472,14z/data=!4m6!3m5!1s0x395fcdb58438851d:0x38a17515d716976!8m2!3d22.3446425!4d73.2147198!16s%2Fg%2F11x34kz_b1?hl=en-GB&entry=ttu",
+    get embedUrl() {
+      return `https://www.google.com/maps?q=${this.lat},${this.lng}&z=15&output=embed`;
+    },
+    get directionsUrl() {
+      return `https://www.google.com/maps/dir/?api=1&destination=${this.lat},${this.lng}`;
+    },
   },
-};
+  {
+    label: "Ahmedabad Office",
+    address:
+      "A-311, Titanium Business Park, Near Makarba Railway Crossing, B/H. Divya Bhaskar Press, Ahmedabad - 380051",
+    mapUrl: createMapUrl(
+      "A-311, Titanium Business Park, Near Makarba Railway Crossing, B/H. Divya Bhaskar Press, Ahmedabad - 380051"
+    ),
+    directionsUrl: createMapUrl(
+      "A-311, Titanium Business Park, Near Makarba Railway Crossing, B/H. Divya Bhaskar Press, Ahmedabad - 380051"
+    ),
+  },
+];
+
+const primaryLocation = contactLocations[0];
 
 const contactDetails = [
   {
-    label: "Contact Phone Number",
-    value: "9099968634",
+    label: "India Phone Number",
+    value: "+91 9099924828",
     icon: <PhoneInTalkRoundedIcon fontSize="large" />,
-    href: "tel:9099968634",
+    href: "tel:+919099924828",
+  },
+  {
+    label: "USA Phone Number",
+    value: "+1 320396",
+    icon: <PhoneInTalkRoundedIcon fontSize="large" />,
+    href: "tel:+1320396",
   },
   {
     label: "Our Email Address",
@@ -58,10 +86,17 @@ const contactDetails = [
     href: "mailto:contact@vedxsolution.com",
   },
   {
-    label: "Our Location",
-    value: contactLocation.address,
+    label: contactLocations[0].label,
+    value: contactLocations[0].address,
     icon: <LocationOnRoundedIcon fontSize="large" />,
-    href: contactLocation.mapUrl,
+    href: contactLocations[0].mapUrl,
+    external: true,
+  },
+  {
+    label: contactLocations[1].label,
+    value: contactLocations[1].address,
+    icon: <LocationOnRoundedIcon fontSize="large" />,
+    href: contactLocations[1].mapUrl,
     external: true,
   },
 ];
@@ -579,8 +614,8 @@ const ContactPage = () => {
                   >
                     <Box
                       component="iframe"
-                      title="Vedx Solution Pvt Ltd map"
-                      src={contactLocation.embedUrl}
+                      title="Vedx Solutions locations map"
+                      src={primaryLocation.embedUrl}
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
                       allowFullScreen
@@ -615,7 +650,7 @@ const ContactPage = () => {
                             <Typography
                               sx={{ fontWeight: 800, fontSize: 16, color: "#111827" }}
                             >
-                              Vedx solution Pvt ltd
+                              Vedx Solutions
                             </Typography>
 
                             <Typography
@@ -625,13 +660,13 @@ const ContactPage = () => {
                                 lineHeight: 1.4,
                               }}
                             >
-                              {contactLocation.address}
+                              {primaryLocation.address}
                             </Typography>
                           </Box>
 
                           <Box
                             component="a"
-                            href={`https://www.google.com/maps/dir/?api=1&destination=${contactLocation.lat},${contactLocation.lng}`}
+                            href={primaryLocation.directionsUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{ textDecoration: "none" }}
@@ -647,6 +682,47 @@ const ContactPage = () => {
                               Directions
                             </Typography>
                           </Box>
+                        </Stack>
+
+                        <Stack spacing={1}>
+                          {contactLocations.map((location) => (
+                            <Box key={location.label}>
+                              <Typography
+                                sx={{
+                                  fontSize: 12.5,
+                                  fontWeight: 700,
+                                  color: "#111827",
+                                }}
+                              >
+                                {location.label}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontSize: 12,
+                                  color: "#374151",
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                {location.address}
+                              </Typography>
+                              <Typography
+                                component="a"
+                                href={location.directionsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{
+                                  display: "inline-block",
+                                  mt: 0.4,
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  color: "#2563eb",
+                                  textDecoration: "none",
+                                }}
+                              >
+                                Directions
+                              </Typography>
+                            </Box>
+                          ))}
                         </Stack>
 
                         <Stack direction="row" alignItems="center" spacing={1}>
