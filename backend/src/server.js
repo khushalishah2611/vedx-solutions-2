@@ -5460,6 +5460,7 @@ const mapBannerToResponse = (banner) => {
   return {
     id: banner.id,
     title: banner.title,
+    contactLabel: banner.contactLabel || null,
     type: toUiBannerType(banner.type), // "HOME" -> "home" for frontend
     image: isHome ? null : banner.imageUrl || null,
     images,
@@ -5617,7 +5618,7 @@ app.get('/api/banners', async (_req, res) => {
 // CREATE banner
 app.post('/api/banners', async (req, res) => {
   try {
-    const { title, type, image, images, sortOrder, isActive } = req.body ?? {};
+    const { title, contactLabel, type, image, images, sortOrder, isActive } = req.body ?? {};
 
     if (!title) {
       return res.status(400).json({ error: 'title is required' });
@@ -5648,6 +5649,7 @@ app.post('/api/banners', async (req, res) => {
     const created = await prisma.banner.create({
       data: {
         title,
+        contactLabel: typeof contactLabel === 'string' ? contactLabel.trim() || null : null,
         type: bannerType,
         imageUrl: isHome ? null : (image || null),
         sortOrder: parsedSortOrder,
@@ -5680,7 +5682,7 @@ app.put('/api/banners/:id', async (req, res) => {
       return res.status(400).json({ error: 'A valid banner id is required' });
     }
 
-    const { title, type, image, images, sortOrder, isActive } = req.body ?? {};
+    const { title, contactLabel, type, image, images, sortOrder, isActive } = req.body ?? {};
 
     const existing = await prisma.banner.findUnique({
       where: { id },
@@ -5710,6 +5712,10 @@ app.put('/api/banners/:id', async (req, res) => {
       where: { id },
       data: {
         title: typeof title === 'string' ? title : existing.title,
+        contactLabel:
+          typeof contactLabel === 'string'
+            ? contactLabel.trim() || null
+            : existing.contactLabel,
         type: bannerType,
         imageUrl: isHome
           ? null
