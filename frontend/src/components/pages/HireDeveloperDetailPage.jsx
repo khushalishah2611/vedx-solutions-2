@@ -134,6 +134,7 @@ const HireDeveloperDetailPage = () => {
     const params = new URLSearchParams();
     if (categoryName) params.append('category', categoryName);
     if (roleName) params.append('subcategory', roleName);
+    params.append('public', 'true');
 
     const loadBenefits = async () => {
       try {
@@ -167,7 +168,7 @@ const HireDeveloperDetailPage = () => {
 
     const loadTechnologies = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/hire-developer/technologies'));
+        const response = await fetchWithLoading(apiUrl('/api/hire-developer/technologies?public=true'));
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || 'Unable to load hire technologies');
@@ -194,6 +195,7 @@ const HireDeveloperDetailPage = () => {
     const params = new URLSearchParams();
     if (categoryName) params.append('category', categoryName);
     if (roleName) params.append('subcategory', roleName);
+    params.append('public', 'true');
 
     const loadServiceConfig = async () => {
       try {

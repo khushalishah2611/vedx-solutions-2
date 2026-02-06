@@ -31,7 +31,7 @@ const HireDevelopersPage = () => {
 
     const loadBenefits = async () => {
       try {
-        const configResponse = await fetchWithLoading(apiUrl('/api/hire-developer/benefit-configs'));
+        const configResponse = await fetchWithLoading(apiUrl('/api/hire-developer/benefit-configs?public=true'));
         const configData = await configResponse.json();
         if (!configResponse.ok) {
           throw new Error(configData?.error || 'Unable to load hire benefit configs');
@@ -59,7 +59,7 @@ const HireDevelopersPage = () => {
 
     const loadTechnologies = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/hire-developer/technologies'));
+        const response = await fetchWithLoading(apiUrl('/api/hire-developer/technologies?public=true'));
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || 'Unable to load hire technologies');
@@ -84,7 +84,7 @@ const HireDevelopersPage = () => {
 
     const loadHeroConfig = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/hire-developer/services'));
+        const response = await fetchWithLoading(apiUrl('/api/hire-developer/services?public=true'));
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || 'Unable to load hire developer services');

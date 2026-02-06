@@ -33,6 +33,7 @@ export default function ServicePage({
     const params = new URLSearchParams();
     if (category) params.append("category", category);
     if (subcategory) params.append("subcategory", subcategory);
+    params.append("public", "true");
 
     const loadHighlights = async () => {
       try {
@@ -81,9 +82,9 @@ export default function ServicePage({
 
         if (!isMounted) return;
 
-        const sortedServices = (services || []).sort(
-          (a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0)
-        );
+        const sortedServices = (services || [])
+          .filter((item) => (item?.isActive ?? true) === true)
+          .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0));
 
         setTable({
           title: config?.tableTitle || "",
