@@ -81,10 +81,14 @@ export default function ServicePage({
 
         if (!isMounted) return;
 
+        const sortedServices = (services || []).sort(
+          (a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0)
+        );
+
         setTable({
           title: config?.tableTitle || "",
           description: config?.tableDescription || "",
-          services: services || [],
+          services: sortedServices,
         });
       } catch (err) {
         console.error("Why choose load error:", err);

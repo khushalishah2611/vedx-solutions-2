@@ -162,8 +162,12 @@ const ServicesWhyChoose = ({
 
         if (shouldFetchHighlights) {
           const reasons = active?.reasons || [];
+          const sortedReasons = (reasons || []).sort(
+            (a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0)
+          );
+
           setApiHighlights(
-            (reasons || []).map((item) => ({
+            sortedReasons.map((item) => ({
               title: item?.title || '',
               description: item?.description || '',
               image: item?.image || '',
