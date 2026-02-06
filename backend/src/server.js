@@ -7152,13 +7152,13 @@ app.get('/api/benefits', async (req, res) => {
         ...(normalizedCategory && {
           OR: [
             { category: { equals: normalizedCategory } },
-            { benefitConfig: { category: { name: { equals: normalizedCategory } } } },
+            { benefitConfig: { is: { category: { name: { equals: normalizedCategory } } } } },
           ],
         }),
         ...(normalizedSubcategory && {
           OR: [
             { subcategory: { equals: normalizedSubcategory } },
-            { benefitConfig: { subcategory: { name: { equals: normalizedSubcategory } } } },
+            { benefitConfig: { is: { subcategory: { name: { equals: normalizedSubcategory } } } } },
           ],
         }),
         ...(parsedBenefitConfigId && { benefitConfigId: parsedBenefitConfigId }),
@@ -9043,10 +9043,10 @@ app.get('/api/why-vedx', async (req, res) => {
     const whyVedx = await prisma.whyVedx.findMany({
       where: {
         ...(categoryName
-          ? { category: { name: { equals: categoryName } } }
+          ? { category: { is: { name: { equals: categoryName } } } }
           : {}),
         ...(subcategoryName
-          ? { subcategory: { name: { equals: subcategoryName } } }
+          ? { subcategory: { is: { name: { equals: subcategoryName } } } }
           : {}),
       },
       include: {
@@ -9193,10 +9193,10 @@ app.get('/api/why-vedx-reasons', async (req, res) => {
       where: {
         ...(parsedWhyVedxId ? { whyVedxId: parsedWhyVedxId } : {}),
         ...(categoryName
-          ? { category: { name: { equals: categoryName } } }
+          ? { category: { is: { name: { equals: categoryName } } } }
           : {}),
         ...(subcategoryName
-          ? { subcategory: { name: { equals: subcategoryName } } }
+          ? { subcategory: { is: { name: { equals: subcategoryName } } } }
           : {}),
       },
       include: { category: true, subcategory: true },
@@ -9921,13 +9921,13 @@ app.get('/api/hire-developer/benefits', async (req, res) => {
         ...(normalizedCategory && {
           OR: [
             { category: { equals: normalizedCategory } },
-            { benefitConfig: { category: { equals: normalizedCategory } } },
+            { benefitConfig: { is: { category: { equals: normalizedCategory } } } },
           ],
         }),
         ...(normalizedSubcategory && {
           OR: [
             { subcategory: { equals: normalizedSubcategory } },
-            { benefitConfig: { subcategory: { equals: normalizedSubcategory } } },
+            { benefitConfig: { is: { subcategory: { equals: normalizedSubcategory } } } },
           ],
         }),
         ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
