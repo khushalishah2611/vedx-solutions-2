@@ -116,9 +116,9 @@ const HireDevelopersPage = () => {
         description={heroConfig?.bannerSubtitle || heroConfig?.description}
         backgroundImage={heroConfig?.bannerImage}
         stats={[
-          heroConfig?.totalServices ? { label: 'Total services', value: `${heroConfig.totalServices}+` } : null,
-          heroConfig?.totalProjects ? { label: 'Total projects', value: `${heroConfig.totalProjects}+` } : null,
-          heroConfig?.totalClients ? { label: 'Total clients', value: `${heroConfig.totalClients}+` } : null,
+          heroConfig.totalServices ? { label: 'Recurring Client', value: `${heroConfig.totalServices}+` } : null,
+          heroConfig.totalClients ? { label: 'Total clients', value: `${heroConfig.totalProjects}+` } : null,
+          heroConfig.totalProjects ? { label: 'Satisfaction Ratio', value: `${heroConfig.totalClients}+` } : null,
         ].filter(Boolean)}
       />
 

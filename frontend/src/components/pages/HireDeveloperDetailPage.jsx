@@ -256,9 +256,9 @@ const HireDeveloperDetailPage = () => {
 
     if (totalServices || totalProjects || totalClients) {
       return [
-        totalServices ? { label: 'Total services', value: `${totalServices}+` } : null,
-        totalProjects ? { label: 'Total projects', value: `${totalProjects}+` } : null,
-        totalClients ? { label: 'Total clients', value: `${totalClients}+` } : null,
+        totalServices ? { label: 'Recurring Client', value: `${totalServices}+` } : null,
+        totalProjects ? { label: 'Team Experience', value: `${totalProjects}+` } : null,
+        totalClients ? { label: 'Satisfaction Ratio', value: `${totalClients}+` } : null,
       ].filter(Boolean);
     }
 

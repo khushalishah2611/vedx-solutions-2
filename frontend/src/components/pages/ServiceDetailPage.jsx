@@ -158,9 +158,9 @@ const ServiceDetailPage = () => {
   const heroStats = useMemo(() => {
     if (!serviceMenu) return [];
     return [
-      serviceMenu.totalServices ? { label: 'Total services', value: `${serviceMenu.totalServices}+` } : null,
-      serviceMenu.totalProjects ? { label: 'Total projects', value: `${serviceMenu.totalProjects}+` } : null,
-      serviceMenu.totalClients ? { label: 'Total clients', value: `${serviceMenu.totalClients}+` } : null,
+      serviceMenu.totalServices ? { label: 'Recurring Client', value: `${serviceMenu.totalServices}+` } : null,
+      serviceMenu.totalClients ? { label: 'Total clients', value: `${serviceMenu.totalProjects}+` } : null,
+      serviceMenu.totalProjects ? { label: 'Satisfaction Ratio', value: `${serviceMenu.totalClients}+` } : null,
     ].filter(Boolean);
   }, [serviceMenu]);
 
