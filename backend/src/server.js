@@ -6479,9 +6479,11 @@ const mapServiceMenuToResponse = (menu) => ({
 app.get('/api/service-menus', async (req, res) => {
   try {
     const { category, subcategory } = req.query;
+    const publicOnly = req.query.public === 'true';
 
     const menus = await prisma.serviceMenu.findMany({
       where: {
+        ...(publicOnly && { isActive: true }),
         ...(category && { category: String(category) }),
         ...(subcategory && {
           subcategories: {
@@ -7144,9 +7146,11 @@ app.get('/api/benefits', async (req, res) => {
   try {
     const { category, subcategory, benefitConfigId } = req.query;
     const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
+    const publicOnly = req.query.public === 'true';
 
     const benefits = await prisma.benefit.findMany({
       where: {
+        ...(publicOnly && { isActive: true }),
         ...(category && { category }),
         ...(subcategory && { subcategory }),
         ...(parsedBenefitConfigId && { benefitConfigId: parsedBenefitConfigId }),
@@ -8501,9 +8505,11 @@ const mapHireServiceToResponse = (service) => ({
 app.get('/api/hire-services', async (req, res) => {
   try {
     const { category, subcategory } = req.query;
+    const publicOnly = req.query.public === 'true';
 
     const services = await prisma.hireService.findMany({
       where: {
+        ...(publicOnly && { isActive: true }),
         ...(category && { category }),
         ...(subcategory && { subcategory }),
       },
@@ -8857,9 +8863,11 @@ app.get('/api/why-services', async (req, res) => {
   try {
     const { category, subcategory, whyChooseId } = req.query;
     const parsedWhyChooseId = parseIntegerId(whyChooseId);
+    const publicOnly = req.query.public === 'true';
 
     const services = await prisma.whyService.findMany({
       where: {
+        ...(publicOnly && { isActive: true }),
         ...(category && { category }),
         ...(subcategory && { subcategory }),
         ...(parsedWhyChooseId && { whyChooseId: parsedWhyChooseId }),
@@ -9577,9 +9585,11 @@ const requireIdParam = (req, res) => {
 app.get('/api/hire-developer/services', async (req, res) => {
   try {
     const { category } = req.query;
+    const publicOnly = req.query.public === 'true';
 
     const services = await prisma.hireDeveloperService.findMany({
       where: {
+        ...(publicOnly && { isActive: true }),
         ...(category && { category: String(category) }),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
@@ -9895,9 +9905,11 @@ app.get('/api/hire-developer/benefits', async (req, res) => {
   try {
     const { category, subcategory, benefitConfigId } = req.query;
     const parsedConfigId = parseIntegerId(benefitConfigId);
+    const publicOnly = req.query.public === 'true';
 
     const benefits = await prisma.hireDeveloperBenefit.findMany({
       where: {
+        ...(publicOnly && { isActive: true }),
         ...(category && { category: String(category) }),
         ...(subcategory && { subcategory: String(subcategory) }),
         ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
@@ -10344,9 +10356,11 @@ app.get('/api/hire-developer/why-vedx-reasons', async (req, res) => {
     const parsedConfigId = parseIntegerId(whyVedxConfigId);
     const normalizedCategory = normalizeText(category);
     const normalizedSubcategory = normalizeText(subcategory);
+    const publicOnly = req.query.public === 'true';
 
     const reasons = await prisma.hireDeveloperWhyVedx.findMany({
       where: {
+        ...(publicOnly && { isActive: true }),
         ...(parsedConfigId && { whyVedxConfigId: parsedConfigId }),
         ...(normalizedCategory ? { category: normalizedCategory } : {}),
         ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
@@ -10600,9 +10614,11 @@ app.get('/api/hire-developer/why-choose-services', async (req, res) => {
   try {
     const { category, subcategory, whyChooseConfigId } = req.query;
     const parsedConfigId = parseIntegerId(whyChooseConfigId);
+    const publicOnly = req.query.public === 'true';
 
     const services = await prisma.hireDeveloperWhyChoose.findMany({
       where: {
+        ...(publicOnly && { isActive: true }),
         ...(category && { category: String(category) }),
         ...(subcategory && { subcategory: String(subcategory) }),
         ...(parsedConfigId && { whyChooseConfigId: parsedConfigId }),

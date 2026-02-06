@@ -138,6 +138,7 @@ const ServicesWhyChoose = ({
         if (category) params.append('category', category);
         if (subcategory) params.append('subcategory', subcategory);
         params.append('includeReasons', 'true');
+        params.append('public', 'true');
 
         const requestPath =
           mode === 'hire'
@@ -162,9 +163,9 @@ const ServicesWhyChoose = ({
 
         if (shouldFetchHighlights) {
           const reasons = active?.reasons || [];
-          const sortedReasons = (reasons || []).sort(
-            (a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0)
-          );
+          const sortedReasons = (reasons || [])
+            .filter((item) => (item?.isActive ?? true) === true)
+            .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0));
 
           setApiHighlights(
             sortedReasons.map((item) => ({

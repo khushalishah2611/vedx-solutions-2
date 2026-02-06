@@ -56,6 +56,7 @@ const ServiceDetailPage = () => {
     const params = new URLSearchParams();
     if (categoryName) params.append('category', categoryName);
     if (subcategoryName) params.append('subcategory', subcategoryName);
+    params.append('public', 'true');
 
     const loadServiceMenu = async () => {
       try {
@@ -100,7 +101,7 @@ const ServiceDetailPage = () => {
 
     const loadTechnologies = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/technologies'));
+        const response = await fetchWithLoading(apiUrl('/api/technologies?public=true'));
         const data = await response.json();
         if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
         if (!isMounted) return;

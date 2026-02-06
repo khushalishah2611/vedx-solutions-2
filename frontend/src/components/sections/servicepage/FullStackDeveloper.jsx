@@ -76,6 +76,7 @@ function FullStackDeveloper({
         const params = new URLSearchParams();
         if (category) params.append("category", category);
         if (subcategory) params.append("subcategory", subcategory);
+        params.append("public", "true");
 
         const res = await fetch(
           apiUrl(`/api/hire-services${params.toString() ? `?${params}` : ""}`),
@@ -83,7 +84,9 @@ function FullStackDeveloper({
         );
 
         const json = await res.json().catch(() => null);
-        const list = normalizeList(json);
+        const list = normalizeList(json)
+          .filter((item) => (item?.isActive ?? true) === true)
+          .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0));
 
         const match =
           list.find((it) => {

@@ -38,7 +38,7 @@ const ServicesPage = ({ showHero = true }) => {
 
     const loadTechnologies = async () => {
       try {
-        const response = await fetchWithLoading(apiUrl('/api/technologies'));
+        const response = await fetchWithLoading(apiUrl('/api/technologies?public=true'));
         const data = await response.json();
         if (!response.ok) throw new Error(data?.error || 'Unable to load technologies');
         if (!isMounted) return;
