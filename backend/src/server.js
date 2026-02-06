@@ -7149,8 +7149,18 @@ app.get('/api/benefits', async (req, res) => {
 
     const benefits = await prisma.benefit.findMany({
       where: {
-        ...(normalizedCategory && { category: { equals: normalizedCategory, mode: 'insensitive' } }),
-        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }),
+        ...(normalizedCategory && {
+          OR: [
+            { category: { equals: normalizedCategory, mode: 'insensitive' } },
+            { benefitConfig: { category: { name: { equals: normalizedCategory, mode: 'insensitive' } } } },
+          ],
+        }),
+        ...(normalizedSubcategory && {
+          OR: [
+            { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } },
+            { benefitConfig: { subcategory: { name: { equals: normalizedSubcategory, mode: 'insensitive' } } } },
+          ],
+        }),
         ...(parsedBenefitConfigId && { benefitConfigId: parsedBenefitConfigId }),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
@@ -9908,8 +9918,18 @@ app.get('/api/hire-developer/benefits', async (req, res) => {
 
     const benefits = await prisma.hireDeveloperBenefit.findMany({
       where: {
-        ...(normalizedCategory && { category: { equals: normalizedCategory, mode: 'insensitive' } }),
-        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }),
+        ...(normalizedCategory && {
+          OR: [
+            { category: { equals: normalizedCategory, mode: 'insensitive' } },
+            { benefitConfig: { category: { equals: normalizedCategory, mode: 'insensitive' } } },
+          ],
+        }),
+        ...(normalizedSubcategory && {
+          OR: [
+            { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } },
+            { benefitConfig: { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } } },
+          ],
+        }),
         ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
