@@ -5,10 +5,6 @@ import { megaMenuContent } from '../data/content.js';
 import { useLoadingFetch } from './useLoadingFetch.js';
 
 const sortByOrderAndLabel = (a, b) => {
-  const activeA = a?.isActive ?? true;
-  const activeB = b?.isActive ?? true;
-  if (activeA !== activeB) return activeA ? -1 : 1;
-
   const orderA = Number.isFinite(Number(a?.sortOrder)) ? Number(a.sortOrder) : 0;
   const orderB = Number.isFinite(Number(b?.sortOrder)) ? Number(b.sortOrder) : 0;
   if (orderA !== orderB) return orderA - orderB;
@@ -18,19 +14,24 @@ const sortByOrderAndLabel = (a, b) => {
   return labelA.localeCompare(labelB);
 };
 
+const isItemActive = (item) => (item?.isActive ?? true) === true;
+
+const normalizePublicItems = (items = []) =>
+  [...items].filter(isItemActive).sort(sortByOrderAndLabel);
+
 const buildServiceMenu = (categories, subCategories) => {
   const grouped = new Map();
 
-  subCategories.forEach((sub) => {
+  normalizePublicItems(subCategories).forEach((sub) => {
     if (!grouped.has(sub.categoryId)) {
       grouped.set(sub.categoryId, []);
     }
     grouped.get(sub.categoryId).push(sub);
   });
 
-  const menuCategories = [...categories].sort(sortByOrderAndLabel).map((category) => {
+  const menuCategories = normalizePublicItems(categories).map((category) => {
     const items = grouped.get(category.id) ?? category.subCategories ?? [];
-    const sortedItems = [...items].sort(sortByOrderAndLabel);
+    const sortedItems = normalizePublicItems(items);
     const categoryHref = `/services/${category.slug}`;
 
     return {
@@ -53,16 +54,16 @@ const buildServiceMenu = (categories, subCategories) => {
 const buildHireMenu = (categories, roles) => {
   const grouped = new Map();
 
-  roles.forEach((role) => {
+  normalizePublicItems(roles).forEach((role) => {
     if (!grouped.has(role.hireCategoryId)) {
       grouped.set(role.hireCategoryId, []);
     }
     grouped.get(role.hireCategoryId).push(role);
   });
 
-  const menuCategories = [...categories].sort(sortByOrderAndLabel).map((category) => {
+  const menuCategories = normalizePublicItems(categories).map((category) => {
     const items = grouped.get(category.id) ?? category.roles ?? [];
-    const sortedItems = [...items].sort(sortByOrderAndLabel);
+    const sortedItems = normalizePublicItems(items);
     const categoryHref = `/hire-developers/${category.slug}`;
 
     return {
@@ -118,11 +119,13 @@ export const useServiceHireCatalog = () => {
 
         if (!isMounted) return;
 
-        setServiceCategories(serviceCategoryPayload.categories ?? []);
-        setServiceSubCategories(serviceSubCategoryPayload.subCategories ?? []);
-        setHireCategories(hireCategoryPayload.categories ?? []);
+        setServiceCategories(normalizePublicItems(serviceCategoryPayload.categories ?? []));
+        setServiceSubCategories(normalizePublicItems(serviceSubCategoryPayload.subCategories ?? []));
+        setHireCategories(normalizePublicItems(hireCategoryPayload.categories ?? []));
         setHireRoles(
-          hireCategoryPayload.categories?.flatMap((category) => category.roles ?? []) ?? []
+          normalizePublicItems(
+            hireCategoryPayload.categories?.flatMap((category) => category.roles ?? []) ?? []
+          )
         );
       };
 
@@ -143,13 +146,15 @@ export const useServiceHireCatalog = () => {
 
           if (!isMounted) return;
 
-          setServiceCategories(serviceCategoryPayload.categories ?? []);
-          setServiceSubCategories(serviceSubCategoryPayload.subCategories ?? []);
-          setHireCategories(hireCategoryPayload.categories ?? []);
+          setServiceCategories(normalizePublicItems(serviceCategoryPayload.categories ?? []));
+          setServiceSubCategories(normalizePublicItems(serviceSubCategoryPayload.subCategories ?? []));
+          setHireCategories(normalizePublicItems(hireCategoryPayload.categories ?? []));
           setHireRoles(
-            hireRolePayload.roles ??
-              hireCategoryPayload.categories?.flatMap((category) => category.roles ?? []) ??
-              []
+            normalizePublicItems(
+              hireRolePayload.roles ??
+                hireCategoryPayload.categories?.flatMap((category) => category.roles ?? []) ??
+                []
+            )
           );
           return;
         }
