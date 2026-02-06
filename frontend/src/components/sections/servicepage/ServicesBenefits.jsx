@@ -33,10 +33,6 @@ const ServicesBenefits = ({
       anchor.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
-  const sortedBenefits = (benefits || [])
-    .filter((item) => (item?.isActive ?? true) === true)
-    .slice()
-    .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0));
 
   return (
     <Box
@@ -76,7 +72,7 @@ const ServicesBenefits = ({
           alignItems: "stretch",
         }}
       >
-        {sortedBenefits.map((feature, index) => {
+        {( benefits).map((feature, index) => {
           const Icon =
             feature.icon || highlightIcons[index % highlightIcons.length];
 

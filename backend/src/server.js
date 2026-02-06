@@ -2287,11 +2287,11 @@ app.get('/api/blog-posts', async (req, res) => {
     if (searchTerm) {
       where.AND.push({
         OR: [
-          { title: { contains: searchTerm } },
-          { summary: { contains: searchTerm } },
-          { shortDescription: { contains: searchTerm } },
-          { longDescription: { contains: searchTerm } },
-          { conclusion: { contains: searchTerm } },
+          { title: { contains: searchTerm, mode: 'insensitive' } },
+          { summary: { contains: searchTerm, mode: 'insensitive' } },
+          { shortDescription: { contains: searchTerm, mode: 'insensitive' } },
+          { longDescription: { contains: searchTerm, mode: 'insensitive' } },
+          { conclusion: { contains: searchTerm, mode: 'insensitive' } },
         ],
       });
     }
@@ -2392,11 +2392,11 @@ app.get('/api/admin/blog-posts', async (req, res) => {
 
     if (searchTerm) {
       where.OR = [
-        { title: { contains: searchTerm } },
-        { summary: { contains: searchTerm } },
-        { shortDescription: { contains: searchTerm } },
-        { longDescription: { contains: searchTerm } },
-        { conclusion: { contains: searchTerm } },
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { summary: { contains: searchTerm, mode: 'insensitive' } },
+        { shortDescription: { contains: searchTerm, mode: 'insensitive' } },
+        { longDescription: { contains: searchTerm, mode: 'insensitive' } },
+        { conclusion: { contains: searchTerm, mode: 'insensitive' } },
       ];
     }
 
@@ -2738,8 +2738,8 @@ app.get('/api/case-studies', async (req, res) => {
 
     if (searchTerm) {
       where.OR = [
-        { title: { contains: searchTerm } },
-        { description: { contains: searchTerm } },
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
       ];
     }
 
@@ -2834,8 +2834,8 @@ app.get('/api/admin/case-studies', async (req, res) => {
 
     if (searchTerm) {
       where.OR = [
-        { title: { contains: searchTerm } },
-        { description: { contains: searchTerm } },
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
       ];
     }
 
@@ -7144,23 +7144,11 @@ app.get('/api/benefits', async (req, res) => {
   try {
     const { category, subcategory, benefitConfigId } = req.query;
     const parsedBenefitConfigId = parseIntegerId(benefitConfigId);
-    const normalizedCategory = normalizeText(category);
-    const normalizedSubcategory = normalizeText(subcategory);
 
     const benefits = await prisma.benefit.findMany({
       where: {
-        ...(normalizedCategory && {
-          OR: [
-            { category: { equals: normalizedCategory } },
-            { benefitConfig: { is: { category: { name: { equals: normalizedCategory } } } } },
-          ],
-        }),
-        ...(normalizedSubcategory && {
-          OR: [
-            { subcategory: { equals: normalizedSubcategory } },
-            { benefitConfig: { is: { subcategory: { name: { equals: normalizedSubcategory } } } } },
-          ],
-        }),
+        ...(category && { category }),
+        ...(subcategory && { subcategory }),
         ...(parsedBenefitConfigId && { benefitConfigId: parsedBenefitConfigId }),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
@@ -9043,20 +9031,15 @@ app.get('/api/why-vedx', async (req, res) => {
     const whyVedx = await prisma.whyVedx.findMany({
       where: {
         ...(categoryName
-          ? { category: { is: { name: { equals: categoryName } } } }
+          ? { category: { name: { equals: categoryName } } }
           : {}),
         ...(subcategoryName
-          ? { subcategory: { is: { name: { equals: subcategoryName } } } }
+          ? { subcategory: { name: { equals: subcategoryName } } }
           : {}),
       },
       include: {
         ...(includeReasons
-          ? {
-              reasons: {
-                include: { category: true, subcategory: true },
-                orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
-              },
-            }
+          ? { reasons: { include: { category: true, subcategory: true }, orderBy: { createdAt: 'desc' } } }
           : {}),
         category: true,
         subcategory: true,
@@ -9193,10 +9176,10 @@ app.get('/api/why-vedx-reasons', async (req, res) => {
       where: {
         ...(parsedWhyVedxId ? { whyVedxId: parsedWhyVedxId } : {}),
         ...(categoryName
-          ? { category: { is: { name: { equals: categoryName } } } }
+          ? { category: { name: { equals: categoryName, mode: 'insensitive' } } }
           : {}),
         ...(subcategoryName
-          ? { subcategory: { is: { name: { equals: subcategoryName } } } }
+          ? { subcategory: { name: { equals: subcategoryName, mode: 'insensitive' } } }
           : {}),
       },
       include: { category: true, subcategory: true },
@@ -9858,12 +9841,11 @@ const mapHireBenefit = (benefit) => ({
 // GET benefit configs
 app.get('/api/hire-developer/benefit-configs', async (req, res) => {
   try {
-    const normalizedCategory = normalizeText(req.query?.category);
-    const normalizedSubcategory = normalizeText(req.query?.subcategory);
+    const { category, subcategory } = req.query;
     const configs = await prisma.hireDeveloperBenefitConfig.findMany({
       where: {
-        ...(normalizedCategory && { category: { equals: normalizedCategory } }),
-        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory } }),
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -9911,25 +9893,13 @@ app.post('/api/hire-developer/benefit-configs', async (req, res) => {
 // GET benefits
 app.get('/api/hire-developer/benefits', async (req, res) => {
   try {
-    const { benefitConfigId } = req.query;
+    const { category, subcategory, benefitConfigId } = req.query;
     const parsedConfigId = parseIntegerId(benefitConfigId);
-    const normalizedCategory = normalizeText(req.query?.category);
-    const normalizedSubcategory = normalizeText(req.query?.subcategory);
 
     const benefits = await prisma.hireDeveloperBenefit.findMany({
       where: {
-        ...(normalizedCategory && {
-          OR: [
-            { category: { equals: normalizedCategory } },
-            { benefitConfig: { is: { category: { equals: normalizedCategory } } } },
-          ],
-        }),
-        ...(normalizedSubcategory && {
-          OR: [
-            { subcategory: { equals: normalizedSubcategory } },
-            { benefitConfig: { is: { subcategory: { equals: normalizedSubcategory } } } },
-          ],
-        }),
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
         ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
@@ -10322,8 +10292,8 @@ app.get('/api/hire-developer/why-vedx', async (req, res) => {
 
     const configs = await prisma.hireDeveloperWhyVedxConfig.findMany({
       where: {
-        ...(normalizedCategory ? { category: { equals: normalizedCategory } } : {}),
-        ...(normalizedSubcategory ? { subcategory: { equals: normalizedSubcategory } } : {}),
+        ...(normalizedCategory ? { category: normalizedCategory } : {}),
+        ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
       },
       include: includeReasons ? { reasons: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] } } : {},
       orderBy: { createdAt: 'desc' },
@@ -10378,8 +10348,8 @@ app.get('/api/hire-developer/why-vedx-reasons', async (req, res) => {
     const reasons = await prisma.hireDeveloperWhyVedx.findMany({
       where: {
         ...(parsedConfigId && { whyVedxConfigId: parsedConfigId }),
-        ...(normalizedCategory ? { category: { equals: normalizedCategory } } : {}),
-        ...(normalizedSubcategory ? { subcategory: { equals: normalizedSubcategory } } : {}),
+        ...(normalizedCategory ? { category: normalizedCategory } : {}),
+        ...(normalizedSubcategory ? { subcategory: normalizedSubcategory } : {}),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
@@ -10565,12 +10535,11 @@ const mapHireWhyChooseConfig = (config, includeServices = false) => ({
 // GET why choose configs
 app.get('/api/hire-developer/why-choose', async (req, res) => {
   try {
-    const normalizedCategory = normalizeText(req.query?.category);
-    const normalizedSubcategory = normalizeText(req.query?.subcategory);
+    const { category, subcategory } = req.query;
     const configs = await prisma.hireDeveloperWhyChooseConfig.findMany({
       where: {
-        ...(normalizedCategory && { category: { equals: normalizedCategory } }),
-        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory } }),
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
       },
       include: { services: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] } },
       orderBy: { createdAt: 'desc' },
@@ -10631,13 +10600,11 @@ app.get('/api/hire-developer/why-choose-services', async (req, res) => {
   try {
     const { category, subcategory, whyChooseConfigId } = req.query;
     const parsedConfigId = parseIntegerId(whyChooseConfigId);
-    const normalizedCategory = normalizeText(category);
-    const normalizedSubcategory = normalizeText(subcategory);
 
     const services = await prisma.hireDeveloperWhyChoose.findMany({
       where: {
-        ...(normalizedCategory && { category: { equals: normalizedCategory } }),
-        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory } }),
+        ...(category && { category: String(category) }),
+        ...(subcategory && { subcategory: String(subcategory) }),
         ...(parsedConfigId && { whyChooseConfigId: parsedConfigId }),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],

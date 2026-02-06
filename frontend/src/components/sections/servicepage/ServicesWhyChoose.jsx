@@ -163,15 +163,12 @@ const ServicesWhyChoose = ({
         if (shouldFetchHighlights) {
           const reasons = active?.reasons || [];
           setApiHighlights(
-            (reasons || [])
-              .filter((item) => (item?.isActive ?? true) === true)
-              .sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
-              .map((item) => ({
-                title: item?.title || '',
-                description: item?.description || '',
-                image: item?.image || '',
-                icon: item?.icon,
-              }))
+            (reasons || []).map((item) => ({
+              title: item?.title || '',
+              description: item?.description || '',
+              image: item?.image || '',
+              icon: item?.icon,
+            }))
           );
         }
       } catch (err) {
