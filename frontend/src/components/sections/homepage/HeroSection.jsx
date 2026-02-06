@@ -43,6 +43,7 @@ const HeroSection = ({ onRequestContact }) => {
           return {
             image,
             title: bannerTitle, // title from API
+            contactLabel: String(banner?.contactLabel ?? "").trim(),
             highlight: "", // highlight not used in API mode
           };
         })
@@ -80,6 +81,8 @@ const HeroSection = ({ onRequestContact }) => {
 
   const currentSlide = slides[activeSlide];
   const hasHighlight = Boolean(currentSlide?.highlight);
+
+  const contactButtonLabel = currentSlide?.contactLabel || "Let's Build Together";
 
   const handleContactClick = () => {
     onRequestContact?.("");
@@ -218,7 +221,7 @@ const HeroSection = ({ onRequestContact }) => {
                   },
                 }}
               >
-                Let&apos;s Build Together
+                {contactButtonLabel}
               </AppButton>
             </Stack>
           </Fade>

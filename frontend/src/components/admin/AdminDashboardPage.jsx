@@ -11,7 +11,6 @@ import { apiUrl } from "../../utils/const.js";
 
 const BANNER_TYPE_ORDER = [
   "home",
-  "dashboard",
   "about",
   "blogs",
   "case-study",
@@ -23,7 +22,6 @@ const BANNER_TYPE_ORDER = [
 
 const BANNER_TYPE_LABELS = {
   home: "Home",
-  dashboard: "Dashboard",
   about: "About",
   blogs: "Blogs",
   "case-study": "Case study",
@@ -138,6 +136,7 @@ const AdminDashboardPage = () => {
     image: "",
     images: [],
     type: "",
+    contactLabel: "",
     sortOrder: 0,
     isActive: true,
   });
@@ -644,6 +643,8 @@ const AdminDashboardPage = () => {
     const payload = {
       title: bannerForm.title.trim(),
       type: bannerForm.type,
+      contactLabel:
+        bannerForm.type === "home" ? bannerForm.contactLabel?.trim() || null : null,
       image: isHome ? null : bannerForm.image || null,
       images: isHome ? bannerForm.images : [],
       sortOrder: Number.isFinite(Number(bannerForm.sortOrder))
@@ -677,7 +678,7 @@ const AdminDashboardPage = () => {
       console.error("handleAddOrUpdateBanner error", err);
     }
 
-    setBannerForm({ title: "", image: "", images: [], type: "", sortOrder: 0, isActive: true });
+    setBannerForm({ title: "", image: "", images: [], type: "", contactLabel: "", sortOrder: 0, isActive: true });
     setEditingBannerId(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -692,6 +693,7 @@ const AdminDashboardPage = () => {
       image: match.image || "",
       images: match.images || [],
       type: match.type,
+      contactLabel: match.contactLabel || "",
       sortOrder: Number.isFinite(Number(match.sortOrder)) ? Number(match.sortOrder) : 0,
       isActive: Boolean(match.isActive ?? true),
     });
@@ -712,7 +714,7 @@ const AdminDashboardPage = () => {
       });
       if (editingBannerId === id) {
         setEditingBannerId(null);
-        setBannerForm({ title: "", image: "", images: [], type: "", sortOrder: 0, isActive: true });
+        setBannerForm({ title: "", image: "", images: [], type: "", contactLabel: "", sortOrder: 0, isActive: true });
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     } catch (err) {
@@ -1838,6 +1840,18 @@ const AdminDashboardPage = () => {
                     fullWidth
                   />
 
+                  {bannerForm.type === "home" && (
+                    <AppTextField
+                      label="Contact button label"
+                      value={bannerForm.contactLabel}
+                      onChange={(event) =>
+                        setBannerForm((prev) => ({ ...prev, contactLabel: event.target.value }))
+                      }
+                      fullWidth
+                      helperText="This label is shown on the home hero banner button."
+                    />
+                  )}
+
                   <AppSelectField
                    
                     label="Type"
@@ -1847,7 +1861,6 @@ const AdminDashboardPage = () => {
                     helperText="Choose where this banner will be used"
                   >
                     <MenuItem value="home">Home</MenuItem>
-                    <MenuItem value="dashboard">Dashboard</MenuItem>
                     <MenuItem value="about">About</MenuItem>
                     <MenuItem value="blogs">Blogs</MenuItem>
                     <MenuItem value="case-study">Case study</MenuItem>

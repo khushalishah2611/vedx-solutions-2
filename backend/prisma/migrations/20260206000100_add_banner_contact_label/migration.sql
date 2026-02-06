@@ -1,0 +1,2 @@
+ALTER TABLE `Banner`
+ADD COLUMN `contactLabel` VARCHAR(191) NULL;

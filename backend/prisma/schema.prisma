@@ -191,6 +191,7 @@ enum EmploymentType {
 model Banner {
   id        Int          @id @default(autoincrement())
   title     String
+  contactLabel String?
   type      BannerType
   /// Non-home banners (about/blogs/contact/career) ek image
   imageUrl  String?  @db.LongText
