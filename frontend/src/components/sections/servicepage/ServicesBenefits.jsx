@@ -1,11 +1,11 @@
-import React, { useMemo } from "react";
-import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from "@mui/material";
-import { AppButton } from "../../shared/FormControls.jsx";
+import { Box, Grid, Paper, Stack, Typography, alpha, useTheme } from '@mui/material';
+import { AppButton } from '../../shared/FormControls.jsx';
 
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+
 
 const highlightIcons = [
   WorkspacePremiumRoundedIcon,
@@ -13,37 +13,21 @@ const highlightIcons = [
   AutoAwesomeRoundedIcon,
 ];
 
-// ---------- helpers ----------
-const safeStr = (v) => (typeof v === "string" ? v.trim() : "");
-const getSort = (v) => {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-};
-
 const ServicesBenefits = ({
   onContactClick,
   onRequestContact,
-  contactAnchorId = "contact-section",
-  title = "",
-  description = "",
-  benefits = [],
+  contactAnchorId = 'contact-section',
+  title,
+  description,
+  benefits,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const accentColor = isDark ? "#67e8f9" : theme.palette.primary.main;
   const subtleText = alpha(theme.palette.text.secondary, isDark ? 0.85 : 0.78);
-
-  // ✅ sort without mutating original array
-  const sortedBenefits = useMemo(() => {
-    return [...(benefits || [])].sort(
-      (a, b) => getSort(a?.sortOrder) - getSort(b?.sortOrder)
-    );
-  }, [benefits]);
-
   const handleRequestQuote = () => {
-    onRequestContact?.("");
+    onRequestContact?.('');
     onContactClick?.();
-
     const anchor = document.getElementById(contactAnchorId);
     if (anchor) {
       anchor.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -51,7 +35,10 @@ const ServicesBenefits = ({
   };
 
   return (
-    <Box component="section">
+    <Box
+      component="section"
+
+    >
       {/* Section Header */}
       <Stack spacing={3} alignItems="center" textAlign="center" sx={{ mb: 6 }}>
         <Typography
@@ -62,21 +49,18 @@ const ServicesBenefits = ({
             lineHeight: 1.2,
           }}
         >
-          {safeStr(title)}
+          {title }
         </Typography>
-
-        {!!safeStr(description) && (
-          <Typography
-            variant="body1"
-            sx={{
-              color: subtleText,
-              lineHeight: 1.7,
-              maxWidth: 900,
-            }}
-          >
-            {description}
-          </Typography>
-        )}
+        <Typography
+          variant="body1"
+          sx={{
+            color: subtleText,
+         
+            lineHeight: 1.7,
+          }}
+        >
+          {description}
+        </Typography>
       </Stack>
 
       {/* Feature Grid */}
@@ -88,17 +72,12 @@ const ServicesBenefits = ({
           alignItems: "stretch",
         }}
       >
-        {sortedBenefits.map((feature, index) => {
+        {( benefits).map((feature, index) => {
           const Icon =
-            feature?.icon || highlightIcons[index % highlightIcons.length];
-
-          const key =
-            feature?.id ??
-            feature?.title ??
-            `${index}-${feature?.sortOrder ?? "no-order"}`;
+            feature.icon || highlightIcons[index % highlightIcons.length];
 
           return (
-            <Grid item xs={12} sm={6} md={4} key={key}>
+            <Grid item xs={12} sm={6} md={4} key={feature.title}>
               <Paper
                 elevation={0}
                 sx={{
@@ -124,6 +103,7 @@ const ServicesBenefits = ({
                     : "0 4px 30px rgba(15,23,42,0.15)",
                   "&:hover": {
                     transform: "translateY(-8px) scale(1.02)",
+
                     borderColor: alpha(accentColor, 0.5),
                   },
                 }}
@@ -136,16 +116,16 @@ const ServicesBenefits = ({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    borderRadius: 0.5,
+                    borderRadius:0.5,
                     mb: 2,
                   }}
                 >
-                  {feature?.image ? (
+                  {feature.image ? (
                     <Box
                       component="img"
                       src={feature.image}
-                      alt={feature?.title || "benefit"}
-                      sx={{ width: 70, height: 70, objectFit: "contain" }}
+                      alt={feature.title}
+                      sx={{ width: 70, height: 70, objectFit: 'contain' }}
                     />
                   ) : (
                     Icon && <Icon fontSize="medium" />
@@ -154,31 +134,23 @@ const ServicesBenefits = ({
 
                 {/* Text */}
                 <Stack spacing={1}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 700,
-                      textDecoration: "none",
-                      cursor: "pointer",
-                      transition: "color 0.3s ease, background-image 0.3s ease",
-                      "&:hover": {
-                        color: "transparent",
-                        backgroundImage:
-                          "linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)",
-                        WebkitBackgroundClip: "text",
-                        backgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      },
-                    }}
-                  >
-                    {feature?.title || ""}
+                  <Typography variant="h6" sx={{
+                    fontWeight: 700, textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'color 0.3s ease, background-image 0.3s ease',
+                    '&:hover': {
+                      color: 'transparent',
+                      backgroundImage: 'linear-gradient(90deg, #9c27b0 0%, #2196f3 100%)',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    },
+                  }}>
+                    {feature.title}
                   </Typography>
-
-                  {!!safeStr(feature?.description) && (
-                    <Typography variant="body2" sx={{ color: subtleText }}>
-                      {feature.description}
-                    </Typography>
-                  )}
+                  <Typography variant="body2" sx={{ color: subtleText }}>
+                    {feature.description}
+                  </Typography>
                 </Stack>
               </Paper>
             </Grid>
@@ -215,4 +187,3 @@ const ServicesBenefits = ({
 };
 
 export default ServicesBenefits;
-``
