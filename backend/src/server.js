@@ -2287,11 +2287,11 @@ app.get('/api/blog-posts', async (req, res) => {
     if (searchTerm) {
       where.AND.push({
         OR: [
-          { title: { contains: searchTerm, mode: 'insensitive' } },
-          { summary: { contains: searchTerm, mode: 'insensitive' } },
-          { shortDescription: { contains: searchTerm, mode: 'insensitive' } },
-          { longDescription: { contains: searchTerm, mode: 'insensitive' } },
-          { conclusion: { contains: searchTerm, mode: 'insensitive' } },
+          { title: { contains: searchTerm } },
+          { summary: { contains: searchTerm } },
+          { shortDescription: { contains: searchTerm } },
+          { longDescription: { contains: searchTerm } },
+          { conclusion: { contains: searchTerm } },
         ],
       });
     }
@@ -2392,11 +2392,11 @@ app.get('/api/admin/blog-posts', async (req, res) => {
 
     if (searchTerm) {
       where.OR = [
-        { title: { contains: searchTerm, mode: 'insensitive' } },
-        { summary: { contains: searchTerm, mode: 'insensitive' } },
-        { shortDescription: { contains: searchTerm, mode: 'insensitive' } },
-        { longDescription: { contains: searchTerm, mode: 'insensitive' } },
-        { conclusion: { contains: searchTerm, mode: 'insensitive' } },
+        { title: { contains: searchTerm } },
+        { summary: { contains: searchTerm } },
+        { shortDescription: { contains: searchTerm } },
+        { longDescription: { contains: searchTerm } },
+        { conclusion: { contains: searchTerm } },
       ];
     }
 
@@ -2738,8 +2738,8 @@ app.get('/api/case-studies', async (req, res) => {
 
     if (searchTerm) {
       where.OR = [
-        { title: { contains: searchTerm, mode: 'insensitive' } },
-        { description: { contains: searchTerm, mode: 'insensitive' } },
+        { title: { contains: searchTerm } },
+        { description: { contains: searchTerm } },
       ];
     }
 
@@ -2834,8 +2834,8 @@ app.get('/api/admin/case-studies', async (req, res) => {
 
     if (searchTerm) {
       where.OR = [
-        { title: { contains: searchTerm, mode: 'insensitive' } },
-        { description: { contains: searchTerm, mode: 'insensitive' } },
+        { title: { contains: searchTerm } },
+        { description: { contains: searchTerm } },
       ];
     }
 
@@ -7151,14 +7151,14 @@ app.get('/api/benefits', async (req, res) => {
       where: {
         ...(normalizedCategory && {
           OR: [
-            { category: { equals: normalizedCategory, mode: 'insensitive' } },
-            { benefitConfig: { category: { name: { equals: normalizedCategory, mode: 'insensitive' } } } },
+            { category: { equals: normalizedCategory } },
+            { benefitConfig: { category: { name: { equals: normalizedCategory } } } },
           ],
         }),
         ...(normalizedSubcategory && {
           OR: [
-            { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } },
-            { benefitConfig: { subcategory: { name: { equals: normalizedSubcategory, mode: 'insensitive' } } } },
+            { subcategory: { equals: normalizedSubcategory } },
+            { benefitConfig: { subcategory: { name: { equals: normalizedSubcategory } } } },
           ],
         }),
         ...(parsedBenefitConfigId && { benefitConfigId: parsedBenefitConfigId }),
@@ -9043,10 +9043,10 @@ app.get('/api/why-vedx', async (req, res) => {
     const whyVedx = await prisma.whyVedx.findMany({
       where: {
         ...(categoryName
-          ? { category: { name: { equals: categoryName, mode: 'insensitive' } } }
+          ? { category: { name: { equals: categoryName } } }
           : {}),
         ...(subcategoryName
-          ? { subcategory: { name: { equals: subcategoryName, mode: 'insensitive' } } }
+          ? { subcategory: { name: { equals: subcategoryName } } }
           : {}),
       },
       include: {
@@ -9193,10 +9193,10 @@ app.get('/api/why-vedx-reasons', async (req, res) => {
       where: {
         ...(parsedWhyVedxId ? { whyVedxId: parsedWhyVedxId } : {}),
         ...(categoryName
-          ? { category: { name: { equals: categoryName, mode: 'insensitive' } } }
+          ? { category: { name: { equals: categoryName } } }
           : {}),
         ...(subcategoryName
-          ? { subcategory: { name: { equals: subcategoryName, mode: 'insensitive' } } }
+          ? { subcategory: { name: { equals: subcategoryName } } }
           : {}),
       },
       include: { category: true, subcategory: true },
@@ -9862,8 +9862,8 @@ app.get('/api/hire-developer/benefit-configs', async (req, res) => {
     const normalizedSubcategory = normalizeText(req.query?.subcategory);
     const configs = await prisma.hireDeveloperBenefitConfig.findMany({
       where: {
-        ...(normalizedCategory && { category: { equals: normalizedCategory, mode: 'insensitive' } }),
-        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }),
+        ...(normalizedCategory && { category: { equals: normalizedCategory } }),
+        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory } }),
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -9920,14 +9920,14 @@ app.get('/api/hire-developer/benefits', async (req, res) => {
       where: {
         ...(normalizedCategory && {
           OR: [
-            { category: { equals: normalizedCategory, mode: 'insensitive' } },
-            { benefitConfig: { category: { equals: normalizedCategory, mode: 'insensitive' } } },
+            { category: { equals: normalizedCategory } },
+            { benefitConfig: { category: { equals: normalizedCategory } } },
           ],
         }),
         ...(normalizedSubcategory && {
           OR: [
-            { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } },
-            { benefitConfig: { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } } },
+            { subcategory: { equals: normalizedSubcategory } },
+            { benefitConfig: { subcategory: { equals: normalizedSubcategory } } },
           ],
         }),
         ...(parsedConfigId && { benefitConfigId: parsedConfigId }),
@@ -10322,8 +10322,8 @@ app.get('/api/hire-developer/why-vedx', async (req, res) => {
 
     const configs = await prisma.hireDeveloperWhyVedxConfig.findMany({
       where: {
-        ...(normalizedCategory ? { category: { equals: normalizedCategory, mode: 'insensitive' } } : {}),
-        ...(normalizedSubcategory ? { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } } : {}),
+        ...(normalizedCategory ? { category: { equals: normalizedCategory } } : {}),
+        ...(normalizedSubcategory ? { subcategory: { equals: normalizedSubcategory } } : {}),
       },
       include: includeReasons ? { reasons: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] } } : {},
       orderBy: { createdAt: 'desc' },
@@ -10378,8 +10378,8 @@ app.get('/api/hire-developer/why-vedx-reasons', async (req, res) => {
     const reasons = await prisma.hireDeveloperWhyVedx.findMany({
       where: {
         ...(parsedConfigId && { whyVedxConfigId: parsedConfigId }),
-        ...(normalizedCategory ? { category: { equals: normalizedCategory, mode: 'insensitive' } } : {}),
-        ...(normalizedSubcategory ? { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } } : {}),
+        ...(normalizedCategory ? { category: { equals: normalizedCategory } } : {}),
+        ...(normalizedSubcategory ? { subcategory: { equals: normalizedSubcategory } } : {}),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
@@ -10569,8 +10569,8 @@ app.get('/api/hire-developer/why-choose', async (req, res) => {
     const normalizedSubcategory = normalizeText(req.query?.subcategory);
     const configs = await prisma.hireDeveloperWhyChooseConfig.findMany({
       where: {
-        ...(normalizedCategory && { category: { equals: normalizedCategory, mode: 'insensitive' } }),
-        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }),
+        ...(normalizedCategory && { category: { equals: normalizedCategory } }),
+        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory } }),
       },
       include: { services: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] } },
       orderBy: { createdAt: 'desc' },
@@ -10636,8 +10636,8 @@ app.get('/api/hire-developer/why-choose-services', async (req, res) => {
 
     const services = await prisma.hireDeveloperWhyChoose.findMany({
       where: {
-        ...(normalizedCategory && { category: { equals: normalizedCategory, mode: 'insensitive' } }),
-        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory, mode: 'insensitive' } }),
+        ...(normalizedCategory && { category: { equals: normalizedCategory } }),
+        ...(normalizedSubcategory && { subcategory: { equals: normalizedSubcategory } }),
         ...(parsedConfigId && { whyChooseConfigId: parsedConfigId }),
       },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
