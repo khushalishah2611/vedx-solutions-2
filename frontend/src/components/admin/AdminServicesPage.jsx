@@ -454,6 +454,8 @@ const AdminServicesPage = () => {
       id: category?.id,
       name: category?.name || '',
       subCategories: category?.subCategories || [],
+      sortOrder: Number.isFinite(Number(category?.sortOrder)) ? Number(category?.sortOrder) : 0,
+      isActive: category?.isActive ?? true,
     }),
     []
   );
@@ -464,6 +466,8 @@ const AdminServicesPage = () => {
       name: subcategory?.name || '',
       categoryId: subcategory?.categoryId,
       categoryName: subcategory?.category?.name || '',
+      sortOrder: Number.isFinite(Number(subcategory?.sortOrder)) ? Number(subcategory?.sortOrder) : 0,
+      isActive: subcategory?.isActive ?? true,
     }),
     []
   );
@@ -580,25 +584,25 @@ const AdminServicesPage = () => {
 
   const loadServiceCategories = useCallback(async () => {
     try {
-      const response = await fetch(apiUrl('/api/service-categories'));
+      const response = await fetch(apiUrl('/api/admin/service-categories'), { headers: { Authorization: `Bearer ${requireToken()}` } });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load categories');
-      setServiceCategories((data?.categories || []).map(normalizeServiceCategory));
+      setServiceCategories((data?.categories || []).map(normalizeServiceCategory).sort(sortByOrderAndStatus));
     } catch (err) {
       console.error('Failed to load service categories', err);
     }
-  }, [normalizeServiceCategory]);
+  }, [normalizeServiceCategory, requireToken, sortByOrderAndStatus]);
 
   const loadServiceSubcategories = useCallback(async () => {
     try {
-      const response = await fetch(apiUrl('/api/service-subcategories'));
+      const response = await fetch(apiUrl('/api/admin/service-subcategories'), { headers: { Authorization: `Bearer ${requireToken()}` } });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Unable to load sub-categories');
-      setServiceSubcategories((data?.subCategories || []).map(normalizeServiceSubcategory));
+      setServiceSubcategories((data?.subCategories || []).map(normalizeServiceSubcategory).sort(sortByOrderAndStatus));
     } catch (err) {
       console.error('Failed to load service subcategories', err);
     }
-  }, [normalizeServiceSubcategory]);
+  }, [normalizeServiceSubcategory, requireToken, sortByOrderAndStatus]);
 
   const loadBenefits = useCallback(
     async ({ category, subcategory, benefitConfigId } = {}) => {

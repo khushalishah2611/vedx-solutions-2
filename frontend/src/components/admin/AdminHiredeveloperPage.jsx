@@ -214,6 +214,8 @@ const emptyExpertiseForm = {
 const normalizeHireMasterCategory = (category = {}) => ({
   id: category.id,
   title: category.title || '',
+  sortOrder: Number.isFinite(Number(category.sortOrder)) ? Number(category.sortOrder) : 0,
+  isActive: category.isActive ?? true,
   subcategories: Array.isArray(category.roles)
     ? category.roles.map((role) => role.title || '').filter(Boolean)
     : [],
@@ -222,6 +224,8 @@ const normalizeHireMasterCategory = (category = {}) => ({
 const normalizeHireMasterSubcategory = (subcategory = {}) => ({
   id: subcategory.id,
   title: subcategory.title || '',
+  sortOrder: Number.isFinite(Number(subcategory.sortOrder)) ? Number(subcategory.sortOrder) : 0,
+  isActive: subcategory.isActive ?? true,
   category:
     subcategory.category ||
     subcategory.categoryTitle ||
@@ -712,8 +716,8 @@ const rowsPerPage = 20;
 
   const loadHireMasterCategories = async () => {
     try {
-      const data = await fetchJson('/api/hire-categories');
-      setHireMasterCategories((data?.categories || []).map(normalizeHireMasterCategory));
+      const data = await fetchJson('/api/admin/hire-categories');
+      setHireMasterCategories((data?.categories || []).map(normalizeHireMasterCategory).sort(sortByOrderAndStatus));
     } catch (error) {
       console.error('Failed to load hire category master data', error);
       setHireMasterCategories([]);
@@ -723,7 +727,7 @@ const rowsPerPage = 20;
   const loadHireMasterSubcategories = async () => {
     try {
       const data = await fetchJson('/api/admin/hire-roles');
-      setHireMasterSubcategories((data?.roles || data || []).map(normalizeHireMasterSubcategory));
+      setHireMasterSubcategories((data?.roles || data || []).map(normalizeHireMasterSubcategory).sort(sortByOrderAndStatus));
     } catch (error) {
       console.error('Failed to load hire subcategory master data', error);
       setHireMasterSubcategories([]);

@@ -1149,7 +1149,10 @@ app.get('/api/service-categories', async (_req, res) => {
 app.get('/api/service-subcategories', async (_req, res) => {
   try {
     const subCategories = await prisma.serviceSubCategory.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        category: { isActive: true },
+      },
       include: { category: true },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
